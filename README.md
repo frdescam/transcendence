@@ -3,7 +3,7 @@
 This is the last mandatory project of the 42 school.
 The goal is to create a complete, full featured website to organize a *Pong* competition.
 We have to use the NestJS backend framework.
-We're free to choose any frontend framework but we didn't choose yet
+We were free to choose any typescript frontend framework, we choose Vue.js
 
 Feel free to read the subject for more information
 

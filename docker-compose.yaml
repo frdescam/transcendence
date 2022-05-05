@@ -1,27 +1,36 @@
 version: '3.3'
 
 services:
+  ################ Postgresql ################
   postgres:
     container_name: postgres
     restart: unless-stopped
     image: postgres:14
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:${DB_PORT}
     volumes:
       - ./data/db:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - .env
+  ################## Website #################
   app:
     container_name: app
     restart: unless-stopped
     depends_on:
       - postgres
     ports:
-      - "3000:3000"
+      - ${APP_PORT}:${APP_PORT}
     build:
       context: .
       dockerfile: ./docker/Dockerfile
     volumes:
       - /etc/localtime:/etc/localtime:ro
-
+    env_file:
+      - .env

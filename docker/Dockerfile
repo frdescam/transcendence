@@ -11,20 +11,9 @@
 
 #CMD		["node", "dist/main"]
 
-# == FRONT == ##
-FROM	node:lts-alpine
-WORKDIR /usr/src/app/front
-
-COPY    frontend/package*.json ./
-COPY    frontend/yarn*.lock ./
-
-RUN     yarn install
-COPY    frontend/. .
-RUN		yarn build
-
 # == BACK == ##
 FROM	node:lts-alpine
-WORKDIR /usr/src/app/back
+WORKDIR /usr/src/app/backend
 
 COPY    backend/package*.json ./
 COPY    backend/yarn*.lock ./
@@ -33,4 +22,16 @@ RUN     yarn install
 COPY    backend/. .
 RUN		yarn build
 
+# == FRONT == ##
+FROM	node:lts-alpine
+WORKDIR /usr/src/app/frontend
+
+COPY    frontend/package*.json ./
+COPY    frontend/yarn*.lock ./
+
+RUN     yarn install
+COPY    frontend/. .
+RUN		yarn build
+
+# == START == ##
 CMD		["node", "dist/main"]

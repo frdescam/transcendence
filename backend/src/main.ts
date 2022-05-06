@@ -6,8 +6,8 @@ import * as process from 'process';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.useStaticAssets(path.join(__dirname, '..', '..', 'frontend', 'public'));
-  //app.useStaticAssets(path.join(__dirname, '..', 'static'));
-  await app.listen(parseInt(process.env.APP_PORT, 10));
+  app.enableCors();
+  app.useStaticAssets(path.join(__dirname, '..', '..', 'frontend', 'dist'));
+  await app.listen(parseInt(process.env.BACK_PORT, 10));
 }
 bootstrap();

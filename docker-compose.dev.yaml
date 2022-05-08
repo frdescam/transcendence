@@ -70,10 +70,24 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: root
-      PGADMIN_SERVER_JSON_FILE: /pgadmin4/_servers.json
     volumes:
-      - ./servers.json:/pgadmin4/_servers.json
-    command: chown -R 5050:5050 /pgadmin4/_servers.json
+      - pgadmin:/var/lib/pgadmin
+      - ./docker/pgpass:/tmp/pgpassfile
+      - ./docker/servers.json:/pgadmin4/servers.json
+    #command:
+    #  - "/bin/sh"
+    #  - "-c"
+    #  - "/venv/bin/python3 ./setup.py --load-servers /pgadmin4/servers.json --user admin@admin.com"
+    #entrypoint:
+    #  - "/bin/sh"
+    #  - "-c"
+    #  - "/bin/echo 'postgres:5432:*:user:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
+    entrypoint:
+      - "/bin/sh"
+      - "-c"
+      - "/bin/echo 'NOPASSWD' | sudo -S /bin/chmod 600 /tmp/pgpassfile"
+    #links:
+    #  - db:pgsql-server
     networks:
       - webnet
 
@@ -82,5 +96,6 @@ networks:
     driver: bridge
   
 volumes:
+  pgadmin:
   pgdata:
     driver: local

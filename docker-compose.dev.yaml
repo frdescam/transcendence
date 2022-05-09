@@ -33,6 +33,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/back.Dockerfile
+      args:
+        NODE_ENV: developpement
     volumes:
       - './backend/:/usr/src/app'
     command: yarn start:dev
@@ -50,6 +52,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/front.Dockerfile
+      args:
+        NODE_ENV: developpement
     command: yarn dev
     volumes:
       - './frontend/:/usr/src/app'
@@ -61,33 +65,17 @@ services:
   ################## PGadmin ##################
   pgadmin:
     container_name: pgadmin
-    image: dpage/pgadmin4
     restart: unless-stopped
     depends_on:
       - postgres
     ports:
       - 5000:80
+    build:
+      context: .
+      dockerfile: ./docker/pgadmin.Dockerfile
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: root
-    volumes:
-      - pgadmin:/var/lib/pgadmin
-      - ./docker/pgpass:/tmp/pgpassfile
-      - ./docker/servers.json:/pgadmin4/servers.json
-    #command:
-    #  - "/bin/sh"
-    #  - "-c"
-    #  - "/venv/bin/python3 ./setup.py --load-servers /pgadmin4/servers.json --user admin@admin.com"
-    #entrypoint:
-    #  - "/bin/sh"
-    #  - "-c"
-    #  - "/bin/echo 'postgres:5432:*:user:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
-    entrypoint:
-      - "/bin/sh"
-      - "-c"
-      - "/bin/echo 'NOPASSWD' | sudo -S /bin/chmod 600 /tmp/pgpassfile"
-    #links:
-    #  - db:pgsql-server
     networks:
       - webnet
 
@@ -96,6 +84,5 @@ networks:
     driver: bridge
   
 volumes:
-  pgadmin:
   pgdata:
     driver: local

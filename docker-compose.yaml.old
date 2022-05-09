@@ -18,17 +18,33 @@ services:
       - .env
     networks:
       - webnet
-  ################## Website #################
-  website:
-    container_name: website
+  ################## Backend #################
+  back:
+    container_name: back
     restart: unless-stopped
     depends_on:
       - postgres
     ports:
+      - ${BACK_PORT}:${BACK_PORT}
+    build:
+      context: .
+      dockerfile: ./docker/back.Dockerfile
+      args:
+        NODE_ENV: production
+    command: node dist/main
+    env_file:
+      - .env
+    networks:
+      - webnet
+  ################## Frontend #################
+  front:
+    container_name: front
+    restart: unless-stopped
+    ports:
       - ${VITE_PORT}:${VITE_PORT}
     build:
       context: .
-      dockerfile: ./docker/production.Dockerfile
+      dockerfile: ./docker/front.Dockerfile
       args:
         NODE_ENV: production
     env_file:

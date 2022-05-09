@@ -1,17 +1,13 @@
 FROM	node:lts-alpine
 WORKDIR /usr/src/app/
 
-COPY    frontend/. frontend
+# Build backend
 COPY    backend/. .
+RUN     yarn install
+RUN     yarn build
 
 # Build frontend
+COPY    frontend/. frontend
 RUN     (cd frontend && yarn install && yarn build)
-
-# Build backend
-RUN     yarn install
-
-ARG     NODE_ENV
-ENV 	NODE_ENV=${NODE_ENV}
-RUN     yarn build
 
 CMD ["node", "dist/main"]

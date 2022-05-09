@@ -25,7 +25,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - ${VITE_PORT}:${VITE_PORT}
+      - ${BACK_PORT}:${BACK_PORT}
     build:
       context: .
       dockerfile: ./docker/production.Dockerfile

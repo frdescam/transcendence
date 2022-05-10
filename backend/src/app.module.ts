@@ -9,9 +9,11 @@ import * as path from 'path';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: ((process.env.NODE_ENV === 'production') ?
-        path.join(__dirname, 'frontend', 'dist') :
-        path.join(__dirname, '..', 'frontend', 'dist'))
+      rootPath: (
+        (process.env.NODE_ENV === 'production') ?
+        path.join(__dirname, '..', 'frontend', 'dist') :
+        path.join(__dirname, '..', 'static_dev')
+      )
     }),
     DatabaseModule,
     ChatModule,

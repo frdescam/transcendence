@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, reactive, readonly } from 'vue'
+import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
+import Scene, { mapConfig, options } from './canvas/scene';
+import config from './maps/forest/config';
+import profil from "./ressources/demo_avatar.jpeg?url";
 
 interface gameState {
   loaded: boolean,
@@ -11,14 +14,51 @@ interface gameState {
 defineProps<{ userId: string, party: string }>()
 
 
-const state = reactive<gameState>({ loaded: false, ready: false, paused: true, graphics: 1 });
+const state = reactive<gameState>({ loaded: false, ready: false, paused: true, graphics: 0 });
+
+var scene: null | Scene = null;
+const canvas = ref<Ref | null>(null);
+
+function animate()
+{
+  (scene as Scene).render(animate);
+}
+
+function resize()
+{
+  (scene as Scene).setSize(canvas.value.offsetWidth, canvas.value.offsetHeight);
+}
 
 onMounted(()=>{
-  
+  	scene = new Scene(
+      config as mapConfig,
+      {
+        targetElem: canvas.value,
+        qualityLevel: state.graphics,
+        width: canvas.value.offsetWidth,
+        height: canvas.value.offsetHeight,
+        onReady: () => {state.loaded = true; animate()},
+      } as options,
+      0
+    );
+    scene.setState({
+      paused: true,
+      ballY: 0.5,
+      ballSpeedX: 1,
+      text: "Awaiting players...",
+      textSize: 0.5,
+      textColor: 0xff0000,
+      avatars: [profil, null]
+    }, 0);
+
+    window.addEventListener('resize', resize);
 })
 
 onBeforeUnmount(()=>{
-
+  window.removeEventListener('resize', resize);
+  
+  scene?.dispose();
+  scene = null;
 })
 
 function togglePause()
@@ -36,7 +76,7 @@ defineExpose({
 <template>
   <div class="root">
 
-    <canvas class="game-container" id="game-threejs-canvas"></canvas>
+    <canvas class="game-container" ref="canvas"></canvas>
 
     <div class="valign-wrapper game-container" v-if="!state.loaded">
       <div class="progress brown lighten-4">
@@ -56,8 +96,8 @@ defineExpose({
 .game-container
 {
   position: absolute;
-  height: 100%;
-  width: 100%;
+  height: 100% !important;
+  width: 100% !important;
 }
 .progress
 {

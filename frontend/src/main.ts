@@ -8,12 +8,12 @@ import '@quasar/extras/material-icons-sharp/material-icons-sharp.css'
 import 'quasar/src/css/index.sass'
 // Vue
 import { createApp } from 'vue'
+import Router from './routers/index';
 import App from './App.vue'
 
-const front = createApp(App);
-
-front.use(Quasar, {
+createApp(App)
+.use(Quasar, {
     plugins: {}
-});
-
-front.mount('#app');
+})
+.use(Router)
+.mount('#app');

@@ -1,16 +1,22 @@
 'use strict';
-import {Euler, Mesh, PlaneGeometry, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, BoxGeometry, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Color, Vector3, Material, Texture, MeshBasicMaterial, MeshToonMaterial, MeshDepthMaterial, MeshPhongMaterial, MeshDistanceMaterial, MeshLambertMaterial, MeshMatcapMaterial, MeshNormalMaterial, MeshPhysicalMaterial, MeshStandardMaterial} from 'three';
-import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
+import {Euler, Mesh, PlaneGeometry, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, BoxGeometry, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Color, Vector3, Material, Texture, MeshBasicMaterial, MeshToonMaterial, MeshDepthMaterial, MeshPhongMaterial, MeshDistanceMaterial, MeshLambertMaterial, MeshMatcapMaterial, MeshNormalMaterial, MeshPhysicalMaterial, MeshStandardMaterial, PlaneBufferGeometry, BoxBufferGeometry, BufferGeometry, sRGBEncoding} from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import {quality, qualities} from './qualities';
 import clientLogic from '../logic/client';
 import {state, team} from '../logic/common';
 
 type mapConfig = {
-	sceneFile: string,
-	skybox: [
+	cameraClip: [number, number],
+	sceneFile?: string,
+	additionnalLight?: string[],
+	skybox?: [
 		skybox_px: string,
 		skybox_nx: string,
 		skybox_py: string,
@@ -85,10 +91,11 @@ class PongScene
 	protected scene: Scene;
 	protected envTexture: Texture;
 	protected renderer: WebGLRenderer;
+	protected composer: EffectComposer;
 	protected camera: PerspectiveCamera;
 	protected floorMirror: Reflector | null;
 	protected floor: Mesh;
-	protected envLight: AmbientLight;
+	protected envLight: AmbientLight | null;
 	protected ball: Mesh;
 	protected player1: Mesh;
 	protected player2: Mesh;
@@ -149,7 +156,7 @@ class PongScene
 					font,
 					size: 8 * gameScale * sizeRatio,
 					height: 1 * gameScale * sizeRatio,
-					curveSegments: 4,
+					curveSegments: 3,
 					bevelEnabled: false,
 				}
 			);
@@ -207,7 +214,7 @@ class PongScene
 		}
 		if (reflection && floorReflectivity > 0.001)
 		{
-			const floorMirrorGeometry = new PlaneGeometry(
+			const floorMirrorGeometry = new PlaneBufferGeometry(
 				baseSize[0] * gameScale,
 				baseSize[1] * gameScale
 			);
@@ -236,13 +243,14 @@ class PongScene
 	_refreshQuality()
 	{
 		const {
+			sceneFile, additionnalLight,
 			skybox, skyboxAsEnvironment, EnvironmentColor,
-			lightDecayFactor, lightIntensityFactor,
 		} = this.config;
 		const {
 			qualityLevel, 
 		} = this.options;
 		const {
+			critical,
 			pixelRatio,
 			useShadowmap, shadowmap, shadowmapSize,
 			reflection,
@@ -268,7 +276,7 @@ class PongScene
 
 		this._refreshFloorReflection();
 
-		if (reflection && skybox)
+		if ((reflection || !sceneFile) && skybox)
 		{
 			if (this.envTexture)
 				this._refreshEnv(canUseSkyboxAsEnvironment);
@@ -298,6 +306,7 @@ class PongScene
 		{
 			this.scene.remove(this.envLight);
 			this.envLight.dispose();
+			this.envLight = null;
 		}
 
 		this.scene.traverse(
@@ -311,9 +320,13 @@ class PongScene
 							node.shadow.mapSize.height =
 								shadowmapSize;
 					}
-
-					node.decay *= lightDecayFactor;
-					node.intensity *= lightIntensityFactor;
+					if (critical && additionnalLight)
+					{
+						if (additionnalLight.includes(node.name))
+							node.visible = false;
+					}
+					else
+						node.visible = true;
 				}
 			}
 		);
@@ -326,6 +339,7 @@ class PongScene
 		} = this.options;
 
 		this.renderer.setSize( width, height );
+		this.composer.setSize( width, height );
 		this.camera.aspect = width / height;
 		this.camera.updateProjectionMatrix();
 		this._refreshFloorReflection();
@@ -334,12 +348,13 @@ class PongScene
 	_init()
 	{
 		const {
-			sceneFile,
+			cameraClip, sceneFile,
 			gameScale, pauseCameraPosition, pauseCameraRotation,
 			ballMaterial, baseSize,
 			floorMaterial,
 			playerSize, player1Material, player2Material, moveSteps,
 			scoreFont, textFont,
+			lightDecayFactor, lightIntensityFactor,
 		} = this.config;
 		const {
 			width, height,
@@ -363,11 +378,12 @@ class PongScene
 		this.skyboxLoader = new CubeTextureLoader(this.loadingManager);
 		
 		this.scene = new Scene();
+
 		this.camera = new PerspectiveCamera(
 			60,
 			width / height,
-			0.1,
-			1000
+			cameraClip[0],
+			cameraClip[1]
 		);
 		
 		this.camera.position.copy(pauseCameraPosition).multiplyScalar(gameScale);
@@ -375,6 +391,7 @@ class PongScene
 		
 		this.renderer = new WebGLRenderer({
 			antialias: true,
+			// antialias: false,
 			powerPreference: "high-performance",
 			canvas: targetElem
 		});
@@ -382,14 +399,17 @@ class PongScene
 		this.renderer.outputEncoding = LinearEncoding;
 		this.renderer.toneMapping = ACESFilmicToneMapping;
 
+		this.composer = this.track(new EffectComposer( this.renderer ));
+		this.composer.addPass( this.track( new RenderPass( this.scene, this.camera ) ) );
+		// this.composer.addPass( this.track( new ShaderPass( FXAAShader ) ) );
 
-		const ballGeometry = this.track(new BoxGeometry(gameScale, gameScale, gameScale));
+		const ballGeometry = this.track(new BoxBufferGeometry(gameScale, gameScale, gameScale));
 		this.ball = this.track(new Mesh( ballGeometry, ballMaterial ));
 		this.ball.receiveShadow = true;
 		this.ball.castShadow = true;
 		this.scene.add( this.ball );
 
-		const floorGeometry = this.track(new BoxGeometry(
+		const floorGeometry = this.track(new BoxBufferGeometry(
 			baseSize[0] * gameScale,
 			baseSize[1] * gameScale,
 			gameScale
@@ -404,7 +424,7 @@ class PongScene
 		this.floor.renderOrder = 3;
 		this.scene.add( this.floor );
 
-		const playersGeometry = this.track(new BoxGeometry(playerSize[0] * gameScale, gameScale, playerSize[1] * gameScale));
+		const playersGeometry = this.track(new BoxBufferGeometry(playerSize[0] * gameScale, gameScale, playerSize[1] * gameScale));
 		const playerPosX = (baseSize[0] - playerSize[0]) / 2;
 
 		this.player1 = this.track(new Mesh( playersGeometry, player1Material ));
@@ -419,27 +439,35 @@ class PongScene
 		this.player2.castShadow = true;
 		this.scene.add( this.player2 );
 
-		this.gltfLoader.load(
-			sceneFile,
-			function (gltf: any)
-			{			
-				gltf.scene.traverse(
-					function (node: any)
-					{
-						if (node.isMesh)
+		if (sceneFile)
+		{
+			this.gltfLoader.load(
+				sceneFile,
+				function (gltf: any)
+				{			
+					gltf.scene.traverse(
+						function (node: any)
 						{
-							node.castShadow = true;
-							node.receiveShadow = true;
-							_self.track(node.geometry);
-							_self.track(node.material);
+							if (node.isLight)
+							{
+								node.decay *= lightDecayFactor;
+								node.intensity *= lightIntensityFactor;
+							}
+							if (node.isMesh)
+							{
+								node.castShadow = true;
+								node.receiveShadow = true;
+								_self.track(node.geometry);
+								_self.track(node.material);
+							}
+							_self.track(node);
 						}
-						_self.track(node);
-					}
-				);
-				_self.scene.add(gltf.scene);
-				_self._refreshQuality();
-			}
-		);
+					);
+					_self.scene.add(gltf.scene);
+					_self._refreshQuality();
+				}
+			);
+		}
 
 		this.scoreFont = null;
 		this.rightScore = null;
@@ -476,6 +504,10 @@ class PongScene
 				{
 					this.render(null);
 					onReady();
+					console.log("Scene polycount:", this.renderer.info.render.triangles)
+					console.log("Active Drawcalls:", this.renderer.info.render.calls)
+					console.log("Textures in Memory", this.renderer.info.memory.textures)
+					console.log("Geometries in Memory", this.renderer.info.memory.geometries)
 				}
 			};
 		this.loadingManager.onProgress = onProgress;
@@ -518,7 +550,8 @@ class PongScene
 		if (paused)
 			return ;
 
-		this.renderer.domElement.removeEventListener("wheel", this.scrollMovementCallback);
+		if (this.scrollMovementCallback)
+			this.renderer.domElement.removeEventListener("wheel", this.scrollMovementCallback);
 		this.scrollMovementCallback = null;
 	}
 
@@ -579,6 +612,7 @@ class PongScene
 		if (avatars[0])
 		{
 			this.leftAvatarImage = new TextureLoader().load( avatars[0] );
+			this.leftAvatarImage.encoding = sRGBEncoding;
 			const leftAvatarMaterial = new SpriteMaterial( { map: this.leftAvatarImage } );
 			this.leftAvatar = new Sprite( leftAvatarMaterial );
 			this.leftAvatar.receiveShadow = true;
@@ -599,6 +633,7 @@ class PongScene
 		if (avatars[1])
 		{
 			this.rightAvatarImage = new TextureLoader().load( avatars[1] );
+			this.rightAvatarImage.encoding = sRGBEncoding;
 			const rightAvatarMaterial = new SpriteMaterial( { map: this.rightAvatarImage } );
 			this.rightAvatar = new Sprite( rightAvatarMaterial );
 			this.rightAvatar.receiveShadow = true;
@@ -696,7 +731,7 @@ class PongScene
 
 		this.ball.visible = (ballSpeedX != 0 || ballSpeedY != 0);
 
-		this.renderer.render( this.scene, this.camera );
+		this.composer.render();
 	}
 
 	setState(state: state, ping: number)

@@ -2,6 +2,7 @@ import { BasicShadowMap, PCFSoftShadowMap } from "three";
 
 type quality = {
 	pixelRatio: number | 'device';
+	critical?: boolean,
 	useShadowmap: boolean;
 	shadowmap?: typeof BasicShadowMap | typeof PCFSoftShadowMap;
 	shadowmapSize?: number;
@@ -14,6 +15,7 @@ type quality = {
 const qualities: quality[] = [
 	{
 		pixelRatio: 0.5,
+		critical: true,
 		useShadowmap: false,
 		shadowmap: undefined,
 		reflection: false,
@@ -21,7 +23,7 @@ const qualities: quality[] = [
 	},
 	{
 		pixelRatio: 0.75,
-		useShadowmap: true,
+		useShadowmap: false,
 		shadowmap: BasicShadowMap,
 		shadowmapSize: 256,
 		reflection: false,

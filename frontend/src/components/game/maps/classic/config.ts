@@ -1,12 +1,5 @@
 import {Vector3, Euler, Material, MeshPhongMaterial, MeshLambertMaterial, MeshBasicMaterial} from 'three';
 import {mapConfig} from '../../canvas/scene';
-import skybox_px from "../../ressources/kloppenheim_02/px.png?url";
-import skybox_nx from "../../ressources/kloppenheim_02/nx.png?url";
-import skybox_py from "../../ressources/kloppenheim_02/py.png?url";
-import skybox_ny from "../../ressources/kloppenheim_02/ny.png?url";
-import skybox_pz from "../../ressources/kloppenheim_02/pz.png?url";
-import skybox_nz from "../../ressources/kloppenheim_02/nz.png?url";
-import sceneFile from "./scene.glb?url";
 import scoreFont from "three/examples/fonts/helvetiker_regular.typeface.json?url";  // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 import textFont from "three/examples/fonts/helvetiker_regular.typeface.json?url";  // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 
@@ -16,24 +9,14 @@ import textFont from "three/examples/fonts/helvetiker_regular.typeface.json?url"
 // 	emissiveIntensity: 0.5,
 // 	specular: 0x777777
 // });
-const itemsMaterial: Material = new MeshLambertMaterial({
-	color: 0xaaaaaa
+const itemsMaterial: Material = new MeshBasicMaterial({
+	color: 0xffffff,
 });
 
 const config: mapConfig = {
 	cameraClip: [1, 45],
-	sceneFile,
-	additionnalLight: ["1_Rouge_Orientation", "5_Bleu_Orientation"],
-	skybox: [
-		skybox_px,
-		skybox_nx,
-		skybox_py,
-		skybox_ny,
-		skybox_pz,
-		skybox_nz,
-	],
-	skyboxAsEnvironment: true,
-	EnvironmentColor: 0x707070,
+	skyboxAsEnvironment: false,
+	EnvironmentColor: 0xffffff,
 	lightDecayFactor: 0.5,
 	lightIntensityFactor: 0.15,
 	transitionSpeed: 2,
@@ -41,10 +24,8 @@ const config: mapConfig = {
 	playCameraRotation: new Euler(-Math.PI / 2 * 0.88, 0, 0),
 	pauseCameraPosition: new Vector3(0, 57.15, 34.30),
 	pauseCameraRotation: new Euler(-Math.PI / 2 * 0.7, 0, 0),
-	floorMaterial: new MeshPhongMaterial({
-		color: 0x00000,
-		emissive: 0x00000,
-		specular: 0x080808
+	floorMaterial: new MeshBasicMaterial({
+		color: 0x121212,
 	}),
 	floorReflectivity: 0.15,
 	floorReflectorColor: 0x777777,
@@ -57,14 +38,8 @@ const config: mapConfig = {
 	moveSteps: 70,
 	moveStatusRouding: true,
 	scoreFont,
-	// scoreMaterial: new MeshPhongMaterial({
-	// 	color: 0xffffff,
-	// 	emissive: 0xffffff,
-	// 	emissiveIntensity: 0.5,
-	// 	specular: 0x777777
-	// }),
-	scoreMaterial: new MeshLambertMaterial({
-		color: 0xaaaaaa
+	scoreMaterial: new MeshBasicMaterial({
+		color: 0xaaaaaa,
 	}),
 	scorePositions: [
 		new Vector3(-(32.5 - 8), 4, -(53 / 2 + 4)),
@@ -79,16 +54,8 @@ const config: mapConfig = {
 		new Vector3(36.5, 4, 0),
 	],
 	textFont,
-	// textMaterial: new MeshPhongMaterial({
-	// 	color: 0xffffff,
-	// 	emissive: 0xffffff,
-	// 	emissiveIntensity: 0.5,
-	// 	specular: 0x777777
-	// }),
-	textMaterial: new MeshLambertMaterial({
+	textMaterial: new MeshBasicMaterial({
 		color: 0xffffff,
-		emissive: 0xffffff,
-		emissiveIntensity: 0.5,
 	}),
 	textPausePosition: new Vector3(0, 15, 10),
 	textPauseRotation: new Euler(-Math.PI / 2 * 0.75, 0, 0),

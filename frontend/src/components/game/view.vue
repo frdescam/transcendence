@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
 import Scene, { mapConfig, options } from './canvas/scene';
-import config from './maps/forest/config';
-import profil from "./ressources/demo_avatar.jpeg?url";
+import config from './maps/classic/config';
+import profil from "./ressources/demo_avatar.png?url";
 
 interface gameState {
   loaded: boolean,
@@ -52,6 +52,7 @@ onMounted(()=>{
     }, 0);
 
     window.addEventListener('resize', resize);
+    // (function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
 })
 
 onBeforeUnmount(()=>{

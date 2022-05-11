@@ -1,22 +1,25 @@
 import { createRouter, createWebHistory } from 'vue-router';
-// Routes
-import Index from '@/views/Index.vue';
-import About from '@/views/About.vue';
+import Index from '@/views/pages/Index.vue';
+import Login from '@/views/pages/Login.vue';
+
+/**
+ * Connect historyAPI to vue router
+ */
 
 const routes = [
-    {
-        path: '/',
-        name: 'Home',
-        component: Index,
-    },
-    {
-        path: '/about',
-        name: 'About',
-        component: About,
-    }
+	{
+		path: '/',
+		name: 'Index',
+		component: Index,
+	},
+	{
+		path: '/login',
+		name: 'Login',
+		component: Login,
+	}
 ];
 
 export default createRouter({
-    history: createWebHistory(),
-    routes: routes,
+	history: createWebHistory(),
+	routes,
 });

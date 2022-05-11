@@ -16,10 +16,12 @@ export default defineConfig({
     host: process.env.VITE_IP,
     port: parseInt(process.env.VITE_PORT, 10) | 3000
   },
+  define: {
+    __api: JSON.stringify(apiUrl),
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      'api': apiUrl
     },
   },
   plugins: [

@@ -1,19 +1,28 @@
 // Quasar
-import { Quasar } from 'quasar'
-import '@quasar/extras/roboto-font-latin-ext/roboto-font-latin-ext.css'
-import '@quasar/extras/material-icons/material-icons.css'
-import '@quasar/extras/material-icons-outlined/material-icons-outlined.css'
-import '@quasar/extras/material-icons-round/material-icons-round.css'
-import '@quasar/extras/material-icons-sharp/material-icons-sharp.css'
-import 'quasar/src/css/index.sass'
+import { Quasar, AppFullscreen, Notify } from 'quasar';
+import '@quasar/extras/material-icons/material-icons.css';
+import '@quasar/extras/material-icons-outlined/material-icons-outlined.css';
+import 'quasar/src/css/index.sass';
 // Vue
-import { createApp } from 'vue'
-import Router from './routers/index';
-import App from './App.vue'
+import { createApp } from 'vue';
+import router from './routers/index';
+import Main from './views/layouts/Main.vue';
 
-createApp(App)
+createApp(Main)
 .use(Quasar, {
-    plugins: {}
+	plugins: {
+		AppFullscreen,
+		Notify,
+	},
+	config: {
+		notify: {
+			type: 'positive',
+			color: 'primary',
+			textColor: 'primary',
+			message: 'notify',
+			html: false
+		}
+	}
 })
-.use(Router)
+.use(router)
 .mount('#app');

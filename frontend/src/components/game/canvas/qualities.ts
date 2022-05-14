@@ -23,7 +23,7 @@ const qualities: quality[] = [
 	},
 	{
 		pixelRatio: 0.75,
-		useShadowmap: false,
+		useShadowmap: true,
 		shadowmap: BasicShadowMap,
 		shadowmapSize: 256,
 		reflection: false,

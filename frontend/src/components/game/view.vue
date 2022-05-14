@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
 import Scene, { mapConfig, options } from './canvas/scene';
-import config from './maps/classic/config';
-import profil from "./ressources/demo_avatar.png?url";
+import config from './maps/forest/config';
+import profil from "./ressources/demo_avatar.jpeg?url";
 
 interface gameState {
   loaded: boolean,
@@ -21,7 +21,7 @@ const canvas = ref<Ref | null>(null);
 
 function animate()
 {
-  (scene as Scene).render(animate);
+  (scene as Scene).render();
 }
 
 function resize()
@@ -37,7 +37,10 @@ onMounted(()=>{
         qualityLevel: state.graphics,
         width: canvas.value.offsetWidth,
         height: canvas.value.offsetHeight,
-        onReady: () => {state.loaded = true; animate()},
+        onReady: () => {
+          state.loaded = true;
+          (scene as Scene).setAnimationLoop(animate);
+        },
       } as options,
       0
     );
@@ -56,6 +59,7 @@ onMounted(()=>{
 })
 
 onBeforeUnmount(()=>{
+  (scene as Scene).setAnimationLoop(null);
   window.removeEventListener('resize', resize);
   
   scene?.dispose();

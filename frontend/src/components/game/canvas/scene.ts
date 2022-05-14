@@ -4,10 +4,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import {quality, qualities} from './qualities';
 import clientLogic from '../logic/client';
 import {state, team} from '../logic/common';
@@ -91,7 +87,6 @@ class PongScene
 	protected scene: Scene;
 	protected envTexture: Texture;
 	protected renderer: WebGLRenderer;
-	protected composer: EffectComposer;
 	protected camera: PerspectiveCamera;
 	protected floorMirror: Reflector | null;
 	protected floor: Mesh;
@@ -170,7 +165,7 @@ class PongScene
 	_basicRotationLerp(euler1: Euler, euler2: Euler, ratio: number): Euler
 	{
 		return (
-			new Euler(
+			euler1.set(
 				euler1.x * (1-ratio) + euler2.x * ratio,
 				euler1.y * (1-ratio) + euler2.y * ratio,
 				euler1.z * (1-ratio) + euler2.z * ratio,
@@ -227,6 +222,8 @@ class PongScene
 			});
 			this.floorMirror.rotation.x = -Math.PI / 2;
 			this.floorMirror.position.y = -gameScale / 2;
+			this.floorMirror.matrixAutoUpdate = false;
+			this.floorMirror.updateMatrix();
 			this.scene.add( this.floorMirror );
 
 
@@ -259,7 +256,7 @@ class PongScene
 		const _self = this;
 
 		if (pixelRatio == 'device')
-			this.renderer.setPixelRatio( window.devicePixelRatio );
+			this.renderer.setPixelRatio( Math.min(window.devicePixelRatio, 2) );
 		else
 			this.renderer.setPixelRatio( pixelRatio || 1 );
 
@@ -300,6 +297,8 @@ class PongScene
 		if (!skybox || !(skyboxAsEnvironment && canUseSkyboxAsEnvironment))
 		{
 			this.envLight = new AmbientLight( EnvironmentColor, 1.0 );
+			this.envLight.matrixAutoUpdate = false;
+			this.envLight.updateMatrix();
 			this.scene.add( this.envLight );
 		}
 		else if (this.envLight)
@@ -339,7 +338,6 @@ class PongScene
 		} = this.options;
 
 		this.renderer.setSize( width, height );
-		this.composer.setSize( width, height );
 		this.camera.aspect = width / height;
 		this.camera.updateProjectionMatrix();
 		this._refreshFloorReflection();
@@ -391,17 +389,12 @@ class PongScene
 		
 		this.renderer = new WebGLRenderer({
 			antialias: true,
-			// antialias: false,
 			powerPreference: "high-performance",
 			canvas: targetElem
 		});
 		this.renderer.physicallyCorrectLights = true;
 		this.renderer.outputEncoding = LinearEncoding;
 		this.renderer.toneMapping = ACESFilmicToneMapping;
-
-		this.composer = this.track(new EffectComposer( this.renderer ));
-		this.composer.addPass( this.track( new RenderPass( this.scene, this.camera ) ) );
-		// this.composer.addPass( this.track( new ShaderPass( FXAAShader ) ) );
 
 		const ballGeometry = this.track(new BoxBufferGeometry(gameScale, gameScale, gameScale));
 		this.ball = this.track(new Mesh( ballGeometry, ballMaterial ));
@@ -422,6 +415,8 @@ class PongScene
 		this.floor.rotation.x = -Math.PI / 2;
 		this.floor.position.y = -gameScale + 0.005;
 		this.floor.renderOrder = 3;
+		this.floor.matrixAutoUpdate = false;
+		this.floor.updateMatrix();
 		this.scene.add( this.floor );
 
 		const playersGeometry = this.track(new BoxBufferGeometry(playerSize[0] * gameScale, gameScale, playerSize[1] * gameScale));
@@ -460,6 +455,8 @@ class PongScene
 								_self.track(node.geometry);
 								_self.track(node.material);
 							}
+							node.matrixAutoUpdate = false;
+							node.updateMatrix();
 							_self.track(node);
 						}
 					);
@@ -502,7 +499,7 @@ class PongScene
 			() => {
 				if (onReady)
 				{
-					this.render(null);
+					this.render();
 					onReady();
 					console.log("Scene polycount:", this.renderer.info.render.triangles)
 					console.log("Active Drawcalls:", this.renderer.info.render.calls)
@@ -578,6 +575,8 @@ class PongScene
 		this.leftScore.castShadow = true;
 		this.leftScore.position.copy(scorePositions[0]).multiplyScalar(gameScale);
 		this.leftScore.rotation.copy(scoreRotations[0]);
+		this.leftScore.matrixAutoUpdate = false;
+		this.leftScore.updateMatrix();
 		this.scene.add(this.leftScore);
 		
 		if (this.rightScore)
@@ -592,6 +591,8 @@ class PongScene
 		this.rightScore.castShadow = true;
 		this.rightScore.position.copy(scorePositions[1]).multiplyScalar(gameScale);
 		this.rightScore.rotation.copy(scoreRotations[1]);
+		this.rightScore.matrixAutoUpdate = false;
+		this.rightScore.updateMatrix();
 		this.scene.add(this.rightScore);
 	}
 
@@ -618,6 +619,8 @@ class PongScene
 			this.leftAvatar.receiveShadow = true;
 			this.leftAvatar.castShadow = true;
 			this.leftAvatar.position.copy(avatarPositions[0]).multiplyScalar(gameScale);
+			this.leftAvatar.matrixAutoUpdate = false;
+			this.leftAvatar.updateMatrix();
 			this.scene.add( this.leftAvatar );
 		}
 
@@ -639,6 +642,8 @@ class PongScene
 			this.rightAvatar.receiveShadow = true;
 			this.rightAvatar.castShadow = true;
 			this.rightAvatar.position.copy(avatarPositions[1]).multiplyScalar(gameScale);
+			this.rightAvatar.matrixAutoUpdate = false;
+			this.rightAvatar.updateMatrix();
 			this.scene.add( this.rightAvatar );
 		}
 	}
@@ -680,14 +685,11 @@ class PongScene
 		this.scene.add(this.text);
 	}
 
-	render(animate: null | (() => void))
+	render()
 	{
 		if (this.disposed)
 			return ;
 		
-		if (animate)
-			window.requestAnimationFrame(animate);
-
 		const delta = this.clock.getDelta();
 
 		clientLogic(this.state, this.config, delta);
@@ -709,29 +711,34 @@ class PongScene
 		if (paused)
 		{
 			this.camera.position.lerp(pauseCameraPosition.clone().multiplyScalar(gameScale), lerpValue);
-			this.camera.rotation.copy(this._basicRotationLerp(this.camera.rotation, pauseCameraRotation, lerpValue));
+			this._basicRotationLerp(this.camera.rotation, pauseCameraRotation, lerpValue);
 
 			if (this.text)
 			{
 				this.text.position.lerp(textPausePosition.clone().multiplyScalar(gameScale), lerpValue);
-				this.text.rotation.copy(this._basicRotationLerp(this.text.rotation, textPauseRotation, lerpValue));
+				this._basicRotationLerp(this.text.rotation, textPauseRotation, lerpValue);
 			}
 		}
 		else
 		{
 			this.camera.position.lerp(playCameraPosition.clone().multiplyScalar(gameScale), lerpValue);
-			this.camera.rotation.copy(this._basicRotationLerp(this.camera.rotation, playCameraRotation, lerpValue));
+			this._basicRotationLerp(this.camera.rotation, playCameraRotation, lerpValue);
 
 			if (this.text)
 			{
 				this.text.position.lerp(textPlayPosition.clone().multiplyScalar(gameScale), lerpValue);
-				this.text.rotation.copy(this._basicRotationLerp(this.text.rotation, textPlayRotation, lerpValue));
+				this._basicRotationLerp(this.text.rotation, textPlayRotation, lerpValue);
 			}
 		}
 
 		this.ball.visible = (ballSpeedX != 0 || ballSpeedY != 0);
 
-		this.composer.render();
+		this.renderer.render(this.scene, this.camera);
+	}
+
+	setAnimationLoop(animate: () => void)
+	{
+		this.renderer.setAnimationLoop(animate);
 	}
 
 	setState(state: state, ping: number)

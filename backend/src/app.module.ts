@@ -17,6 +17,7 @@ import * as path from 'path';
     }),
     DatabaseModule,
     ChatModule,
-    UserModule],
+    UserModule
+  ],
 })
 export class AppModule {}

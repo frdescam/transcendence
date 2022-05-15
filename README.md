@@ -29,7 +29,7 @@ Feel free to read the subject for more information
 ## <a id="command">Command</a>
 
 ### <a id="command_clean">Clean docker instance</a>
-> This script allows you to fully clean docker (volume, data, etc...), but also the node_modules and yarn cachesdocker-compose
+> This script allows you to fully clean docker (volume, data, etc...), but also the node_modules and yarn cache
 ```shell
 chmod +x dockerPrune.sh
 ./dockerPrune.sh

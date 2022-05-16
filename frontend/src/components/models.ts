@@ -1,8 +1,3 @@
-export interface Todo {
+export interface Fake {
   id: number;
-  content: string;
-}
-
-export interface Meta {
-  totalCount: number;
 }

@@ -69,6 +69,8 @@ module.exports = {
 		'multiline-ternary': 'off',
 		'no-tabs': ['error', { allowIndentationTabs: true }],
 		indent: ['error', 'tab'],
+		'brace-style': ['error', 'allman'],
+		curly: ['error', 'multi-or-nest'],
 
 		semi: ['error', 'always'],
 

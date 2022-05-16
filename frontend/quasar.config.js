@@ -5,7 +5,8 @@ const { transformAssetUrls } = require('@quasar/vite-plugin');
 const process = require('process');
 const path = require('path');
 
-module.exports = configure(() => {
+module.exports = configure(() =>
+{
 	let apiUrl = 'http://';
 	apiUrl += (process.env.BACK_IP) ? process.env.BACK_IP : '127.0.0.1';
 	apiUrl += ':';

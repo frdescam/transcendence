@@ -1,0 +1,88 @@
+version: '3.3'
+
+services:
+  ################ Postgresql ################
+  postgres:
+    container_name: postgres
+    restart: unless-stopped
+    image: postgres:14
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - .env
+    networks:
+      - webnet
+
+  ################## Backend #################
+  back:
+    container_name: back
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - ${BACK_PORT}:${BACK_PORT}
+    build:
+      context: .
+      dockerfile: ./docker/back.Dockerfile
+      args:
+        NODE_ENV: developpement
+    command: yarn start:dev
+    volumes:
+      - './backend/:/usr/src/app'
+    env_file:
+      - .env
+    networks:
+      - webnet
+
+  ################## Frontend #################
+  front:
+    container_name: front
+    restart: unless-stopped
+    ports:
+      - ${VITE_PORT}:${VITE_PORT}
+    build:
+      context: .
+      dockerfile: ./docker/front.Dockerfile
+      args:
+        NODE_ENV: developpement
+    command: yarn dev
+    volumes:
+      - './frontend/:/usr/src/app'
+    env_file:
+      - .env
+    networks:
+      - webnet
+
+  ################## PGadmin ##################
+  pgadmin:
+    container_name: pgadmin
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - 5000:80
+    build:
+      context: .
+      dockerfile: ./docker/pgadmin.Dockerfile
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    driver: bridge
+  
+volumes:
+  pgdata:
+    driver: local

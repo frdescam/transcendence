@@ -1,5 +1,5 @@
 'use strict';
-import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Color, Vector3, Material, Texture, MeshToonMaterial, MeshPhongMaterial, MeshMatcapMaterial, MeshPhysicalMaterial, MeshStandardMaterial, PlaneBufferGeometry, BoxBufferGeometry, sRGBEncoding, ShadowMapType, MeshBasicMaterial, LinearMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipMapLinearFilter } from 'three';
+import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Color, Vector3, Material, Texture, MeshToonMaterial, MeshPhongMaterial, MeshMatcapMaterial, MeshPhysicalMaterial, MeshStandardMaterial, PlaneBufferGeometry, BoxBufferGeometry, sRGBEncoding, ShadowMapType, MeshBasicMaterial, LinearMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipMapLinearFilter, NearestFilter } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
@@ -8,8 +8,12 @@ import { quality, qualities } from './qualities';
 import clientLogic from '../logic/client';
 import { state, team } from '../logic/common';
 
+import { Notify } from 'quasar'
+
 type mapConfig = {
 	cameraClip: [number, number],
+	fov: number,
+	forceRotationRatio: number,
 	sceneFile?: string,
 	additionnalLight?: string[],
 	skybox?: [
@@ -341,11 +345,32 @@ class PongScene
 		const {
 			width, height,
 		} = this.options;
+		const {
+			fov,
+			forceRotationRatio
+		} = this.config;
 
 		this.renderer.setSize( width, height );
 		this.camera.aspect = width / height;
+
+		if (width * 0.5625 < height)
+			this.camera.fov = Math.atan( Math.tan( fov * Math.PI / 360 ) / this.camera.aspect / 0.5625  ) * 360 / Math.PI;
+		else
+			this.camera.fov = fov;
+
+		if (this.camera.aspect < forceRotationRatio)
+		{
+			Notify.create({
+				type: 'info',
+				icon: 'screen_rotation',
+				position: 'top',
+				message: 'Please rotate your screen for better experience'
+			})
+		}
+
 		this.camera.updateProjectionMatrix();
 		this._refreshFloorReflection();
+		// this.renderer.render(this.scene, this.camera);
 	}
 
 	_init()
@@ -656,11 +681,12 @@ class PongScene
 		if (avatars[0])
 		{
 			this.leftAvatarImage = new TextureLoader().load( avatars[0] );
-			this.leftAvatarImage.encoding = sRGBEncoding;
-			this.leftAvatarImage.minFilter = LinearMipmapNearestFilter;
-			const leftAvatarMaterial = new SpriteMaterial( { map: this.leftAvatarImage } );
+			this.leftAvatarImage.minFilter = this.leftAvatarImage.magFilter = LinearMipmapNearestFilter;
+			const leftAvatarMaterial = new SpriteMaterial( { map: this.leftAvatarImage, sizeAttenuation: false } );
+			leftAvatarMaterial.precision = "highp";
+			leftAvatarMaterial.toneMapped = false;
 			this.leftAvatar = new Sprite( leftAvatarMaterial );
-			this.leftAvatar.scale.set(avatarScale,avatarScale,1);
+			this.leftAvatar.scale.set(avatarScale * gameScale, avatarScale * gameScale, 1);
 			this.leftAvatar.position.copy(avatarPositions[0]).multiplyScalar(gameScale);
 			this.leftAvatar.matrixAutoUpdate = false;
 			this.leftAvatar.updateMatrix();
@@ -679,11 +705,12 @@ class PongScene
 		if (avatars[1])
 		{
 			this.rightAvatarImage = new TextureLoader().load( avatars[1] );
-			this.rightAvatarImage.encoding = sRGBEncoding;
-			this.leftAvatarImage.minFilter = LinearMipmapNearestFilter;
-			const rightAvatarMaterial = new SpriteMaterial( { map: this.rightAvatarImage } );
+			this.rightAvatarImage.minFilter = this.rightAvatarImage.magFilter = LinearMipmapNearestFilter;
+			const rightAvatarMaterial = new SpriteMaterial( { map: this.rightAvatarImage, sizeAttenuation: false } );
+			rightAvatarMaterial.precision = "highp";
+			rightAvatarMaterial.toneMapped = false;
 			this.rightAvatar = new Sprite( rightAvatarMaterial );
-			this.rightAvatar.scale.set(avatarScale, avatarScale,1);
+			this.rightAvatar.scale.set(avatarScale * gameScale, avatarScale * gameScale, 1);
 			this.rightAvatar.position.copy(avatarPositions[1]).multiplyScalar(gameScale);
 			this.rightAvatar.matrixAutoUpdate = false;
 			this.rightAvatar.updateMatrix();

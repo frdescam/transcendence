@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import clsx from 'clsx';
+import { AppFullscreen } from 'quasar'
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
 import Scene, { mapConfig, options } from './canvas/scene';
 import config from './maps/forest/config';
@@ -76,23 +78,28 @@ function togglePause ()
 
 function setQuality (val)
 {
-  scene?.setQuality(val);
+	scene?.setQuality(val);
 }
 
 defineExpose({
 	togglePause,
-  setQuality,
+	setQuality,
 	state: readonly(state)
 });
 </script>
 
 <template>
-	<div class="root">
+	<div
+		:class="clsx('root', {
+			'col': AppFullscreen.isActive,
+			'windowed': !AppFullscreen.isActive
+		})"
+	>
 
 		<canvas class="game-container" ref="canvas"></canvas>
 
 		<div class="game-container full-width row justify-center content-center progress" v-if="!state.loaded">
-      <q-linear-progress indeterminate rounded track-color="brown-3" color="green-9" class="self-center"/>
+			<q-linear-progress indeterminate rounded track-color="brown-3" color="green-9" class="self-center"/>
 		</div>
 
 	</div>
@@ -102,6 +109,9 @@ defineExpose({
 .root
 {
 	position: relative;
+}
+.windowed
+{
 	padding-bottom: 56.25%;
 }
 .game-container

@@ -19,6 +19,8 @@ const itemsMaterial: Material = new MeshPhongMaterial({
 
 const config: mapConfig = {
 	cameraClip: [1, 45],
+	fov: 56,
+	forceRotationRatio: 1.3,
 	sceneFile,
 	additionnalLight: ["1_Rouge_Orientation", "5_Bleu_Orientation"],
 	skybox: [
@@ -69,15 +71,15 @@ const config: mapConfig = {
 		new Euler(-Math.PI / 2 * 0.85, 0, 0)
 	],
 	avatarPositions: [
-		new Vector3(-38.5, 4, 0),
-		new Vector3(38.5, 4, 0),
+		new Vector3(-42, 4, 0),
+		new Vector3(42, 4, 0),
 	],
 	avatarScale: 1.5,
 	textFont,
 	textMaterial: new MeshPhongMaterial({
 		color: 0xffffff,
 		emissive: 0xffffff,
-		emissiveIntensity: 0.5,
+		emissiveIntensity: 0.65,
 		specular: 0x777777
 	}),
 	textPausePosition: new Vector3(0, 15, 10),

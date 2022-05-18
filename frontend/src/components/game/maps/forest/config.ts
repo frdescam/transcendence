@@ -69,9 +69,10 @@ const config: mapConfig = {
 		new Euler(-Math.PI / 2 * 0.85, 0, 0)
 	],
 	avatarPositions: [
-		new Vector3(-36.5, 4, 0),
-		new Vector3(36.5, 4, 0),
+		new Vector3(-38.5, 4, 0),
+		new Vector3(38.5, 4, 0),
 	],
+	avatarScale: 1.5,
 	textFont,
 	textMaterial: new MeshPhongMaterial({
 		color: 0xffffff,

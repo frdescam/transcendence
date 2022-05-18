@@ -45,6 +45,7 @@ type mapConfig = {
 	scorePositions: [Vector3, Vector3],
 	scoreRotations: [Euler, Euler],
 	avatarPositions: [Vector3, Vector3],
+	avatarScale: number,
 	textFont: string,
 	textMaterial: MeshPhongMaterial | MeshBasicMaterial | MeshToonMaterial | MeshLambertMaterial | MeshMatcapMaterial | MeshPhysicalMaterial | MeshStandardMaterial,
 	textPausePosition: Vector3,
@@ -605,7 +606,7 @@ class PongScene
 	_refreshAvatar()
 	{
 		const {avatars} = this.state;
-		const {gameScale, avatarPositions} = this.config;
+		const {gameScale, avatarPositions, avatarScale} = this.config;
 
 		if (this.leftAvatar)
 		{
@@ -622,8 +623,7 @@ class PongScene
 			this.leftAvatarImage.encoding = sRGBEncoding;
 			const leftAvatarMaterial = new SpriteMaterial( { map: this.leftAvatarImage } );
 			this.leftAvatar = new Sprite( leftAvatarMaterial );
-			this.leftAvatar.receiveShadow = true;
-			this.leftAvatar.castShadow = true;
+			this.leftAvatar.scale.set(avatarScale,avatarScale,1);
 			this.leftAvatar.position.copy(avatarPositions[0]).multiplyScalar(gameScale);
 			this.leftAvatar.matrixAutoUpdate = false;
 			this.leftAvatar.updateMatrix();
@@ -645,8 +645,7 @@ class PongScene
 			this.rightAvatarImage.encoding = sRGBEncoding;
 			const rightAvatarMaterial = new SpriteMaterial( { map: this.rightAvatarImage } );
 			this.rightAvatar = new Sprite( rightAvatarMaterial );
-			this.rightAvatar.receiveShadow = true;
-			this.rightAvatar.castShadow = true;
+			this.rightAvatar.scale.set(avatarScale, avatarScale,1);
 			this.rightAvatar.position.copy(avatarPositions[1]).multiplyScalar(gameScale);
 			this.rightAvatar.matrixAutoUpdate = false;
 			this.rightAvatar.updateMatrix();

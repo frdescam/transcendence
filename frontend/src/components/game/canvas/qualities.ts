@@ -64,7 +64,7 @@ const qualities: quality[] = [
 		shadowmapSize: 2048,
 		reflection: true,
 		reflectionQuality: 1,
-		reflectionMultisample: 2,
+		reflectionMultisample: 4,
 		canUseSkyboxAsEnvironment: true
 	}
 ];

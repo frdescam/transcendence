@@ -1,12 +1,12 @@
 'use strict';
-import {Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Color, Vector3, Material, Texture, MeshBasicMaterial, MeshToonMaterial, MeshDepthMaterial, MeshPhongMaterial, MeshDistanceMaterial, MeshLambertMaterial, MeshMatcapMaterial, MeshNormalMaterial, MeshPhysicalMaterial, MeshStandardMaterial, PlaneBufferGeometry, BoxBufferGeometry, sRGBEncoding, ShadowMapType} from 'three';
+import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Color, Vector3, Material, Texture, MeshToonMaterial, MeshPhongMaterial, MeshMatcapMaterial, MeshPhysicalMaterial, MeshStandardMaterial, PlaneBufferGeometry, BoxBufferGeometry, sRGBEncoding, ShadowMapType, MeshBasicMaterial, LinearMipmapLinearFilter, LinearMipmapNearestFilter, NearestMipMapLinearFilter } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
-import {quality, qualities} from './qualities';
+import { quality, qualities } from './qualities';
 import clientLogic from '../logic/client';
-import {state, team} from '../logic/common';
+import { state, team } from '../logic/common';
 
 type mapConfig = {
 	cameraClip: [number, number],
@@ -74,7 +74,7 @@ class PongScene
 	protected clock: Clock;
 	protected deviceOrientationCallback: null | ((e: DeviceOrientationEvent) => void);
 	protected scrollMovementCallback: null | ((e: WheelEvent) => void);
-	
+
 	protected playerMoveDistance: number;
 	protected ballMoveDistanceX: number;
 	protected ballMoveDistanceY: number;
@@ -294,19 +294,18 @@ class PongScene
 			this.scene.environment = null;
 		}
 
-
-		if (!skybox || !(skyboxAsEnvironment && canUseSkyboxAsEnvironment))
-		{
-			this.envLight = new AmbientLight( EnvironmentColor, 1.0 );
-			this.envLight.matrixAutoUpdate = false;
-			this.envLight.updateMatrix();
-			this.scene.add( this.envLight );
-		}
-		else if (this.envLight)
+		if (this.envLight)
 		{
 			this.scene.remove(this.envLight);
 			this.envLight.dispose();
 			this.envLight = null;
+		}
+		if (!skybox || !(skyboxAsEnvironment && canUseSkyboxAsEnvironment))
+		{
+			this.envLight = new AmbientLight( EnvironmentColor, 2.0 );
+			this.envLight.matrixAutoUpdate = false;
+			this.envLight.updateMatrix();
+			this.scene.add( this.envLight );
 		}
 
 		this.scene.traverse(
@@ -658,6 +657,7 @@ class PongScene
 		{
 			this.leftAvatarImage = new TextureLoader().load( avatars[0] );
 			this.leftAvatarImage.encoding = sRGBEncoding;
+			this.leftAvatarImage.minFilter = LinearMipmapNearestFilter;
 			const leftAvatarMaterial = new SpriteMaterial( { map: this.leftAvatarImage } );
 			this.leftAvatar = new Sprite( leftAvatarMaterial );
 			this.leftAvatar.scale.set(avatarScale,avatarScale,1);
@@ -680,6 +680,7 @@ class PongScene
 		{
 			this.rightAvatarImage = new TextureLoader().load( avatars[1] );
 			this.rightAvatarImage.encoding = sRGBEncoding;
+			this.leftAvatarImage.minFilter = LinearMipmapNearestFilter;
 			const rightAvatarMaterial = new SpriteMaterial( { map: this.rightAvatarImage } );
 			this.rightAvatar = new Sprite( rightAvatarMaterial );
 			this.rightAvatar.scale.set(avatarScale, avatarScale,1);

@@ -1,5 +1,5 @@
-import {Vector3, Euler, Material, MeshPhongMaterial, MeshLambertMaterial, MeshBasicMaterial} from 'three';
-import {mapConfig} from '../../canvas/scene';
+import { Vector3, Euler, Material, MeshPhongMaterial, MeshLambertMaterial, MeshBasicMaterial } from 'three';
+import { mapConfig } from '../../canvas/scene';
 import skybox_px from "../../ressources/kloppenheim_02/px.png?url";
 import skybox_nx from "../../ressources/kloppenheim_02/nx.png?url";
 import skybox_py from "../../ressources/kloppenheim_02/py.png?url";
@@ -30,7 +30,7 @@ const config: mapConfig = {
 		skybox_nz,
 	],
 	skyboxAsEnvironment: true,
-	EnvironmentColor: 0x707070,
+	EnvironmentColor: 0x909090,
 	lightDecayFactor: 0.5,
 	lightIntensityFactor: 0.15,
 	transitionSpeed: 2,

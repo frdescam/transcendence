@@ -34,9 +34,7 @@ const qualities: quality[] = [
 		useShadowmap: true,
 		shadowmap: BasicShadowMap,
 		shadowmapSize: 512,
-		reflection: true,
-		reflectionQuality: 0.5,
-		reflectionMultisample: 0,
+		reflection: false,
 		canUseSkyboxAsEnvironment: false
 	},
 	{
@@ -45,8 +43,8 @@ const qualities: quality[] = [
 		shadowmap: PCFSoftShadowMap,
 		shadowmapSize: 1024,
 		reflection: true,
-		reflectionQuality: 1,
-		reflectionMultisample: 2,
+		reflectionQuality: 0.5,
+		reflectionMultisample: 0,
 		canUseSkyboxAsEnvironment: false
 	},
 	{
@@ -66,7 +64,7 @@ const qualities: quality[] = [
 		shadowmapSize: 2048,
 		reflection: true,
 		reflectionQuality: 1,
-		reflectionMultisample: 4,
+		reflectionMultisample: 2,
 		canUseSkyboxAsEnvironment: true
 	}
 ];

@@ -72,6 +72,7 @@ class PongScene
 	protected state: state;
 	protected disposed: boolean;
 	protected clock: Clock;
+	protected deviceOrientationCallback: null | ((e: DeviceOrientationEvent) => void);
 	protected scrollMovementCallback: null | ((e: WheelEvent) => void);
 	
 	protected playerMoveDistance: number;
@@ -518,6 +519,32 @@ class PongScene
 		this.loadingManager.onError = onError;
 	}
 
+	_setPosition(ratio: number)
+	{
+		const {players, team} = this.state;
+		const previousPos = players[team];
+	
+		players[team] = ratio;
+		if (players[team] > 1)
+			players[team] = 1;
+		else if (players[team] < 0)
+			players[team] = 0;
+		
+		if (players[team] != previousPos)
+			this.options.onMove(players[team]);
+	}
+
+	_addPosition(delta: number)
+	{
+		const {moveStatusRouding} = this.config;
+		const {players, team} = this.state;
+	
+		if (moveStatusRouding)
+			this._setPosition(Math.round((players[team] + delta) * 1000) / 1000);
+		else
+			this._setPosition(players[team] + delta);
+	}
+
 	_play()
 	{
 		const _self = this;
@@ -527,24 +554,26 @@ class PongScene
 		if (!paused)
 			return ;
 
-		this.scrollMovementCallback =
-			(e) => {
-				e.preventDefault();
-
-				const previousPos = players[team];
-			
-				players[team] += _self.moveDelta * ( (e.deltaY > 0) ? 1 : -1 );
-				if (moveStatusRouding)
-					players[team] = Math.round(players[team] * 1000) / 1000;
-				if (players[team] > 1)
-					players[team] = 1;
-				else if (players[team] < 0)
-					players[team] = 0;
-				
-				if (players[team] != previousPos)
-					_self.options.onMove(players[team]);
-			};
-		this.renderer.domElement.addEventListener("wheel", this.scrollMovementCallback);
+		if ('ontouchstart' in window)
+		{
+			this.deviceOrientationCallback =
+				(e) => {
+					e.preventDefault();
+	
+					_self._setPosition.call(_self, ((-e.gamma || 0) + 20) / 40);
+				};
+			window.addEventListener("deviceorientation", this.deviceOrientationCallback);
+		}
+		else
+		{
+			this.scrollMovementCallback =
+				(e) => {
+					e.preventDefault();
+	
+					_self._addPosition.call(_self, _self.moveDelta * ( (e.deltaY > 0) ? 1 : -1 ));
+				};
+			this.renderer.domElement.addEventListener("wheel", this.scrollMovementCallback);
+		}
 	}
 
 	_pause()
@@ -554,8 +583,16 @@ class PongScene
 		if (paused)
 			return ;
 
-		if (this.scrollMovementCallback)
-			this.renderer.domElement.removeEventListener("wheel", this.scrollMovementCallback);
+		if ('ontouchstart' in window)
+		{
+			if (this.deviceOrientationCallback)
+				window.removeEventListener("deviceorientation", this.deviceOrientationCallback);
+		}
+		else
+		{
+			if (this.scrollMovementCallback)
+				this.renderer.domElement.removeEventListener("wheel", this.scrollMovementCallback);
+		}
 		this.scrollMovementCallback = null;
 	}
 

@@ -1,10 +1,10 @@
-import { BasicShadowMap, PCFSoftShadowMap } from "three";
+import { BasicShadowMap, PCFSoftShadowMap, ShadowMapType } from "three";
 
 type quality = {
 	pixelRatio: number | 'device';
 	critical?: boolean,
 	useShadowmap: boolean;
-	shadowmap?: typeof BasicShadowMap | typeof PCFSoftShadowMap;
+	shadowmap?: ShadowMapType;
 	shadowmapSize?: number;
 	reflection: boolean;
 	reflectionQuality?: number;

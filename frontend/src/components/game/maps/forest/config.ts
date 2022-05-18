@@ -10,14 +10,11 @@ import sceneFile from "./scene.glb?url";
 import scoreFont from "three/examples/fonts/helvetiker_regular.typeface.json?url";  // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 import textFont from "three/examples/fonts/helvetiker_regular.typeface.json?url";  // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 
-// const itemsMaterial: Material = new MeshPhongMaterial({
-// 	color: 0xffffff,
-// 	emissive: 0xffffff,
-// 	emissiveIntensity: 0.5,
-// 	specular: 0x777777
-// });
-const itemsMaterial: Material = new MeshLambertMaterial({
-	color: 0xaaaaaa
+const itemsMaterial: Material = new MeshPhongMaterial({
+	color: 0xffffff,
+	emissive: 0xffffff,
+	emissiveIntensity: 0.5,
+	specular: 0x777777
 });
 
 const config: mapConfig = {
@@ -57,14 +54,11 @@ const config: mapConfig = {
 	moveSteps: 70,
 	moveStatusRouding: true,
 	scoreFont,
-	// scoreMaterial: new MeshPhongMaterial({
-	// 	color: 0xffffff,
-	// 	emissive: 0xffffff,
-	// 	emissiveIntensity: 0.5,
-	// 	specular: 0x777777
-	// }),
-	scoreMaterial: new MeshLambertMaterial({
-		color: 0xaaaaaa
+	scoreMaterial: new MeshPhongMaterial({
+		color: 0xffffff,
+		emissive: 0xffffff,
+		emissiveIntensity: 0.5,
+		specular: 0x777777
 	}),
 	scorePositions: [
 		new Vector3(-(32.5 - 8), 4, -(53 / 2 + 4)),
@@ -79,16 +73,11 @@ const config: mapConfig = {
 		new Vector3(36.5, 4, 0),
 	],
 	textFont,
-	// textMaterial: new MeshPhongMaterial({
-	// 	color: 0xffffff,
-	// 	emissive: 0xffffff,
-	// 	emissiveIntensity: 0.5,
-	// 	specular: 0x777777
-	// }),
-	textMaterial: new MeshLambertMaterial({
+	textMaterial: new MeshPhongMaterial({
 		color: 0xffffff,
 		emissive: 0xffffff,
 		emissiveIntensity: 0.5,
+		specular: 0x777777
 	}),
 	textPausePosition: new Vector3(0, 15, 10),
 	textPauseRotation: new Euler(-Math.PI / 2 * 0.75, 0, 0),

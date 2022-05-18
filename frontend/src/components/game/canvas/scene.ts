@@ -1,5 +1,5 @@
 'use strict';
-import {Euler, Mesh, PlaneGeometry, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, BoxGeometry, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Color, Vector3, Material, Texture, MeshBasicMaterial, MeshToonMaterial, MeshDepthMaterial, MeshPhongMaterial, MeshDistanceMaterial, MeshLambertMaterial, MeshMatcapMaterial, MeshNormalMaterial, MeshPhysicalMaterial, MeshStandardMaterial, PlaneBufferGeometry, BoxBufferGeometry, BufferGeometry, sRGBEncoding} from 'three';
+import {Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Color, Vector3, Material, Texture, MeshBasicMaterial, MeshToonMaterial, MeshDepthMaterial, MeshPhongMaterial, MeshDistanceMaterial, MeshLambertMaterial, MeshMatcapMaterial, MeshNormalMaterial, MeshPhysicalMaterial, MeshStandardMaterial, PlaneBufferGeometry, BoxBufferGeometry, sRGBEncoding, ShadowMapType} from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
@@ -108,7 +108,7 @@ class PongScene
 	{
 		this.config = config;
 		this.options = Object.assign({}, {
-			quality: 1,
+			qualityLevel: 1,
 			targetElem: document.body,
 			onReady: () => {},
 			onProgress: () => {},
@@ -263,12 +263,11 @@ class PongScene
 		if (useShadowmap)
 		{
 			this.renderer.shadowMap.enabled = true;
-			this.renderer.shadowMap.type = shadowmap;
+			this.renderer.shadowMap.type = (shadowmap as ShadowMapType);
 		}
 		else
 		{
 			this.renderer.shadowMap.enabled = false;
-			this.renderer.shadowMap.type = null;
 		}
 
 		this._refreshFloorReflection();
@@ -318,6 +317,11 @@ class PongScene
 						node.shadow.mapSize.width =
 							node.shadow.mapSize.height =
 								shadowmapSize;
+						if (node.shadow.map)
+						{
+							node.shadow.map.dispose();
+							node.shadow.map = null;
+						}
 					}
 					if (critical && additionnalLight)
 					{
@@ -445,6 +449,8 @@ class PongScene
 						{
 							if (node.isLight)
 							{
+								node.castShadow = true;
+								node.receiveShadow = true;
 								node.decay *= lightDecayFactor;
 								node.intensity *= lightIntensityFactor;
 							}

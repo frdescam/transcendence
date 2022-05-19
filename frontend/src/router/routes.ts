@@ -16,7 +16,7 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/game/:party',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/GameRoute.vue') }]
+		children: [{ path: '', component: () => import('src/views/pages/Game.vue') }]
 	},
 
 	// Always leave this as last one,

@@ -1,14 +1,17 @@
-import {bounceBall} from './common.ts';
+import {bounceBall, forward} from './common.ts';
 
 
-function playerMissBall(state)
+function playerMissBall(state, remainingDelta)
 {
-	state.ballSpeedX = state.ballSpeedY = 0;
+	forward(state, remainingDelta);
 }
 
 function clientLogic(state, config, delta)
 {
-	bounceBall(state, config, delta, playerMissBall, playerMissBall);
+	if (state.offside)
+		forward(state, delta);
+	else
+		bounceBall(state, config, delta, playerMissBall, playerMissBall);
 }
 
 export default clientLogic;

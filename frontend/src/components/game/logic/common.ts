@@ -66,12 +66,17 @@ function getSpeed({ballSpeedX, ballSpeedY})
 	return (Math.sqrt(ballSpeedX ** 2 + ballSpeedY ** 2));
 }
 
+function forward(state, delta)
+{
+	state.ballX += (delta * state.ballSpeedX);
+	state.ballY += (delta * state.ballSpeedY);
+}
+
 function bounceBall(state, config, delta, player1Miss, player2Miss)
 {
 	if (state.ballSpeedX || state.ballSpeedY)
 	{
-		state.ballX += (delta * state.ballSpeedX);
-		state.ballY += (delta * state.ballSpeedY);
+		forward(state, delta);
 		
 		if (state.ballY < 0)
 		{
@@ -87,14 +92,16 @@ function bounceBall(state, config, delta, player1Miss, player2Miss)
 		if (state.ballX < 0)
 		{
 			const remainingDelta = wayBackToLimit(state);
-			const bounceAngle = getBounceAngle(state, config, 0);
+			const missed = didPlayerMissBall(state, config, 0);
 
-			if (Math.abs(bounceAngle) > 1)
+			if (missed)
 			{
-				player1Miss(state);
+				state.offside = true;
+				player1Miss(state, remainingDelta);
 			}
 			else
 			{
+				const bounceAngle = getBounceAngle(state, config, 0);
 				const speed = getSpeed(state);
 				state.ballSpeedY = -Math.sin(bounceAngle * Math.PI / 2) * speed;
 				state.ballSpeedX = Math.cos(bounceAngle * Math.PI / 2) * speed;
@@ -105,14 +112,16 @@ function bounceBall(state, config, delta, player1Miss, player2Miss)
 		else if (state.ballX > 1)
 		{
 			const remainingDelta = wayBackToLimit(state);
-			const bounceAngle = getBounceAngle(state, config, 1);
+			const missed = didPlayerMissBall(state, config, 1);
 			
-			if (Math.abs(bounceAngle) > 1)
+			if (missed)
 			{
-				player2Miss(state);
+				state.offside = true;
+				player2Miss(state, remainingDelta);
 			}
 			else
 			{
+				const bounceAngle = getBounceAngle(state, config, 1);
 				const speed = getSpeed(state);
 				state.ballSpeedY = -Math.sin(bounceAngle * Math.PI / 2) * speed;
 				state.ballSpeedX = -Math.cos(bounceAngle * Math.PI / 2) * speed;
@@ -123,4 +132,4 @@ function bounceBall(state, config, delta, player1Miss, player2Miss)
 	}
 }
 
-export {team, avatar, state, bounceBall, getBounceAngle};
+export {team, avatar, state, bounceBall, forward};

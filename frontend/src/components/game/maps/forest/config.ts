@@ -17,6 +17,8 @@ const itemsMaterial: Material = new MeshPhongMaterial({
 	specular: 0x777777
 });
 
+const ballMaterial = itemsMaterial.clone();
+
 const config: mapConfig = {
 	cameraClip: [1, 45],
 	fov: 56,
@@ -47,7 +49,8 @@ const config: mapConfig = {
 	}),
 	floorReflectivity: 0.15,
 	floorReflectorColor: 0x777777,
-	ballMaterial: itemsMaterial,
+	ballMaterial: ballMaterial,
+	offsideOpacityMultiplier: 5,
 	player1Material: itemsMaterial,
 	player2Material: itemsMaterial,
 	gameScale: 0.175,
@@ -74,7 +77,7 @@ const config: mapConfig = {
 		new Vector3(-42, 4, 0),
 		new Vector3(42, 4, 0),
 	],
-	avatarScale: 1.5,
+	avatarScale: 1.25,
 	textFont,
 	textMaterial: new MeshPhongMaterial({
 		color: 0xffffff,

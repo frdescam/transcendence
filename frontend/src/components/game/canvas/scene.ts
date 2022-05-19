@@ -39,6 +39,7 @@ type mapConfig = {
 	floorReflectivity: number,
 	floorReflectorColor: Color | number,
 	ballMaterial: Material,
+	offsideOpacityMultiplier: number,
 	gameScale: number,
 	baseSize: [number, number],
 	playerSize: [number, number],
@@ -430,6 +431,8 @@ class PongScene
 		this.ball = this.track(new Mesh( ballGeometry, ballMaterial ));
 		this.ball.receiveShadow = true;
 		this.ball.castShadow = true;
+		if ("transparent" in this.ball.material)
+			this.ball.material.transparent = true;
 		this.scene.add( this.ball );
 
 		const floorGeometry = this.track(new BoxBufferGeometry(
@@ -768,7 +771,8 @@ class PongScene
 		const {
 			transitionSpeed, gameScale,
 			pauseCameraPosition, pauseCameraRotation, playCameraPosition, playCameraRotation,
-			textPausePosition, textPauseRotation, textPlayPosition, textPlayRotation
+			textPausePosition, textPauseRotation, textPlayPosition, textPlayRotation,
+			offsideOpacityMultiplier
 		} = this.config;
 
 		this.player1.position.z = (players[0] - 0.5) * this.playerMoveDistance;
@@ -802,6 +806,11 @@ class PongScene
 		}
 
 		this.ball.visible = (ballSpeedX != 0 || ballSpeedY != 0);
+		if ("opacity" in this.ball.material)
+		{
+			this.ball.material.opacity = Math.min(1 + this.state.ballX * offsideOpacityMultiplier, (1 - this.state.ballX) * offsideOpacityMultiplier + 1);
+			this.ball.castShadow = this.ball.material.opacity > 0.99;
+		}
 
 		this.renderer.render(this.scene, this.camera);
 	}

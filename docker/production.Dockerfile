@@ -8,6 +8,7 @@ RUN     yarn build
 
 # Build frontend
 COPY    frontend/. frontend
+COPY    common/game/logic/. frontend/src/components/game/logic
 RUN     (cd frontend && yarn install && yarn build)
 
 ARG     NODE_ENV

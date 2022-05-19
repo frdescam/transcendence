@@ -57,6 +57,7 @@ services:
     command: yarn dev
     volumes:
       - './frontend/:/usr/src/app'
+      - './common/game/logic/:/usr/src/app/src/components/game/logic/'
     env_file:
       - .env
     networks:

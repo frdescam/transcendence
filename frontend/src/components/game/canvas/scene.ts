@@ -97,14 +97,14 @@ class PongScene
 			players: [0.5, 0.5],
 			scores: [0, 0],
 			ballX: 0.5,
-			ballY: 0,
-			ballSpeedX: 0,
+			ballY: 0.5,
+			ballSpeedX: 1,
 			ballSpeedY: 0,
 			offside: false,
 			paused: true,
-			text: '',
-			textSize: 1,
-			textColor: 0xffffff,
+			text: 'Awaiting server...',
+			textSize: 0.5,
+			textColor: 0xffff00,
 			avatars: [null, null]
 		};
 

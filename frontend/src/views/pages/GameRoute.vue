@@ -6,7 +6,7 @@ defineProps<{ userId: string, party: string }>();
 
 const route = useRoute();
 const { party } = route.params;
-const userId = "mockup";
+const userId = 'mockup';
 </script>
 
 <template>

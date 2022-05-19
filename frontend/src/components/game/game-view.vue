@@ -4,7 +4,6 @@ import { AppFullscreen } from 'quasar';
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
 import Scene, { mapConfig, options } from './canvas/scene';
 import config from './maps/forest/config';
-import profil from './ressources/demo_avatar.jpeg?url';
 
 interface gameState {
 	loaded: boolean,
@@ -47,20 +46,8 @@ onMounted(() =>
 		} as options,
 		0
 	);
-	scene.setState({
-		paused: false,
-		ballY: 0.5,
-		ballSpeedX: 1,
-		// text: 'Awaiting players...',
-		text: 'Awaiting server...',
-		textSize: 0.5,
-		// textColor: 0xff0000,
-		textColor: 0xffff00,
-		avatars: [profil, null]
-	}, 0);
 
 	window.addEventListener('resize', resize);
-	// (function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
 });
 
 onBeforeUnmount(() =>
@@ -74,7 +61,6 @@ onBeforeUnmount(() =>
 
 function togglePause ()
 {
-	// M.toast({html: 'Game paused'});
 	state.paused = !state.paused;
 }
 

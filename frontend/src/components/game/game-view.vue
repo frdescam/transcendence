@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import clsx from 'clsx';
-import { AppFullscreen } from 'quasar'
+import { AppFullscreen } from 'quasar';
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
 import Scene, { mapConfig, options } from './canvas/scene';
 import config from './maps/forest/config';
@@ -15,7 +15,7 @@ interface gameState {
 
 defineProps<{ userId: string, party: string }>();
 
-const state = reactive<gameState>({ loaded: false, ready: false, paused: true, graphics: 3 });
+const state = reactive<gameState>({ loaded: false, ready: false, paused: true, graphics: 2 });
 
 let scene: null | Scene = null;
 const canvas = ref<Ref | null>(null);
@@ -51,9 +51,11 @@ onMounted(() =>
 		paused: false,
 		ballY: 0.5,
 		ballSpeedX: 1,
-		text: 'Awaiting players...',
+		// text: 'Awaiting players...',
+		text: 'Awaiting server...',
 		textSize: 0.5,
-		textColor: 0xff0000,
+		// textColor: 0xff0000,
+		textColor: 0xffff00,
 		avatars: [profil, null]
 	}, 0);
 
@@ -76,7 +78,7 @@ function togglePause ()
 	state.paused = !state.paused;
 }
 
-function setQuality (val)
+function setQuality (val: number)
 {
 	scene?.setQuality(val);
 }

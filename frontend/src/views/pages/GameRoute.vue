@@ -2,11 +2,10 @@
 import { useRoute } from 'vue-router';
 import GameInterface from '../../components/game/game-interface.vue';
 
-
 defineProps<{ userId: string, party: string }>();
 
 const route = useRoute();
-const {party} = route.params;
+const { party } = route.params;
 const userId = "mockup";
 </script>
 

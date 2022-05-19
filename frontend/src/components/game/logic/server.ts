@@ -1,9 +1,8 @@
-import {bounceBall} from './common';
+import { bounceBall } from './common';
 
-
-function start(state)
+function start (state)
 {
-	setTimeout(function()
+	setTimeout(function ()
 	{
 		state.ballX = 0.5;
 		state.bally = 0;
@@ -13,15 +12,17 @@ function start(state)
 	}, 3000);
 }
 
-function serverLogic(state, config, delta)
+function serverLogic (state, config, delta)
 {
 	bounceBall(state, config, delta,
-		(state) => {
+		(state) =>
+		{
 			state.scores[1] += 1;
 			state.pause = true;
 			start(state);
 		},
-		(state) => {
+		(state) =>
+		{
 			state.scores[0] += 1;
 			state.pause = true;
 			start(state);

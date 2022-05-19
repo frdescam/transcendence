@@ -1,12 +1,14 @@
-import {bounceBall, forward} from './common.ts';
+import { bounceBall, forward } from './common';
 
+import type { missedCallback, state } from './common';
+import type { mapConfig } from './mapConfig';
 
-function playerMissBall(state, remainingDelta)
+const playerMissBall: missedCallback = (state, remainingDelta) =>
 {
 	forward(state, remainingDelta);
-}
+};
 
-function clientLogic(state, config, delta)
+function clientLogic (state: state, config: mapConfig, delta: number)
 {
 	if (state.offside)
 		forward(state, delta);

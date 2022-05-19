@@ -1,20 +1,18 @@
-import {Vector3, Euler, Material, MeshPhongMaterial, MeshLambertMaterial, MeshBasicMaterial} from 'three';
-import {mapConfig} from '../../canvas/scene';
-import scoreFont from "three/examples/fonts/helvetiker_regular.typeface.json?url";  // https://threejs.org/docs/#examples/en/geometries/TextGeometry
-import textFont from "three/examples/fonts/helvetiker_regular.typeface.json?url";  // https://threejs.org/docs/#examples/en/geometries/TextGeometry
+import { Vector3, Euler, MeshBasicMaterial } from 'three';
+import font from 'three/examples/fonts/helvetiker_regular.typeface.json?url'; // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 
-// const itemsMaterial: Material = new MeshPhongMaterial({
-// 	color: 0xffffff,
-// 	emissive: 0xffffff,
-// 	emissiveIntensity: 0.5,
-// 	specular: 0x777777
-// });
+import type { mapConfig, Material } from '../../logic/mapConfig';
+
 const itemsMaterial: Material = new MeshBasicMaterial({
-	color: 0xffffff,
+	color: 0xffffff
 });
+
+const ballMaterial = itemsMaterial.clone();
 
 const config: mapConfig = {
 	cameraClip: [1, 45],
+	fov: 56,
+	forceRotationRatio: 1.3,
 	skyboxAsEnvironment: false,
 	EnvironmentColor: 0xffffff,
 	lightDecayFactor: 0.5,
@@ -25,11 +23,12 @@ const config: mapConfig = {
 	pauseCameraPosition: new Vector3(0, 57.15, 34.30),
 	pauseCameraRotation: new Euler(-Math.PI / 2 * 0.7, 0, 0),
 	floorMaterial: new MeshBasicMaterial({
-		color: 0x121212,
+		color: 0x121212
 	}),
 	floorReflectivity: 0.15,
 	floorReflectorColor: 0x777777,
-	ballMaterial: itemsMaterial,
+	ballMaterial,
+	offsideOpacityMultiplier: 3,
 	player1Material: itemsMaterial,
 	player2Material: itemsMaterial,
 	gameScale: 0.175,
@@ -37,31 +36,31 @@ const config: mapConfig = {
 	playerSize: [1, 3.75],
 	moveSteps: 70,
 	moveStatusRouding: true,
-	scoreFont,
+	scoreFont: font,
 	scoreMaterial: new MeshBasicMaterial({
-		color: 0xaaaaaa,
+		color: 0xaaaaaa
 	}),
 	scorePositions: [
 		new Vector3(-(32.5 - 8), 4, -(53 / 2 + 4)),
-		new Vector3((32.5 - 8), 4, -(53 / 2 + 4)),
+		new Vector3((32.5 - 8), 4, -(53 / 2 + 4))
 	],
 	scoreRotations: [
 		new Euler(-Math.PI / 2 * 0.85, 0, 0),
 		new Euler(-Math.PI / 2 * 0.85, 0, 0)
 	],
 	avatarPositions: [
-		new Vector3(-38.5, 4, 0),
-		new Vector3(38.5, 4, 0),
+		new Vector3(-42, 4, 0),
+		new Vector3(42, 4, 0)
 	],
-	avatarScale: 1.5,
-	textFont,
+	avatarScale: 1.25,
+	textFont: font,
 	textMaterial: new MeshBasicMaterial({
-		color: 0xffffff,
+		color: 0xffffff
 	}),
 	textPausePosition: new Vector3(0, 15, 10),
 	textPauseRotation: new Euler(-Math.PI / 2 * 0.75, 0, 0),
 	textPlayPosition: new Vector3(0, 8, 0),
-	textPlayRotation: new Euler(-Math.PI / 2, 0, 0),
+	textPlayRotation: new Euler(-Math.PI / 2, 0, 0)
 };
 
 export default config;

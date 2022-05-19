@@ -1,4 +1,6 @@
-import { BasicShadowMap, PCFSoftShadowMap, ShadowMapType } from "three";
+import { BasicShadowMap, PCFSoftShadowMap } from 'three';
+
+import type { ShadowMapType } from 'three';
 
 type quality = {
 	pixelRatio: number | 'device';
@@ -19,7 +21,7 @@ const qualities: quality[] = [
 		useShadowmap: false,
 		shadowmap: undefined,
 		reflection: false,
-		canUseSkyboxAsEnvironment: false,
+		canUseSkyboxAsEnvironment: false
 	},
 	{
 		pixelRatio: 0.75,
@@ -69,4 +71,5 @@ const qualities: quality[] = [
 	}
 ];
 
-export {qualities, quality};
+export type { quality };
+export { qualities };

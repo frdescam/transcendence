@@ -1,4 +1,5 @@
-import { Color } from "three";
+import type { Color } from 'three';
+import type { mapConfig } from './mapConfig';
 
 type team = 0 | 1;
 type avatar = string | null;
@@ -11,6 +12,7 @@ type state = {
 	ballY: number,
 	ballSpeedX: number,
 	ballSpeedY: number,
+	offside: boolean,
 	paused: boolean,
 	text: string,
 	textSize: number,
@@ -18,32 +20,28 @@ type state = {
 	avatars: [avatar, avatar],
 };
 
+type missedCallback = (state: state, remainingDelta: number) => void;
 
-function didPlayerMissBall({ballY, players}, {baseSize, playerSize}, player: team)
+function didPlayerMissBall ({ ballY, players }: state, { baseSize, playerSize }: mapConfig, player: team)
 {
 	const eqPlayerPos = (players[player] - 0.5) * ((baseSize[1] - playerSize[1]) / (baseSize[1] - 1)) + 0.5;
 
 	return (
 		ballY * baseSize[1] + 0.5 < eqPlayerPos * baseSize[1] - playerSize[1] * 0.5 ||
 		ballY * baseSize[1] - 0.5 > eqPlayerPos * baseSize[1] + playerSize[1] * 0.5
-	)
+	);
 }
 
-function getBounceAngle({ballY, players}, {baseSize, playerSize}, player)
+function getBounceAngle ({ ballY, players }: state, { baseSize, playerSize }: mapConfig, player: team)
 {
 	const eqPlayerPos = (players[player] - 0.5) * ((baseSize[1] - playerSize[1]) / (baseSize[1] - 1)) + 0.5;
 
 	return ((eqPlayerPos - ballY) * baseSize[1] / ((playerSize[1] + 1) / 2)) / 2;
 }
 
-function round(f)
+function wayBackToLimit (state: state)
 {
-	return Math.round(f * 10000000000) / 10000000000;
-}
-
-function wayBackToLimit(state: state)
-{
-	var remaining	= 0;
+	let remaining = 0;
 
 	if (state.ballX < 0)
 	{
@@ -61,23 +59,23 @@ function wayBackToLimit(state: state)
 	return (remaining);
 }
 
-function getSpeed({ballSpeedX, ballSpeedY})
+function getSpeed ({ ballSpeedX, ballSpeedY }: state)
 {
 	return (Math.sqrt(ballSpeedX ** 2 + ballSpeedY ** 2));
 }
 
-function forward(state, delta)
+function forward (state: state, delta: number)
 {
 	state.ballX += (delta * state.ballSpeedX);
 	state.ballY += (delta * state.ballSpeedY);
 }
 
-function bounceBall(state, config, delta, player1Miss, player2Miss)
+function bounceBall (state: state, config: mapConfig, delta: number, player1Miss: missedCallback, player2Miss: missedCallback)
 {
 	if (state.ballSpeedX || state.ballSpeedY)
 	{
 		forward(state, delta);
-		
+
 		if (state.ballY < 0)
 		{
 			state.ballSpeedY *= -1;
@@ -88,7 +86,7 @@ function bounceBall(state, config, delta, player1Miss, player2Miss)
 			state.ballSpeedY *= -1;
 			state.ballY = state.ballY - (state.ballY - 1) * 2;
 		}
-		
+
 		if (state.ballX < 0)
 		{
 			const remainingDelta = wayBackToLimit(state);
@@ -113,7 +111,7 @@ function bounceBall(state, config, delta, player1Miss, player2Miss)
 		{
 			const remainingDelta = wayBackToLimit(state);
 			const missed = didPlayerMissBall(state, config, 1);
-			
+
 			if (missed)
 			{
 				state.offside = true;
@@ -132,4 +130,5 @@ function bounceBall(state, config, delta, player1Miss, player2Miss)
 	}
 }
 
-export {team, avatar, state, bounceBall, forward};
+export type { team, avatar, state, missedCallback };
+export { bounceBall, forward };

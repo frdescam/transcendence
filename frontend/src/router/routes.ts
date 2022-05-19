@@ -13,6 +13,12 @@ const routes: RouteRecordRaw[] = [
 		children: [{ path: '', component: () => import('src/views/pages/Chat.vue') }]
 	},
 
+	{
+		path: '/login',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/LoginPage.vue') }]
+	},
+
 	// Always leave this as last one,
 	// but you can also remove it
 	{

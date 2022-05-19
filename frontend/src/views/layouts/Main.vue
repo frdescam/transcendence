@@ -11,7 +11,7 @@
 				@click="toggleLeftDrawer"
 				/>
 				<q-toolbar-title>
-					Transendance
+					Transcendance
 				</q-toolbar-title>
 			</q-toolbar>
 		</q-header>
@@ -23,7 +23,8 @@
 		>
 			<q-list>
 				<div>Hello</div>
-				<router-link :to="{ path: '/chat' }"></router-link>
+				<router-link :to="{ path: '/chat' }">go to chat page</router-link><br/>
+				<router-link :to="{ path: '/login' }">go to login page</router-link><br/>
 			</q-list>
 		</q-drawer>
 

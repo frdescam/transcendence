@@ -1,5 +1,8 @@
+import { BaseEntity } from "typeorm";
 import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BannedUser } from "./bannedUser.entity";
 import { Message } from "./message.entity";
+import { MutedUser } from "./mutedUser.entity";
 import { User } from "./user.entity";
 
 export enum channelTypes {
@@ -10,7 +13,7 @@ export enum channelTypes {
 }
 
 @Entity()
-export class Channel {
+export class Channel extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -31,6 +34,12 @@ export class Channel {
 
     @OneToMany(() => Message, (message) => message.channel)
     messages: Message[];
+
+    @OneToMany(() => BannedUser, (bannedUser) => bannedUser.channel)
+    bannedUsers: BannedUser[];
+
+    @OneToMany(() => MutedUser, (mutedUser) => mutedUser.channel)
+    mutedUsers: MutedUser[];
 
     @ManyToMany(() => User)
     @JoinTable()

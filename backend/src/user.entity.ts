@@ -2,6 +2,8 @@ import { BaseEntity, Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGe
 import { Match } from "./match.entity";
 import { Channel } from "./channel.entity";
 import { Message } from "./message.entity";
+import { BannedUser } from "./bannedUser.entity";
+import { MutedUser } from "./mutedUser.entity";
 
 export enum TypesOf2FA {
     NONE = "none",
@@ -41,6 +43,12 @@ export class User extends BaseEntity {
 
     @OneToMany(() => Message, (message) => message.creator)
     messages: Message[];
+
+    @OneToMany(() => BannedUser, (bannedUser) => bannedUser.user)
+    bannedFrom: BannedUser[];
+
+    @OneToMany(() => MutedUser, (mutedUser) => mutedUser.user)
+    mutedFrom: MutedUser[];
 
     @ManyToMany(() => User)
     blockedUsers: User[];

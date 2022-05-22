@@ -1,9 +1,10 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.entity";
 import { Channel } from "./channel.entity";
+import { BaseEntity } from "typeorm";
 
 @Entity()
-export class Message {
+export class Message extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 

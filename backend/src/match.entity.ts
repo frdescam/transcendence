@@ -1,8 +1,11 @@
-import { Column, CreateDateColumn, Entity, ManyToOne } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.entity";
 
 @Entity()
 export class Match {
+    @PrimaryGeneratedColumn()
+    id: number;
+
     @ManyToOne(() => User, (user) => user.matches)
     user1: User;
 

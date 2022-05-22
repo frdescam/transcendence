@@ -1,7 +1,7 @@
-import { match } from "assert/strict";
-import { type } from "os";
-import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Match } from "./match.entity";
+import { Channel } from "./channel.entity";
+import { Message } from "./message.entity";
 
 export enum TypesOf2FA {
     NONE = "none",
@@ -25,7 +25,7 @@ export class User extends BaseEntity {
     avatar: string;
 
     @Column({type: "enum", enum: TypesOf2FA})
-    typeOf2FA: string;
+    typeOf2FA: TypesOf2FA;
 
     @Column({type: "varchar", length: 60})
     valueOf2FA: string; // TODO: check what we need to store here
@@ -35,4 +35,13 @@ export class User extends BaseEntity {
 
     @OneToMany(() => Match, (match) => match.user1)
     matches: Match[];
+
+    @OneToMany(() => Channel, (channel) => channel.owner)
+    ownedChannels: Channel[];
+
+    @OneToMany(() => Message, (message) => message.creator)
+    messages: Message[];
+
+    @ManyToMany(() => User)
+    blockedUsers: User[];
 }

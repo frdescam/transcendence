@@ -5,13 +5,15 @@ import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { quality, qualities } from './qualities';
-import clientLogic from '../logic/client';
-import { state, team } from '../logic/common';
+import clientLogic from '../common/logic/client';
+import { state, team } from '../common/logic/common';
 
 import { Notify } from 'quasar';
 
-import type { mapConfig } from '../logic/mapConfig';
+import type { mapConfig } from '../common/logic/mapConfig';
 import type { Material as ThreeMaterial } from 'three';
+
+type onMoveCallback = ((position: number) => void) | null;
 
 type options = {
 	qualityLevel: number,
@@ -21,7 +23,7 @@ type options = {
 	onReady: (() => void) | null,
 	onProgress: ((itemUrl: string, itemsLoaded: number, itemsTotal: number) => void) | null,
 	onError: ((itemUrl: string) => void) | null,
-	onMove: ((position: number) => void) | null,
+	onMove: onMoveCallback,
 };
 
 type disposable = ThreeMaterial | BufferGeometry | Texture | Light | WebGLRenderer;
@@ -96,15 +98,17 @@ class PongScene
 			team,
 			players: [0.5, 0.5],
 			scores: [0, 0],
+			ball: true,
 			ballX: 0.5,
 			ballY: 0.5,
 			ballSpeedX: 1,
 			ballSpeedY: 0,
 			offside: false,
+			lobby: true,
 			paused: true,
 			text: 'Awaiting server...',
 			textSize: 0.5,
-			textColor: 0xffff00,
+			textColor: 0xff0000,
 			avatars: [null, null]
 		};
 
@@ -531,30 +535,28 @@ class PongScene
 	_setPosition (ratio: number)
 	{
 		const { players, team } = this.state;
-		const previousPos = players[team];
+		const previousRatio = players[team];
 
-		players[team] = ratio;
-		if (players[team] > 1)
-			players[team] = 1;
-		else if (players[team] < 0)
-			players[team] = 0;
+		let position = Math.round(ratio * 1000);
 
-		if (players[team] !== previousPos)
+		if (position !== Math.round(previousRatio * 1000))
 		{
+			if (position > 1000)
+				position = 1000;
+			else if (position < 0)
+				position = 0;
+			players[team] = position / 1000;
+
 			if (this.options.onMove)
-				this.options.onMove(players[team]);
+				this.options.onMove(position);
 		}
 	}
 
 	_addPosition (delta: number)
 	{
-		const { moveStatusRouding } = this.config;
 		const { players, team } = this.state;
 
-		if (moveStatusRouding)
-			this._setPosition(Math.round((players[team] + delta) * 1000) / 1000);
-		else
-			this._setPosition(players[team] + delta);
+		this._setPosition(players[team] + delta);
 	}
 
 	_play ()
@@ -753,7 +755,10 @@ class PongScene
 
 		clientLogic(this.state, this.config, delta);
 
-		const { players, ballX, ballY, paused, ballSpeedX, ballSpeedY } = this.state;
+		const {
+			players, ballX, ballY, lobby, ball,
+			offside, ballSpeedX, ballSpeedY
+		} = this.state;
 		const {
 			transitionSpeed, gameScale,
 			pauseCameraPosition, pauseCameraRotation, playCameraPosition, playCameraRotation,
@@ -768,7 +773,7 @@ class PongScene
 
 		const lerpValue = Math.min(1, delta * transitionSpeed);
 
-		if (paused)
+		if (lobby)
 		{
 			this.camera.position.lerp(pauseCameraPosition.clone().multiplyScalar(gameScale), lerpValue);
 			this._basicRotationLerp(this.camera.rotation, pauseCameraRotation, lerpValue);
@@ -791,7 +796,15 @@ class PongScene
 			}
 		}
 
-		this.ball.visible = (ballSpeedX !== 0 || ballSpeedY !== 0);
+		if (offside)
+		{
+			if (!ballSpeedX && !ballSpeedY)
+				this.ball.visible = false;
+			else
+				this.ball.visible = ball;
+		}
+		else
+			this.ball.visible = ball;
 		if ('opacity' in this.ball.material)
 		{
 			this.ball.material.opacity = Math.min(1 + this.state.ballX * offsideOpacityMultiplier, (1 - this.state.ballX) * offsideOpacityMultiplier + 1);
@@ -819,7 +832,6 @@ class PongScene
 				this._play();
 		}
 		else if (!newState.paused && state.players) // @TODO: verify this
-
 			state.players[newState.team] = oldState.players[oldState.team];
 
 		this.state = Object.assign(this.state, state);
@@ -854,6 +866,11 @@ class PongScene
 
 		this.options.qualityLevel = quality;
 		this._refreshQuality();
+	}
+
+	setOnMove (callback: onMoveCallback)
+	{
+		this.options.onMove = callback;
 	}
 
 	dispose ()

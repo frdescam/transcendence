@@ -36,7 +36,6 @@ export type mapConfig = {
 	baseSize: [number, number],
 	playerSize: [number, number],
 	moveSteps: number,
-	moveStatusRouding: boolean,
 	scoreFont: string,
 	scoreMaterial: Material,
 	scorePositions: [Vector3, Vector3],

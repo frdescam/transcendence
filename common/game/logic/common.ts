@@ -4,25 +4,31 @@ import type { mapConfig } from './mapConfig';
 type team = 0 | 1;
 type avatar = string | null;
 
-type state = {
-	team: team,
+interface serverState {
 	players: [number, number],
 	scores: [number, number],
+	ball: boolean,
 	ballX: number,
 	ballY: number,
 	ballSpeedX: number,
 	ballSpeedY: number,
 	offside: boolean,
+	lobby: boolean,
 	paused: boolean,
 	text: string,
 	textSize: number,
 	textColor: Color | number,
 	avatars: [avatar, avatar],
-};
+}
 
-type missedCallback = (state: state, remainingDelta: number) => void;
+interface state extends serverState {
+	team: team
+}
 
-function didPlayerMissBall ({ ballY, players }: state, { baseSize, playerSize }: mapConfig, player: team)
+type missedCallback = (state: serverState, remainingDelta: number) => void;
+type bouncedCallback = (state: serverState) => void;
+
+function didPlayerMissBall ({ ballY, players }: serverState, { baseSize, playerSize }: mapConfig, player: team)
 {
 	const eqPlayerPos = (players[player] - 0.5) * ((baseSize[1] - playerSize[1]) / (baseSize[1] - 1)) + 0.5;
 
@@ -32,14 +38,14 @@ function didPlayerMissBall ({ ballY, players }: state, { baseSize, playerSize }:
 	);
 }
 
-function getBounceAngle ({ ballY, players }: state, { baseSize, playerSize }: mapConfig, player: team)
+function getBounceAngle ({ ballY, players }: serverState, { baseSize, playerSize }: mapConfig, player: team)
 {
 	const eqPlayerPos = (players[player] - 0.5) * ((baseSize[1] - playerSize[1]) / (baseSize[1] - 1)) + 0.5;
 
 	return ((eqPlayerPos - ballY) * baseSize[1] / ((playerSize[1] + 1) / 2)) / 2;
 }
 
-function wayBackToLimit (state: state)
+function wayBackToLimit (state: serverState)
 {
 	let remaining = 0;
 
@@ -59,18 +65,18 @@ function wayBackToLimit (state: state)
 	return (remaining);
 }
 
-function getSpeed ({ ballSpeedX, ballSpeedY }: state)
+function getSpeed ({ ballSpeedX, ballSpeedY }: serverState)
 {
 	return (Math.sqrt(ballSpeedX ** 2 + ballSpeedY ** 2));
 }
 
-function forward (state: state, delta: number)
+function forward (state: serverState, delta: number)
 {
 	state.ballX += (delta * state.ballSpeedX);
 	state.ballY += (delta * state.ballSpeedY);
 }
 
-function bounceBall (state: state, config: mapConfig, delta: number, player1Miss: missedCallback, player2Miss: missedCallback)
+function bounceBall (state: serverState, config: mapConfig, delta: number, player1Miss: missedCallback, player2Miss: missedCallback, playerBounced?: bouncedCallback)
 {
 	if (state.ballSpeedX || state.ballSpeedY)
 	{
@@ -105,6 +111,8 @@ function bounceBall (state: state, config: mapConfig, delta: number, player1Miss
 				state.ballSpeedX = Math.cos(bounceAngle * Math.PI / 2) * speed;
 				state.ballX += (remainingDelta * state.ballSpeedX);
 				state.ballY += (remainingDelta * state.ballSpeedY);
+				if (playerBounced)
+					playerBounced(state);
 			}
 		}
 		else if (state.ballX > 1)
@@ -130,5 +138,5 @@ function bounceBall (state: state, config: mapConfig, delta: number, player1Miss
 	}
 }
 
-export type { team, avatar, state, missedCallback };
+export type { team, avatar, serverState, state, missedCallback };
 export { bounceBall, forward };

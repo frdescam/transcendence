@@ -1,20 +1,14 @@
-import { Vector3, Euler, MeshBasicMaterial } from 'three';
-import font from 'three/examples/fonts/helvetiker_regular.typeface.json?url'; // https://threejs.org/docs/#examples/en/geometries/TextGeometry
+import { Vector3, Euler } from 'three';
 
-import type { mapConfig, Material } from '../../logic/mapConfig';
+import type { mapConfig } from '../logic/mapConfig';
 
-const itemsMaterial: Material = new MeshBasicMaterial({
-	color: 0xffffff
-});
-
-const ballMaterial = itemsMaterial.clone();
-
-const config: mapConfig = {
+const config: Partial<mapConfig> = {
 	cameraClip: [1, 45],
 	fov: 56,
 	forceRotationRatio: 1.3,
-	skyboxAsEnvironment: false,
-	EnvironmentColor: 0xffffff,
+	additionnalLight: ['1_Rouge_Orientation', '5_Bleu_Orientation'],
+	skyboxAsEnvironment: true,
+	EnvironmentColor: 0x909090,
 	lightDecayFactor: 0.5,
 	lightIntensityFactor: 0.15,
 	transitionSpeed: 2,
@@ -22,24 +16,13 @@ const config: mapConfig = {
 	playCameraRotation: new Euler(-Math.PI / 2 * 0.88, 0, 0),
 	pauseCameraPosition: new Vector3(0, 57.15, 34.30),
 	pauseCameraRotation: new Euler(-Math.PI / 2 * 0.7, 0, 0),
-	floorMaterial: new MeshBasicMaterial({
-		color: 0x121212
-	}),
 	floorReflectivity: 0.15,
 	floorReflectorColor: 0x777777,
-	ballMaterial,
-	offsideOpacityMultiplier: 3,
-	player1Material: itemsMaterial,
-	player2Material: itemsMaterial,
+	offsideOpacityMultiplier: 5,
 	gameScale: 0.175,
 	baseSize: [65, 53],
 	playerSize: [1, 3.75],
 	moveSteps: 70,
-	moveStatusRouding: true,
-	scoreFont: font,
-	scoreMaterial: new MeshBasicMaterial({
-		color: 0xaaaaaa
-	}),
 	scorePositions: [
 		new Vector3(-(32.5 - 8), 4, -(53 / 2 + 4)),
 		new Vector3((32.5 - 8), 4, -(53 / 2 + 4))
@@ -53,10 +36,6 @@ const config: mapConfig = {
 		new Vector3(42, 4, 0)
 	],
 	avatarScale: 1.25,
-	textFont: font,
-	textMaterial: new MeshBasicMaterial({
-		color: 0xffffff
-	}),
 	textPausePosition: new Vector3(0, 15, 10),
 	textPauseRotation: new Euler(-Math.PI / 2 * 0.75, 0, 0),
 	textPlayPosition: new Vector3(0, 8, 0),

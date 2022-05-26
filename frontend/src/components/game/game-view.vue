@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import clsx from 'clsx';
+import { io } from 'socket.io-client';
 import { AppFullscreen } from 'quasar';
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
 import Scene, { mapConfig, options } from './canvas/scene';
-import config from './maps/forest/config';
+import config from './common/maps/forest';
 
-interface gameState {
+import type { state as commonState } from './common/logic/common';
+
+interface interfaceState {
 	loaded: boolean,
 	ready: boolean,
 	paused: boolean,
@@ -14,9 +17,10 @@ interface gameState {
 
 defineProps<{ userId: string, party: string }>();
 
-const state = reactive<gameState>({ loaded: false, ready: false, paused: true, graphics: 2 });
+const state = reactive<interfaceState>({ loaded: false, ready: false, paused: true, graphics: 2 });
 
 let scene: null | Scene = null;
+let socket: any = null;
 const canvas = ref<Ref | null>(null);
 
 function animate ()
@@ -48,6 +52,39 @@ onMounted(() =>
 	);
 
 	window.addEventListener('resize', resize);
+
+	socket = io('http://localhost:3001');
+	socket.on('connect', () =>
+	{
+		console.log('Connected', socket.id);
+
+		socket.on('game::state', (state: Partial<commonState>) =>
+		{
+			scene?.setState(state, 0);
+		});
+
+		socket.on('disconnect', () =>
+		{
+			scene?.setState({
+				lobby: true,
+				text: 'Connection lost',
+				textSize: 0.5,
+				textColor: 0xff0000
+			}, 0);
+		});
+
+		canvas.value.onclick = () =>
+		{
+			socket.emit('game::click');
+		};
+
+		scene?.setOnMove((value: number) =>
+		{
+			socket.emit('game::move', value);
+		});
+
+		socket.emit('game::create', 't', 'forest');
+	});
 });
 
 onBeforeUnmount(() =>

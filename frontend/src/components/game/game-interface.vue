@@ -71,7 +71,7 @@ function toggleFullscreen ()
 				<q-btn
 					color="blue-7"
 					:icon="AppFullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
-					:label="AppFullscreen.isActive ? 'Windowed' : 'Fullscreen'"
+					:label="AppFullscreen.isActive ? 'Window' : 'Fullscreen'"
 					@click="toggleFullscreen"
 				/>
 

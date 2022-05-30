@@ -1,38 +1,45 @@
 <template>
-	<q-layout view="lHh Lpr lFf">
+	<q-layout view="hHh lpR fFf">
 		<q-header elevated>
-			<q-toolbar>
-				<q-btn
-				flat
-				dense
-				round
-				icon="menu"
-				aria-label="Menu"
-				@click="toggleLeftDrawer"
-				/>
+			<q-toolbar id="header-contents">
 				<q-toolbar-title>
+					<q-icon
+						class="q-mr-sm"
+						name="img:https://www.pinclipart.com/picdir/big/535-5355934_ping-pong-table-tennis-icon-png-clipart.png"
+					/>
 					Transcendance
 				</q-toolbar-title>
+				<div class="row q-gutter-md no-wrap mobile-hide">
+					<q-btn flat rounded :to="{ path: '/play' }" label="Play"/>
+					<q-btn flat rounded :to="{ path: '/chat' }" label="Chat"/>
+					<q-btn flat rounded :to="{ path: '/leaderboards' }" label="Leaderboards"/>
+				</div>
+				<div class="row q-ml-md no-wrap">
+					<q-btn flat rounded :to="{ path: '/logout' }"><q-icon name="logout"/></q-btn>
+					<q-btn flat rounded :to="{ path: '/settings' }"><q-icon name="settings"/></q-btn>
+					<!-- <q-btn flat rounded :to="{ path: '/notifications' }"><q-icon name="notifications"/></q-btn> TODO: Notifications -->
+					<q-btn flat rounded :to="{ path: '/login' }"><q-icon name="person"/></q-btn>
+				</div>
 			</q-toolbar>
 		</q-header>
-
-		<q-drawer
-			v-model="leftDrawerOpen"
-			show-if-above
-			bordered
-		>
-			<q-list>
-				<div>Hello</div>
-				<router-link :to="{ path: '/chat' }">go to chat page</router-link><br/>
-				<router-link :to="{ path: '/login' }">go to login page</router-link><br/>
-			</q-list>
-		</q-drawer>
 
 		<q-page-container>
 			<router-view />
 		</q-page-container>
+		<q-footer class="mobile-only row justify-evenly">
+			<q-btn flat rounded :to="{ path: '/play' }" icon="sports_esports"/>
+			<q-btn flat rounded :to="{ path: '/chat' }" icon="chat"/>
+			<q-btn flat rounded :to="{ path: '/leaderboards' }" icon="leaderboards"/>
+		</q-footer>
 	</q-layout>
 </template>
+
+<style lang="scss">
+#header-contents {
+	max-width: 900px;
+	margin: auto;
+}
+</style>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
@@ -42,14 +49,7 @@ export default defineComponent({
 
 	setup ()
 	{
-		const leftDrawerOpen = ref(false);
-
 		return {
-			leftDrawerOpen,
-			toggleLeftDrawer ()
-			{
-				leftDrawerOpen.value = !leftDrawerOpen.value;
-			}
 		};
 	}
 });

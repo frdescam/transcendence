@@ -4,6 +4,7 @@ import { Channel } from "./channel.entity";
 import { Message } from "./message.entity";
 import { BannedUser } from "./bannedUser.entity";
 import { MutedUser } from "./mutedUser.entity";
+import { PendingInvitation } from "./pendingInvitation.entity";
 
 export enum TypesOf2FA {
     NONE = "none",
@@ -35,8 +36,20 @@ export class User extends BaseEntity {
     @Column({type: "float4"})
     xp: number;
 
-    @OneToMany(() => Match, (match) => match.user1)
-    matches: Match[];
+    @ManyToMany(() => User, (user) => user.friends)
+    friends: User[];
+
+    @OneToMany(() => PendingInvitation, (pendingInvitation) => pendingInvitation.userSending)
+    receivedInvitations: PendingInvitation[];
+
+    @OneToMany(() => PendingInvitation, (pendingInvitation) => pendingInvitation.userReceiving)
+    sentInvitations: PendingInvitation[];
+
+    @OneToMany(() => Match, (match) => match.userAtHome)
+    matchesAtHome: Match[];
+
+    @OneToMany(() => Match, (match) => match.userAsForeigner)
+    matchesAsForeigner: Match[];
 
     @OneToMany(() => Channel, (channel) => channel.owner)
     ownedChannels: Channel[];

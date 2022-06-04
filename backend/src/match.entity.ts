@@ -7,11 +7,11 @@ export class Match extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => User, (user) => user.matches)
-    user1: User;
+    @ManyToOne(() => User, (user) => user.matchesAtHome)
+    userAtHome: User;
 
-    @ManyToOne(() => User, (user) => user.matches)
-    user2: User;
+    @ManyToOne(() => User, (user) => user.matchesAsForeigner)
+    userAsForeigner: User;
 
     @Column()
     user1Score: number;

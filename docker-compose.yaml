@@ -5,8 +5,10 @@ services:
     container_name: postgres
     restart: unless-stopped
     image: postgres:14
+    ports:
+      - "5432:5432"
     environment:
-      - POSTGRES_USER=user
+      - POSTGRES_USER=transcendence
       - POSTGRES_PASSWORD=password
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
     volumes:

@@ -24,16 +24,16 @@ export class User extends BaseEntity {
     @Column({type: "varchar", length: 60})
     password: string;
 
-    @Column({type: "varchar", length: 50})
+    @Column({type: "varchar", length: 50, nullable: true})
     avatar: string;
 
-    @Column({type: "enum", enum: TypesOf2FA})
+    @Column({type: "enum", enum: TypesOf2FA, default: TypesOf2FA.NONE})
     typeOf2FA: TypesOf2FA;
 
-    @Column({type: "varchar", length: 60})
+    @Column({type: "varchar", length: 60, nullable: true})
     valueOf2FA: string; // TODO: check what we need to store here
 
-    @Column({type: "float4"})
+    @Column({type: "float4", default: 0.0})
     xp: number;
 
     @ManyToMany(() => User, (user) => user.friends)
@@ -45,11 +45,11 @@ export class User extends BaseEntity {
     @OneToMany(() => PendingInvitation, (pendingInvitation) => pendingInvitation.userReceiving)
     sentInvitations: PendingInvitation[];
 
-    @OneToMany(() => Match, (match) => match.userAtHome)
-    matchesAtHome: Match[];
+    @OneToMany(() => Match, (match) => match.userHome)
+    matchesHome: Match[];
 
-    @OneToMany(() => Match, (match) => match.userAsForeigner)
-    matchesAsForeigner: Match[];
+    @OneToMany(() => Match, (match) => match.userForeign)
+    matchesForeign: Match[];
 
     @OneToMany(() => Channel, (channel) => channel.owner)
     ownedChannels: Channel[];

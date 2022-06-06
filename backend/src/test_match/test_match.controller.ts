@@ -1,5 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { MatchRegistrationDto } from './matchRegistration.dto';
+import { MatchRegistrationDto } from '../matchRegistration.dto';
 import { TestMatchService } from './test_match.service';
 
 @Controller('test-match')

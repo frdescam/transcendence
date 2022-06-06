@@ -3,7 +3,7 @@ import { Body } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { Console } from 'console';
 import { TestUserService } from './test_user.service';
-import { UserRegistrationDto } from './userRegistration.dto';
+import { UserRegistrationDto } from '../userRegistration.dto';
 
 @Controller('test-user')
 export class TestUserController {

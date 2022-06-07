@@ -5,7 +5,7 @@ import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { quality, qualities } from './qualities';
-import clientLogic from '../common/logic/client';
+import clientLogic from '../logic/client';
 import { state, team } from '../common/logic/common';
 
 import { Notify } from 'quasar';
@@ -28,6 +28,8 @@ type options = {
 
 type disposable = ThreeMaterial | BufferGeometry | Texture | Light | WebGLRenderer;
 
+const supportedDeltaModes = [0, 1, 2];
+
 class PongScene
 {
 	protected config: mapConfig;
@@ -42,6 +44,7 @@ class PongScene
 	protected ballMoveDistanceX: number;
 	protected ballMoveDistanceY: number;
 	protected moveDelta: number;
+	protected normalizedWheelEvent: [number | null, number | null, number | null];
 
 	protected loadingManager: LoadingManager;
 	protected gltfLoader: GLTFLoader;
@@ -144,6 +147,11 @@ class PongScene
 		this.ballMoveDistanceX = (baseSize[0] - 3) * gameScale;
 		this.ballMoveDistanceY = (baseSize[1] - 1) * gameScale;
 		this.moveDelta = 1 / moveSteps;
+		this.normalizedWheelEvent = {
+			0: null,
+			1: null,
+			2: null
+		};
 
 		this.loadingManager = new LoadingManager();
 		this.gltfLoader = new GLTFLoader(this.loadingManager);
@@ -585,7 +593,17 @@ class PongScene
 				{
 					e.preventDefault();
 
-					this._addPosition(this.moveDelta * ((e.deltaY > 0) ? 1 : -1));
+					let normalizedDelta;
+					if (supportedDeltaModes.includes(e.deltaMode))
+					{
+						if (this.normalizedWheelEvent[e.deltaMode] === null || (this.normalizedWheelEvent[e.deltaMode] as number) > Math.abs(e.deltaY))
+							this.normalizedWheelEvent[e.deltaMode] = Math.max(Math.abs(e.deltaY), 1);
+						normalizedDelta = this.normalizedWheelEvent[e.deltaMode] as number;
+					}
+					else
+						normalizedDelta = 1 / 20;
+
+					this._addPosition(this.moveDelta * (e.deltaY / normalizedDelta));
 				};
 			this.renderer.domElement.addEventListener('wheel', this.scrollMovementCallback);
 		}
@@ -831,7 +849,7 @@ class PongScene
 			else
 				this._play();
 		}
-		else if (!newState.paused && state.players) // @TODO: verify this
+		else if (!newState.paused && state.players)
 			state.players[newState.team] = oldState.players[oldState.team];
 
 		this.state = Object.assign(this.state, state);

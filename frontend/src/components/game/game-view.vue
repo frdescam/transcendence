@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import clsx from 'clsx';
-import { io } from 'socket.io-client';
 import { AppFullscreen } from 'quasar';
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
+import { gameSocket } from 'src/boot/socketio';
 import Scene, { mapConfig, options } from './canvas/scene';
-import config from './common/maps/forest';
+import config from './maps/forest';
 
 import type { state as commonState } from './common/logic/common';
 
@@ -20,7 +20,6 @@ defineProps<{ userId: string, party: string }>();
 const state = reactive<interfaceState>({ loaded: false, ready: false, paused: true, graphics: 2 });
 
 let scene: null | Scene = null;
-let socket: any = null;
 const canvas = ref<Ref | null>(null);
 
 function animate ()
@@ -31,6 +30,49 @@ function animate ()
 function resize ()
 {
 	(scene as Scene).setSize(canvas.value.offsetWidth, canvas.value.offsetHeight);
+}
+
+function onSocketConnected ()
+{
+	gameSocket.on('party::state', (state: Partial<commonState>) =>
+	{
+		// @TODO: Take ping in account, and pass ping/2
+		scene?.setState(state, 0);
+	});
+
+	gameSocket.on('disconnect', () =>
+	{
+		scene?.setState({
+			lobby: true,
+			text: 'Connection lost',
+			textSize: 0.5,
+			textColor: 0xff0000
+		}, 0);
+	});
+
+	canvas.value.onclick = () =>
+	{
+		gameSocket.emit('party::click');
+	};
+
+	scene?.setOnMove((value: number) =>
+	{
+		gameSocket.emit(
+			'party::move',
+			{
+				position: value
+			}
+		);
+	});
+
+	// Should be 'join' event, as create will be done on a dedicated page. That's for dev only.
+	gameSocket.emit(
+		'party::create',
+		{
+			room: 't',
+			map: 'forest'
+		}
+	);
 }
 
 onMounted(() =>
@@ -53,43 +95,14 @@ onMounted(() =>
 
 	window.addEventListener('resize', resize);
 
-	socket = io('http://localhost:3001');
-	socket.on('connect', () =>
-	{
-		console.log('Connected', socket.id);
-
-		socket.on('game::state', (state: Partial<commonState>) =>
-		{
-			scene?.setState(state, 0);
-		});
-
-		socket.on('disconnect', () =>
-		{
-			scene?.setState({
-				lobby: true,
-				text: 'Connection lost',
-				textSize: 0.5,
-				textColor: 0xff0000
-			}, 0);
-		});
-
-		canvas.value.onclick = () =>
-		{
-			socket.emit('game::click');
-		};
-
-		scene?.setOnMove((value: number) =>
-		{
-			socket.emit('game::move', value);
-		});
-
-		socket.emit('game::create', 't', 'forest');
-	});
+	gameSocket.on('connect', onSocketConnected);
 });
 
 onBeforeUnmount(() =>
 {
-	(scene as Scene).setAnimationLoop(null);
+	gameSocket.off('connect', onSocketConnected);
+	gameSocket.emit('party::leaveAll');
+	scene?.setAnimationLoop(null);
 	window.removeEventListener('resize', resize);
 
 	scene?.dispose();

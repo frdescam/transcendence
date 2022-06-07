@@ -1,7 +1,7 @@
-import { bounceBall, forward } from './common';
+import { bounceBall, forward } from '../common/logic/common';
 
-import type { missedCallback, state } from './common';
-import type { mapConfig } from './mapConfig';
+import type { missedCallback, state } from '../common/logic/common';
+import type { mapConfig } from '../common/logic/mapConfig';
 
 const playerMissBall: missedCallback = (state, remainingDelta) =>
 {

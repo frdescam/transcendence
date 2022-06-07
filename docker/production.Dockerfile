@@ -3,6 +3,7 @@ WORKDIR /usr/src/app/
 
 # Build backend
 COPY    backend/. .
+COPY    common/game/. ./src/game/common
 RUN     yarn install
 RUN     yarn build
 

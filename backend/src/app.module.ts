@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from './database.module';
-import { ChatModule } from './chat/chat.module';
 import { UserModule } from './user/user.module';
+import { ChatModule } from './chat/chat.module';
+import { GameModule } from './game/game.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import * as process from 'process';
 import * as path from 'path';
@@ -15,9 +17,11 @@ import * as path from 'path';
         path.join(__dirname, '..', 'static_dev')
       )
     }),
+    ScheduleModule.forRoot(),
     DatabaseModule,
+    UserModule,
     ChatModule,
-    UserModule
+    GameModule
   ],
 })
 export class AppModule {}

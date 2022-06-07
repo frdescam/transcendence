@@ -2,6 +2,8 @@ import type { Color } from 'three';
 import type { mapConfig } from './mapConfig';
 
 type team = 0 | 1;
+const teamNoneVal = -1;
+type teamNone = typeof teamNoneVal;
 type avatar = string | null;
 
 interface serverState {
@@ -138,5 +140,5 @@ function bounceBall (state: serverState, config: mapConfig, delta: number, playe
 	}
 }
 
-export type { team, avatar, serverState, state, missedCallback };
-export { bounceBall, forward };
+export type { team, teamNone, avatar, serverState, state, missedCallback };
+export { bounceBall, forward, teamNoneVal };

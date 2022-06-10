@@ -27,6 +27,10 @@ interface state extends serverState {
 	team: team
 }
 
+interface partyQuery {
+	map?: string
+}
+
 type missedCallback = (state: serverState, remainingDelta: number) => void;
 type bouncedCallback = (state: serverState) => void;
 
@@ -140,5 +144,5 @@ function bounceBall (state: serverState, config: mapConfig, delta: number, playe
 	}
 }
 
-export type { team, teamNone, avatar, serverState, state, missedCallback };
+export type { team, teamNone, avatar, serverState, state, partyQuery, missedCallback };
 export { bounceBall, forward, teamNoneVal };

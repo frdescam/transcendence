@@ -15,7 +15,7 @@ interface interfaceState {
 	graphics: 0|1|2|3|4|5
 }
 
-defineProps<{ userId: string, party: string }>();
+const props = defineProps<{ userId: string, party: string }>();
 
 const state = reactive<interfaceState>({ loaded: false, ready: false, paused: true, graphics: 2 });
 
@@ -69,7 +69,7 @@ function onSocketConnected ()
 	gameSocket.emit(
 		'party::create',
 		{
-			room: 't',
+			room: props.party,
 			map: 'forest'
 		}
 	);

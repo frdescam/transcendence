@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { Clock } from 'three';  // @TODO : should find a lighter technologie
-import { bounceBall, serverState, team, teamNoneVal } from '../common/logic/common';
+import { bounceBall, serverState, team, teamNoneVal, partyQuery } from '../common/logic/common';
 import maps from '../common/maps/headless';
-import { Party, partyStatus, pauseReason, map } from './interfaces/party.interface';
+import { Party, partyStatus, pauseReason, map, Query } from './interfaces/party.interface';
 import type { Socket } from 'socket.io';
 
 @Injectable()
 export class PartyService
 {
-    private readonly parties: Party[] = [];
-    private readonly partiesBySocket: any = {};
+    private parties: Party[] = [];
+    private partiesBySocket: any = {};
+    private queries: Query[] = [];
 
     run(party: Party, delta: number)
     {
@@ -505,6 +506,8 @@ export class PartyService
                 true
             );
 
+            this.wireMatchingQuery(party);
+
             return (party);
         }
     }
@@ -621,5 +624,56 @@ export class PartyService
                     break;
             }
         });
+    }
+
+    find ({map}: partyQuery): string | null
+    {
+        const candidates = this.parties.filter(
+            (party) =>
+            {
+                if (map && party.map != map)
+                    return (false);
+                return (true);
+            }
+        );
+
+        if (candidates.length)
+            return (candidates[0].room);
+        else
+            return (null);
+    }
+
+    queryParty (client: Socket, query: partyQuery)
+    {
+        this.queries.push({
+            client,
+            query
+        });
+    }
+
+    leaveAllQuery (client: Socket)
+    {
+        this.queries = this.queries.filter(
+            ({client: partyClient}) => (client != partyClient)
+        );
+    }
+
+    wireMatchingQuery (party: Party)
+    {
+        if (party.playersId[0] && party.playersId[1]) // @TODO: Should check that's the place is not reserved to the querier
+            return ;
+
+        this.queries.every(
+            ({client, query}) =>
+            {
+                if ((!query.map || query.map == party.map))
+                {
+                    client.emit('play::found', party.room);
+                    this.leaveAll(client);
+                    return (false);
+                }
+                return (true);
+            }
+        );
     }
 }

@@ -1,6 +1,6 @@
 import type { Clock } from 'three';
 import type { Socket } from 'socket.io';
-import type { serverState, team, teamNone } from '../../common/logic/common';
+import type { serverState, team, teamNone, partyQuery } from '../../common/logic/common';
 
 export type map = string;
 
@@ -38,3 +38,9 @@ export interface Party
     playersReady: [boolean, boolean],
     state: serverState
 };
+
+export interface Query
+{
+    client: Socket,
+    query: partyQuery
+}

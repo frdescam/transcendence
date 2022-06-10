@@ -42,30 +42,30 @@ const message = computed(() =>
 	}
 });
 
-function onSocketConnected ()
+function onFound (room: string)
 {
-	gameSocket.on('play::found', (room: string) =>
-	{
-		status.value = State.Found;
-		router.push({
-			path: `/game/${room}`,
-			// name: 'party',
-			params: {
-				party: room
-			}
-		});
+	status.value = State.Found;
+	router.push({
+		path: `/game/${room}`,
+		// name: 'party',
+		params: {
+			party: room
+		}
 	});
+}
 
-	gameSocket.on('play::notFound', () =>
-	{
-		status.value = State.Awaiting;
-	});
+function onNotFound ()
+{
+	status.value = State.Awaiting;
+}
 
-	gameSocket.on('disconnect', () =>
-	{
-		status.value = State.Connecting;
-	});
+function onDisconnect ()
+{
+	status.value = State.Connecting;
+}
 
+function onConnected ()
+{
 	status.value = State.Querying;
 	gameSocket.emit(
 		'play::find',
@@ -77,13 +77,22 @@ function onSocketConnected ()
 
 onMounted(() =>
 {
-	gameSocket.on('connect', onSocketConnected);
+	gameSocket.on('play::found', onFound);
+	gameSocket.on('play::notFound', onNotFound);
+	gameSocket.on('connect', onConnected);
+	gameSocket.on('disconnect', onDisconnect);
+
+	if (gameSocket.connected)
+		onConnected();
 });
 
 onBeforeUnmount(() =>
 {
+	gameSocket.off('play::found', onFound);
+	gameSocket.off('play::notFound', onNotFound);
+	gameSocket.off('connect', onConnected);
+	gameSocket.off('disconnect', onDisconnect);
 	gameSocket.emit('play::leaveAll');
-	gameSocket.off('connect', onSocketConnected);
 });
 
 </script>

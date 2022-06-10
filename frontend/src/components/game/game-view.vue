@@ -32,39 +32,39 @@ function resize ()
 	(scene as Scene).setSize(canvas.value.offsetWidth, canvas.value.offsetHeight);
 }
 
-function onSocketConnected ()
+function onState (state: Partial<commonState>)
 {
-	gameSocket.on('party::state', (state: Partial<commonState>) =>
-	{
-		// @TODO: Take ping in account, and pass ping/2
-		scene?.setState(state, 0);
-	});
+	// @TODO: Take ping in account, and pass ping/2
+	scene?.setState(state, 0);
+}
 
-	gameSocket.on('disconnect', () =>
-	{
-		scene?.setState({
-			lobby: true,
-			text: 'Connection lost',
-			textSize: 0.5,
-			textColor: 0xff0000
-		}, 0);
-	});
+function onDisconnect (state: Partial<commonState>)
+{
+	scene?.setState({
+		lobby: true,
+		text: 'Connection lost',
+		textSize: 0.5,
+		textColor: 0xff0000
+	}, 0);
+}
 
-	canvas.value.onclick = () =>
-	{
-		gameSocket.emit('party::click');
-	};
+function onClick ()
+{
+	gameSocket.volatile.emit('party::click');
+}
 
-	scene?.setOnMove((value: number) =>
-	{
-		gameSocket.emit(
-			'party::move',
-			{
-				position: value
-			}
-		);
-	});
+function onMove (value: number)
+{
+	gameSocket.volatile.emit(
+		'party::move',
+		{
+			position: value
+		}
+	);
+}
 
+function onConnected ()
+{
 	// Should be 'join' event, as create will be done on a dedicated page. That's for dev only.
 	gameSocket.emit(
 		'party::create',
@@ -95,12 +95,22 @@ onMounted(() =>
 
 	window.addEventListener('resize', resize);
 
-	gameSocket.on('connect', onSocketConnected);
+	canvas.value.onclick = onClick;
+	scene.setOnMove(onMove);
+
+	gameSocket.on('party::state', onState);
+	gameSocket.on('disconnect', onDisconnect);
+	gameSocket.on('connect', onConnected);
+
+	if (gameSocket.connected)
+		onConnected();
 });
 
 onBeforeUnmount(() =>
 {
-	gameSocket.off('connect', onSocketConnected);
+	gameSocket.off('party::state', onState);
+	gameSocket.off('disconnect', onDisconnect);
+	gameSocket.off('connect', onConnected);
 	gameSocket.emit('party::leaveAll');
 	scene?.setAnimationLoop(null);
 	window.removeEventListener('resize', resize);

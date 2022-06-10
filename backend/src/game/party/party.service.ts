@@ -70,6 +70,15 @@ export class PartyService
         let winnerSlot = party.state.scores[0] == 11 ? 0 : 1;
         let looserSlot = winnerSlot == 0 ? 1 : 0;
 
+        this.setState(
+            party,
+            {
+                text: 'Player ' + (winnerSlot + 1) + ' won !',
+                textSize: 0.9,
+                textColor: 0x0000ff,
+            }
+        )
+
         if (party.playersSocket[winnerSlot])
         {
             this.sendSocketState(
@@ -266,7 +275,7 @@ export class PartyService
                 party,
                 {
                     lobby: true,
-                    text: 'Adversary  gone',
+                    text: 'Adversary gone',
                     textSize: 0.5,
                     textColor: 0xff0000,
                 }
@@ -294,7 +303,8 @@ export class PartyService
                     text: 'Party paused',
                     textSize: 0.5,
                     textColor: 0x00ffff,
-                }
+                },
+                true
             );
         }
         this.sendState(
@@ -415,6 +425,15 @@ export class PartyService
             else
                 this.pause(party, pauseReason.Regain);
         }
+        else
+        {
+            this.patchState(
+                party,
+                {},
+                true
+            )
+        }
+        
         
         return (party);
     }

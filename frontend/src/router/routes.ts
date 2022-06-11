@@ -17,7 +17,7 @@ const routes: RouteRecordRaw[] = [
 		path: '/play/matching',
 		name: 'matching',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/Play.vue') }]
+		children: [{ path: '', component: () => import('src/views/pages/Matching.vue') }]
 	},
 
 	{

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { Clock } from 'three';  // @TODO : should find a lighter technologie
-import { bounceBall, serverState, team, teamNoneVal, partyQuery } from '../common/logic/common';
-import maps from '../common/maps/headless';
+import { bounceBall, serverState, team, teamNoneVal, partyQuery } from 'src/common/game/logic/common';
+import maps from 'src/common/game/maps/headless';
 import { Party, partyStatus, pauseReason, map, Query } from './interfaces/party.interface';
 import type { Socket } from 'socket.io';
 

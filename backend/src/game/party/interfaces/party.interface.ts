@@ -1,6 +1,6 @@
 import type { Clock } from 'three';
 import type { Socket } from 'socket.io';
-import type { serverState, team, teamNone, partyQuery } from '../../common/logic/common';
+import type { serverState, team, teamNone, partyQuery } from 'src/common/game/logic/common';
 
 export type map = string;
 

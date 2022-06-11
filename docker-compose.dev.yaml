@@ -38,7 +38,7 @@ services:
     command: yarn start:dev
     volumes:
       - './backend/:/usr/src/app'
-      - './common/game/:/usr/src/app/src/game/common/'
+      - './common/:/usr/src/app/src/common/'
     env_file:
       - .env
     networks:
@@ -58,7 +58,7 @@ services:
     command: yarn dev
     volumes:
       - './frontend/:/usr/src/app'
-      - './common/game/:/usr/src/app/src/components/game/common/'
+      - './common/:/usr/src/app/src/common/'
     env_file:
       - .env
     networks:

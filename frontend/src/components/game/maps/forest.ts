@@ -1,5 +1,5 @@
 import { MeshPhongMaterial } from 'three';
-import headlessConfig from '../common/maps/forest.headless';
+import headlessConfig from 'src/common/game/maps/forest.headless';
 import skyboxPX from '../ressources/kloppenheim_02/px.png?url';
 import skyboxNX from '../ressources/kloppenheim_02/nx.png?url';
 import skyboxPY from '../ressources/kloppenheim_02/py.png?url';
@@ -9,7 +9,7 @@ import skyboxNZ from '../ressources/kloppenheim_02/nz.png?url';
 import sceneFile from './forest.glb?url';
 import font from 'three/examples/fonts/helvetiker_regular.typeface.json?url'; // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 
-import type { mapConfig, Material } from '../common/logic/mapConfig';
+import type { mapConfig, Material } from 'src/common/game/logic/mapConfig';
 
 const itemsMaterial: Material = new MeshPhongMaterial({
 	color: 0xffffff,

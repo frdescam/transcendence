@@ -1,8 +1,8 @@
 import { MeshBasicMaterial } from 'three';
-import headlessConfig from '../common/maps/classic.headless';
+import headlessConfig from 'src/common/game/maps/classic.headless';
 import font from 'three/examples/fonts/helvetiker_regular.typeface.json?url'; // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 
-import type { mapConfig, Material } from '../common/logic/mapConfig';
+import type { mapConfig, Material } from 'src/common/game/logic/mapConfig';
 
 const itemsMaterial: Material = new MeshBasicMaterial({
 	color: 0xffffff

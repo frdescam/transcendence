@@ -6,7 +6,7 @@ import { gameSocket } from 'src/boot/socketio';
 import Scene, { mapConfig, options } from './canvas/scene';
 import config from './maps/forest';
 
-import type { state as commonState } from './common/logic/common';
+import type { state as commonState } from 'src/common/game/logic/common';
 
 interface interfaceState {
 	loaded: boolean,

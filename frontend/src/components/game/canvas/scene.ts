@@ -6,11 +6,11 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { quality, qualities } from './qualities';
 import clientLogic from '../logic/client';
-import { state, team } from '../common/logic/common';
+import { state, team } from 'src/common/game/logic/common';
 
 import { Notify } from 'quasar';
 
-import type { mapConfig } from '../common/logic/mapConfig';
+import type { mapConfig } from 'src/common/game/logic/mapConfig';
 import type { Material as ThreeMaterial } from 'three';
 
 type onMoveCallback = ((position: number) => void) | null;

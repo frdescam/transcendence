@@ -34,7 +34,6 @@ export default {
 			'Doom'
 		];
 		const opponentType = ref('any');
-		const opponent = ref('');
 		const friendList = [
 			'Joe',
 			'Jack',
@@ -43,6 +42,7 @@ export default {
 			'Reanu Keeves',
 			'Bongo'
 		];
+		const opponent = ref(friendList[0]);
 		return {
 			friendList,
 			map,

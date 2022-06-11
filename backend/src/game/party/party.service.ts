@@ -157,8 +157,10 @@ export class PartyService
         }, 0);
     }
 
-    sendSocketState (client: Socket, state: Partial<serverState>, team: team | undefined)
+    sendSocketState (client: Socket | null, state: Partial<serverState>, team: team | undefined)
     {
+        if (!client)
+            return ;
         if (typeof team != 'undefined')
             client.emit("party::state", (Object.assign({team}, state)));
         else

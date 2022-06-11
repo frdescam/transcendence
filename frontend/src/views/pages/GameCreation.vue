@@ -1,6 +1,7 @@
 <template>
 	<q-page class="row items-center justify-center">
-		<q-form action="/api/game" method="post" @submit="onSubmit" class="dark q-pa-md shadow-box shadow-8" autofocus>
+		<q-form action="/play/matching" method="get" @submit="onSubmit" class="dark q-pa-md shadow-box shadow-8"
+			autofocus>
 			<div class="q-ma-md">
 				<h3>Game creation</h3>
 			</div>
@@ -22,7 +23,8 @@
 import { ref } from 'vue';
 
 export default {
-	setup() {
+	setup ()
+	{
 		const map = ref('Any');
 		const mapOptions = [
 			'Any',
@@ -47,8 +49,17 @@ export default {
 			mapOptions,
 			opponent,
 			opponentType,
-			onSubmit() {
-				console.log(map);
+			onSubmit ()
+			{
+				let newUri = '/play/matching';
+				if (map.value !== 'Any')
+					newUri += '?map=' + map.value;
+				if (opponentType.value !== 'any')
+				{
+					newUri += (map.value !== 'Any') ? '&' : '?';
+					newUri += 'opponent=' + opponent.value;
+				}
+				window.location.href = newUri;
 			}
 		};
 	}

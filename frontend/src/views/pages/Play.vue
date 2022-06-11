@@ -24,6 +24,7 @@ const route = useRoute();
 
 const status = ref(State.Connecting);
 const map = computed(() => (route.query.map || null)); // @TODO: Manage change in the URL
+const opponent = computed(() => (route.query.opponent || null)); // @TODO: Manage change in the URL
 const message = computed(() =>
 {
 	switch (status.value)
@@ -101,7 +102,7 @@ onBeforeUnmount(() =>
 	<q-page class="page text-white text-center q-pa-md flex flex-center">
 		<div class="container">
 			<h1 class="text-h1">
-				Looking for party{{map && (" with map " + map)}}...
+				Looking for party{{ opponent && (" against " + opponent)}}{{map && (" on map " + map)}}...
 			</h1>
 			<p class="text-h2">{{message}}</p>
 			<q-linear-progress

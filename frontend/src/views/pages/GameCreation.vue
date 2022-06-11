@@ -5,8 +5,6 @@
 				<h3>Game creation</h3>
 			</div>
 			<q-select filled v-model="map" :options="mapOptions" label="Map selection" class="bg-blue-grey-1 q-ma-md" />
-			<q-img :src="mapPreview" alt="A preview of the map" spinner-color="white" class="bg-blue-grey-1 q-ma-md"
-				style="height: 200px; max-width: 300px" />
 			<q-btn-toggle v-model="opponentType" toggle-color="primary" class="bg-blue-grey-1 q-ma-md" :options="[
 				{ label: 'Play with anyone', value: 'any' },
 				{ label: 'Play with a friend', value: 'friend' },
@@ -43,14 +41,12 @@ export default {
 			'Reanu Keeves',
 			'Bongo'
 		];
-		const mapPreview = ref('https://placeimg.com/500/300/nature');
 		return {
 			friendList,
 			map,
 			mapOptions,
 			opponent,
 			opponentType,
-			mapPreview,
 			onSubmit() {
 				console.log(map);
 			}

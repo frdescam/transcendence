@@ -2,8 +2,8 @@ export default {
 	chat: {
 		editor: {
 			image: 'Image',
-			send: 'Send',
-			placeholder: 'Write your message'
+			send: 'Envoyer',
+			placeholder: 'Ecriver votre message'
 		},
 		message: {
 			me: 'me'

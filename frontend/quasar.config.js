@@ -46,10 +46,11 @@ module.exports = configure(() =>
 				browser: ['es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1'],
 				node: 'node16'
 			},
+			polyfillModulePreload: false,
 			vueRouterMode: 'history',
 			analyze: true,
 			minify: 'esbuild',
-			vueDevtools: true,
+			vueDevtools: !!(process.env.DEBUG),
 			vueOptionsAPI: false,
 			rebuildCache: false,
 			alias: {
@@ -62,7 +63,8 @@ module.exports = configure(() =>
 			distDir: 'dist',
 			vitePlugins: [
 				['@intlify/vite-plugin-vue-i18n', {
-					compositionOnly: true, // `false` for Vue I18n Legacy API
+					compositionOnly: false,
+					// runtimeOnly: false,
 					include: path.resolve(__dirname, './src/i18n/**')
 				}]
 			],

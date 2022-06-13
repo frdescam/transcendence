@@ -1,7 +1,7 @@
 <template>
 	<q-page class="row no-wrap justify-between items-stretch content-stretch">
 		<div class="col-3 channel">
-			First column
+			<chatChannel></chatChannel>
 		</div>
 		<div class="col-6 chat">
 			<form
@@ -11,10 +11,21 @@
 				spellcheck="true"
 			>
 				<q-editor
-					placeholder="Write your message"
+					:placeholder="$t('chat.editor.placeholder')"
 					ref="editorRef"
 					max-height="15em"
-					:definitions="definitions"
+					:definitions="{
+						image: {
+							icon: 'image',
+							tip: $t('chat.editor.image'),
+							handler: insertImage
+						},
+						send: {
+							icon: 'send',
+							tip: $t('chat.editor.send'),
+							handler: sendMessage
+						}
+					}"
 					:toolbar="[
 						['bold', 'italic', 'strike', 'underline'],
 						['undo', 'redo'],
@@ -43,56 +54,7 @@
 					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
 					bg-color="amber"
 				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
+					<div>Hello !</div>
 					<q-spinner-dots size="2rem" />
 				</q-chat-message>
 
@@ -105,50 +67,44 @@
 </template>
 
 <script lang="ts">
+import chatChannel from '../../components/chat/Channel.vue';
 import { defineComponent, ref } from 'vue';
 
 export default defineComponent({
-	name: 'chat-page',
+	name: 'chatPage',
+	components: {
+		chatChannel
+	},
 	setup ()
 	{
 		const editor = ref('');
 		return {
 			editor,
-			definitions: {
-				image: {
-					icon: 'image',
-					tip: 'Insert image',
-					handler: () =>
+			insertImage ()
+			{
+				const input = document.createElement('input');
+				input.type = 'file';
+				input.accept = '.png, .jpg';
+				let file;
+				input.onchange = () =>
+				{
+					const files = Array.from(input.files as FileList);
+					file = files[0];
+					const reader = new FileReader();
+					let dataUrl:string;
+					reader.onloadend = () =>
 					{
-						const input = document.createElement('input');
-						input.type = 'file';
-						input.accept = '.png, .jpg';
-						let file;
-						input.onchange = () =>
-						{
-							const files = Array.from(input.files as FileList);
-							file = files[0];
-							const reader = new FileReader();
-							let dataUrl:string;
-							reader.onloadend = () =>
-							{
-								dataUrl = String(reader.result);
-								editor.value += `<img src="${dataUrl}" />`;
-							};
-							reader.readAsDataURL(file);
-						};
-						input.click();
-					}
-				},
-				send: {
-					icon: 'send',
-					tip: 'Send message',
-					handler: () =>
-					{
-						const value = editor.value;
-						console.log(value, value.length);
-					}
-				}
+						dataUrl = String(reader.result);
+						editor.value += `<img src="${dataUrl}" />`;
+					};
+					reader.readAsDataURL(file);
+				};
+				input.click();
+			},
+			sendMessage ()
+			{
+				const value = editor.value;
+				console.log(value, value.length);
 			}
 		};
 	}
@@ -181,5 +137,4 @@ export default defineComponent({
 	height: 2em;
 	width: 2em;
 }
-
 </style>

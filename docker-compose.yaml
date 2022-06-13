@@ -12,8 +12,6 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_INITDB_ARGS: --encoding=UTF-8
       PG_DATA: /var/lib/postgresql/data
-    ports:
-      - ${DB_PORT}:${DB_PORT}
     env_file:
       - .env
     networks:

@@ -15,16 +15,14 @@ import { Socket, Server } from 'socket.io';
   },
 })
 export class ChatGateway
-implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('AppGateway');
 
   //#region Channel
   @SubscribeMessage('chat::channel::send')
-  channelGet(client: Socket, payload: string): void {
-    console.log(client, payload);
-  }
+  channelGet(client: Socket, payload: string): void {}
 
   //#endregion Channel
 
@@ -64,7 +62,7 @@ implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleConnection(client: Socket, ...args: string[]) {
+  handleConnection(client: Socket, ...args: any[]) {
     this.logger.log(`Client ${client.id} is connected`);
   }
 }

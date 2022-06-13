@@ -1,6 +1,6 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv='refresh' content='0; URL=http://localhost:3000/'>
-    </head>
-</html>
+<script>
+_url = new window.URL(window.location.href);
+const _path = _url.pathname.split('/').filter((el) => el.length > 0);
+if (!_path.length || (_path.length && _path[0] !== 'api'))
+    window.location = 'http://localhost:3000/';
+</script>

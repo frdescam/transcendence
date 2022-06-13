@@ -147,11 +147,11 @@ class PongScene
 		this.ballMoveDistanceX = (baseSize[0] - 3) * gameScale;
 		this.ballMoveDistanceY = (baseSize[1] - 1) * gameScale;
 		this.moveDelta = 1 / moveSteps;
-		this.normalizedWheelEvent = {
-			0: null,
-			1: null,
-			2: null
-		};
+		this.normalizedWheelEvent = [
+			null,
+			null,
+			null
+		];
 
 		this.loadingManager = new LoadingManager();
 		this.gltfLoader = new GLTFLoader(this.loadingManager);

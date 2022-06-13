@@ -14,7 +14,7 @@ import { Socket, Server } from 'socket.io';
     origin: '*',
   },
 })
-export class ChatGateway
+export class UserGateway
 implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
   @WebSocketServer() server: Server;

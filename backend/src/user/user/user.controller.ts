@@ -8,12 +8,12 @@ import {
   Put,
   Post,
 } from '@nestjs/common';
-import { ChannelService } from './user.service';
-import { ChannelDTO } from '../orm/channel.dto';
+import { UserService } from './user.service';
+import { ChannelDTO } from 'src/chat/orm/channel.dto';
 
 @Controller('chat/channel')
 export class UserController {
-  constructor(private channelService: ChannelService) {}
+  constructor(private channelService: UserService) {}
 
   @Get('get/:id')
   async getChannel(@Param('id') id: number) {

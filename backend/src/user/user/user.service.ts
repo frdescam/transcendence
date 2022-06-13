@@ -3,11 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as argon2 from 'argon2';
 
-import { ChannelDTO } from '../orm/channel.dto';
-import { Channel } from '../orm/channel.entity';
+import { ChannelDTO } from 'src/chat/orm/channel.dto';
+import { Channel } from 'src/chat/orm/channel.entity';
 
 @Injectable()
-export class ChannelService {
+export class UserService {
   constructor(
     @InjectRepository(Channel)
     private channelRepository: Repository<Channel>,
@@ -26,7 +26,7 @@ export class ChannelService {
     const ret = [];
     for (const channel of query) {
       for (const user of channel.users) {
-        if (user.userId === id) {
+        if (user.id === id) {
           delete channel.users;
           ret.push(channel);
           break;

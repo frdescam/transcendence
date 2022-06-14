@@ -12,4 +12,64 @@ export class ChannelService {
     @InjectRepository(Channel)
     private channelRepository: Repository<Channel>,
   ) {}
+
+  getAll(): Promise<Channel[]> {
+    return this.channelRepository.find();
+  }
+
+  getOne(id: number): Promise<Channel> {
+    return this.channelRepository.findOne({
+      where: {
+        id: id,
+      }
+    });
+  }
+
+  async create(data: ChannelDTO) {
+    const channel = this.channelRepository.create(data);
+    channel.password = (data.password)
+      ? await argon2.hash(channel.password)
+      : 'undefined';
+    await this.channelRepository.save(channel);
+    return channel;
+  }
+
+  async update(data: ChannelDTO) {
+    const tempId = data.id;
+    delete data.id;
+    const update = await this.getOne(tempId);
+    update.type = data.type;
+    await this.channelRepository.update({ id: tempId }, update);
+  }
+
+  async remove(data: ChannelDTO) {
+    const user = await this.getOne(data.id);
+    try {
+      if (user.password)
+      {
+        if (await argon2.verify(user.password, data.password)) {
+          await this.channelRepository.delete({ id: data.id });
+          return {
+            message: 'Channel deleted',
+            deleted: true,
+          };
+        }
+      }
+      else
+      {
+        await this.channelRepository.delete({ id: data.id });
+        return {
+          message: 'Channel deleted',
+          deleted: true,
+        };
+      }
+    }
+    catch (___)
+    {
+      return {
+        message: 'Password don\'t recognize',
+        deleted: false,
+      };
+    }
+  }
 }

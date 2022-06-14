@@ -3,69 +3,48 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as argon2 from 'argon2';
 
-import { ChannelDTO } from 'src/chat/orm/channel.dto';
-import { Channel } from 'src/chat/orm/channel.entity';
+import { User } from '../orm/user.entity';
+import { UserDTO } from '../orm/user.dto';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(Channel)
-    private channelRepository: Repository<Channel>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
-  async get(id: number): Promise<Channel[]> {
-    return this.channelRepository.find({
+  getAll(): Promise<User[]> {
+    return this.userRepository.find();
+  }
+
+  getOne(id: number): Promise<User> {
+    return this.userRepository.findOne({
       where: {
         id: id,
-      },
+      }
     });
   }
 
-  async gets(id: number): Promise<Channel[]> {
-    const query = await this.channelRepository.find({ relations: ['users'] });
-    const ret = [];
-    for (const channel of query) {
-      for (const user of channel.users) {
-        if (user.id === id) {
-          delete channel.users;
-          ret.push(channel);
-          break;
-        }
-      }
-    }
-    return query;
-  }
-
-  async create(data: ChannelDTO) {
-    const user = this.channelRepository.create(data);
+  async create(data: UserDTO) {
+    const user = this.userRepository.create(data);
     user.password = await argon2.hash(user.password);
-    await this.channelRepository.save(user);
+    await this.userRepository.save(user);
     return user;
   }
 
-  async update(data: ChannelDTO) {
-    const temp = data.id;
+  async update(data: UserDTO) {
+    const tempId = data.id;
     delete data.id;
-    const update = await this.channelRepository.findOne({
-      where: {
-        id: temp,
-      },
-    });
-    update.name = data.name;
-    if (!(await argon2.verify(update.password, data.password)))
-      update.password = await argon2.hash(data.password);
-    update.type = data.type;
-    await this.channelRepository.update({ id: temp }, update);
+    const update = await this.getOne(tempId);
+    if (!await argon2.verify(update.password, data.password))
+      data.password = await argon2.hash(data.password);
+    await this.userRepository.update({ id: tempId }, update);
   }
 
-  async delete(data: ChannelDTO) {
-    const user = await this.channelRepository.findOne({
-      where: {
-        id: data.id,
-      },
-    });
+  async delete(data: UserDTO) {
+    const user = await this.getOne(data.id);
     if (await argon2.verify(user.password, data.password)) {
-      await this.channelRepository.delete({ id: data.id });
+      await this.userRepository.delete({ id: data.id });
       return { deleted: true };
     }
     return {

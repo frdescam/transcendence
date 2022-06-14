@@ -10,6 +10,7 @@ import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 
 @WebSocketGateway({
+  namespace: 'user::',
   cors: {
     origin: '*',
   },

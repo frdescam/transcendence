@@ -9,58 +9,48 @@ import {
   Post,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ChannelDTO } from 'src/chat/orm/channel.dto';
+import { UserDTO } from '../orm/user.dto';
 
-@Controller('chat/channel')
+@Controller('user')
 export class UserController {
   constructor(private channelService: UserService) {}
 
   @Get('get/:id')
   async getChannel(@Param('id') id: number) {
-    const channel = await this.channelService.get(id);
+    const channel = await this.channelService.getOne(id);
     return {
       statusCode: HttpStatus.OK,
-      message: 'Channel fetched successfully',
+      message: 'User fetched',
       channel,
     };
   }
-  @Get('get/list/:id')
-  async getChannels(@Param('id') id: number) {
-    console.log(id);
-    const channels = await this.channelService.gets(id);
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Channel fetched successfully',
-      channels,
-    };
-  }
-
+ 
   @Post('create')
-  async createChannel(@Body() data: ChannelDTO) {
+  async createChannel(@Body() data: UserDTO) {
     const add = await this.channelService.create(data);
     return {
       statusCode: HttpStatus.CREATED,
-      message: 'Channel is created successfully',
+      message: 'User created',
       add,
     };
   }
 
   @Put('update')
-  async updateChannel(@Body() data: ChannelDTO) {
+  async updateChannel(@Body() data: UserDTO) {
     await this.channelService.update(data);
     return {
       statusCode: HttpStatus.NO_CONTENT,
-      message: 'Channel update',
+      message: 'User updated',
       data,
     };
   }
 
   @Delete('delete')
-  async deleteChannel(@Body() data: ChannelDTO) {
+  async deleteChannel(@Body() data: UserDTO) {
     const ret = await this.channelService.delete(data);
     return {
       statusCode: ret.deleted ? HttpStatus.OK : HttpStatus.FORBIDDEN,
-      message: 'Channel deletion',
+      message: 'User deleted',
       ret,
     };
   }

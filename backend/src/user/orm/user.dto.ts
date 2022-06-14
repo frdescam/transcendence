@@ -9,7 +9,7 @@ import { twoFaDTO } from './twoFaDTO';
 import { Invitation } from './invitation.entity';
 import { User } from './user.entity';
 
-export interface userDTO {
+export interface UserDTO {
   id: number;
   pseudo: string;
   password: string;
@@ -17,7 +17,7 @@ export interface userDTO {
   typeOf2FA: twoFaDTO;
   valueOf2FA: string;
   xp: number;
-  friends: userDTO[];
+  friends: UserDTO[];
   receivedInvitations: Invitation[];
   sentInvitations: Invitation[];
   matchesHome: Match[];

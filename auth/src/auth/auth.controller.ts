@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Req, Res, UnauthorizedException, UseFilters, UseGuards } from "@nestjs/common";
+import { Controller, Get, HttpCode, HttpStatus, Query, Req, Res, UnauthorizedException, UseFilters, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
@@ -20,17 +20,22 @@ import { TokenError } from "passport-oauth2";
       const response = ctx.getResponse<Response>();
   
       console.log("error");
+
+      // send to index or to error page?
       response.redirect('/');
     }
 }
 // *put this into its own file LULz
 
-// stop using Requests.
+// 2:05:00 of nestjs video, use put guard in its own file
+// stop using Requests -> use custom decorator + typeorm (vid 2:13:00).
+// cant have mutiple ppl with same pseudo nick, nickname
 
 @Controller() // for now its in the index if not logged
 export class AuthController {
         constructor(private authService: AuthService, private config: ConfigService,) { }
 
+    // if already logged re send to logged?
     @Get("")
     index() {
         return "<a href='http://127.0.0.1:3000/test'><button>Log in!</button></a>";
@@ -44,16 +49,21 @@ export class AuthController {
         return this.authService.auth();
     }
 
-    @Get("test")
+    //@HttpCode(HttpStatus.UNAUTHORIZED)
+    // stop using Requests -> use custom decorator + typeorm (vid 2:13:00).
     @UseGuards(AuthGuard('login'))
+    @Get("test")
     @UseFilters(ViewAuthFilter)
-    test(@Query() req: Request, @Res() res: Response)//: Promise<any> {
+    test(@Req() req: Request)//, @Res() res: Response)//: Promise<any> {
     {
         //console.log("req");
         //return this.authService.test();
 
+        //console.log(req.user);
+        
         // Use nestjs codes instead of 301
-        res.redirect(301, "logged");
+        // maybe instead of this i could call func and return stuff here?
+        //res.redirect(301, "logged");
 
 
         return "logged in!"; // useless now

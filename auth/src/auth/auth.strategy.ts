@@ -47,6 +47,6 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, 'login')
 		};
 		//console.log(user_dto);
 		this.authService.test(user_dto);
-		return true;
+		return user_dto;
 	}
 }

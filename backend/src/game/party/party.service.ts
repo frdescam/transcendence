@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Interval } from '@nestjs/schedule';
+import { Party, partyStatus, pauseReason, map, Query } from './interfaces/party.interface';
 import { Clock } from 'three';  // @TODO : should find a lighter technologie
 import { bounceBall, serverState, team, teamNoneVal, partyQuery, userId } from 'src/common/game/logic/common';
 import maps from 'src/common/game/maps/headless';
-import { Party, partyStatus, pauseReason, map, Query } from './interfaces/party.interface';
 import type { Socket } from 'socket.io';
+import { Match } from 'src/match.entity';
+import { User } from 'src/user.entity';
 
 @Injectable()
 export class PartyService
@@ -12,6 +16,16 @@ export class PartyService
     private parties: Party[] = [];
     private partiesBySocket: any = {};
     private queries: Query[] = [];
+
+
+    constructor (
+        @InjectRepository(User)
+        private userRepo: Repository<User>,
+
+        @InjectRepository(Match)
+        private matchRepo: Repository<Match>,
+    )
+    {}
 
     run(party: Party, delta: number)
     {
@@ -48,12 +62,22 @@ export class PartyService
         );
     }
 
-    saveScore(userHome: userId, userForeign: userId, userHomeScore: number, userForeignScore: number)
+    async saveScore(userHomeId: userId, userForeignId: userId, userHomeScore: number, userForeignScore: number)
     {
-        // @TODO
+        const userHome = await this.userRepo.findOne(userHomeId);
+        const userForeign = await this.userRepo.findOne(userForeignId);
+        
+        const matchData = {
+            userHome,
+            userForeign,
+            userHomeScore,
+            userForeignScore
+        }
+        const match = this.matchRepo.create(matchData);
+        await this.matchRepo.save(match);
     }
 
-    onFinish(party: Party, state: serverState)
+    async onFinish(party: Party, state: serverState)
     {
         party.status = partyStatus.Finish;
         this.patchState(
@@ -76,46 +100,70 @@ export class PartyService
         let winnerSlot = party.state.scores[0] == 11 ? 0 : 1;
         let looserSlot = winnerSlot == 0 ? 1 : 0;
 
+
         this.setState(
             party,
             {
-                text: 'Player ' + (winnerSlot + 1) + ' won !',
-                textSize: 0.9,
+                text: 'Saving...',
+                textSize: 0.8,
                 textColor: 0x0000ff,
             }
         )
 
-        if (party.playersSocket[winnerSlot])
+        try
         {
-            this.sendSocketState(
-                party.playersSocket[winnerSlot],
-                {
-                    text: 'You won !',
-                    textSize: 1,
-                    textColor: 0x00ff00,
-                },
-                undefined
+            await this.saveScore(
+                party.playersId[0],
+                party.playersId[1],
+                party.state.scores[0],
+                party.state.scores[1]
             );
-        }
-        if (party.playersSocket[looserSlot])
-        {
-            this.sendSocketState(
-                party.playersSocket[looserSlot],
-                {
-                    text: 'You lost !',
-                    textSize: 1,
-                    textColor: 0xff0000,
-                },
-                undefined
-            );
-        }
 
-        this.saveScore(
-            party.playersId[0],
-            party.playersId[1],
-            party.state.scores[0],
-            party.state.scores[1]
-        );
+            this.setState(
+                party,
+                {
+                    text: 'Player ' + (winnerSlot + 1) + ' won !',
+                    textSize: 0.9,
+                    textColor: 0x0000ff,
+                }
+            )
+    
+            if (party.playersSocket[winnerSlot])
+            {
+                this.sendSocketState(
+                    party.playersSocket[winnerSlot],
+                    {
+                        text: 'You won !',
+                        textSize: 1,
+                        textColor: 0x00ff00,
+                    },
+                    undefined
+                );
+            }
+            if (party.playersSocket[looserSlot])
+            {
+                this.sendSocketState(
+                    party.playersSocket[looserSlot],
+                    {
+                        text: 'You lost !',
+                        textSize: 1,
+                        textColor: 0xff0000,
+                    },
+                    undefined
+                );
+            }
+        }
+        catch (e)
+        {
+            this.setState(
+                party,
+                {
+                    text: 'Failed to save the score',
+                    textSize: 0.8,
+                    textColor: 0xff0000,
+                }
+            )
+        }
     }
 
     onOffside (party: Party, state: serverState)

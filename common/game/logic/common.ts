@@ -1,13 +1,14 @@
 import type { Color } from 'three';
 import type { mapConfig } from './mapConfig';
 
+type userId = number;
 type team = 0 | 1;
 const teamNoneVal = -1;
 type teamNone = typeof teamNoneVal;
 type avatar = string | null;
 
 interface serverState {
-	players: [number, number],
+	positions: [number, number],
 	scores: [number, number],
 	ball: boolean,
 	ballX: number,
@@ -34,9 +35,9 @@ interface partyQuery {
 type missedCallback = (state: serverState, remainingDelta: number) => void;
 type bouncedCallback = (state: serverState) => void;
 
-function didPlayerMissBall ({ ballY, players }: serverState, { baseSize, playerSize }: mapConfig, player: team)
+function didPlayerMissBall ({ ballY, positions }: serverState, { baseSize, playerSize }: mapConfig, player: team)
 {
-	const eqPlayerPos = (players[player] - 0.5) * ((baseSize[1] - playerSize[1]) / (baseSize[1] - 1)) + 0.5;
+	const eqPlayerPos = (positions[player] - 0.5) * ((baseSize[1] - playerSize[1]) / (baseSize[1] - 1)) + 0.5;
 
 	return (
 		ballY * baseSize[1] + 0.5 < eqPlayerPos * baseSize[1] - playerSize[1] * 0.5 ||
@@ -44,9 +45,9 @@ function didPlayerMissBall ({ ballY, players }: serverState, { baseSize, playerS
 	);
 }
 
-function getBounceAngle ({ ballY, players }: serverState, { baseSize, playerSize }: mapConfig, player: team)
+function getBounceAngle ({ ballY, positions }: serverState, { baseSize, playerSize }: mapConfig, player: team)
 {
-	const eqPlayerPos = (players[player] - 0.5) * ((baseSize[1] - playerSize[1]) / (baseSize[1] - 1)) + 0.5;
+	const eqPlayerPos = (positions[player] - 0.5) * ((baseSize[1] - playerSize[1]) / (baseSize[1] - 1)) + 0.5;
 
 	return ((eqPlayerPos - ballY) * baseSize[1] / ((playerSize[1] + 1) / 2)) / 2;
 }
@@ -144,5 +145,5 @@ function bounceBall (state: serverState, config: mapConfig, delta: number, playe
 	}
 }
 
-export type { team, teamNone, avatar, serverState, state, partyQuery, missedCallback };
+export type { userId, team, teamNone, avatar, serverState, state, partyQuery, missedCallback };
 export { bounceBall, forward, teamNoneVal };

@@ -1,6 +1,6 @@
 import type { Clock } from 'three';
 import type { Socket } from 'socket.io';
-import type { serverState, team, teamNone, partyQuery } from 'src/common/game/logic/common';
+import type { serverState, userId, team, teamNone, partyQuery } from 'src/common/game/logic/common';
 
 export type map = string;
 
@@ -34,7 +34,7 @@ export interface Party
     },
     wonSleeve: team | teamNone,
     playersSocket: [Socket | null, Socket | null],
-    playersId: [string | null, string | null],  // Also used to reserve the place
+    playersId: [userId | null, userId | null],  // Also used to reserve the place
     playersReady: [boolean, boolean],
     state: serverState
 };

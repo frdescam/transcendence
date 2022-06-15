@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { Clock } from 'three';  // @TODO : should find a lighter technologie
-import { bounceBall, serverState, team, teamNoneVal, partyQuery } from 'src/common/game/logic/common';
+import { bounceBall, serverState, team, teamNoneVal, partyQuery, userId } from 'src/common/game/logic/common';
 import maps from 'src/common/game/maps/headless';
 import { Party, partyStatus, pauseReason, map, Query } from './interfaces/party.interface';
 import type { Socket } from 'socket.io';
@@ -46,6 +46,11 @@ export class PartyService
                 );
             }
         );
+    }
+
+    saveScore(userHome: userId, userForeign: userId, userHomeScore: number, userForeignScore: number)
+    {
+        // @TODO
     }
 
     onFinish(party: Party, state: serverState)
@@ -104,6 +109,13 @@ export class PartyService
                 undefined
             );
         }
+
+        this.saveScore(
+            party.playersId[0],
+            party.playersId[1],
+            party.state.scores[0],
+            party.state.scores[1]
+        );
     }
 
     onOffside (party: Party, state: serverState)
@@ -234,7 +246,7 @@ export class PartyService
                 break;
 
             case partyStatus.Running:
-                let { ballSpeedX, ballSpeedY, ballX, ballY, players } = party.state;
+                let { ballSpeedX, ballSpeedY, ballX, ballY, positions } = party.state;
                 this.patchState(
                     party,
                     {
@@ -245,7 +257,7 @@ export class PartyService
                 this.sendState(
                     party,
                     {
-                        ballSpeedX, ballSpeedY, ballX, ballY, players
+                        ballSpeedX, ballSpeedY, ballX, ballY, positions
                     }
                 );
                 party.status = partyStatus.Running;            
@@ -318,7 +330,7 @@ export class PartyService
                 ballSpeedY: 0,
                 ballX: party.state.ballX,
                 ballY: party.state.ballY,
-                players: party.state.players
+                positions: party.state.positions
             }
         )
         if (party.status != partyStatus.Paused)
@@ -340,7 +352,7 @@ export class PartyService
             return -1;
     }
 
-    move(position: number, client: Socket)
+    move (position: number, client: Socket)
     {
         const party = this.findPartyFromSocket(client);
 
@@ -351,9 +363,9 @@ export class PartyService
         if (slot == -1)
             return ;
         
-        let newPlayerPosition = party.state.players.slice() as [number, number];
+        let newPlayerPosition = party.state.positions.slice() as [number, number];
         newPlayerPosition[slot] = position;
-        let newState = { players: newPlayerPosition };
+        let newState = { positions: newPlayerPosition };
         this.setState(party, newState);
         this.sendSocketState(party.playersSocket[slot == 0 ? 1 : 0], newState, undefined);
     }
@@ -384,7 +396,7 @@ export class PartyService
 
     joinParty (party: Party, client: Socket): Party
     {
-        const userId: string = "userIdB";
+        const userId: userId = 2;
 
         this.leaveAll(client);
 
@@ -473,10 +485,10 @@ export class PartyService
                 },
                 wonSleeve: teamNoneVal,
                 playersSocket: [client || null, null],
-                playersId: ["userIdA", null],
+                playersId: [1, null],
                 playersReady: [false, false],
                 state: {
-                    players: [0.5, 0.5],
+                    positions: [0.5, 0.5],
                     scores: [0, 0],
                     ball: true,
                     ballX: 0.5,

@@ -72,7 +72,7 @@ export class GameGateway
     this.partyService.click(client);
   }
 
-  @SubscribeMessage('play::find')
+  @SubscribeMessage('game::query::find')
   query(
     @ConnectedSocket() client: Socket,
     @MessageBody('map') map?: string,
@@ -81,15 +81,15 @@ export class GameGateway
     const room = this.partyService.find({map});
 
     if (room)
-      client.emit('play::found', room);
+      client.emit('game::query::found', room);
     else
     {
-      client.emit('play::notFound');
+      client.emit('game::query::notFound');
       this.partyService.queryParty(client, {map});
     }
   }
 
-  @SubscribeMessage('play::leaveAll')
+  @SubscribeMessage('game::query::leaveAll')
   leaveAllQuery(
     @ConnectedSocket() client: Socket
   ): void

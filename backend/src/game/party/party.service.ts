@@ -730,7 +730,7 @@ export class PartyService
             {
                 if ((!query.map || query.map == party.map))
                 {
-                    client.emit('play::found', party.room);
+                    client.emit('game::query::found', party.room);
                     this.leaveAll(client);
                     return (false);
                 }

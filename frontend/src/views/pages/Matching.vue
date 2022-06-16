@@ -68,7 +68,7 @@ function onConnected ()
 {
 	status.value = State.Querying;
 	gameSocket.emit(
-		'play::find',
+		'game::query::find',
 		{
 			map: map.value
 		} as query
@@ -77,8 +77,8 @@ function onConnected ()
 
 onMounted(() =>
 {
-	gameSocket.on('play::found', onFound);
-	gameSocket.on('play::notFound', onNotFound);
+	gameSocket.on('game::query::found', onFound);
+	gameSocket.on('game::query::notFound', onNotFound);
 	gameSocket.on('connect', onConnected);
 	gameSocket.on('disconnect', onDisconnect);
 
@@ -88,11 +88,11 @@ onMounted(() =>
 
 onBeforeUnmount(() =>
 {
-	gameSocket.off('play::found', onFound);
-	gameSocket.off('play::notFound', onNotFound);
+	gameSocket.off('game::query::found', onFound);
+	gameSocket.off('game::query::notFound', onNotFound);
 	gameSocket.off('connect', onConnected);
 	gameSocket.off('disconnect', onDisconnect);
-	gameSocket.emit('play::leaveAll');
+	gameSocket.emit('game::query::leaveAll');
 });
 
 </script>

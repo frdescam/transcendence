@@ -99,7 +99,7 @@ class PongScene
 		}, options);
 		this.state = {
 			team,
-			players: [0.5, 0.5],
+			positions: [0.5, 0.5],
 			scores: [0, 0],
 			ball: true,
 			ballX: 0.5,
@@ -542,8 +542,8 @@ class PongScene
 
 	_setPosition (ratio: number)
 	{
-		const { players, team } = this.state;
-		const previousRatio = players[team];
+		const { positions, team } = this.state;
+		const previousRatio = positions[team];
 
 		let position = Math.round(ratio * 1000);
 
@@ -553,7 +553,7 @@ class PongScene
 				position = 1000;
 			else if (position < 0)
 				position = 0;
-			players[team] = position / 1000;
+			positions[team] = position / 1000;
 
 			if (this.options.onMove)
 				this.options.onMove(position);
@@ -562,9 +562,9 @@ class PongScene
 
 	_addPosition (delta: number)
 	{
-		const { players, team } = this.state;
+		const { positions, team } = this.state;
 
-		this._setPosition(players[team] + delta);
+		this._setPosition(positions[team] + delta);
 	}
 
 	_play ()
@@ -774,7 +774,7 @@ class PongScene
 		clientLogic(this.state, this.config, delta);
 
 		const {
-			players, ballX, ballY, lobby, ball,
+			positions, ballX, ballY, lobby, ball,
 			offside, ballSpeedX, ballSpeedY
 		} = this.state;
 		const {
@@ -784,8 +784,8 @@ class PongScene
 			offsideOpacityMultiplier
 		} = this.config;
 
-		this.player1.position.z = (players[0] - 0.5) * this.playerMoveDistance;
-		this.player2.position.z = (players[1] - 0.5) * this.playerMoveDistance;
+		this.player1.position.z = (positions[0] - 0.5) * this.playerMoveDistance;
+		this.player2.position.z = (positions[1] - 0.5) * this.playerMoveDistance;
 		this.ball.position.x = (ballX - 0.5) * this.ballMoveDistanceX;
 		this.ball.position.z = (ballY - 0.5) * this.ballMoveDistanceY;
 
@@ -850,7 +850,7 @@ class PongScene
 				this._play();
 		}
 		else if (!newState.paused && state.players)
-			state.players[newState.team] = oldState.players[oldState.team];
+			state.positions[newState.team] = oldState.positions[oldState.team];
 
 		this.state = Object.assign(this.state, state);
 

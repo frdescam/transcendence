@@ -1,3 +1,4 @@
+import * as process from 'process';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -15,7 +16,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: ['dist/**/*.entity{.ts,.js}'],
-        synchronize: true,
+        synchronize: !(process.env.NODE_ENV === 'production'),
         logging: true,
       }),
     }),

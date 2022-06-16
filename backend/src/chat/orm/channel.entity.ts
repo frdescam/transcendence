@@ -20,7 +20,9 @@ export class Channel extends BaseEntity {
   @Column({type: 'enum', enum: channelTypesDTO})
     type: channelTypesDTO;
 
-  @Column()
+  @Column({
+    default: null
+  })
     password: string;
 
   @CreateDateColumn()

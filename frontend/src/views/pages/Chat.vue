@@ -114,6 +114,7 @@ export default defineComponent({
 <style>
 .channel {
 	background-color: rgb(230, 230, 230);
+	overflow-x: auto;
 }
 .chat {
 	display: inline-flex;
@@ -131,6 +132,7 @@ export default defineComponent({
 }
 .user {
 	background-color: rgb(230, 230, 230);
+	overflow-x: auto;
 }
 .emoticon {
 	vertical-align: middle;

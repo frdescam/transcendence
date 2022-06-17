@@ -26,7 +26,8 @@ module.exports = configure(() =>
 		// https://v2.quasar.dev/quasar-cli-vite/boot-files
 		boot: [
 			'axios',
-			'i18n'
+			'i18n',
+			'typeofData'
 		],
 
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css

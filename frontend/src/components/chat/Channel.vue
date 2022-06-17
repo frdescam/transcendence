@@ -12,14 +12,24 @@
 				</q-item>
 			</template>
 			<template v-else>
-				<q-item clickable v-ripple v-for="channel in channels" v-bind:key="channel.id">
-					<q-item-section avatar>
-						<div class="channel-avatar" :style="{ backgroundColor: `${randomColor()}` }">
-							<span>{{ channel.name.slice(0, 2).toUpperCase() }}</span>
-						</div>
-					</q-item-section>
-					<q-item-section>{{ channel.name }}</q-item-section>
-				</q-item>
+				<template v-if="noError">
+					<q-item clickable v-ripple v-for="channel in channels" v-bind:key="channel.id">
+						<q-item-section avatar>
+							<div class="channel-avatar" :style="{ backgroundColor: `${randomColor()}` }">
+								<span>{{ channel.name.slice(0, 2).toUpperCase() }}</span>
+							</div>
+						</q-item-section>
+						<q-item-section>{{ channel.name }}</q-item-section>
+					</q-item>
+				</template>
+				<template v-else>
+					<q-item clickable v-ripple>
+						<q-item-section avatar>
+							<q-icon name="cloud_off"></q-icon>
+						</q-item-section>
+						<q-item-section>Error</q-item-section>
+					</q-item>
+				</template>
 			</template>
 		</q-list>
 	</div>
@@ -27,6 +37,7 @@
 
 <script lang="ts">
 import { api } from 'boot/axios';
+import { typeofObject } from 'src/boot/typeofData';
 import { defineComponent, onMounted, ref } from 'vue';
 
 interface channelInterface {
@@ -47,6 +58,7 @@ export default defineComponent({
 	setup ()
 	{
 		const loading = ref(true);
+		const noError = ref(true);
 		const channels = ref(new Array<channelInterface>()); // eslint-disable-line no-array-constructor
 		const randomColor = () =>
 		{
@@ -59,16 +71,20 @@ export default defineComponent({
 			api.get<retInterface>('/chat/channel/get')
 				.then((res) =>
 				{
+					if (typeofObject(res.data) !== 'object')
+						throw new Error();
 					loading.value = false;
 					channels.value = res.data.channels;
 				})
 				.catch(() =>
 				{
 					loading.value = false;
+					noError.value = false;
 				});
 		});
 		return {
 			loading,
+			noError,
 			channels,
 			randomColor
 		};

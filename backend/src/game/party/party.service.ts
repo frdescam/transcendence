@@ -279,7 +279,7 @@ export class PartyService
             ballSpeedX: 0,
             ballSpeedY: 0,
             text: message,
-            textSize: 0.25,
+            textSize: 0.35,
             textColor: 0xff0000
         }, 0);
     }
@@ -298,10 +298,20 @@ export class PartyService
     {
         let stateToSend = sendFull ? Object.assign(party.state, state) : state;
 
+        if (party.status != partyStatus.Running && sendFull)
+            stateToSend = Object.assign(stateToSend, {ballSpeedX: 0, ballSpeedY: 0});
+
         if (party.playersSocket[0])
             this.sendSocketState(party.playersSocket[0], stateToSend, sendTeam ? 0 : undefined);
         if (party.playersSocket[1])
             this.sendSocketState(party.playersSocket[1], stateToSend, sendTeam ? 1 : undefined);
+        
+        party.spectators.forEach(
+            (spectator) =>
+            {
+                this.sendSocketState(spectator, stateToSend, undefined);
+            }
+        )
     }
 
     private setState (party: Party, state: Partial<serverState>)
@@ -477,6 +487,9 @@ export class PartyService
         if (!party)
             return ;
         let slot = this.getSlotFromSocket(party, client);
+
+        if (slot == -1)
+            return ;
         
         if (party.status == partyStatus.Paused)
         {
@@ -542,7 +555,8 @@ export class PartyService
 
             if (slot == -1)
             {
-                console.warn("partiesBySocket referenced a party which doesn't contains the socket");
+                party.spectators = party.spectators.filter((socket) => (socket != client));
+                delete this.partiesBySocket[client.id];
                 return ;
             }
 
@@ -619,6 +633,15 @@ export class PartyService
         
         return (party);
     }
+
+    public spectateParty (party: Party, client: Socket): Party
+    {
+        party.spectators.push(client);
+        this.partiesBySocket[client.id] = party;
+        this.sendSocketState(client, party.state, undefined);
+
+        return (party);
+    }
     
     public createParty (room: string, map: map, userIds: [userId, userId | null], client?: Socket): Party
     {
@@ -658,6 +681,7 @@ export class PartyService
                     previousStatus: partyStatus.IntroducingSleeve
                 },
                 wonSleeve: teamNoneVal,
+                spectators: [],
                 playersSocket: [client || null, null],
                 playersId: userIds,
                 playersReady: [false, false],

@@ -33,6 +33,7 @@ export interface Party
         previousStatus: partyStatus
     },
     wonSleeve: team | teamNone,
+    spectators: Socket[],
     playersSocket: [Socket | null, Socket | null],
     playersId: [userId | null, userId | null],  // Also used to reserve the place
     playersReady: [boolean, boolean],

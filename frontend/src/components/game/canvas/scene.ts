@@ -6,7 +6,7 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { quality, qualities } from './qualities';
 import clientLogic from '../logic/client';
-import { state, team } from 'src/common/game/logic/common';
+import { state } from 'src/common/game/logic/common';
 
 import { Notify } from 'quasar';
 
@@ -83,7 +83,7 @@ class PongScene
 		}
 	}
 
-	constructor (config: mapConfig, options: options, team: team)
+	constructor (config: mapConfig, options: options)
 	{
 		this.config = config;
 		this.options = Object.assign({}, {
@@ -98,7 +98,7 @@ class PongScene
 			onMove: null
 		}, options);
 		this.state = {
-			team,
+			team: -1,
 			positions: [0.5, 0.5],
 			scores: [0, 0],
 			ball: true,
@@ -544,6 +544,8 @@ class PongScene
 	_setPosition (ratio: number)
 	{
 		const { positions, team } = this.state;
+		if (team === -1)
+			return;
 		const previousRatio = positions[team];
 
 		let position = Math.round(ratio * 1000);
@@ -564,6 +566,8 @@ class PongScene
 	_addPosition (delta: number)
 	{
 		const { positions, team } = this.state;
+		if (team === -1)
+			return;
 
 		this._setPosition(positions[team] + delta);
 	}
@@ -856,7 +860,7 @@ class PongScene
 			else
 				this._play();
 		}
-		else if (!newState.paused && state.players)
+		else if (!newState.paused && state.players && oldState.team !== -1 && newState.team !== -1)
 			state.positions[newState.team] = oldState.positions[oldState.team];
 
 		this.state = Object.assign(this.state, state);

@@ -66,6 +66,20 @@ export class GameGateway
       this.partyService.sendError("Party not found", client);
   }
 
+  @SubscribeMessage('party::spectate')
+  handleSpectate(
+    @MessageBody('room') room: string,
+    @ConnectedSocket() client: Socket,
+  ): void
+  {
+    const party = this.partyService.findParty(room);
+
+    if (party)
+      this.partyService.spectateParty(party, client);
+    else
+      this.partyService.sendError("Party not found", client);
+  }
+
   @SubscribeMessage('party::leaveAll')
   handleLeaveAll(
     @ConnectedSocket() client: Socket,

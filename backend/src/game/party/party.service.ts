@@ -66,14 +66,17 @@ export class PartyService
         );
     }
 
-    async saveScore(userHomeId: userId, userForeignId: userId, userHomeScore: number, userForeignScore: number)
+    async saveScore(map: string, userHomeId: userId, userForeignId: userId, winnerId: userId, userHomeScore: number, userForeignScore: number)
     {
         const userHome = await this.userRepo.findOne(userHomeId);
         const userForeign = await this.userRepo.findOne(userForeignId);
+        const winner = await this.userRepo.findOne(winnerId);
         
         const matchData = {
+            map,
             userHome,
             userForeign,
+            winner,
             userHomeScore,
             userForeignScore
         }
@@ -117,8 +120,10 @@ export class PartyService
         try
         {
             await this.saveScore(
+                party.map,
                 party.playersId[0],
                 party.playersId[1],
+                party.playersId[winnerSlot],
                 party.state.scores[0],
                 party.state.scores[1]
             );

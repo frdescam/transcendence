@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Interval } from '@nestjs/schedule';
@@ -17,7 +17,6 @@ export class PartyService
     private partiesBySocket: any = {};
     private queries: Query[] = [];
 
-
     constructor (
         @InjectRepository(User)
         private userRepo: Repository<User>,
@@ -26,6 +25,11 @@ export class PartyService
         private matchRepo: Repository<Match>,
     )
     {}
+
+    getAll(): Party[]
+    {
+        return (this.parties);
+    }
 
     run(party: Party, delta: number)
     {
@@ -197,6 +201,11 @@ export class PartyService
     findPartyFromSocket(client: Socket): Party | null
     {
         return (this.partiesBySocket[client.id] || null);
+    }
+
+    findPartyWithUser (userId: userId): Party | null
+    {
+        return (this.parties.find(({playersId}) => (playersId[0] == userId || playersId[1] == userId)) || null);
     }
 
     sendError(e, client: Socket)
@@ -501,23 +510,30 @@ export class PartyService
         return (party);
     }
 
-    createParty (room: string, map: map, client?: Socket): Party
+    createParty (room: string, map: map, userIds: [userId, userId | null], client?: Socket): Party
     {
         let party = this.findParty(room);
+        let involvedParty = this.findPartyWithUser(userIds[0])
 
-        if (party)
+        // @TODO: Validate the map existence
+        
+        if (room == "mine")
+            throw new HttpException("This party name is special and cannot be used", HttpStatus.CONFLICT);
+        else if (party)
         {
             if (party.map != map)
-            {
-                this.sendError("Party exists with a different map", client);
-                return;
-            }
+                throw new HttpException("Party exists with a different map", HttpStatus.CONFLICT);
             if (party.playersSocket[0] && party.playersSocket[1] && !party.playersSocket.includes(client))
-            {
-                this.sendError("Party exists but is already full", client);
-                return;
-            }
+                throw new HttpException("Party exists but is already full", HttpStatus.CONFLICT);
             return client ? this.joinParty(party, client) : party;
+        }
+        else if (involvedParty)
+        {
+            throw new HttpException("You are already involved in another party in room " + involvedParty.room, HttpStatus.FORBIDDEN);
+        }
+        else if (userIds[1] && this.findPartyWithUser(userIds[1]))
+        {
+            throw new HttpException("Adversary is already involved in another party", HttpStatus.FORBIDDEN);
         }
         else
         {
@@ -533,7 +549,7 @@ export class PartyService
                 },
                 wonSleeve: teamNoneVal,
                 playersSocket: [client || null, null],
-                playersId: [1, null],
+                playersId: userIds,
                 playersReady: [false, false],
                 state: {
                     positions: [0.5, 0.5],

@@ -1,7 +1,8 @@
 import { ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { map } from './party/interfaces/party.interface';
-import type { Socket, Server } from 'socket.io';
 import { PartyService } from './party/party.service';
+import type { Socket, Server } from 'socket.io';
+import type { userId } from 'src/common/game/logic/common';
 
 @WebSocketGateway({
   namespace: 'game',
@@ -30,7 +31,25 @@ export class GameGateway
     @ConnectedSocket() client: Socket,
   ): void
   {
-    this.partyService.createParty(room, map, client);
+    try
+    {
+      const himself: userId = 1;
+      this.partyService.createParty(
+        room,
+        map,
+        [himself, null],
+        client
+      );
+    }
+    catch (error)
+    {
+      let message;
+      if ('message' in error)
+        message = error.message;
+      else
+        message = error;
+      this.partyService.sendError(message, client);
+    }
   }
 
   @SubscribeMessage('party::join')

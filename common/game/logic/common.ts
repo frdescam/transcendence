@@ -22,6 +22,7 @@ interface serverState {
 	textSize: number,
 	textColor: Color | number,
 	avatars: [avatar, avatar],
+	presences: [boolean, boolean]
 }
 
 interface state extends serverState {

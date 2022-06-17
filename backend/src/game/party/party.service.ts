@@ -213,6 +213,11 @@ export class PartyService
         return (this.parties.find(({playersId}) => (playersId[0] == userId || playersId[1] == userId)) || null);
     }
 
+    getPresences (party: Party): [boolean, boolean]
+    {
+        return ([!!party.playersSocket[0], !!party.playersSocket[1]]);
+    }
+
     sendError(e, client: Socket)
     {
         let message;
@@ -241,14 +246,14 @@ export class PartyService
             client.emit("party::state", state);
     }
 
-    sendState (party: Party, state: Partial<serverState>, sendFull: boolean = false)
+    sendState (party: Party, state: Partial<serverState>, sendFull: boolean = false, sendTeam: boolean = false)
     {
         let stateToSend = sendFull ? Object.assign(party.state, state) : state;
 
         if (party.playersSocket[0])
-            this.sendSocketState(party.playersSocket[0], stateToSend, sendFull ? 0 : undefined);
+            this.sendSocketState(party.playersSocket[0], stateToSend, sendTeam ? 0 : undefined);
         if (party.playersSocket[1])
-            this.sendSocketState(party.playersSocket[1], stateToSend, sendFull ? 1 : undefined);
+            this.sendSocketState(party.playersSocket[1], stateToSend, sendTeam ? 1 : undefined);
     }
 
     setState (party: Party, state: Partial<serverState>)
@@ -256,10 +261,10 @@ export class PartyService
         party.state = Object.assign(party.state, state);
     }
 
-    patchState (party: Party, state: Partial<serverState>, sendFull: boolean = false)
+    patchState (party: Party, state: Partial<serverState>, sendFull: boolean = false, sendTeam: boolean = false)
     {
         this.setState(party, state);
-        this.sendState(party, state, sendFull);
+        this.sendState(party, state, sendFull, sendTeam);
     }
 
     getNumberInRange(min, max) { 
@@ -380,8 +385,7 @@ export class PartyService
                     text: 'Party paused',
                     textSize: 0.5,
                     textColor: 0x00ffff,
-                },
-                true
+                }
             );
         }
         this.sendState(
@@ -393,7 +397,9 @@ export class PartyService
                 ballX: party.state.ballX,
                 ballY: party.state.ballY,
                 positions: party.state.positions
-            }
+            },
+            false,
+            true
         )
         if (party.status != partyStatus.Paused)
         {
@@ -450,7 +456,12 @@ export class PartyService
             party.playersReady[slot] = false;
             delete this.partiesBySocket[client.id];
 
-            // should make avatar grayscale
+            this.patchState(
+                party,
+                {
+                    presences: this.getPresences(party)
+                }
+            )
 
             this.pause(party, pauseReason.Leave);
         }
@@ -502,15 +513,15 @@ export class PartyService
             else
                 this.pause(party, pauseReason.Regain);
         }
-        else
-        {
-            this.patchState(
-                party,
-                {},
-                true
-            )
-        }
-        
+
+        this.patchState(
+            party,
+            {
+                presences: this.getPresences(party)
+            },
+            false,
+            true
+        )
         
         return (party);
     }
@@ -570,7 +581,8 @@ export class PartyService
                     text: '',
                     textSize: 0.5,
                     textColor: 0xff0000,
-                    avatars: [null, null]
+                    avatars: [null, null],
+                    presences: [!!client, false]
                 },
             };
 
@@ -586,6 +598,7 @@ export class PartyService
                     textSize: 0.5,
                     textColor: 0xffff00
                 },
+                true,
                 true
             );
 

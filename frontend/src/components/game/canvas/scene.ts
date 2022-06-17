@@ -112,7 +112,8 @@ class PongScene
 			text: 'Awaiting server...',
 			textSize: 0.5,
 			textColor: 0xff0000,
-			avatars: [null, null]
+			avatars: [null, null],
+			presences: [false, false]
 		};
 
 		this.deviceOrientationCallback = null;
@@ -775,7 +776,8 @@ class PongScene
 
 		const {
 			positions, ballX, ballY, lobby, ball,
-			offside, ballSpeedX, ballSpeedY
+			offside, ballSpeedX, ballSpeedY,
+			presences
 		} = this.state;
 		const {
 			transitionSpeed, gameScale,
@@ -828,6 +830,11 @@ class PongScene
 			this.ball.material.opacity = Math.min(1 + this.state.ballX * offsideOpacityMultiplier, (1 - this.state.ballX) * offsideOpacityMultiplier + 1);
 			this.ball.castShadow = this.ball.material.opacity > 0.99;
 		}
+
+		if (this.leftAvatar)
+			this.leftAvatar.material.opacity = presences[0] ? 1 : 0.65;
+		if (this.rightAvatar)
+			this.rightAvatar.material.opacity = presences[1] ? 1 : 0.65;
 
 		this.renderer.render(this.scene, this.camera);
 	}

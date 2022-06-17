@@ -26,47 +26,26 @@ export class PartyService
     )
     {}
 
-    getAll(): Party[]
-    {
-        return (this.parties);
+    private getNumberInRange(min, max) { 
+        return Math.random() * (max - min) + min;
     }
 
-    run(party: Party, delta: number)
+    private getSlotFromSocket (party: Party, client: Socket): -1 | 0 | 1
     {
-        bounceBall(
-            party.state,
-            maps[party.map],
-            delta,
-            (state) =>
-            {
-                state.scores[1] += 1;
-                party.wonSleeve = 1;
-                this.onOffside(party, state);
-            },
-            (state) =>
-            {
-                state.scores[0] += 1;
-                party.wonSleeve = 0;
-                this.onOffside(party, state);
-            },
-            ({offside, ballX, ballY, ballSpeedX, ballSpeedY, scores}) =>
-            {
-                this.sendState(
-                    party,
-                    {
-                        offside,
-                        ballX,
-                        ballY,
-                        ballSpeedX,
-                        ballSpeedY,
-                        scores
-                    }
-                );
-            }
-        );
+        if (party.playersSocket[0] && party.playersSocket[0].id == client.id)
+            return 0;
+        else if (party.playersSocket[1] && party.playersSocket[1].id == client.id)
+            return 1;
+        else
+            return -1;
     }
 
-    async saveScore(map: string, userHomeId: userId, userForeignId: userId, winnerId: userId, userHomeScore: number, userForeignScore: number)
+    private getPresences (party: Party): [boolean, boolean]
+    {
+        return ([!!party.playersSocket[0], !!party.playersSocket[1]]);
+    }
+
+    private async saveScore(map: string, userHomeId: userId, userForeignId: userId, winnerId: userId, userHomeScore: number, userForeignScore: number)
     {
         const userHome = await this.userRepo.findOne(userHomeId);
         const userForeign = await this.userRepo.findOne(userForeignId);
@@ -84,7 +63,7 @@ export class PartyService
         await this.matchRepo.save(match);
     }
 
-    async onFinish(party: Party, state: serverState)
+    private async onFinish(party: Party, state: serverState)
     {
         party.status = partyStatus.Finish;
         this.patchState(
@@ -175,7 +154,7 @@ export class PartyService
         }
     }
 
-    onOffside (party: Party, state: serverState)
+    private onOffside (party: Party, state: serverState)
     {
         const {offside, ballX, ballY, ballSpeedX, ballSpeedY, scores} = state;
         this.sendState(
@@ -198,27 +177,96 @@ export class PartyService
         }
     }
 
-    findParty (room: string): Party | null
+    private run(party: Party, delta: number)
     {
-        return (this.parties.find(({room: partyRoom}) => (partyRoom == room)) || null);
+        bounceBall(
+            party.state,
+            maps[party.map],
+            delta,
+            (state) =>
+            {
+                state.scores[1] += 1;
+                party.wonSleeve = 1;
+                this.onOffside(party, state);
+            },
+            (state) =>
+            {
+                state.scores[0] += 1;
+                party.wonSleeve = 0;
+                this.onOffside(party, state);
+            },
+            ({offside, ballX, ballY, ballSpeedX, ballSpeedY, scores}) =>
+            {
+                this.sendState(
+                    party,
+                    {
+                        offside,
+                        ballX,
+                        ballY,
+                        ballSpeedX,
+                        ballSpeedY,
+                        scores
+                    }
+                );
+            }
+        );
+    }
+    
+    @Interval(1000/30)
+    private handleInterval()
+    {
+        // only send update on nonpredictable action like bounce along player pos at the bounce (, player move [it's already sent along event]), ... (but not ball position if it's a simple forward)
+
+        this.parties.forEach(party =>
+        {
+            const delta = party.clock.getDelta();
+
+            switch (party.status) {
+                case partyStatus.Warmup:
+                    let now = new Date();
+                    let elapsedSeconds = Math.floor((now.getTime() - party.statusData.since.getTime()) / 1000);
+                    if (party.statusData.counter != elapsedSeconds)
+                    {
+                        switch (elapsedSeconds) {
+                            case 1:
+                                this.patchState(
+                                    party,
+                                    {
+                                        lobby: false,
+                                        text: '2',
+                                        textSize: 1,
+                                        textColor: 0xff00ff,
+                                    }
+                                );
+                                break;
+                            case 2:
+                                this.patchState(
+                                    party,
+                                    {
+                                        lobby: false,
+                                        text: '1',
+                                        textSize: 1,
+                                        textColor: 0xffff00,
+                                    }
+                                );
+                                break;
+                            default:
+                                this.retake(party);
+                                break;
+                        }
+                    }
+                    break;
+                case partyStatus.Running:
+                    this.run(party, delta);
+                    break;
+            
+                default:
+                    break;
+            }
+        });
     }
 
-    findPartyFromSocket(client: Socket): Party | null
-    {
-        return (this.partiesBySocket[client.id] || null);
-    }
-
-    findPartyWithUser (userId: userId): Party | null
-    {
-        return (this.parties.find(({playersId}) => (playersId[0] == userId || playersId[1] == userId)) || null);
-    }
-
-    getPresences (party: Party): [boolean, boolean]
-    {
-        return ([!!party.playersSocket[0], !!party.playersSocket[1]]);
-    }
-
-    sendError(e, client: Socket)
+    public sendError(e, client: Socket)
     {
         let message;
   
@@ -236,7 +284,7 @@ export class PartyService
         }, 0);
     }
 
-    sendSocketState (client: Socket | null, state: Partial<serverState>, team: team | undefined)
+    private sendSocketState (client: Socket | null, state: Partial<serverState>, team: team | undefined)
     {
         if (!client)
             return ;
@@ -246,7 +294,7 @@ export class PartyService
             client.emit("party::state", state);
     }
 
-    sendState (party: Party, state: Partial<serverState>, sendFull: boolean = false, sendTeam: boolean = false)
+    private sendState (party: Party, state: Partial<serverState>, sendFull: boolean = false, sendTeam: boolean = false)
     {
         let stateToSend = sendFull ? Object.assign(party.state, state) : state;
 
@@ -256,22 +304,18 @@ export class PartyService
             this.sendSocketState(party.playersSocket[1], stateToSend, sendTeam ? 1 : undefined);
     }
 
-    setState (party: Party, state: Partial<serverState>)
+    private setState (party: Party, state: Partial<serverState>)
     {
         party.state = Object.assign(party.state, state);
     }
 
-    patchState (party: Party, state: Partial<serverState>, sendFull: boolean = false, sendTeam: boolean = false)
+    private patchState (party: Party, state: Partial<serverState>, sendFull: boolean = false, sendTeam: boolean = false)
     {
         this.setState(party, state);
         this.sendState(party, state, sendFull, sendTeam);
     }
 
-    getNumberInRange(min, max) { 
-        return Math.random() * (max - min) + min;
-    }
-
-    introduceBall (party: Party)
+    private introduceBall (party: Party)
     {
         let ballDirection;
         let ballAngle = this.getNumberInRange(-Math.PI / 4, Math.PI / 4);
@@ -305,7 +349,7 @@ export class PartyService
         );
     }
 
-    retake(party: Party)
+    private retake (party: Party)
     {
         switch (party.statusData.previousStatus) {
             case partyStatus.IntroducingSleeve:
@@ -337,7 +381,23 @@ export class PartyService
         party.clock.getDelta();
     }
 
-    pause (party: Party, reason: pauseReason)
+    public play (party: Party)
+    {
+        party.status = partyStatus.Warmup;
+        party.statusData.since = new Date();
+        party.statusData.counter = 0;
+        this.patchState(
+            party,
+            {
+                lobby: false,
+                text: '3',
+                textSize: 1,
+                textColor: 0x00ffff,
+            }
+        );
+    }
+
+    public pause (party: Party, reason: pauseReason)
     {
         if (party.status == partyStatus.Running)
         {
@@ -410,17 +470,51 @@ export class PartyService
         party.playersReady = [false, false];
     }
 
-    getSlotFromSocket (party: Party, client: Socket): -1 | 0 | 1
+    public click (client: Socket)
     {
-        if (party.playersSocket[0] && party.playersSocket[0].id == client.id)
-            return 0;
-        else if (party.playersSocket[1] && party.playersSocket[1].id == client.id)
-            return 1;
+        const party = this.findPartyFromSocket(client);
+
+        if (!party)
+            return ;
+        let slot = this.getSlotFromSocket(party, client);
+        
+        if (party.status == partyStatus.Paused)
+        {
+            party.playersReady[slot] = !party.playersReady[slot];
+            if (party.playersReady[0] && party.playersReady[1])
+                this.play(party);
+            else if (party.playersReady[slot])
+            {
+                this.sendSocketState(
+                    client,
+                    {
+                        lobby: false,
+                        text: 'Ready !',
+                        textSize: 0.75,
+                        textColor: 0x00ff00
+                    },
+                    undefined
+                );
+            }
+            else
+            {
+                this.sendSocketState(
+                    client,
+                    {
+                        lobby: false,
+                        text: 'You are not ready',
+                        textSize: 0.5,
+                        textColor: 0xffff00
+                    },
+                    undefined
+                );
+            }
+        }
         else
-            return -1;
+            this.pause(party, pauseReason.Explicit);
     }
 
-    move (position: number, client: Socket)
+    public move (position: number, client: Socket)
     {
         const party = this.findPartyFromSocket(client);
 
@@ -438,7 +532,7 @@ export class PartyService
         this.sendSocketState(party.playersSocket[slot == 0 ? 1 : 0], newState, undefined);
     }
 
-    leaveAll (client: Socket)
+    public leaveAll (client: Socket)
     {
         const party = this.findPartyFromSocket(client);
 
@@ -467,7 +561,7 @@ export class PartyService
         }
     }
 
-    joinParty (party: Party, client: Socket): Party
+    public joinParty (party: Party, client: Socket): Party
     {
         const userId: userId = 2;
 
@@ -525,8 +619,8 @@ export class PartyService
         
         return (party);
     }
-
-    createParty (room: string, map: map, userIds: [userId, userId | null], client?: Socket): Party
+    
+    public createParty (room: string, map: map, userIds: [userId, userId | null], client?: Socket): Party
     {
         let party = this.findParty(room);
         let involvedParty = this.findPartyWithUser(userIds[0])
@@ -608,121 +702,27 @@ export class PartyService
         }
     }
 
-    play (party: Party)
+    public findParty (room: string): Party | null
     {
-        party.status = partyStatus.Warmup;
-        party.statusData.since = new Date();
-        party.statusData.counter = 0;
-        this.patchState(
-            party,
-            {
-                lobby: false,
-                text: '3',
-                textSize: 1,
-                textColor: 0x00ffff,
-            }
-        );
+        return (this.parties.find(({room: partyRoom}) => (partyRoom == room)) || null);
     }
 
-    click (client: Socket)
+    public findPartyFromSocket(client: Socket): Party | null
     {
-        const party = this.findPartyFromSocket(client);
-
-        if (!party)
-            return ;
-        let slot = this.getSlotFromSocket(party, client);
-        
-        if (party.status == partyStatus.Paused)
-        {
-            party.playersReady[slot] = !party.playersReady[slot];
-            if (party.playersReady[0] && party.playersReady[1])
-                this.play(party);
-            else if (party.playersReady[slot])
-            {
-                this.sendSocketState(
-                    client,
-                    {
-                        lobby: false,
-                        text: 'Ready !',
-                        textSize: 0.75,
-                        textColor: 0x00ff00
-                    },
-                    undefined
-                );
-            }
-            else
-            {
-                this.sendSocketState(
-                    client,
-                    {
-                        lobby: false,
-                        text: 'You are not ready',
-                        textSize: 0.5,
-                        textColor: 0xffff00
-                    },
-                    undefined
-                );
-            }
-        }
-        else
-            this.pause(party, pauseReason.Explicit);
-    }
-    
-    @Interval(1000/30)
-    handleInterval()
-    {
-        // only send update on nonpredictable action like bounce along player pos at the bounce (, player move [it's already sent along event]), ... (but not ball position if it's a simple forward)
-
-        this.parties.forEach(party =>
-        {
-            const delta = party.clock.getDelta();
-
-            switch (party.status) {
-                case partyStatus.Warmup:
-                    let now = new Date();
-                    let elapsedSeconds = Math.floor((now.getTime() - party.statusData.since.getTime()) / 1000);
-                    if (party.statusData.counter != elapsedSeconds)
-                    {
-                        switch (elapsedSeconds) {
-                            case 1:
-                                this.patchState(
-                                    party,
-                                    {
-                                        lobby: false,
-                                        text: '2',
-                                        textSize: 1,
-                                        textColor: 0xff00ff,
-                                    }
-                                );
-                                break;
-                            case 2:
-                                this.patchState(
-                                    party,
-                                    {
-                                        lobby: false,
-                                        text: '1',
-                                        textSize: 1,
-                                        textColor: 0xffff00,
-                                    }
-                                );
-                                break;
-                            default:
-                                this.retake(party);
-                                break;
-                        }
-                    }
-                    break;
-                case partyStatus.Running:
-                    this.run(party, delta);
-                    break;
-            
-                default:
-                    break;
-            }
-        });
+        return (this.partiesBySocket[client.id] || null);
     }
 
-    find ({map}: partyQuery): string | null
+    public findPartyWithUser (userId: userId): Party | null
+    {
+        return (this.parties.find(({playersId}) => (playersId[0] == userId || playersId[1] == userId)) || null);
+    }
+
+    public getAll(): Party[]
+    {
+        return (this.parties);
+    }
+
+    public find ({map}: partyQuery): string | null
     {
         const candidates = this.parties.filter(
             (party) =>
@@ -739,7 +739,7 @@ export class PartyService
             return (null);
     }
 
-    queryParty (client: Socket, query: partyQuery)
+    public queryParty (client: Socket, query: partyQuery)
     {
         this.queries.push({
             client,
@@ -747,14 +747,14 @@ export class PartyService
         });
     }
 
-    leaveAllQuery (client: Socket)
+    public leaveAllQuery (client: Socket)
     {
         this.queries = this.queries.filter(
             ({client: partyClient}) => (client != partyClient)
         );
     }
 
-    wireMatchingQuery (party: Party)
+    public wireMatchingQuery (party: Party)
     {
         if (party.playersId[0] && party.playersId[1]) // @TODO: Should check that's the place is not reserved to the querier
             return ;

@@ -14,6 +14,12 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
+		path: '/play',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/GameCreation.vue') }]
+	},
+
+	{
 		path: '/login',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', component: () => import('src/views/pages/LoginPage.vue') }]

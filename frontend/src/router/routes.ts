@@ -20,6 +20,20 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
+		path: '/play/matching',
+		name: 'matching',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/Matching.vue') }]
+	},
+
+	{
+		path: '/game/:party',
+		name: 'party',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/Game.vue') }]
+	},
+
+	{
 		path: '/login',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', component: () => import('src/views/pages/LoginPage.vue') }]

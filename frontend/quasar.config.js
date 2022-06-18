@@ -88,7 +88,8 @@ module.exports = configure(() =>
 			// directives: [],
 			plugins: [
 				'Notify',
-				'Dialog'
+				'Dialog',
+				'AppFullscreen'
 			]
 		},
 

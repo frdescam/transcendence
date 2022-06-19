@@ -14,15 +14,24 @@ export class ChannelService {
   ) {}
 
   getAll(): Promise<Channel[]> {
-    return this.channelRepository.find();
+    return this.channelRepository.createQueryBuilder('channel')
+      .leftJoinAndSelect('channel.messages', 'message')
+      .leftJoinAndSelect('channel.bannedUsers', 'banned')
+      .leftJoinAndSelect('channel.mutedUsers', 'muted')
+      .leftJoinAndSelect('channel.admins', 'channel_admins_user')
+      .leftJoinAndSelect('channel.users', 'channel_users_user')
+      .getMany();
   }
 
   getOne(id: number): Promise<Channel> {
-    return this.channelRepository.findOne({
-      where: {
-        id: id,
-      }
-    });
+    return this.channelRepository.createQueryBuilder('channel')
+      .leftJoinAndSelect('channel.messages', 'message')
+      .leftJoinAndSelect('channel.bannedUsers', 'banned')
+      .leftJoinAndSelect('channel.mutedUsers', 'muted')
+      .leftJoinAndSelect('channel.admins', 'channel_admins_user')
+      .leftJoinAndSelect('channel.users', 'channel_users_user')
+      .where('channel.id = :id', { id: id })
+      .getOne();
   }
 
   async create(data: ChannelDTO) {

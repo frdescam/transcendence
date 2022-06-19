@@ -38,6 +38,7 @@ export default defineComponent({
 	setup ()
 	{
 		const loading = ref(true);
+		const noError = ref(true);
 		const users = ref();
 
 		onMounted(() =>
@@ -58,6 +59,7 @@ export default defineComponent({
 
 		return {
 			loading,
+			noError,
 			users
 		};
 	}

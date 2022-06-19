@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { User } from 'src/user/orm/user.entity';
 import { Channel } from './channel.entity';
 
@@ -18,4 +18,7 @@ export class Message extends BaseEntity {
 
     @CreateDateColumn()
       timestamp: Date;
+    
+    @UpdateDateColumn()
+      modified: Date;
 }

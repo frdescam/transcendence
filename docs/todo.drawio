@@ -86,7 +86,7 @@
                 <mxCell id="n9RMYj6TtVI811Dv7aZE-37" value="UI" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontSize=18;fillColor=#f0a30a;fontColor=#000000;strokeColor=#BD7000;" parent="1" vertex="1">
                     <mxGeometry x="640" y="240" width="280" height="180" as="geometry"/>
                 </mxCell>
-                <mxCell id="n9RMYj6TtVI811Dv7aZE-38" value="Auto matching" style="text;strokeColor=#B20000;fillColor=#e51400;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;fontSize=18;fontColor=#ffffff;" parent="n9RMYj6TtVI811Dv7aZE-37" vertex="1">
+                <mxCell id="n9RMYj6TtVI811Dv7aZE-38" value="Auto matching" style="text;strokeColor=#BD7000;fillColor=#f0a30a;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;fontSize=18;fontColor=#000000;" parent="n9RMYj6TtVI811Dv7aZE-37" vertex="1">
                     <mxGeometry y="30" width="280" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="n9RMYj6TtVI811Dv7aZE-39" value="game UI (canevas, 3D...)" style="text;strokeColor=#BD7000;fillColor=#f0a30a;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;fontSize=18;fontColor=#000000;" parent="n9RMYj6TtVI811Dv7aZE-37" vertex="1">
@@ -98,7 +98,7 @@
                 <mxCell id="n9RMYj6TtVI811Dv7aZE-41" value="responsiveness" style="text;strokeColor=#BD7000;fillColor=#f0a30a;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;fontSize=18;fontColor=#000000;" parent="n9RMYj6TtVI811Dv7aZE-37" vertex="1">
                     <mxGeometry y="120" width="280" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="n9RMYj6TtVI811Dv7aZE-42" value="other users can watch parties&#10;" style="text;strokeColor=#B20000;fillColor=#e51400;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;fontSize=18;fontColor=#ffffff;" parent="n9RMYj6TtVI811Dv7aZE-37" vertex="1">
+                <mxCell id="n9RMYj6TtVI811Dv7aZE-42" value="other users can watch parties&#10;" style="text;strokeColor=#BD7000;fillColor=#f0a30a;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;fontSize=18;fontColor=#000000;" parent="n9RMYj6TtVI811Dv7aZE-37" vertex="1">
                     <mxGeometry y="150" width="280" height="30" as="geometry"/>
                 </mxCell>
             </root>

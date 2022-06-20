@@ -22,11 +22,14 @@ interface serverState {
 	textSize: number,
 	textColor: Color | number,
 	avatars: [avatar, avatar],
-	presences: [boolean, boolean]
+	presences: [boolean, boolean],
+	finish: boolean
 }
 
 interface state extends serverState {
-	team: team
+	team: team,
+	spectator: boolean,
+	can_join: boolean
 }
 
 interface partyQuery {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import clsx from 'clsx';
-import { AppFullscreen } from 'quasar';
+import { AppFullscreen, Dialog } from 'quasar';
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
 import { gameSocket } from 'src/boot/socketio';
 import Scene, { mapConfig, options } from './canvas/scene';
@@ -8,16 +8,18 @@ import config from './maps/forest';
 
 import type { state as commonState } from 'src/common/game/logic/common';
 
-interface interfaceState {
+export interface interfaceState {
 	loaded: boolean,
-	ready: boolean,
+	graphics: 0|1|2|3|4|5,
+	can_join: boolean,
+	spectator: boolean,
 	paused: boolean,
-	graphics: 0|1|2|3|4|5
+	finish: boolean
 }
 
-const props = defineProps<{ userId: string, party: string }>();
+const props = defineProps<{ party: string }>();
 
-const state = reactive<interfaceState>({ loaded: false, ready: false, paused: true, graphics: 2 });
+const state = reactive<interfaceState>({ loaded: false, graphics: 2, can_join: false, spectator: true, paused: true, finish: false });
 
 let scene: null | Scene = null;
 const canvas = ref<Ref | null>(null);
@@ -38,7 +40,7 @@ function onState (state: Partial<commonState>)
 	scene?.setState(state, 0);
 }
 
-function onDisconnect (state: Partial<commonState>)
+function onDisconnect ()
 {
 	scene?.setState({
 		lobby: true,
@@ -75,6 +77,14 @@ function onConnected ()
 	);
 }
 
+function onStateChange (gameState: commonState)
+{
+	state.paused = gameState.paused;
+	state.spectator = gameState.team === -1;
+	state.can_join = state.spectator && gameState.lobby && (!gameState.avatars[0] || !gameState.avatars[1]);
+	state.finish = gameState.finish;
+}
+
 onMounted(() =>
 {
 	scene = new Scene(
@@ -89,14 +99,14 @@ onMounted(() =>
 				state.loaded = true;
 				(scene as Scene).setAnimationLoop(animate);
 			}
-		} as options,
-		0
+		} as options
 	);
 
 	window.addEventListener('resize', resize);
 
 	canvas.value.onclick = onClick;
 	scene.setOnMove(onMove);
+	scene.setOnStateChange(onStateChange);
 
 	gameSocket.on('party::state', onState);
 	gameSocket.on('disconnect', onDisconnect);
@@ -119,9 +129,20 @@ onBeforeUnmount(() =>
 	scene = null;
 });
 
-function togglePause ()
+function admitDefeat ()
 {
-	state.paused = !state.paused;
+	gameSocket.emit('party::pause');
+	Dialog.create({
+		title: 'Admit defeat ?',
+		message: 'The score would be save if the first countdown were shown.',
+		cancel: true
+	})
+		.onOk(
+			() =>
+			{
+				gameSocket.emit('party::admitdefeat');
+			}
+		);
 }
 
 function setQuality (val: number)
@@ -130,7 +151,8 @@ function setQuality (val: number)
 }
 
 defineExpose({
-	togglePause,
+	onClick,
+	admitDefeat,
 	setQuality,
 	state: readonly(state)
 });

@@ -25,7 +25,7 @@ export class GameGateway
   }
 
   @SubscribeMessage('party::create')
-  handleCreate(
+  create(
     @MessageBody('room') room: string,
     @MessageBody('map') map: map,
     @ConnectedSocket() client: Socket,
@@ -53,7 +53,7 @@ export class GameGateway
   }
 
   @SubscribeMessage('party::join')
-  handleJoin(
+  join(
     @MessageBody('room') room: string,
     @ConnectedSocket() client: Socket,
   ): void
@@ -67,7 +67,7 @@ export class GameGateway
   }
 
   @SubscribeMessage('party::spectate')
-  handleSpectate(
+  spectate(
     @MessageBody('room') room: string,
     @ConnectedSocket() client: Socket,
   ): void
@@ -81,7 +81,7 @@ export class GameGateway
   }
 
   @SubscribeMessage('party::leaveAll')
-  handleLeaveAll(
+  leaveAll(
     @ConnectedSocket() client: Socket,
   ): void
   {
@@ -103,6 +103,22 @@ export class GameGateway
   ): void
   {
     this.partyService.click(client);
+  }
+
+  @SubscribeMessage('party::pause')
+  pause(
+    @ConnectedSocket() client: Socket,
+  ): void
+  {
+    this.partyService.pauseFromClient(client);
+  }
+
+  @SubscribeMessage('party::admitdefeat')
+  admitDefeat(
+    @ConnectedSocket() client: Socket,
+  ): void
+  {
+    this.partyService.admitDefeat(client);
   }
 
   @SubscribeMessage('game::query::find')

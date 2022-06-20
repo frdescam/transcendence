@@ -14,6 +14,7 @@ import type { mapConfig } from 'src/common/game/logic/mapConfig';
 import type { Material as ThreeMaterial } from 'three';
 
 type onMoveCallback = ((position: number) => void) | null;
+type onStateChangeCallback = ((state: state) => void) | null;
 
 type options = {
 	qualityLevel: number,
@@ -24,6 +25,7 @@ type options = {
 	onProgress: ((itemUrl: string, itemsLoaded: number, itemsTotal: number) => void) | null,
 	onError: ((itemUrl: string) => void) | null,
 	onMove: onMoveCallback,
+	onStateChange: onStateChangeCallback,
 };
 
 type disposable = ThreeMaterial | BufferGeometry | Texture | Light | WebGLRenderer;
@@ -95,10 +97,14 @@ class PongScene
 			{
 				console.log('Failed to fetch', ressourceUrl);
 			},
-			onMove: null
+			onMove: null,
+			onStateChange: null
 		}, options);
 		this.state = {
 			team: -1,
+			spectator: true,
+			can_join: false,
+			finish: false,
 			positions: [0.5, 0.5],
 			scores: [0, 0],
 			ball: true,
@@ -879,6 +885,9 @@ class PongScene
 			this.clock.getDelta();
 			clientLogic(this.state, this.config, ping / 2);
 		}
+
+		if (this.options.onStateChange)
+			this.options.onStateChange(this.state);
 	}
 
 	setSize (width: number, height: number)
@@ -900,6 +909,11 @@ class PongScene
 	setOnMove (callback: onMoveCallback)
 	{
 		this.options.onMove = callback;
+	}
+
+	setOnStateChange (callback: onStateChangeCallback)
+	{
+		this.options.onStateChange = callback;
 	}
 
 	dispose ()

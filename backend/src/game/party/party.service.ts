@@ -63,7 +63,7 @@ export class PartyService
         await this.matchRepo.save(match);
     }
 
-    private async onFinish(party: Party, state: serverState)
+    private async onFinish(party: Party, winnerSlot: 1 | 0, looserSlot: 1 | 0)
     {
         party.status = partyStatus.Finish;
         this.patchState(
@@ -75,17 +75,14 @@ export class PartyService
                 ball: true,
                 offside: false,
                 lobby: true,
-                paused: false,
+                paused: true,
                 ballX: 0.5,
                 ballY: 0.5,
                 ballSpeedX: 0,
-                ballSpeedY: 1
+                ballSpeedY: 1,
+                finish: true
             }
         );
-
-        let winnerSlot = party.state.scores[0] == 11 ? 0 : 1;
-        let looserSlot = winnerSlot == 0 ? 1 : 0;
-
 
         this.setState(
             party,
@@ -169,7 +166,7 @@ export class PartyService
             }
         );
         if (Math.max(party.state.scores[0], party.state.scores[1]) == 11)
-            this.onFinish(party, state);
+            this.onFinish(party, party.state.scores[0] == 11 ? 0 : 1, party.state.scores[0] == 11 ? 1 : 0);
         else
         {
             party.statusData.previousStatus = partyStatus.IntroducingSleeve;
@@ -363,6 +360,7 @@ export class PartyService
     {
         switch (party.statusData.previousStatus) {
             case partyStatus.IntroducingSleeve:
+            case partyStatus.AwaitingPlayer:
                 this.introduceBall(party);
                 break;
 
@@ -480,6 +478,24 @@ export class PartyService
         party.playersReady = [false, false];
     }
 
+    public move (position: number, client: Socket)
+    {
+        const party = this.findPartyFromSocket(client);
+
+        if (!party || party.status == partyStatus.Paused)
+            return ;
+        let slot = this.getSlotFromSocket(party, client);
+
+        if (slot == -1)
+            return ;
+        
+        let newPlayerPosition = party.state.positions.slice() as [number, number];
+        newPlayerPosition[slot] = position;
+        let newState = { positions: newPlayerPosition };
+        this.setState(party, newState);
+        this.sendSocketState(party.playersSocket[slot == 0 ? 1 : 0], newState, undefined);
+    }
+
     public click (client: Socket)
     {
         const party = this.findPartyFromSocket(client);
@@ -527,22 +543,56 @@ export class PartyService
             this.pause(party, pauseReason.Explicit);
     }
 
-    public move (position: number, client: Socket)
+    public pauseFromClient (client: Socket)
     {
         const party = this.findPartyFromSocket(client);
 
-        if (!party || party.status == partyStatus.Paused)
+        if (!party)
             return ;
         let slot = this.getSlotFromSocket(party, client);
 
         if (slot == -1)
             return ;
+
+        this.pause(party, pauseReason.Explicit);
+    }
+
+    public admitDefeat (client: Socket)
+    {
+        const party = this.findPartyFromSocket(client);
+
+        if (!party)
+            return ;
+        let slot = this.getSlotFromSocket(party, client);
+
+        if (slot == -1)
+            return ;
+
+        if (party.status == partyStatus.Finish)
+            return ;
         
-        let newPlayerPosition = party.state.positions.slice() as [number, number];
-        newPlayerPosition[slot] = position;
-        let newState = { positions: newPlayerPosition };
-        this.setState(party, newState);
-        this.sendSocketState(party.playersSocket[slot == 0 ? 1 : 0], newState, undefined);
+        if (party.statusData.previousStatus == partyStatus.AwaitingPlayer && party.status == partyStatus.Paused)
+        {
+            this.patchState(
+                party,
+                {
+                    text: 'Party canceled',
+                    textSize: 0.5,
+                    textColor: 0xff8030,
+                    ball: false,
+                    offside: false,
+                    lobby: true,
+                    paused: true,
+                    ballSpeedX: 0,
+                    ballSpeedY: 0
+                },
+                true,
+                true
+            );
+            party.status = partyStatus.Finish;
+        }
+        else
+            this.onFinish(party, slot == 0 ? 1 : 0, slot);
     }
 
     public leaveAll (client: Socket)
@@ -604,6 +654,7 @@ export class PartyService
             if (party.status == partyStatus.AwaitingPlayer)
             {
                 party.status = partyStatus.Paused;
+                party.statusData.previousStatus = partyStatus.AwaitingPlayer;
                 this.patchState(
                     party,
                     {
@@ -700,7 +751,8 @@ export class PartyService
                     textSize: 0.5,
                     textColor: 0xff0000,
                     avatars: [null, null],
-                    presences: [!!client, false]
+                    presences: [!!client, false],
+                    finish: false
                 },
             };
 

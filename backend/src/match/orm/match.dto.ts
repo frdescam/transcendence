@@ -1,6 +1,6 @@
 import { User } from 'src/user/orm/user.entity';
 
-export interface matchDTO {
+export interface MatchDTO {
   id: number;
   userHome: User;
   userForeign: User;

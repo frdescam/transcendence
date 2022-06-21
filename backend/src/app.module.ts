@@ -6,7 +6,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 
 import { DatabaseModule } from './database.module';
 import { ChatModule } from './chat/main.module';
-// import { MatchModule } from './match/match.module';
+import { MatchModule } from './match/main.module';
 import { UserModule } from './user/main.module';
 
 @Module({
@@ -20,7 +20,7 @@ import { UserModule } from './user/main.module';
     }),
     DatabaseModule,
     ChatModule,
-    // MatchModule,
+    MatchModule,
     UserModule
   ],
 })

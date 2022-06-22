@@ -3,22 +3,23 @@
 		<q-list>
 			<template v-if="loading">
 				<q-item clickable v-ripple>
-					<q-item-section avatar>
-						<q-skeleton type="QAvatar" />
-					</q-item-section>
 					<q-item-section>
 						<q-skeleton type="text" />
+					</q-item-section>
+					<q-item-section avatar>
+						<q-skeleton type="QAvatar" />
 					</q-item-section>
 				</q-item>
 			</template>
 			<template v-else>
 				<q-item clickable v-ripple v-for="user in users" v-bind:key="user.id">
-					<q-item-section avatar>
+					<q-item-section>{{ user.pseudo }}</q-item-section>
+					<q-item-section avatar class="avatar">
 						<q-avatar>
-							<img src="" />
+							<img :src="user.avatar" v-on:error="imageError"/>
 						</q-avatar>
+						<span class="connection-indicator" v-bind:class="(user.connected) ? 'connected' : ''"></span>
 					</q-item-section>
-					<q-item-section>{{ user.name }}</q-item-section>
 				</q-item>
 			</template>
 		</q-list>
@@ -27,11 +28,8 @@
 
 <script lang="ts">
 import { api } from 'boot/axios';
+import { typeofObject } from 'src/boot/typeofData';
 import { defineComponent, onMounted, ref } from 'vue';
-
-interface userInterface {
-	id: number
-}
 
 export default defineComponent({
 	name: 'user_channel',
@@ -41,30 +39,66 @@ export default defineComponent({
 		const noError = ref(true);
 		const users = ref();
 
-		onMounted(() =>
+		const imageError = (e: Event) =>
 		{
-			api.get('/user/all') // A adapater au channel
-				.then((res) =>
+			const target = e.target as HTMLImageElement;
+			if (target)
+				target.src = 'imgs/chat/default.webp';
+		};
+
+		const getData = (id: number) =>
+		{
+			api.get(`/chat/channel/get/${id}`)
+				.then(async (res) =>
 				{
-					console.log(res);
+					if (typeofObject(res.data) !== 'object')
+						throw new Error();
 					loading.value = false;
-					users.value = res.data.users;
+					users.value = res.data.channel.users;
 				})
-				.catch((err) =>
+				.catch(() =>
 				{
-					console.log(err);
 					loading.value = false;
 				});
+		};
+
+		onMounted(() =>
+		{
+			window.addEventListener('chatChannelSelected', (e: Event) =>
+			{
+				const detail = (e as CustomEvent).detail;
+				console.log('user.vue', detail);
+				getData(detail.channelId);
+			});
+			const channelId = Number(localStorage.getItem('chat::channel::id'));
+			if (channelId)
+				getData(channelId);
 		});
 
 		return {
 			loading,
 			noError,
-			users
+			users,
+			imageError
 		};
 	}
 });
 </script>
 
 <style>
+	.avatar {
+		position: relative;
+	}
+	.connection-indicator {
+		position: absolute;
+		height: 1em;
+		width: 1em;
+		background-color: #ff4a4a;
+		bottom: -.2em;
+		right: -.2em;
+		border-radius: 50%;
+	}
+	.connection-indicator.connected {
+		background-color: #1aca32 !important;
+	}
 </style>

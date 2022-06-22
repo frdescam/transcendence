@@ -17,6 +17,7 @@ export interface UserDTO {
   typeOf2FA: twoFaDTO;
   valueOf2FA: string;
   xp: number;
+  connected: boolean;
   friends: UserDTO[];
   receivedInvitations: Invitation[];
   sentInvitations: Invitation[];

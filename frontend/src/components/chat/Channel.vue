@@ -13,7 +13,11 @@
 			</template>
 			<template v-else>
 				<template v-if="noError">
-					<q-item clickable v-ripple v-for="channel in channels" v-bind:key="channel.id">
+					<q-item clickable v-ripple
+						v-for="channel in channels"
+						v-bind:key="channel.id"
+						@click="$emit('channelIsSelected', channelIsSelected(channel.id))"
+					>
 						<q-item-section avatar>
 							<div class="channel-avatar" :style="{ backgroundColor: `${randomColor()}` }">
 								<span>{{ channel.name.slice(0, 2).toUpperCase() }}</span>
@@ -66,6 +70,24 @@ export default defineComponent({
 			return __colors[Math.floor(Math.random() * __colors.length)];
 		};
 
+		const channelIsSelected = (channelId: number) =>
+		{
+			const __saveId = Number(localStorage.getItem('chat::channel::id'));
+			if (!__saveId || (__saveId && __saveId !== channelId))
+			{
+				localStorage.setItem('chat::channel::id', channelId.toString(10));
+				window.dispatchEvent(new CustomEvent('chatChannelSelected', {
+					bubbles: true,
+					cancelable: true,
+					composed: true,
+					detail: {
+						channelId
+					}
+				}));
+			}
+			return channelId;
+		};
+
 		onMounted(() =>
 		{
 			api.get<retInterface>('/chat/channel/get')
@@ -86,29 +108,30 @@ export default defineComponent({
 			loading,
 			noError,
 			channels,
-			randomColor
+			randomColor,
+			channelIsSelected
 		};
 	}
 });
 </script>
 
 <style>
-.no-padding {
-	padding-right: 2px;
-}
-.channel-avatar {
-	position: relative;
-	width: 50px;
-	height: 50px;
-	border-radius: 50%;
-}
-.channel-avatar > span {
-	color: #fff;
-	position: absolute;
-	width: 31px;
-	top: 10px;
-	left: 10px;
-	font-size: 1.5em;
-	text-align: center;
-}
+	.no-padding {
+		padding-right: 2px;
+	}
+	.channel-avatar {
+		position: relative;
+		width: 50px;
+		height: 50px;
+		border-radius: 50%;
+	}
+	.channel-avatar > span {
+		color: #fff;
+		position: absolute;
+		width: 31px;
+		top: 10px;
+		left: 10px;
+		font-size: 1.5em;
+		text-align: center;
+	}
 </style>

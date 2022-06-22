@@ -1,13 +1,17 @@
 import {
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  OnGatewayInit,
+  ConnectedSocket,
+  MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { NestGateway } from '@nestjs/websockets/interfaces/nest-gateway.interface';
+import { Bind, Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
+
+import { MessageService } from './message/message.service';
+import { MessageDTO } from './orm/message.dto';
+
 
 @WebSocketGateway({
   namespace: 'chat::',
@@ -15,57 +19,48 @@ import { Socket, Server } from 'socket.io';
     origin: '*',
   },
 })
-export class ChatGateway
-implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
+export class MainGateway implements NestGateway
 {
+  constructor(private messageService: MessageService) {}
+
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('AppGateway');
 
-  //#region Channel
-  @SubscribeMessage('chat::channel::send')
-  channelGet(client: Socket, payload: string): void {
-    console.log(client, payload);
-  }
-
-  //#endregion Channel
-
-  //#region Channel message
-
-  //#endregion Channel message
-
-  //#region Channel User
-
-  //#endregion Channel User
-
-  //#region Friend
-
-  //#endregion Friend
-  @SubscribeMessage('chat::channel::')
-  join(client: Socket, payload: string): void {
-    this.server.emit('chat:join', payload);
-  }
-
-  @SubscribeMessage('chat:send')
-  send(client: Socket, payload: string): void {
-    this.server.emit('chat:send', payload);
-  }
-
-  @SubscribeMessage('chat:quit')
-  quit(client: Socket, payload: string): void {
-    this.server.emit('chat:quit', payload);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   afterInit(server: Server) {
-    this.logger.log('Chat init');
+    this.logger.log('Server chat init', server);
   }
 
-  handleDisconnect(client: Socket) {
-    this.logger.log(`Client ${client.id} is disconnected`);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleConnection(client: Socket, ...args: string[]) {
     this.logger.log(`Client ${client.id} is connected`);
+  }
+  handleDisconnection(client: Socket) {
+    this.logger.log(`Client ${client.id} is disconnected`);
+  }
+  
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('new')
+  newMessage(message: MessageDTO, sender: Socket) {
+    this.logger.log(`Client ${sender.id} send ${message.content}`);
+    this.messageService.create(message);
+    sender.emit('message::create', message);
+    sender.broadcast.emit('message::create', message);
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('update')
+  updateMessage(message: MessageDTO, sender: Socket) {
+    this.logger.log(`Client ${sender.id} update ${message.content}`);
+    this.messageService.update(message);
+    sender.emit('message::update', message);
+    sender.broadcast.emit('message::update', message);
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('delete')
+  deleteMessage(message: MessageDTO, sender: Socket) {
+    this.logger.log(`Client ${sender.id} remove ${message.id}`);
+    this.messageService.remove(message);
+    sender.emit('message::delete', message);
+    sender.broadcast.emit('message::delete', message);
   }
 }

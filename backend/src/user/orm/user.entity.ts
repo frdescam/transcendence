@@ -33,6 +33,9 @@ export class User extends BaseEntity {
     @Column({type: 'float4', default: 0.0})
       xp: number;
 
+    @Column({ type: 'boolean', default: () => 'false'})
+      connected: boolean;
+
     @ManyToMany(() => User, (user) => user.friends)
       friends: User[];
 

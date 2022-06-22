@@ -4,7 +4,7 @@ import { BannedModule } from './banned/banned.module';
 import { ChannelModule } from './channel/channel.module';
 import { MessageModule } from './message/message.module';
 import { MutedModule } from './muted/muted.module';
-// import { ChatGateway } from './main.gateway';
+import { MainGateway } from './main.gateway';
 
 @Module({
   imports: [
@@ -13,6 +13,6 @@ import { MutedModule } from './muted/muted.module';
     MessageModule,
     MutedModule,
   ],
-  // providers: [ChatGateway]
+  providers: [MainGateway]
 })
 export class ChatModule {}

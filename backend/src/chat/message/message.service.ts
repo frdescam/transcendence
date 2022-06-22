@@ -16,18 +16,24 @@ export class MessageService {
     return this.messageRepository.createQueryBuilder('message')
       .where('message.channel.id = :id', { id: channelId })
       .where('message.id = :id', { id: messageId })
+      .leftJoinAndSelect('message.creator', 'user')
+      .orderBy('message.timestamp', 'ASC')
       .getOne();
   }
 
   getAll(channelId: number): Promise<Message[]> {
     return this.messageRepository.createQueryBuilder('message')
       .where('message.channel.id = :id', { id: channelId })
+      .leftJoinAndSelect('message.creator', 'user')
+      .orderBy('message.timestamp', 'ASC')
       .getMany();
   }
 
   getPages(channelId: number, offset: number, limit: number): Promise<Message[]> {
     return this.messageRepository.createQueryBuilder('message')
       .where('message.channel.id = :id', { id: channelId })
+      .leftJoinAndSelect('message.creator', 'user')
+      .orderBy('message.timestamp', 'ASC')
       .skip(offset)
       .take(limit)
       .getMany();

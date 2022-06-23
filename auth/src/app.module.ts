@@ -1,14 +1,21 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { db_config } from './db.config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
-import { User } from './users/user.entity'
+import { UsersModule } from './users/users.module'
+
+// use env?
+import { db_config } from './db.config';
 
 // clean stuff of auth.module and add here instead
-// Typeorm ForFeature here should be in users.
 
 @Module({
-  imports: [ConfigModule.forRoot({ envFilePath: ['./src/auth/.auth.env'], isGlobal: true, }), AuthModule, TypeOrmModule.forRoot(db_config), TypeOrmModule.forFeature([User,]),],
+  imports: [
+    // env
+    ConfigModule.forRoot({ envFilePath: ['./src/auth/.auth.env'], isGlobal: true, }), 
+    // db connection
+    TypeOrmModule.forRoot(db_config),
+    AuthModule,
+    UsersModule,],
 })
 export class AppModule { }

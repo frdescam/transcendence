@@ -66,7 +66,7 @@ export class AuthController {
         //res.redirect(301, "logged");
 
 
-        return "logged in!"; // useless now
+        return "logged in!";
         //return req.user;
     }
 

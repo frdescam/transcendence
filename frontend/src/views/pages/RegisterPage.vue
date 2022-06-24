@@ -9,7 +9,6 @@
     >
       <div class="q-ma-md">
         <h3>Welcome to pong</h3>
-        <p>Register:</p>
       </div>
       <q-input
         name="username"

@@ -127,6 +127,10 @@ Procfile          text
 *.wbmp            binary
 *.webp            binary
 
+# Models
+*.gltf            binary
+*.glb             binary
+
 # Audio
 *.kar             binary
 *.m4a             binary

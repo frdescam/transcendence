@@ -12,7 +12,7 @@
 				<div class="row q-gutter-md no-wrap mobile-hide">
 					<q-btn flat rounded :to="{ path: '/play' }" label="Play" />
 					<q-btn flat rounded :to="{ path: '/chat' }" label="Chat" />
-					<q-btn flat rounded :to="{ path: '/leaderboards' }" label="Leaderboards" />
+					<q-btn flat rounded :to="{ path: '/leaderboard' }" label="Leaderboard" />
 				</div>
 				<div class="row q-ml-md no-wrap">
 					<q-btn flat rounded :to="{ path: '/settings' }">

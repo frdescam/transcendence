@@ -12,5 +12,7 @@ export default boot(({ app }) =>
 		fallbackLocale: 'en-US',
 		messages
 	});
+	app.config.globalProperties.$i18n = i18n;
 	app.use(i18n);
+	app.provide('i18n', app.config.globalProperties.$i18n);
 });

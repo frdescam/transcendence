@@ -2,9 +2,9 @@ import { boot } from 'quasar/wrappers';
 import axios, { AxiosInstance } from 'axios';
 
 declare module '@vue/runtime-core' {
-  interface ComponentCustomProperties {
-    $axios: AxiosInstance;
-  }
+	interface ComponentCustomProperties {
+		$axios: AxiosInstance;
+	}
 }
 
 /**
@@ -18,6 +18,6 @@ export default boot(({ app }) =>
 {
 	app.config.globalProperties.$axios = axios;
 	app.config.globalProperties.$api = api;
+	app.provide('axios', app.config.globalProperties.$axios);
+	app.provide('api', app.config.globalProperties.$api);
 });
-
-export { axios, api };

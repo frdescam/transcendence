@@ -92,9 +92,10 @@
 </template>
 
 <script lang="ts">
-import { api } from 'src/boot/axios';
-import { typeofObject } from 'src/boot/typeofData';
-import { defineComponent, onMounted, ref } from 'vue';
+import { AxiosInstance } from 'axios';
+import { TypeOfObject } from 'src/boot/typeofData';
+import { io } from 'socket.io-client';
+import { defineComponent, onMounted, ref, inject } from 'vue';
 
 interface arrayInterface {
 	id: number,
@@ -117,11 +118,15 @@ export default defineComponent({
 	name: 'chat_channel',
 	setup ()
 	{
+		const socket = io('http://localhost:8080/chat::');
+		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
+
 		const loading = ref(true);
 		const noError = ref(true);
 		const editor = ref('');
 		const messages = ref();
-		const userId = ref(1); // A changer avec le vrai pseudo de l'utilisateur
+		const userId = ref(1); // A changer avec le vrai id de l'utilisateur
 		const insertImage = () =>
 		{
 			const input = document.createElement('input');
@@ -147,6 +152,7 @@ export default defineComponent({
 		{
 			const value = editor.value;
 			console.log(value, value.length);
+			socket.emit('events', value);
 		};
 		const generateTimestamp = (timestamp: Date) =>
 		{
@@ -204,8 +210,10 @@ export default defineComponent({
 						ret.push(JSON.parse(JSON.stringify(temp)));
 					messages.value = ret;
 
+					/*
 					for (const el of ret)
 						console.log(new Date(el.messages[0].timestamp).getTime());
+					*/
 				})
 				.catch((err) =>
 				{

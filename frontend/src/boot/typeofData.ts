@@ -1,6 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { boot } from 'quasar/wrappers';
 
+export interface TypeOfObject {
+  (object: any): any;
+}
+
+declare module '@vue/runtime-core' {
+	interface ComponentCustomProperties {
+		// eslint-disable-next-line @typescript-eslint/ban-types
+		$typeofObject: TypeOfObject;
+	}
+}
+
 /**
  * Get typeof object
  * @param {any} object - Object to analyse
@@ -21,7 +32,6 @@ const typeofObject = (object: any): string =>
 
 export default boot(({ app }) =>
 {
-	app.config.globalProperties.typeofObject = typeofObject;
+	app.config.globalProperties.$typeofObject = typeofObject;
+	app.provide('typeofObject', app.config.globalProperties.$typeofObject);
 });
-
-export { typeofObject };

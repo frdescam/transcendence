@@ -27,11 +27,8 @@
 					</q-item>
 				</template>
 				<template v-else>
-					<q-item clickable v-ripple>
-						<q-item-section avatar>
-							<q-icon name="cloud_off"></q-icon>
-						</q-item-section>
-						<q-item-section>Error</q-item-section>
+					<q-item v-ripple class="full-width row no-wrap justify-center">
+						<q-icon size="xl" name="cloud_off"></q-icon>
 					</q-item>
 				</template>
 			</template>
@@ -40,9 +37,9 @@
 </template>
 
 <script lang="ts">
-import { api } from 'boot/axios';
-import { typeofObject } from 'src/boot/typeofData';
-import { defineComponent, onMounted, ref } from 'vue';
+import { AxiosInstance } from 'axios';
+import { TypeOfObject } from 'src/boot/typeofData';
+import { defineComponent, onMounted, ref, inject } from 'vue';
 
 interface channelInterface {
 	id: number,
@@ -61,6 +58,9 @@ export default defineComponent({
 	name: 'chat_channel',
 	setup ()
 	{
+		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
+
 		const loading = ref(true);
 		const noError = ref(true);
 		const channels = ref(new Array<channelInterface>()); // eslint-disable-line no-array-constructor

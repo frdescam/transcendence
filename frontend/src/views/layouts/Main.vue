@@ -45,7 +45,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import options from '../../i18n/options';
+import options from 'src/i18n/options';
 import { useQuasar } from 'quasar';
 import languages from 'quasar/lang/index.json';
 

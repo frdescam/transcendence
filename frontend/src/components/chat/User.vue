@@ -12,29 +12,39 @@
 				</q-item>
 			</template>
 			<template v-else>
-				<q-item clickable v-ripple v-for="user in users" v-bind:key="user.id">
-					<q-item-section>{{ user.pseudo }}</q-item-section>
-					<q-item-section avatar class="avatar">
-						<q-avatar>
-							<img :src="user.avatar" v-on:error="imageError"/>
-						</q-avatar>
-						<span class="connection-indicator" v-bind:class="(user.connected) ? 'connected' : ''"></span>
-					</q-item-section>
-				</q-item>
+				<template v-if="noError">
+					<q-item clickable v-ripple v-for="user in users" v-bind:key="user.id">
+						<q-item-section>{{ user.pseudo }}</q-item-section>
+						<q-item-section avatar class="avatar">
+							<q-avatar>
+								<img :src="user.avatar" v-on:error="imageError"/>
+							</q-avatar>
+							<span class="connection-indicator" v-bind:class="(user.connected) ? 'connected' : ''"></span>
+						</q-item-section>
+					</q-item>
+				</template>
+				<template v-else>
+					<q-item v-ripple class="full-width row no-wrap justify-center">
+						<q-icon size="xl" name="cloud_off"></q-icon>
+					</q-item>
+				</template>
 			</template>
 		</q-list>
 	</div>
 </template>
 
 <script lang="ts">
-import { api } from 'boot/axios';
-import { typeofObject } from 'src/boot/typeofData';
-import { defineComponent, onMounted, ref } from 'vue';
+import { AxiosInstance } from 'axios';
+import { TypeOfObject } from 'src/boot/typeofData';
+import { defineComponent, onMounted, ref, inject } from 'vue';
 
 export default defineComponent({
 	name: 'user_channel',
 	setup ()
 	{
+		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
+
 		const loading = ref(true);
 		const noError = ref(true);
 		const users = ref();
@@ -59,6 +69,7 @@ export default defineComponent({
 				.catch(() =>
 				{
 					loading.value = false;
+					noError.value = false;
 				});
 		};
 

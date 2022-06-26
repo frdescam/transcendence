@@ -21,7 +21,9 @@ import { MessageDTO } from './orm/message.dto';
 })
 export class MainGateway implements NestGateway
 {
-  constructor(private messageService: MessageService) {}
+  constructor(
+    private readonly messageService: MessageService
+  ) {}
 
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('AppGateway');
@@ -32,11 +34,19 @@ export class MainGateway implements NestGateway
 
   handleConnection(client: Socket, ...args: string[]) {
     this.logger.log(`Client ${client.id} is connected`);
+    this.server.emit('chat::connect', client.id);
   }
-  handleDisconnection(client: Socket) {
+  handleDisconnect(client: Socket) {
     this.logger.log(`Client ${client.id} is disconnected`);
+    this.server.emit('chat::disconnect', client.id);
   }
   
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('events')
+  testing(data: string, sender: Socket) {
+    this.logger.log(`Client ${sender.id} send ${data}`);
+  }
+
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('new')
   newMessage(message: MessageDTO, sender: Socket) {

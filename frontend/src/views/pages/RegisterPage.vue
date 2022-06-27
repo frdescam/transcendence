@@ -36,7 +36,7 @@
         outlined
         label="Password"
         name="password"
-        :type="isPwd ? 'password' : 'visiblePassword'"
+        :type="isPwd ? 'password' : 'text'"
         class="bg-blue-grey-1 q-ma-md"
         :rules="[(val) => !!val || 'Field is required']"
         ref="inputRef"
@@ -76,7 +76,6 @@ export default {
 	{
 		const inputRef = ref(null);
 		const password = ref('');
-		const visiblePassword = ref('');
 		const email = ref('');
 		const username = ref('');
 		return {
@@ -84,7 +83,6 @@ export default {
 			password,
 			email,
 			username,
-			visiblePassword,
 			isPwd: ref(true),
 			onSubmit ()
 			{

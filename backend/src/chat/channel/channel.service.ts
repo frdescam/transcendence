@@ -34,6 +34,25 @@ export class ChannelService {
       .getOne();
   }
 
+  getAllNoMessages(): Promise<Channel[]> {
+    return this.channelRepository.createQueryBuilder('channel')
+      .leftJoinAndSelect('channel.bannedUsers', 'banned')
+      .leftJoinAndSelect('channel.mutedUsers', 'muted')
+      .leftJoinAndSelect('channel.admins', 'channel_admins_user')
+      .leftJoinAndSelect('channel.users', 'channel_users_user')
+      .getMany();
+  }
+
+  getOneNoMessages(id: number): Promise<Channel> {
+    return this.channelRepository.createQueryBuilder('channel')
+      .leftJoinAndSelect('channel.bannedUsers', 'banned')
+      .leftJoinAndSelect('channel.mutedUsers', 'muted')
+      .leftJoinAndSelect('channel.admins', 'channel_admins_user')
+      .leftJoinAndSelect('channel.users', 'channel_users_user')
+      .where('channel.id = :id', { id: id })
+      .getOne();
+  }
+
   async create(data: ChannelDTO) {
     const channel = this.channelRepository.create(data);
     channel.password = (data.password)

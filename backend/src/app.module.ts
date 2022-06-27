@@ -19,9 +19,9 @@ import { UserModule } from './user/main.module';
       )
     }),
     DatabaseModule,
-    ChatModule,
     MatchModule,
-    UserModule
+    UserModule,
+    ChatModule,
   ],
 })
 export class AppModule {}

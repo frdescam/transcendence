@@ -6,7 +6,7 @@ export default {
 			placeholder: 'Write your message'
 		},
 		message: {
-			me: 'me'
+			me: 'Me'
 		}
 	}
 };

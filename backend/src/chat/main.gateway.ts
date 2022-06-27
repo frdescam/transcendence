@@ -12,6 +12,19 @@ import { Socket, Server } from 'socket.io';
 import { MessageService } from './message/message.service';
 import { MessageDTO } from './orm/message.dto';
 
+import { UserService } from 'src/user/user/user.service';
+import { ChannelService } from './channel/channel.service';
+
+import * as crypto from 'crypto';
+
+interface receiveMessage {
+  id: number,
+  channel: number,
+  message: string,
+  length: number,
+  timestamp: Date,
+  hash: string
+}
 
 @WebSocketGateway({
   namespace: 'chat::',
@@ -22,11 +35,13 @@ import { MessageDTO } from './orm/message.dto';
 export class MainGateway implements NestGateway
 {
   constructor(
-    private readonly messageService: MessageService
+    private readonly messageService: MessageService,
+    private readonly userService: UserService,
+    private readonly channelService: ChannelService
   ) {}
 
   @WebSocketServer() server: Server;
-  private logger: Logger = new Logger('AppGateway');
+  private logger: Logger = new Logger('ChatGateway');
 
   afterInit(server: Server) {
     this.logger.log('Server chat init', server);
@@ -34,26 +49,31 @@ export class MainGateway implements NestGateway
 
   handleConnection(client: Socket, ...args: string[]) {
     this.logger.log(`Client ${client.id} is connected`);
-    this.server.emit('chat::connect', client.id);
+    this.server.emit('clientConnect', client.id);
   }
   handleDisconnect(client: Socket) {
     this.logger.log(`Client ${client.id} is disconnected`);
-    this.server.emit('chat::disconnect', client.id);
+    this.server.emit('clientDisconnect', client.id);
   }
   
   @Bind(MessageBody(), ConnectedSocket())
-  @SubscribeMessage('events')
-  testing(data: string, sender: Socket) {
-    this.logger.log(`Client ${sender.id} send ${data}`);
-  }
-
-  @Bind(MessageBody(), ConnectedSocket())
-  @SubscribeMessage('new')
-  newMessage(message: MessageDTO, sender: Socket) {
-    this.logger.log(`Client ${sender.id} send ${message.content}`);
-    this.messageService.create(message);
-    sender.emit('message::create', message);
-    sender.broadcast.emit('message::create', message);
+  @SubscribeMessage('add')
+  async newMessage(message: receiveMessage, sender: Socket) {
+    const hash = crypto.createHash('sha256').update(message.message).digest('hex');
+    if (hash !== message.hash)
+      return;
+    const messDate = new Date(message.timestamp);
+    this.logger.log(`Client ${sender.id} send a message at ${messDate.toDateString()}`);
+    const newMessage: MessageDTO = {
+      id: null,
+      create: await this.userService.getOne(message.id),
+      channel: await this.channelService.getOneNoMessages(message.channel),
+      content: message.message,
+      timestamp: message.timestamp,
+      modified: undefined
+    };
+    this.server.emit('newMessage', newMessage);
+    this.messageService.create(newMessage);
   }
 
   @Bind(MessageBody(), ConnectedSocket())

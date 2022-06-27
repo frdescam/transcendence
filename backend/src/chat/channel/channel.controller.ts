@@ -6,6 +6,24 @@ import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put } from '@ne
 export class ChannelController {
   constructor(private channelService: ChannelService) {}
 
+  @Get('get/no-messages')
+  async getAllNoMessages() {
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Channels fetched successfully',
+      channels: await this.channelService.getAllNoMessages(),
+    };
+  }
+
+  @Get('get/no-messages/:id')
+  async getOneNoMessages(@Param('id') id: number) {
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Channel fetched successfully',
+      channel: await this.channelService.getOneNoMessages(id),
+    };
+  }
+
   @Get('get')
   async getAll() {
     return {

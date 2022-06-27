@@ -54,10 +54,11 @@
 				v-bind:key="message.id"
 			>
 				<q-chat-message
-					:name="(userId !== message.user.id) ? message.user.pseudo: 'me'"
+					:name="(userId !== message.user.id) ? message.user.pseudo: $t('chat.message.me')"
 					:avatar="message.user.avatar"
 					:stamp="generateTimestamp(message.messages[message.messages.length - 1].timestamp)"
 					:sent="userId === message.user.id"
+					:text-html="true"
 					:text="message.messages.map((x: any) => x.content)"
 					text-color="white"
 					:bg-color="(userId === message.user.id) ? 'cyan-8' : 'blue-8'"
@@ -125,8 +126,17 @@ export default defineComponent({
 		const loading = ref(true);
 		const noError = ref(true);
 		const editor = ref('');
-		const messages = ref();
+		const messages = ref(new Array<messageInterface>()); // eslint-disable-line no-array-constructor
 		const userId = ref(1); // A changer avec le vrai id de l'utilisateur
+
+		const calcHash = async (str: string) =>
+		{
+			const Uint8 = new TextEncoder().encode(str);
+			const hash = await crypto.subtle.digest('SHA-256', Uint8);
+			const hashArr = Array.from(new Uint8Array(hash));
+			return hashArr.map((el) => el.toString(16).padStart(2, '0')).join('');
+		};
+
 		const insertImage = () =>
 		{
 			const input = document.createElement('input');
@@ -148,11 +158,19 @@ export default defineComponent({
 			};
 			input.click();
 		};
-		const sendMessage = () =>
+		const sendMessage = async () =>
 		{
-			const value = editor.value;
-			console.log(value, value.length);
-			socket.emit('events', value);
+			if (editor.value.length <= 0)
+				return;
+			socket.emit('add', {
+				id: userId.value,
+				channel: localStorage.getItem('chat::channel::id'),
+				message: editor.value,
+				length: editor.value.length,
+				timestamp: Date.now(),
+				hash: await calcHash(editor.value)
+			});
+			editor.value = '';
 		};
 		const generateTimestamp = (timestamp: Date) =>
 		{
@@ -163,7 +181,6 @@ export default defineComponent({
 			else
 				return `${messageDate.getDay()}/${messageDate.getMonth()}/${messageDate.getFullYear()}`;
 		};
-
 		const getMessages = (channelId: string) =>
 		{
 			api.get(`/chat/message/get/${channelId}`)
@@ -172,8 +189,6 @@ export default defineComponent({
 					if (typeofObject(res.data) !== 'object')
 						throw new Error();
 					loading.value = false;
-
-					const ret = new Array<messageInterface>(); // eslint-disable-line no-array-constructor
 					const temp: messageInterface = {
 						user: {
 							id: 0,
@@ -191,7 +206,7 @@ export default defineComponent({
 							(currentUser && currentUser !== message.creator.id))
 						{
 							if (temp.messages.length > 0)
-								ret.push(JSON.parse(JSON.stringify(temp)));
+								messages.value.push(JSON.parse(JSON.stringify(temp)));
 							currentUser = Number(message.creator.id);
 							temp.user.avatar = String(message.creator.avatar);
 							temp.user.connected = Boolean(message.creator.connected);
@@ -207,13 +222,7 @@ export default defineComponent({
 						});
 					}
 					if (temp.messages.length > 0)
-						ret.push(JSON.parse(JSON.stringify(temp)));
-					messages.value = ret;
-
-					/*
-					for (const el of ret)
-						console.log(new Date(el.messages[0].timestamp).getTime());
-					*/
+						messages.value.push(JSON.parse(JSON.stringify(temp)));
 				})
 				.catch((err) =>
 				{
@@ -234,6 +243,31 @@ export default defineComponent({
 			const channelId = String(localStorage.getItem('chat::channel::id'));
 			if (channelId)
 				getMessages(channelId);
+
+			socket.on('newMessage', (res) =>
+			{
+				const newMessages: messageInterface = {
+					user: {
+						id: res.create.id,
+						pseudo: res.create.pseudo,
+						avatar: res.create.avatar,
+						connected: true
+					},
+					messages: []
+				};
+				const lastMessages = messages.value[messages.value.length - 1];
+				let lastId = lastMessages.messages[lastMessages.messages.length - 1].id;
+				[...res.content.split(/<\/?div>/)].filter((el) => el.length > 0).map((el) => el.trim()).forEach((mes) =>
+				{
+					newMessages.messages.push({
+						id: ++lastId,
+						content: String(mes),
+						timestamp: res.timestamp,
+						modified: res.timestamp
+					});
+				});
+				messages.value.push(JSON.parse(JSON.stringify(newMessages)));
+			});
 		});
 
 		return {

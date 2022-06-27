@@ -1,8 +1,8 @@
 export interface AuthDto
 {
-    id: number,
-    login: string, // first time, same as pseudo, then could be chanegd so shouldnt use this to look in db
-    password? : string, // not needed?
+    fortytwo_id: number,
+    pseudo: string, // first time, same as pseudo, then could be changed so shouldnt use this to look in db!!
     email: string,
-    img_url: string,
+    password? : string, // not needed?
+    avatar: string,
 }

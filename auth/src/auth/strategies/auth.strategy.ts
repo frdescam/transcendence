@@ -1,11 +1,12 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { AuthService } from './auth.service';
+import { AuthService } from '../auth.service';
 import { Strategy } from 'passport-oauth2';
 import { stringify } from 'querystring';
 import { ConfigService } from '@nestjs/config';
-import { AuthDto } from './dto';
+import { AuthDto } from '../dto';
+import { User } from 'src/users/entities/user.entity';
 
 // maybe use STATE in request cos of attacks?
 
@@ -31,22 +32,29 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, 'login')
 		});
 	}
 
-	// here could use a dto? to send email, login, id & picture to database, would be sent to authService.
 	async validate(
 		accessToken: string,
-	) {
+	): Promise<User> {
 		const { data } = await this.http.get('https://api.intra.42.fr/v2/me', {
 			headers: { Authorization: `Bearer ${accessToken}` },
 		}).toPromise();
+
+        //return JWT? not here most likely
+        //return User; ???
+		
 		const user_dto: AuthDto = {
-			id: data.id,
-			login: data.login,
+			fortytwo_id: data.id,
+			pseudo: data.login,
 			email: data.email,
-			//password: "changeMePlz", //change later
-			img_url: data.image_url,
+			//password: "changeMePlz", //change later // not needed
+			avatar: data.image_url,
 		};
-		//console.log(user_dto);
-		this.authService.test(user_dto);
-		return user_dto;
+
+		const user: User = await this.authService.login(user_dto);
+
+		if (user)
+			return (user);
+
+		return this.authService.signup(user_dto);
 	}
 }

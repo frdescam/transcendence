@@ -7,10 +7,17 @@ import { MutedUser } from './entities/mutedUser.entity';
 import { BannedUser } from './entities/bannedUser.entity';
 import { Message } from './entities/message.entity';
 import { Channel } from './entities/channel.entity';
+import { UsersService } from './services/users.service';
 
 // Typeorm ForFeature is good??????
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Match, PendingInvitation, MutedUser, BannedUser, Message, Channel]),],
+  providers: [
+		UsersService,
+	],
+  exports: [
+		UsersService,
+	],
 })
 export class UsersModule { }

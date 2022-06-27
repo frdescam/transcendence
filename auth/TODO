@@ -1,0 +1,4 @@
+- move every service, module, dto, entity, controller, into its own folder.
+- Could you push the entity update on the db branch? To avoid too much different versions … our git is a mess theres multiple versions of everything in different branches
+- merge with franco db after update!
+- when changing pseudo rem to check if it doesnt exist yet and add number (e.g ltouret -> ltouret1)

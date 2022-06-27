@@ -13,15 +13,23 @@ export enum TypesOf2FA {
     AUTH_APP = "auth_app" // TODO: check what 2FA types we implement
 }
 
+// wehre is the email?
+
 @Entity()
 export class User extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({type: "varchar", length: 50})
+    @Column({nullable: true, unique: true}) //idk if column or other stuff here // if we dont do passwords then this shouldnt be null!
+    public fortytwo_id: number; // marvin id to look for ppl;
+
+    @Column({type: "varchar", length: 50, unique: true}) // chnage to unique cos must be unique!
     pseudo: string;
 
-    @Column({type: "varchar", length: 60})
+    @Column({type: "varchar", length: 50}) // is email even useful here? could erase mosty likely
+    email: string;
+
+    @Column({type: "varchar", length: 60, nullable: true}) // nullable, optional?
     password: string;
 
     @Column({type: "varchar", length: 50, nullable: true})

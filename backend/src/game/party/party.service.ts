@@ -398,6 +398,7 @@ export class PartyService
             party,
             {
                 lobby: false,
+                paused: false,
                 text: '3',
                 textSize: 1,
                 textColor: 0x00ffff,

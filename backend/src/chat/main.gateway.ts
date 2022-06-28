@@ -47,7 +47,7 @@ export class MainGateway implements NestGateway
     this.logger.log('Server chat init', server);
   }
 
-  handleConnection(client: Socket, ...args: string[]) {
+  handleConnection(client: Socket) {
     this.logger.log(`Client ${client.id} is connected`);
     this.server.emit('clientConnect', client.id);
   }
@@ -65,15 +65,19 @@ export class MainGateway implements NestGateway
     const messDate = new Date(message.timestamp);
     this.logger.log(`Client ${sender.id} send a message at ${messDate.toDateString()}`);
     const newMessage: MessageDTO = {
-      id: null,
+      id: undefined,
       create: await this.userService.getOne(message.id),
       channel: await this.channelService.getOneNoMessages(message.channel),
       content: message.message,
       timestamp: message.timestamp,
       modified: undefined
     };
-    this.server.emit('newMessage', newMessage);
-    this.messageService.create(newMessage);
+    // this.server.emit('newMessage', newMessage);
+    const ret = await this.messageService.create(newMessage);
+    if (ret.created === false)
+      throw new Error(ret.message);
+    else
+      this.server.emit('newMessage', ret);
   }
 
   @Bind(MessageBody(), ConnectedSocket())

@@ -48,7 +48,7 @@
 		</div>
 	</template>
 	<template v-else>
-		<div class="message-list" ref="divMessages">
+		<div class="message-list" ref="chat">
 			<template
 				v-for="message in messages"
 				v-bind:key="message.id"
@@ -66,37 +66,13 @@
 			</template>
 		</div>
 	</template>
-	<!--
-		<q-chat-message
-			name="me"
-			avatar="https://cdn.quasar.dev/img/avatar3.jpg"
-			stamp="7 minutes ago"
-			sent
-			text-color="white"
-			bg-color="primary"
-		>
-			<div>Hey there!</div>
-			<div>Have you seen Quasar?
-				<img src="https://cdn.quasar.dev/img/discord-omq.png" class="emoticon">
-			</div>
-		</q-chat-message>
-
-		<q-chat-message
-			name="Jane"
-			avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-			bg-color="amber"
-		>
-			<div>Hello !</div>
-			<q-spinner-dots size="2rem" />
-		</q-chat-message>
-	-->
 </template>
 
 <script lang="ts">
 import { AxiosInstance } from 'axios';
 import { TypeOfObject } from 'src/boot/typeofData';
 import { io } from 'socket.io-client';
-import { defineComponent, onMounted, ref, inject } from 'vue';
+import { defineComponent, onMounted, ref, inject, nextTick } from 'vue';
 
 interface arrayInterface {
 	id: number,
@@ -123,12 +99,21 @@ export default defineComponent({
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
 
+		const chat = ref<HTMLDivElement | null>(null);
 		const loading = ref(true);
 		const noError = ref(true);
 		const editor = ref('');
 		const messages = ref(new Array<messageInterface>()); // eslint-disable-line no-array-constructor
 		const userId = ref(1); // A changer avec le vrai id de l'utilisateur
 
+		const getBottomOfChat = () =>
+		{
+			nextTick(() =>
+			{
+				if (chat.value)
+					chat.value.scrollTop = chat.value.scrollHeight;
+			});
+		};
 		const calcHash = async (str: string) =>
 		{
 			const Uint8 = new TextEncoder().encode(str);
@@ -136,7 +121,6 @@ export default defineComponent({
 			const hashArr = Array.from(new Uint8Array(hash));
 			return hashArr.map((el) => el.toString(16).padStart(2, '0')).join('');
 		};
-
 		const insertImage = () =>
 		{
 			const input = document.createElement('input');
@@ -223,6 +207,7 @@ export default defineComponent({
 					}
 					if (temp.messages.length > 0)
 						messages.value.push(JSON.parse(JSON.stringify(temp)));
+					getBottomOfChat();
 				})
 				.catch((err) =>
 				{
@@ -232,45 +217,55 @@ export default defineComponent({
 
 		onMounted(() =>
 		{
-			/**
-			 * Detect when user selected channel
-			 */
+			// #region Detect channel changed
 			window.addEventListener('chatChannelSelected', (e: Event) =>
 			{
 				const detail = (e as CustomEvent).detail;
+				messages.value.length = 0;
 				getMessages(detail.channelId);
 			});
 			const channelId = String(localStorage.getItem('chat::channel::id'));
 			if (channelId)
 				getMessages(channelId);
+			// #endregion
 
+			// #region New message
 			socket.on('newMessage', (res) =>
 			{
 				const newMessages: messageInterface = {
 					user: {
-						id: res.create.id,
-						pseudo: res.create.pseudo,
-						avatar: res.create.avatar,
-						connected: true
+						id: res.data.creator.id,
+						pseudo: res.data.creator.pseudo,
+						avatar: res.data.creator.avatar,
+						connected: res.data.creator.connected
 					},
 					messages: []
 				};
-				const lastMessages = messages.value[messages.value.length - 1];
-				let lastId = lastMessages.messages[lastMessages.messages.length - 1].id;
-				[...res.content.split(/<\/?div>/)].filter((el) => el.length > 0).map((el) => el.trim()).forEach((mes) =>
+				[...res.data.content.split(/<\/?div>/)].filter((el) => el.length > 0).map((el) => el.trim()).forEach((mes) =>
 				{
 					newMessages.messages.push({
-						id: ++lastId,
+						id: res.data.id,
 						content: String(mes),
-						timestamp: res.timestamp,
-						modified: res.timestamp
+						timestamp: res.data.timestamp,
+						modified: res.data.modified
 					});
 				});
-				messages.value.push(JSON.parse(JSON.stringify(newMessages)));
+				if (messages.value[messages.value.length - 1].user.id === res.data.creator.id)
+				{
+					messages.value[messages.value.length - 1].messages = [
+						...messages.value[messages.value.length - 1].messages,
+						...newMessages.messages
+					];
+				}
+				else
+					messages.value.push(JSON.parse(JSON.stringify(newMessages)));
+				getBottomOfChat();
 			});
+			// #endregion
 		});
 
 		return {
+			chat,
 			loading,
 			noError,
 			editor,
@@ -309,7 +304,7 @@ export default defineComponent({
 	}
 	.emoticon {
 		vertical-align: middle;
-		height: 2em;
-		width: 2em;
+		height: .75em;
+		width: .75em;
 	}
 </style>

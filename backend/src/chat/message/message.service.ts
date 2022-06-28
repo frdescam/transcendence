@@ -41,17 +41,26 @@ export class MessageService {
 
   async create(data: MessageDTO) {
     try {
-      const channel = this.messageRepository.create(data);
-      await this.messageRepository.save(channel);
+      const newMessage = await this.messageRepository.createQueryBuilder()
+        .insert()
+        .into(Message)
+        .values([
+          {
+            creator: data.create,
+            channel: data.channel,
+            content: data.content,
+          }
+        ])
+        .execute();
       return {
         message: 'Message created',
-        timestamp: Date,
+        data: await this.getOne(data.channel.id, newMessage.generatedMaps[0].id),
         created: true,
       };
     } catch (___) {
       return {
         message: 'Message don\'t created',
-        timestamp: Date,
+        data: undefined,
         created: false,
       };
     }

@@ -1,5 +1,25 @@
 export default {
 	chat: {
+		channel: {
+			createTooltip: 'Créer un nouveau canal',
+			modal: {
+				name: 'Nom du canal',
+				type: 'Type du canal',
+				public: 'Publique',
+				protected: 'Protégé',
+				private: 'Privé',
+				password: 'Mot de passe du canal',
+				repeat: 'Répéter le mot de passe',
+				submit: 'Créer',
+				error: 'Ce champ est obligatoire',
+				errorPassword: 'Les mots de passe ne sont pas les mêmes',
+				listErrors: {
+					name: 'Le nom du canal est obligatoire',
+					type: 'Le type de canal est obligatoire',
+					password: 'Les mots de passes ne corresponde pas'
+				}
+			}
+		},
 		editor: {
 			image: 'Image',
 			send: 'Envoyer',

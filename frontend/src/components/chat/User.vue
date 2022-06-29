@@ -78,7 +78,6 @@ export default defineComponent({
 			window.addEventListener('chatChannelSelected', (e: Event) =>
 			{
 				const detail = (e as CustomEvent).detail;
-				console.log('user.vue', detail);
 				getData(detail.channelId);
 			});
 			const channelId = Number(localStorage.getItem('chat::channel::id'));

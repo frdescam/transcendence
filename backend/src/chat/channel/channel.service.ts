@@ -15,6 +15,7 @@ export class ChannelService {
 
   getAll(): Promise<Channel[]> {
     return this.channelRepository.createQueryBuilder('channel')
+      .leftJoinAndSelect('channel.owner', 'user')
       .leftJoinAndSelect('channel.messages', 'message')
       .leftJoinAndSelect('channel.bannedUsers', 'banned')
       .leftJoinAndSelect('channel.mutedUsers', 'muted')
@@ -25,6 +26,7 @@ export class ChannelService {
 
   getOne(id: number): Promise<Channel> {
     return this.channelRepository.createQueryBuilder('channel')
+      .leftJoinAndSelect('channel.owner', 'user')
       .leftJoinAndSelect('channel.messages', 'message')
       .leftJoinAndSelect('channel.bannedUsers', 'banned')
       .leftJoinAndSelect('channel.mutedUsers', 'muted')
@@ -36,6 +38,7 @@ export class ChannelService {
 
   getAllNoMessages(): Promise<Channel[]> {
     return this.channelRepository.createQueryBuilder('channel')
+      .leftJoinAndSelect('channel.owner', 'user')
       .leftJoinAndSelect('channel.bannedUsers', 'banned')
       .leftJoinAndSelect('channel.mutedUsers', 'muted')
       .leftJoinAndSelect('channel.admins', 'channel_admins_user')
@@ -45,6 +48,7 @@ export class ChannelService {
 
   getOneNoMessages(id: number): Promise<Channel> {
     return this.channelRepository.createQueryBuilder('channel')
+      .leftJoinAndSelect('channel.owner', 'user')
       .leftJoinAndSelect('channel.bannedUsers', 'banned')
       .leftJoinAndSelect('channel.mutedUsers', 'muted')
       .leftJoinAndSelect('channel.admins', 'channel_admins_user')
@@ -54,12 +58,46 @@ export class ChannelService {
   }
 
   async create(data: ChannelDTO) {
-    const channel = this.channelRepository.create(data);
-    channel.password = (data.password)
-      ? await argon2.hash(channel.password)
-      : 'undefined';
-    await this.channelRepository.save(channel);
-    return channel;
+    try {
+      data.password = (data.password)
+        ? await argon2.hash(data.password)
+        : null;
+      let val;
+      if (data.password)
+        val = {
+          owner: data.owner,
+          name: data.name,
+          type: data.type,
+          password: data.password,
+          users: data.users,
+          admins: data.admins
+        };
+      else
+        val = {
+          owner: data.owner,
+          name: data.name,
+          type: data.type,
+          users: data.users,
+          admins: data.admins
+        };
+      
+      const newChannel = await this.channelRepository.createQueryBuilder()
+        .insert()
+        .into(Channel)
+        .values([ val ])
+        .execute();
+      return {
+        message: 'Channel created',
+        data: await this.getOne(newChannel.generatedMaps[0].id),
+        created: true,
+      };
+    } catch (___) {
+      return {
+        message: 'Channel don\'t created',
+        data: undefined,
+        created: false,
+      };
+    }
   }
 
   async update(data: ChannelDTO) {

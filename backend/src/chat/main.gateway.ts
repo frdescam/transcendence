@@ -16,6 +16,8 @@ import { UserService } from 'src/user/user/user.service';
 import { ChannelService } from './channel/channel.service';
 
 import * as crypto from 'crypto';
+import { ChannelDTO } from './orm/channel.dto';
+import { channelTypesDTO } from './orm/channelTypes.dto';
 
 interface receiveMessage {
   id: number,
@@ -25,7 +27,6 @@ interface receiveMessage {
   timestamp: Date,
   hash: string
 }
-
 interface updateMessage {
   id: number,
   channel: number,
@@ -34,6 +35,14 @@ interface updateMessage {
   length: number,
   timestamp: Date,
   hash: string
+}
+
+interface receiveChannel {
+  id: number,
+  creator: number,
+  name: string,
+  type: string,
+  password: string
 }
 
 @WebSocketGateway({
@@ -66,8 +75,51 @@ export class MainGateway implements NestGateway
     this.server.emit('clientDisconnect', client.id);
   }
   
+  //#region Channel
   @Bind(MessageBody(), ConnectedSocket())
-  @SubscribeMessage('add')
+  @SubscribeMessage('channel::add')
+  async newChannel(channel: receiveChannel, sender: Socket) {
+    this.logger.log(`Client ${sender.id} create a channel at ${new Date().toDateString()}`);
+    const __owner = await this.userService.getOne(channel.creator);
+    const __type = (channel.type === 'public') ? channelTypesDTO.PUBLIC : (channel.type === 'protected') ? channelTypesDTO.PASSWD : channelTypesDTO.PRIVATE;
+    const __newChannel: ChannelDTO = {
+      id: undefined,
+      owner: __owner,
+      name: channel.name,
+      type: __type,
+      password: channel.password,
+      creationDate: undefined,
+      messages: null,
+      bannedUsers: null,
+      mutedUsers: null,
+      admins: [ __owner ],
+      users: [ __owner ]
+    };
+    const ret = await this.channelService.create(__newChannel);
+    if (ret.created === false)
+      throw new Error(ret.message);
+    else
+      this.server.emit('newChannel', ret);
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('channel::update')
+  async updateChannel(channel: receiveChannel, sender: Socket) {
+    this.logger.log(`Client ${sender.id} update a channel at ${new Date().toDateString()}`);
+    this.server.emit('updateChannel', '');
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('channel::delete')
+  async deleteChannel(channel: receiveChannel, sender: Socket) {
+    this.logger.log(`Client ${sender.id} delete a channel at ${new Date().toDateString()}`);
+    this.server.emit('deleteChannel', '');
+  }
+  // #endregion
+
+  // #region Message
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('message::add')
   async newMessage(message: receiveMessage, sender: Socket) {
     const hash = crypto.createHash('sha256').update(message.message).digest('hex');
     if (hash !== message.hash)
@@ -82,7 +134,6 @@ export class MainGateway implements NestGateway
       timestamp: message.timestamp,
       modified: undefined
     };
-    // this.server.emit('newMessage', newMessage);
     const ret = await this.messageService.create(newMessage);
     if (ret.created === false)
       throw new Error(ret.message);
@@ -91,7 +142,7 @@ export class MainGateway implements NestGateway
   }
 
   @Bind(MessageBody(), ConnectedSocket())
-  @SubscribeMessage('update')
+  @SubscribeMessage('message::update')
   async update(message: updateMessage, sender: Socket) {
     const hash = crypto.createHash('sha256').update(message.message).digest('hex');
     if (hash !== message.hash)
@@ -114,7 +165,7 @@ export class MainGateway implements NestGateway
   }
 
   @Bind(MessageBody(), ConnectedSocket())
-  @SubscribeMessage('delete')
+  @SubscribeMessage('message::delete')
   async delete(message: updateMessage, sender: Socket) {
     const hash = crypto.createHash('sha256').update(message.message).digest('hex');
     if (hash !== message.hash)
@@ -135,4 +186,5 @@ export class MainGateway implements NestGateway
     else
       this.server.emit('deleteMessage', ret);
   }
+  // #endregion
 }

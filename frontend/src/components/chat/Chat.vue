@@ -151,6 +151,7 @@ export default defineComponent({
 		const userId = ref(1); // A changer avec le vrai id de l'utilisateur
 
 		// Clean var is reload
+		localStorage.setItem('chat::user::id', String(userId.value)); // A revoir plus tard
 		localStorage.removeItem('chat::message::edit');
 
 		const getBottomOfChat = () =>
@@ -161,6 +162,7 @@ export default defineComponent({
 					chat.value.scrollTop = chat.value.scrollHeight;
 			});
 		};
+
 		const calcHash = async (str: string) =>
 		{
 			const Uint8 = new TextEncoder().encode(str);
@@ -168,6 +170,7 @@ export default defineComponent({
 			const hashArr = Array.from(new Uint8Array(hash));
 			return hashArr.map((el) => el.toString(16).padStart(2, '0')).join('');
 		};
+
 		const insertImage = () =>
 		{
 			const input = document.createElement('input');
@@ -189,12 +192,14 @@ export default defineComponent({
 			};
 			input.click();
 		};
+
 		const imageError = (e: Event) =>
 		{
 			const target = e.target as HTMLImageElement;
 			if (target)
 				target.src = 'imgs/chat/default.webp';
 		};
+
 		const generateTimestamp = (timestamp: Date) =>
 		{
 			const messageDate = new Date(timestamp);
@@ -204,6 +209,7 @@ export default defineComponent({
 			else
 				return `${messageDate.getDay()}/${messageDate.getMonth()}/${messageDate.getFullYear()}`;
 		};
+
 		const getMessages = (channelId: string) =>
 		{
 			api.get(`/chat/message/get/${channelId}`)
@@ -246,7 +252,6 @@ export default defineComponent({
 					}
 					if (temp.messages.length > 0)
 						messages.value.push(JSON.parse(JSON.stringify(temp)));
-					console.log(messages.value);
 					getBottomOfChat();
 				})
 				.catch((err) =>
@@ -263,7 +268,7 @@ export default defineComponent({
 			localStorage.removeItem('chat::message::edit');
 			if (!isEdit)
 			{
-				socket.emit('add',
+				socket.emit('message::add',
 					{
 						id: userId.value,
 						channel: localStorage.getItem('chat::channel::id'),
@@ -275,7 +280,7 @@ export default defineComponent({
 			}
 			else
 			{
-				socket.emit('update',
+				socket.emit('message::update',
 					{
 						id: userId.value,
 						channel: localStorage.getItem('chat::channel::id'),
@@ -318,7 +323,7 @@ export default defineComponent({
 						throw new Error();
 					localStorage.removeItem('chat::message::edit');
 					contextmenu.value?.hide();
-					socket.emit('delete',
+					socket.emit('message::delete',
 						{
 							id: userId.value,
 							channel: localStorage.getItem('chat::channel::id'),

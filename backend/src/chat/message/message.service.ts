@@ -68,13 +68,14 @@ export class MessageService {
 
   async update(data: MessageDTO) {
     try {
-      const tempId = data.id;
-      delete data.id;
-      const update = await this.getOne(data.channel.id, data.id);
-      update.content = data.content;
-      await this.messageRepository.update({ id: tempId }, update);
+      await this.messageRepository.createQueryBuilder()
+        .update(Message)
+        .set({ content: data.content })
+        .where('id = :id', { id: data.id })
+        .execute();
       return {
         message: 'Message updated',
+        data: await this.getOne(data.channel.id, data.id),
         timestamp: Date,
         updated: true,
       };
@@ -82,6 +83,7 @@ export class MessageService {
     {
       return {
         message: 'Message don\'t updated',
+        data: undefined,
         timestamp: Date,
         updated: false
       };
@@ -91,7 +93,12 @@ export class MessageService {
   async remove(data: MessageDTO)
   {
     try {
-      await this.messageRepository.delete({ id: data.id });
+      console.log(await this.messageRepository.createQueryBuilder()
+        .delete()
+        .from(Message)
+        .where('id = :id', { id: data.id })
+        .execute());
+      
       return {
         message: 'Message deleted',
         id: data.id,

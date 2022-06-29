@@ -26,6 +26,16 @@ interface receiveMessage {
   hash: string
 }
 
+interface updateMessage {
+  id: number,
+  channel: number,
+  messageId: number,
+  message: string,
+  length: number,
+  timestamp: Date,
+  hash: string
+}
+
 @WebSocketGateway({
   namespace: 'chat::',
   cors: {
@@ -82,19 +92,47 @@ export class MainGateway implements NestGateway
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('update')
-  updateMessage(message: MessageDTO, sender: Socket) {
-    this.logger.log(`Client ${sender.id} update ${message.content}`);
-    this.messageService.update(message);
-    sender.emit('message::update', message);
-    sender.broadcast.emit('message::update', message);
+  async update(message: updateMessage, sender: Socket) {
+    const hash = crypto.createHash('sha256').update(message.message).digest('hex');
+    if (hash !== message.hash)
+      return;
+    const messDate = new Date(message.timestamp);
+    this.logger.log(`Client ${sender.id} update a message at ${messDate.toDateString()}`);
+    const newMessage: MessageDTO = {
+      id: message.messageId,
+      create: await this.userService.getOne(message.id),
+      channel: await this.channelService.getOneNoMessages(message.channel),
+      content: message.message,
+      timestamp: undefined,
+      modified: message.timestamp
+    };
+    const ret = await this.messageService.update(newMessage);
+    if (ret.updated === false)
+      throw new Error(ret.message);
+    else
+      this.server.emit('updateMessage', ret);
   }
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('delete')
-  deleteMessage(message: MessageDTO, sender: Socket) {
-    this.logger.log(`Client ${sender.id} remove ${message.id}`);
-    this.messageService.remove(message);
-    sender.emit('message::delete', message);
-    sender.broadcast.emit('message::delete', message);
+  async delete(message: updateMessage, sender: Socket) {
+    const hash = crypto.createHash('sha256').update(message.message).digest('hex');
+    if (hash !== message.hash)
+      return;
+    const messDate = new Date(message.timestamp);
+    this.logger.log(`Client ${sender.id} update a message at ${messDate.toDateString()}`);
+    const newMessage: MessageDTO = {
+      id: message.messageId,
+      create: await this.userService.getOne(message.id),
+      channel: await this.channelService.getOneNoMessages(message.channel),
+      content: message.message,
+      timestamp: undefined,
+      modified: message.timestamp
+    };
+    const ret = await this.messageService.remove(newMessage);
+    if (ret.deleted === false)
+      throw new Error(ret.message);
+    else
+      this.server.emit('deleteMessage', ret);
   }
 }

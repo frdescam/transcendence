@@ -16,6 +16,19 @@ export class MessageController {
     };
   }
 
+  @Get('get/:channelId/:messageId')
+  async getOne(
+    @Param('channelId') channelId: number,
+    @Param('messageId') messageId: number
+  ) {
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Messages fetched successfully',
+      channelId: channelId,
+      messages: await this.messageService.getOne(channelId, messageId),
+    };
+  }
+
   @Get('get/:channelId/:offset/:limit')
   async getPages(
     @Param('channelId') channelId: number,

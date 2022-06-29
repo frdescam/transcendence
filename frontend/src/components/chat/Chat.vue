@@ -1,4 +1,9 @@
 <template>
+	<div>
+		<q-radio v-model="userId" :val="Number(1)">Clément user</q-radio>
+		<q-radio v-model="userId" :val="Number(2)">John user</q-radio>
+		<q-radio v-model="userId" :val="Number(3)">Titi user</q-radio>
+	</div>
 	<form
 		autocorrect="off"
 		autocapitalize="off"
@@ -54,16 +59,54 @@
 				v-bind:key="message.id"
 			>
 				<q-chat-message
-					:name="(userId !== message.user.id) ? message.user.pseudo: $t('chat.message.me')"
-					:avatar="message.user.avatar"
-					:stamp="generateTimestamp(message.messages[message.messages.length - 1].timestamp)"
 					:sent="userId === message.user.id"
-					:text-html="true"
-					:text="message.messages.map((x: any) => x.content)"
 					text-color="white"
 					:bg-color="(userId === message.user.id) ? 'cyan-8' : 'blue-8'"
-				></q-chat-message>
+				>
+					<template v-slot:name>{{ (userId !== message.user.id) ? message.user.pseudo: $t('chat.message.me') }}</template>
+					<template v-slot:stamp>{{ generateTimestamp(message.messages[message.messages.length - 1].timestamp) }}</template>
+					<template v-slot:avatar>
+						<img
+							:class="(userId === message.user.id) ? 'q-message-avatar q-message-avatar--sent' : 'q-message-avatar q-message-avatar--received'"
+							:src="message.user.avatar"
+							v-on:error="imageError"
+						/>
+					</template>
+					<div
+						v-for="el of message.messages"
+						v-bind:key="el.id"
+						:data-id="String(el.id)"
+						v-html="el.content"
+					></div>
+				</q-chat-message>
 			</template>
+			<q-menu
+				ref="contextmenu"
+				touch-position
+				context-menu
+				@before-show="openContextualMenu"
+			>
+				<q-list bordered padding>
+					<q-item
+						clickable
+						@click="editMessage"
+					>
+						<q-item-section avatar>
+							<q-icon name="edit"></q-icon>
+						</q-item-section>
+						<q-item-section>{{ $t('chat.menu.edit') }}</q-item-section>
+					</q-item>
+					<q-item
+						clickable
+						@click="deleteMessage"
+					>
+						<q-item-section avatar>
+							<q-icon name="delete"></q-icon>
+						</q-item-section>
+						<q-item-section>{{ $t('chat.menu.delete') }}</q-item-section>
+					</q-item>
+				</q-list>
+			</q-menu>
 		</div>
 	</template>
 </template>
@@ -73,6 +116,7 @@ import { AxiosInstance } from 'axios';
 import { TypeOfObject } from 'src/boot/typeofData';
 import { io } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, nextTick } from 'vue';
+import { QMenu } from 'quasar';
 
 interface arrayInterface {
 	id: number,
@@ -80,7 +124,6 @@ interface arrayInterface {
 	timestamp: Date,
 	modified: Date
 }
-
 interface messageInterface {
 	user: {
 		id: number,
@@ -99,12 +142,16 @@ export default defineComponent({
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
 
+		const contextmenu = ref<QMenu | null>(null);
 		const chat = ref<HTMLDivElement | null>(null);
 		const loading = ref(true);
 		const noError = ref(true);
 		const editor = ref('');
 		const messages = ref(new Array<messageInterface>()); // eslint-disable-line no-array-constructor
 		const userId = ref(1); // A changer avec le vrai id de l'utilisateur
+
+		// Clean var is reload
+		localStorage.removeItem('chat::message::edit');
 
 		const getBottomOfChat = () =>
 		{
@@ -142,19 +189,11 @@ export default defineComponent({
 			};
 			input.click();
 		};
-		const sendMessage = async () =>
+		const imageError = (e: Event) =>
 		{
-			if (editor.value.length <= 0)
-				return;
-			socket.emit('add', {
-				id: userId.value,
-				channel: localStorage.getItem('chat::channel::id'),
-				message: editor.value,
-				length: editor.value.length,
-				timestamp: Date.now(),
-				hash: await calcHash(editor.value)
-			});
-			editor.value = '';
+			const target = e.target as HTMLImageElement;
+			if (target)
+				target.src = 'imgs/chat/default.webp';
 		};
 		const generateTimestamp = (timestamp: Date) =>
 		{
@@ -207,12 +246,140 @@ export default defineComponent({
 					}
 					if (temp.messages.length > 0)
 						messages.value.push(JSON.parse(JSON.stringify(temp)));
+					console.log(messages.value);
 					getBottomOfChat();
 				})
 				.catch((err) =>
 				{
 					console.error('error', err);
 				});
+		};
+
+		const sendMessage = async () =>
+		{
+			if (editor.value.length <= 0)
+				return;
+			const isEdit = localStorage.getItem('chat::message::edit');
+			localStorage.removeItem('chat::message::edit');
+			if (!isEdit)
+			{
+				socket.emit('add',
+					{
+						id: userId.value,
+						channel: localStorage.getItem('chat::channel::id'),
+						message: editor.value,
+						length: editor.value.length,
+						timestamp: Date.now(),
+						hash: await calcHash(editor.value)
+					});
+			}
+			else
+			{
+				socket.emit('update',
+					{
+						id: userId.value,
+						channel: localStorage.getItem('chat::channel::id'),
+						messageId: isEdit,
+						message: editor.value,
+						length: editor.value.length,
+						timestamp: Date.now(),
+						hash: await calcHash(editor.value)
+					});
+			}
+			editor.value = '';
+		};
+
+		const editMessage = () =>
+		{
+			const channelId = String(localStorage.getItem('chat::channel::id'));
+			const messageId = String(localStorage.getItem('chat::message::edit'));
+			api.get(`/chat/message/get/${channelId}/${messageId}`)
+				.then((res) =>
+				{
+					if (typeofObject(res.data) !== 'object')
+						throw new Error();
+					editor.value = res.data.messages.content;
+					contextmenu.value?.hide();
+				})
+				.catch((err) =>
+				{
+					console.error('error', err);
+				});
+		};
+
+		const deleteMessage = () =>
+		{
+			const channelId = String(localStorage.getItem('chat::channel::id'));
+			const messageId = String(localStorage.getItem('chat::message::edit'));
+			api.get(`/chat/message/get/${channelId}/${messageId}`)
+				.then(async (res) =>
+				{
+					if (typeofObject(res.data) !== 'object')
+						throw new Error();
+					localStorage.removeItem('chat::message::edit');
+					contextmenu.value?.hide();
+					socket.emit('delete',
+						{
+							id: userId.value,
+							channel: localStorage.getItem('chat::channel::id'),
+							messageId,
+							message: editor.value,
+							length: editor.value.length,
+							timestamp: Date.now(),
+							hash: await calcHash(editor.value)
+						});
+				})
+				.catch((err) =>
+				{
+					console.error('error', err);
+				});
+		};
+
+		const openContextualMenu = (e: Event) =>
+		{
+			let target = e.target as HTMLElement;
+			if (!target || (target && target.classList.contains('message-list')))
+			{
+				contextmenu.value?.hide();
+				return;
+			}
+			while (!target.classList.contains('q-message-text'))
+			{
+				if (target.classList.contains('q-message-container'))
+					break;
+				target = target.parentNode as HTMLElement;
+			}
+			if (contextmenu.value)
+			{
+				contextmenu.value.updatePosition();
+				if (!target.classList.contains('q-message-text--sent'))
+					contextmenu.value.hide();
+				else
+				{
+					contextmenu.value.show();
+					let dataId: string;
+					const getDataId = (list: HTMLCollection) =>
+					{
+						if (!list.length || dataId)
+							return;
+						for (let i = 0; i < list.length; i++)
+						{
+							if (list[i].hasAttribute('data-id') && !dataId)
+							{
+								const ret = list[i].getAttribute('data-id');
+								if (ret)
+								{
+									dataId = ret;
+									localStorage.setItem('chat::message::edit', ret);
+								}
+								return;
+							}
+							if (list[i].children)
+								getDataId(list[i].children);
+						}
+					}; getDataId(target.children);
+				}
+			}
 		};
 
 		onMounted(() =>
@@ -262,18 +429,63 @@ export default defineComponent({
 				getBottomOfChat();
 			});
 			// #endregion
+
+			// #region Update message
+			socket.on('updateMessage', (res) =>
+			{
+				for (const block of messages.value)
+				{
+					if (block.user.id === userId.value)
+					{
+						for (const i in block.messages)
+						{
+							if (block.messages[i].id === res.data.id)
+							{
+								block.messages[i].content = res.data.content;
+								return;
+							}
+						}
+					}
+				}
+			});
+			// #endregion
+
+			// #region Delete message
+			socket.on('deleteMessage', (res) =>
+			{
+				for (const block of messages.value)
+				{
+					if (block.user.id === userId.value)
+					{
+						for (const i in block.messages)
+						{
+							if (block.messages[i].id === Number(res.id))
+							{
+								block.messages.splice(Number(i), 1);
+								return;
+							}
+						}
+					}
+				}
+			});
+			// #endregion
 		});
 
 		return {
+			contextmenu,
 			chat,
 			loading,
 			noError,
 			editor,
 			messages,
 			userId,
+			openContextualMenu,
+			imageError,
 			insertImage,
 			sendMessage,
-			generateTimestamp
+			generateTimestamp,
+			editMessage,
+			deleteMessage
 		};
 	}
 });

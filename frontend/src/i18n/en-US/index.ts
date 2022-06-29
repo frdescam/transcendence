@@ -5,6 +5,10 @@ export default {
 			send: 'Send',
 			placeholder: 'Write your message'
 		},
+		menu: {
+			edit: 'Edit message',
+			delete: 'Delete message'
+		},
 		message: {
 			me: 'Me'
 		}

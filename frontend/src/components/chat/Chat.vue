@@ -121,7 +121,7 @@ import { QMenu } from 'quasar';
 interface arrayInterface {
 	id: number,
 	content: string,
-	timestamp: Date,
+	timestamp: string,
 	modified: Date
 }
 interface messageInterface {
@@ -163,6 +163,14 @@ export default defineComponent({
 			});
 		};
 
+		const parseTime = (timestamp: string) =>
+		{
+			const ret = /^(?<year>\d{4})-(?<month>\d{1,2})-(?<day>\d{1,2})T(?<hour>\d{1,2}):(?<minute>\d{1,2}):(?<second>\d{1,2}).(?<milliseconds>\d+)Z$/.exec(timestamp);
+			if (ret)
+				return ret.groups;
+			return undefined;
+		};
+
 		const calcHash = async (str: string) =>
 		{
 			const Uint8 = new TextEncoder().encode(str);
@@ -201,14 +209,20 @@ export default defineComponent({
 		};
 
 		// A refaire plus tard
-		const generateTimestamp = (timestamp: Date) =>
+		const generateTimestamp = (timestamp: string) =>
 		{
+			const messageDate = parseTime(timestamp);
+			if (!messageDate)
+				return '';
+			return `${messageDate.day}/${messageDate.month}/${messageDate.year} - ${messageDate.hour}h${messageDate.minute}`;
+			/*
 			const messageDate = new Date(timestamp);
 			const currentDate = new Date();
 			if ((currentDate.getTime() - messageDate.getTime()) / 86400000 < 1.0) // one day
 				return `${messageDate.getDay()}/${messageDate.getMonth()}/${messageDate.getFullYear()} ${messageDate.getHours()}h${messageDate.getMinutes()}`;
 			else
 				return `${messageDate.getDay()}/${messageDate.getMonth()}/${messageDate.getFullYear()}`;
+			*/
 		};
 
 		const getMessages = (channelId: string) =>
@@ -423,7 +437,8 @@ export default defineComponent({
 						modified: res.data.modified
 					});
 				});
-				if (messages.value[messages.value.length - 1].user.id === res.data.creator.id)
+				if (messages.value.length > 0 &&
+					messages.value[messages.value.length - 1].user.id === res.data.creator.id)
 				{
 					messages.value[messages.value.length - 1].messages = [
 						...messages.value[messages.value.length - 1].messages,
@@ -439,6 +454,11 @@ export default defineComponent({
 			// #region Update message
 			socket.on('updateMessage', (res) =>
 			{
+				if (!res.data.content.length)
+				{
+					deleteMessage(res);
+					return;
+				}
 				for (const block of messages.value)
 				{
 					if (block.user.id === userId.value)
@@ -457,22 +477,31 @@ export default defineComponent({
 			// #endregion
 
 			// #region Delete message
-			socket.on('deleteMessage', (res) =>
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const deleteMessage = (res: any) =>
 			{
-				for (const block of messages.value)
+				for (const x in messages.value)
 				{
-					if (block.user.id === userId.value)
+					if (messages.value[x].user.id === userId.value)
 					{
-						for (const i in block.messages)
+						for (const y in messages.value[x].messages)
 						{
-							if (block.messages[i].id === Number(res.id))
+							if (messages.value[x].messages[y].id === Number(res.id))
 							{
-								block.messages.splice(Number(i), 1);
+								if (messages.value[x].messages.length === 1)
+									messages.value.splice(Number(x), 1);
+								else
+									messages.value[x].messages.splice(Number(y), 1);
 								return;
 							}
 						}
 					}
 				}
+			};
+
+			socket.on('deleteMessage', (res) =>
+			{
+				deleteMessage(res);
 			});
 			// #endregion
 		});

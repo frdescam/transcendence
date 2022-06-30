@@ -67,26 +67,17 @@ export class ChannelService {
         admins: data.admins
       };
       if (data.password)
-        val['password'] = await argon2.hash(data.password);
-      console.log(val);
-      return {
-        message: 'Channel created',
-        data: val,
-        created: true,
-      };
-      /*
+        val['password'] = data.password;
       const newChannel = await this.channelRepository.createQueryBuilder()
         .insert()
         .into(Channel)
         .values([ val ])
         .execute();
-      console.log(newChannel.generatedMaps);
       return {
         message: 'Channel created',
         data: await this.getOne(newChannel.generatedMaps[0].id),
         created: true,
       };
-      */
     } catch (err) {
       console.log(err);
       return {

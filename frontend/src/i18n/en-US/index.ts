@@ -18,6 +18,13 @@ export default {
 					type: 'The type of channel is mandatory',
 					password: 'Passwords don\'t match'
 				}
+			},
+			passwordTooltip: 'Enter the password',
+			password: {
+				password: 'Password of channel',
+				error: 'Password is required',
+				valid: 'Validate',
+				incorrect: 'Incorrect password'
 			}
 		},
 		editor: {

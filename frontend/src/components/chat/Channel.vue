@@ -16,10 +16,11 @@
 					<q-item clickable v-ripple
 						v-for="channel in channels"
 						v-bind:key="channel.id"
+						:class="(channel.id === selectedChannel) ? 'selected-channel' : ''"
 						@click="$emit('channelIsSelected', channelIsSelected(channel.id, channel.type))"
 					>
 						<q-item-section avatar>
-							<div class="channel-avatar" :style="{ backgroundColor: `${randomColor()}` }">
+							<div class="channel-avatar" :style="{ backgroundColor: `${channel.color}` }">
 								<span>{{ channel.name.slice(0, 2).toUpperCase() }}</span>
 							</div>
 						</q-item-section>
@@ -149,6 +150,47 @@
 			</q-card-section>
 		</q-card>
 	</q-dialog>
+
+	<q-dialog
+		ref="dialogpassword"
+		model="fixed"
+		square
+		@hide="resetDialogPassword"
+	>
+		<q-card>
+			<q-card-section class="row items-center bg-primary text-white">
+				<div class="text-h6" >{{ selectedChannelName }}</div>
+				<q-space />
+				<q-btn icon="close" flat round dense v-close-popup />
+			</q-card-section>
+			<q-separator />
+			<q-card-section class="dialog">
+				<template v-if="selectedChannelError">
+					<q-banner
+						inline-actions
+						class="text-white bg-red"
+					>
+						{{ $t('chat.channel.password.incorrect') }}
+					</q-banner>
+					<span style="display: block; height:1em"></span>
+				</template>
+				<q-form
+					class="column justify-around"
+					@submit="verifyPassword"
+				>
+					<q-input
+						type="text"
+						filled
+						v-model="selectedChannelPassword"
+						:label="$t('chat.channel.password.password')"
+						:rules="[(val: string) => val && val.length > 0 || $t('chat.channel.password.error')]"
+					/>
+					<q-space />
+					<q-btn :label="$t('chat.channel.password.valid')" type="submit" color="primary"/>
+				</q-form>
+			</q-card-section>
+		</q-card>
+	</q-dialog>
 </template>
 
 <script lang="ts">
@@ -164,7 +206,8 @@ import { defineComponent, onMounted, ref, inject } from 'vue';
 interface channelInterface {
 	id: number,
 	owner: number,
-	type: number,
+	color: string,
+	type: string,
 	name: string,
 	password: string,
 	creationDate: Date
@@ -181,20 +224,42 @@ export default defineComponent({
 		const loading = ref(true);
 		const noError = ref(true);
 		const channels = ref(new Array<channelInterface>()); // eslint-disable-line no-array-constructor
-		const dialogchannel = ref<QDialog | null>(null);
-
 		const userId = ref(Number(localStorage.getItem('chat::user::id')));
+		const selectedChannel = ref(0);
 
+		if (localStorage.getItem('chat::channel::id'))
+			selectedChannel.value = Number(localStorage.getItem('chat::channel::id'));
+
+		const dialogpassword = ref<QDialog | null>(null);
+		const selectedChannelError = ref<boolean>(false);
+		const selectedChannelPassword = ref(null);
+		const selectedChannelId = ref(0);
+		const selectedChannelPasswordValue = ref(null);
+		const selectedChannelName = ref(null);
+
+		const dialogchannel = ref<QDialog | null>(null);
 		const newChannelName = ref(null);
 		const newChannelType = ref(null);
 		const newChannelPasswordOne = ref(null);
 		const newChannelPasswordTwo = ref(null);
 		const newChannelError = ref(0);
 
-		const randomColor = () =>
+		const sendEvent = (channelId: number) =>
 		{
-			const __colors = ['#ffc93c', '#ff9a3c', '#ff6f3c', '#49beb7', '#35bcbf', '#c5d86d'];
-			return __colors[Math.floor(Math.random() * __colors.length)];
+			selectedChannel.value = channelId;
+			localStorage.setItem('chat::channel::id', channelId.toString(10));
+			window.dispatchEvent(
+				new CustomEvent('chatChannelSelected',
+					{
+						bubbles: true,
+						cancelable: true,
+						composed: true,
+						detail: {
+							channelId
+						}
+					}
+				)
+			);
 		};
 
 		const channelIsSelected = (channelId: number, channelType: string) =>
@@ -203,27 +268,16 @@ export default defineComponent({
 			if (!__saveId || (__saveId && __saveId !== channelId))
 			{
 				if (channelType !== 'protected')
-				{
-					localStorage.setItem('chat::channel::id', channelId.toString(10));
-					window.dispatchEvent(
-						new CustomEvent('chatChannelSelected',
-							{
-								bubbles: true,
-								cancelable: true,
-								composed: true,
-								detail: {
-									channelId
-								}
-							}
-						)
-					);
-				}
+					sendEvent(channelId);
 				else
 				{
 					api.get<any>(`/chat/channel/get/no-messages/${channelId}`)
 						.then((res) =>
 						{
-							console.log('toto', res);
+							selectedChannelPasswordValue.value = res.data.channel.password;
+							selectedChannelName.value = res.data.channel.name;
+							selectedChannelId.value = res.data.channel.id;
+							dialogpassword.value?.show();
 						})
 						.catch((err) => console.log(err));
 				}
@@ -280,8 +334,32 @@ export default defineComponent({
 			resetDialog();
 		};
 
+		const resetDialogPassword = () =>
+		{
+			selectedChannelPassword.value = null;
+			selectedChannelError.value = false;
+		};
+
+		const verifyPassword = () =>
+		{
+			if (selectedChannelPassword.value !== selectedChannelPasswordValue.value)
+				selectedChannelError.value = true;
+			else
+			{
+				sendEvent(selectedChannelId.value);
+				dialogpassword.value?.hide();
+				resetDialogPassword();
+			}
+		};
+
 		onMounted(() =>
 		{
+			const randomColor = () =>
+			{
+				const __colors = ['#ffc93c', '#ff9a3c', '#ff6f3c', '#49beb7', '#35bcbf', '#c5d86d'];
+				return __colors[Math.floor(Math.random() * __colors.length)];
+			};
+
 			api.get<any>('/chat/channel/get/no-messages')
 				.then((res) =>
 				{
@@ -295,6 +373,7 @@ export default defineComponent({
 							channels.value.push({
 								id: res.data.channels[el].id,
 								owner: res.data.channels[el].owner.id,
+								color: randomColor(),
 								type: res.data.channels[el].type,
 								name: res.data.channels[el].name,
 								password: res.data.channels[el].password,
@@ -310,6 +389,7 @@ export default defineComponent({
 									channels.value.push({
 										id: res.data.channels[el].id,
 										owner: res.data.channels[el].owner.id,
+										color: randomColor(),
 										type: res.data.channels[el].type,
 										name: res.data.channels[el].name,
 										password: res.data.channels[el].password,
@@ -329,11 +409,13 @@ export default defineComponent({
 
 			socket.on('newChannel', (ret) =>
 			{
+				console.log(ret);
 				if (ret.created && ret.data.owner.id === userId.value)
 				{
 					channels.value.push({
 						id: ret.data.id,
 						owner: ret.data.owner.id,
+						color: randomColor(),
 						type: ret.data.type,
 						name: ret.data.name,
 						password: ret.data.password,
@@ -347,6 +429,15 @@ export default defineComponent({
 			loading,
 			noError,
 			channels,
+			selectedChannel,
+
+			dialogpassword,
+			selectedChannelId,
+			selectedChannelError,
+			selectedChannelPassword,
+			selectedChannelPasswordValue,
+			selectedChannelName,
+
 			dialogchannel,
 			newChannelName,
 			newChannelType,
@@ -355,11 +446,12 @@ export default defineComponent({
 			newChannelError,
 			isPwdOne: ref(true),
 			isPwdTwo: ref(true),
-			randomColor,
 			channelIsSelected,
 			openModal,
 			resetDialog,
-			createChannel
+			resetDialogPassword,
+			createChannel,
+			verifyPassword
 		};
 	}
 });
@@ -392,5 +484,8 @@ export default defineComponent({
 	.dialog {
 		overflow-y: auto;
 		max-height: 45vh;
+	}
+	.selected-channel {
+		background-color: #c8c8c8 !important;
 	}
 </style>

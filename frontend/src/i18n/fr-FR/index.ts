@@ -18,6 +18,13 @@ export default {
 					type: 'Le type de canal est obligatoire',
 					password: 'Les mots de passes ne corresponde pas'
 				}
+			},
+			passwordTooltip: 'Entrer le mot de passe',
+			password: {
+				password: 'Mot de passe du canal',
+				error: 'Le mot de passe est obligatoire',
+				valid: 'Valider',
+				incorrect: 'Mot de passe invalide'
 			}
 		},
 		editor: {

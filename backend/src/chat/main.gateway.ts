@@ -107,12 +107,10 @@ export class MainGateway implements NestGateway
       users: [ __owner ]
     };
     const ret = await this.channelService.create(__newChannel);
-    /*
     if (ret.created === false)
       throw new Error(ret.message);
     else
       this.server.emit('newChannel', ret);
-    */
   }
 
   @Bind(MessageBody(), ConnectedSocket())

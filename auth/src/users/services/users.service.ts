@@ -13,7 +13,8 @@ export class UsersService {
     private readonly users_repo: Repository<User>,) {}
 
     async findOne(user_dto: AuthDto): Promise<User> {
-        console.log(await this.getUniquePseudo(user_dto.pseudo));
+        // print this when testing multiple pseudos
+        //console.log(await this.getUniquePseudo(user_dto.pseudo));
 		return this.users_repo.findOne({where: user_dto});
 		// return this.users_repo.findOne({
         //     where: {
@@ -41,7 +42,6 @@ export class UsersService {
 			},
 		});
 
-		//return `${login}${found?.id + 1}`;
 		return `${login}#${last?.id + 1}`;
 	}
 

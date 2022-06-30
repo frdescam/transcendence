@@ -16,7 +16,7 @@
 					<q-item clickable v-ripple
 						v-for="channel in channels"
 						v-bind:key="channel.id"
-						@click="$emit('channelIsSelected', channelIsSelected(channel.id))"
+						@click="$emit('channelIsSelected', channelIsSelected(channel.id, channel.type))"
 					>
 						<q-item-section avatar>
 							<div class="channel-avatar" :style="{ backgroundColor: `${randomColor()}` }">
@@ -152,6 +152,8 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { AxiosInstance } from 'axios';
 import { QDialog } from 'quasar';
 import { io } from 'socket.io-client';
@@ -195,20 +197,36 @@ export default defineComponent({
 			return __colors[Math.floor(Math.random() * __colors.length)];
 		};
 
-		const channelIsSelected = (channelId: number) =>
+		const channelIsSelected = (channelId: number, channelType: string) =>
 		{
 			const __saveId = Number(localStorage.getItem('chat::channel::id'));
 			if (!__saveId || (__saveId && __saveId !== channelId))
 			{
-				localStorage.setItem('chat::channel::id', channelId.toString(10));
-				window.dispatchEvent(new CustomEvent('chatChannelSelected', {
-					bubbles: true,
-					cancelable: true,
-					composed: true,
-					detail: {
-						channelId
-					}
-				}));
+				if (channelType !== 'protected')
+				{
+					localStorage.setItem('chat::channel::id', channelId.toString(10));
+					window.dispatchEvent(
+						new CustomEvent('chatChannelSelected',
+							{
+								bubbles: true,
+								cancelable: true,
+								composed: true,
+								detail: {
+									channelId
+								}
+							}
+						)
+					);
+				}
+				else
+				{
+					api.get<any>(`/chat/channel/get/no-messages/${channelId}`)
+						.then((res) =>
+						{
+							console.log('toto', res);
+						})
+						.catch((err) => console.log(err));
+				}
 			}
 			return channelId;
 		};
@@ -236,12 +254,7 @@ export default defineComponent({
 				newChannelError.value = 1;
 				return;
 			}
-			if (!newChannelType.value ||
-				(
-					newChannelType.value !== 'public' &&
-					newChannelType.value !== 'protected'
-				)
-			)
+			if (!newChannelType.value)
 			{
 				newChannelError.value = 2;
 				return;
@@ -269,7 +282,6 @@ export default defineComponent({
 
 		onMounted(() =>
 		{
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			api.get<any>('/chat/channel/get/no-messages')
 				.then((res) =>
 				{
@@ -278,7 +290,7 @@ export default defineComponent({
 					loading.value = false;
 					for (const el in res.data.channels)
 					{
-						if (res.data.channels[el].type === 'public')
+						if (res.data.channels[el].type === 'public' || res.data.channels[el].type === 'protected')
 						{
 							channels.value.push({
 								id: res.data.channels[el].id,

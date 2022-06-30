@@ -81,12 +81,23 @@ export class MainGateway implements NestGateway
   async newChannel(channel: receiveChannel, sender: Socket) {
     this.logger.log(`Client ${sender.id} create a channel at ${new Date().toDateString()}`);
     const __owner = await this.userService.getOne(channel.creator);
-    const __type = (channel.type === 'public') ? channelTypesDTO.PUBLIC : (channel.type === 'protected') ? channelTypesDTO.PASSWD : channelTypesDTO.PRIVATE;
+    const getType = (type: string) => {
+      switch (type) {
+      case 'public':
+        return channelTypesDTO.PUBLIC;
+      case 'protected':
+        return channelTypesDTO.PROTECTED;
+      case 'private':
+        return channelTypesDTO.PRIVATE;
+      default:
+        return channelTypesDTO.DIRECT;
+      }
+    };
     const __newChannel: ChannelDTO = {
       id: undefined,
       owner: __owner,
       name: channel.name,
-      type: __type,
+      type: getType(channel.type),
       password: channel.password,
       creationDate: undefined,
       messages: null,
@@ -96,10 +107,12 @@ export class MainGateway implements NestGateway
       users: [ __owner ]
     };
     const ret = await this.channelService.create(__newChannel);
+    /*
     if (ret.created === false)
       throw new Error(ret.message);
     else
       this.server.emit('newChannel', ret);
+    */
   }
 
   @Bind(MessageBody(), ConnectedSocket())

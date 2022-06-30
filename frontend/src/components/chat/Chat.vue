@@ -200,6 +200,7 @@ export default defineComponent({
 				target.src = 'imgs/chat/default.webp';
 		};
 
+		// A refaire plus tard
 		const generateTimestamp = (timestamp: Date) =>
 		{
 			const messageDate = new Date(timestamp);

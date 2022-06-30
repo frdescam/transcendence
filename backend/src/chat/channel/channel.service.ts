@@ -59,39 +59,36 @@ export class ChannelService {
 
   async create(data: ChannelDTO) {
     try {
-      data.password = (data.password)
-        ? await argon2.hash(data.password)
-        : null;
-      let val;
+      const val = {
+        owner: data.owner,
+        name: data.name,
+        type: data.type,
+        users: data.users,
+        admins: data.admins
+      };
       if (data.password)
-        val = {
-          owner: data.owner,
-          name: data.name,
-          type: data.type,
-          password: data.password,
-          users: data.users,
-          admins: data.admins
-        };
-      else
-        val = {
-          owner: data.owner,
-          name: data.name,
-          type: data.type,
-          users: data.users,
-          admins: data.admins
-        };
-      
+        val['password'] = await argon2.hash(data.password);
+      console.log(val);
+      return {
+        message: 'Channel created',
+        data: val,
+        created: true,
+      };
+      /*
       const newChannel = await this.channelRepository.createQueryBuilder()
         .insert()
         .into(Channel)
         .values([ val ])
         .execute();
+      console.log(newChannel.generatedMaps);
       return {
         message: 'Channel created',
         data: await this.getOne(newChannel.generatedMaps[0].id),
         created: true,
       };
-    } catch (___) {
+      */
+    } catch (err) {
+      console.log(err);
       return {
         message: 'Channel don\'t created',
         data: undefined,

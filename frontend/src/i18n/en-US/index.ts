@@ -2,6 +2,50 @@ export default {
 	chat: {
 		channel: {
 			createTooltip: 'Create a new channel',
+			menu: {
+				edit: {
+					title: 'Edit channel',
+					tabs: {
+						general: {
+							title: 'General',
+							type: 'Type of channel',
+							typeInfo: 'You cannot change the channel type',
+							name: 'Name',
+							password: 'Password',
+							newPassword: 'New password',
+							oldPassword: 'Old password',
+							protected: 'This channel is protected by a password',
+							success: 'The modifications have been made',
+							error: {
+								name: 'The channel must have a name',
+								pass: 'The old password does not match',
+								passNew: 'The new password must not be empty'
+							}
+						},
+						user: {
+							title: 'Users'
+						},
+						muted: {
+							title: 'Muted users'
+						},
+						banned: {
+							title: 'Banned users'
+						},
+						reset: 'Reset',
+						apply: 'Apply changes',
+						need: 'is needed'
+					}
+				},
+				delete: {
+					title: 'Delete channel',
+					info: 'Are you sure you want to remove the channel ?',
+					explanation: 'Enter name of the channel to confirm its deletion',
+					error: 'The channel name does not match',
+					cancel: 'Cancel',
+					delete: 'Delete'
+				},
+				quit: 'Quit channel'
+			},
 			modal: {
 				name: 'Name of channel',
 				type: 'Channel type',

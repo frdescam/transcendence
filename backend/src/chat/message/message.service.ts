@@ -90,14 +90,37 @@ export class MessageService {
     }
   }
 
+  async removeAll(channelId: number)
+  {
+    try {
+      const __ret = await this.messageRepository.createQueryBuilder()
+        .delete()
+        .from(Message)
+        .where('channel.id = :id', { id: channelId })
+        .execute();
+      console.log(__ret);
+      return {
+        message: 'Message(s) deleted',
+        channel: channelId,
+        deleted: true,
+      };
+    } catch (___) {
+      return {
+        message: 'Message(s) don\'t deleted',
+        channel: channelId,
+        deleted: false,
+      };
+    }
+  }
+
   async remove(data: MessageDTO)
   {
     try {
-      console.log(await this.messageRepository.createQueryBuilder()
+      await this.messageRepository.createQueryBuilder()
         .delete()
         .from(Message)
         .where('id = :id', { id: data.id })
-        .execute());
+        .execute();
       
       return {
         message: 'Message deleted',
@@ -114,6 +137,5 @@ export class MessageService {
         deleted: false,
       };
     }
-    
   }
 }

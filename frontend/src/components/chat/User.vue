@@ -75,7 +75,7 @@ export default defineComponent({
 
 		onMounted(() =>
 		{
-			window.addEventListener('chatChannelSelected', (e: Event) =>
+			window.addEventListener('chat::channel::selected', (e: Event) =>
 			{
 				const detail = (e as CustomEvent).detail;
 				getData(detail.channelId);

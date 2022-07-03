@@ -2,6 +2,50 @@ export default {
 	chat: {
 		channel: {
 			createTooltip: 'Créer un nouveau canal',
+			menu: {
+				edit: {
+					title: 'Modifier le canal',
+					tabs: {
+						general: {
+							title: 'Général',
+							type: 'Type du canal',
+							typeInfo: 'Vous ne pouvez pas changer le type de canal',
+							name: 'Nom',
+							password: 'Mot de passe',
+							newPassword: 'Nouveau mot de passe',
+							oldPassword: 'Ancien mot de passe',
+							protected: 'Ce canal est protégé par un mot de passe',
+							success: 'Les modifications ont été effectuées',
+							error: {
+								name: 'Le canal doit avoir un nom',
+								pass: 'L\'ancien mot de passe ne correspond pas',
+								passNew: 'Le nouveau mot de passe ne doit pas être vide'
+							}
+						},
+						user: {
+							title: 'Utilisateurs'
+						},
+						muted: {
+							title: 'Utilisateurs muets'
+						},
+						banned: {
+							title: 'Utilisateurs interdits'
+						},
+						reset: 'Réinitialiser',
+						apply: 'Appliquer les modifications',
+						need: 'est nécessaire'
+					}
+				},
+				delete: {
+					title: 'Supprimer le canal',
+					info: 'Êtes-vous sûr de vouloir supprimer le canal ?',
+					explanation: 'Entrer le nom du canal pour confirmer sa suppression',
+					error: 'Le nom du canal ne correspond pas',
+					cancel: 'Annuler',
+					delete: 'Delete'
+				},
+				quit: 'Quitter le canal'
+			},
 			modal: {
 				name: 'Nom du canal',
 				type: 'Type du canal',

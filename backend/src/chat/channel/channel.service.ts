@@ -5,6 +5,7 @@ import * as argon2 from 'argon2';
 
 import { ChannelDTO } from '../orm/channel.dto';
 import { Channel } from '../orm/channel.entity';
+import { Message } from '../orm/message.entity';
 
 @Injectable()
 export class ChannelService {
@@ -89,39 +90,54 @@ export class ChannelService {
   }
 
   async update(data: ChannelDTO) {
-    const tempId = data.id;
-    delete data.id;
-    const update = await this.getOne(tempId);
-    update.type = data.type;
-    await this.channelRepository.update({ id: tempId }, update);
+    try {
+      const __ret = {
+        owner: data.owner,
+        name: data.name
+      };
+      if (data.password)
+        __ret['password'] = data.password;
+      console.log(await this.channelRepository.createQueryBuilder()
+        .update(Channel)
+        .set(__ret)
+        .where('id = :id', { id: data.id })
+        .execute());
+      return {
+        message: 'Channel updated',
+        data: await this.getOne(data.id),
+        timestamp: Date,
+        updated: true,
+      };
+    } catch (___)
+    {
+      return {
+        message: 'Channel don\'t updated',
+        data: undefined,
+        timestamp: Date,
+        updated: false
+      };
+    }
   }
 
   async remove(data: ChannelDTO) {
-    const user = await this.getOne(data.id);
     try {
-      if (user.password)
-      {
-        if (await argon2.verify(user.password, data.password)) {
-          await this.channelRepository.delete({ id: data.id });
-          return {
-            message: 'Channel deleted',
-            deleted: true,
-          };
-        }
-      }
-      else
-      {
-        await this.channelRepository.delete({ id: data.id });
-        return {
-          message: 'Channel deleted',
-          deleted: true,
-        };
-      }
-    }
-    catch (___)
+      await this.channelRepository.createQueryBuilder()
+        .delete()
+        .from(Channel)
+        .where('id = :id', { id: data.id })
+        .execute();
+      return {
+        message: 'Channel deleted',
+        id: data.id,
+        timestamp: Date,
+        deleted: true,
+      };
+    } catch (___)
     {
       return {
-        message: 'Password don\'t recognize',
+        message: 'Channel don\'t deleted',
+        id: data.id,
+        timestamp: Date,
         deleted: false,
       };
     }

@@ -152,7 +152,7 @@ export default defineComponent({
 
 		// Clean var is reload
 		localStorage.setItem('chat::user::id', String(userId.value)); // A revoir plus tard
-		localStorage.removeItem('chat::message::edit');
+		const messageEditId = ref(-1);
 
 		const getBottomOfChat = () =>
 		{
@@ -208,21 +208,12 @@ export default defineComponent({
 				target.src = 'imgs/chat/default.webp';
 		};
 
-		// A refaire plus tard
 		const generateTimestamp = (timestamp: string) =>
 		{
 			const messageDate = parseTime(timestamp);
 			if (!messageDate)
 				return '';
 			return `${messageDate.day}/${messageDate.month}/${messageDate.year} - ${messageDate.hour}h${messageDate.minute}`;
-			/*
-			const messageDate = new Date(timestamp);
-			const currentDate = new Date();
-			if ((currentDate.getTime() - messageDate.getTime()) / 86400000 < 1.0) // one day
-				return `${messageDate.getDay()}/${messageDate.getMonth()}/${messageDate.getFullYear()} ${messageDate.getHours()}h${messageDate.getMinutes()}`;
-			else
-				return `${messageDate.getDay()}/${messageDate.getMonth()}/${messageDate.getFullYear()}`;
-			*/
 		};
 
 		const getMessages = (channelId: string) =>
@@ -269,9 +260,10 @@ export default defineComponent({
 						messages.value.push(JSON.parse(JSON.stringify(temp)));
 					getBottomOfChat();
 				})
-				.catch((err) =>
+				.catch(() =>
 				{
-					console.error('error', err);
+					loading.value = false;
+					noError.value = false;
 				});
 		};
 
@@ -279,9 +271,7 @@ export default defineComponent({
 		{
 			if (editor.value.length <= 0)
 				return;
-			const isEdit = localStorage.getItem('chat::message::edit');
-			localStorage.removeItem('chat::message::edit');
-			if (!isEdit)
+			if (messageEditId.value === -1)
 			{
 				socket.emit('message::add',
 					{
@@ -299,7 +289,7 @@ export default defineComponent({
 					{
 						id: userId.value,
 						channel: localStorage.getItem('chat::channel::id'),
-						messageId: isEdit,
+						messageId: messageEditId.value,
 						message: editor.value,
 						length: editor.value.length,
 						timestamp: Date.now(),
@@ -307,13 +297,13 @@ export default defineComponent({
 					});
 			}
 			editor.value = '';
+			messageEditId.value = -1;
 		};
 
 		const editMessage = () =>
 		{
 			const channelId = String(localStorage.getItem('chat::channel::id'));
-			const messageId = String(localStorage.getItem('chat::message::edit'));
-			api.get(`/chat/message/get/${channelId}/${messageId}`)
+			api.get(`/chat/message/get/${channelId}/${messageEditId.value}`)
 				.then((res) =>
 				{
 					if (typeofObject(res.data) !== 'object')
@@ -330,24 +320,23 @@ export default defineComponent({
 		const deleteMessage = () =>
 		{
 			const channelId = String(localStorage.getItem('chat::channel::id'));
-			const messageId = String(localStorage.getItem('chat::message::edit'));
-			api.get(`/chat/message/get/${channelId}/${messageId}`)
+			api.get(`/chat/message/get/${channelId}/${messageEditId.value}`)
 				.then(async (res) =>
 				{
 					if (typeofObject(res.data) !== 'object')
 						throw new Error();
-					localStorage.removeItem('chat::message::edit');
 					contextmenu.value?.hide();
 					socket.emit('message::delete',
 						{
 							id: userId.value,
 							channel: localStorage.getItem('chat::channel::id'),
-							messageId,
+							messageId: messageEditId.value,
 							message: editor.value,
 							length: editor.value.length,
 							timestamp: Date.now(),
 							hash: await calcHash(editor.value)
 						});
+					messageEditId.value = -1;
 				})
 				.catch((err) =>
 				{
@@ -390,7 +379,7 @@ export default defineComponent({
 								if (ret)
 								{
 									dataId = ret;
-									localStorage.setItem('chat::message::edit', ret);
+									messageEditId.value = Number(ret);
 								}
 								return;
 							}
@@ -405,11 +394,12 @@ export default defineComponent({
 		onMounted(() =>
 		{
 			// #region Detect channel changed
-			window.addEventListener('chatChannelSelected', (e: Event) =>
+			window.addEventListener('chat::channel::selected', (e: Event) =>
 			{
 				const detail = (e as CustomEvent).detail;
 				messages.value.length = 0;
-				getMessages(detail.channelId);
+				if (!detail.isDeleted)
+					getMessages(detail.channelId);
 			});
 			const channelId = String(localStorage.getItem('chat::channel::id'));
 			if (channelId)

@@ -117,14 +117,47 @@ export class MainGateway implements NestGateway
   @SubscribeMessage('channel::update')
   async updateChannel(channel: receiveChannel, sender: Socket) {
     this.logger.log(`Client ${sender.id} update a channel at ${new Date().toDateString()}`);
-    this.server.emit('updateChannel', '');
+    const ret = await this.channelService.update({
+      id: channel.id,
+      owner: await this.userService.getOne(channel.creator),
+      name: channel.name,
+      type: undefined,
+      password: channel.password,
+      creationDate: undefined,
+      messages: null,
+      bannedUsers: null,
+      mutedUsers: null,
+      admins: [],
+      users: []
+    });
+    if (ret.updated === false)
+      throw new Error(ret.message);
+    else
+      this.server.emit('updateChannel', ret);
   }
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('channel::delete')
   async deleteChannel(channel: receiveChannel, sender: Socket) {
     this.logger.log(`Client ${sender.id} delete a channel at ${new Date().toDateString()}`);
-    this.server.emit('deleteChannel', '');
+    await this.messageService.removeAll(channel.id);
+    const ret = await this.channelService.remove({
+      id: channel.id,
+      owner: undefined,
+      name: undefined,
+      type: undefined,
+      password: undefined,
+      creationDate: undefined,
+      messages: null,
+      bannedUsers: null,
+      mutedUsers: null,
+      admins: [],
+      users: []
+    });
+    if (ret.deleted === false)
+      throw new Error(ret.message);
+    else
+      this.server.emit('deleteChannel', ret);
   }
   // #endregion
 

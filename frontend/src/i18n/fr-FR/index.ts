@@ -19,7 +19,8 @@ export default {
 							error: {
 								name: 'Le canal doit avoir un nom',
 								pass: 'L\'ancien mot de passe ne correspond pas',
-								passNew: 'Le nouveau mot de passe ne doit pas être vide'
+								passNew: 'Le nouveau mot de passe ne doit pas être vide',
+								toProtected: 'Un canal protégé nécessite un mot de passe'
 							}
 						},
 						user: {

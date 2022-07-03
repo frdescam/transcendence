@@ -45,6 +45,19 @@ interface receiveChannel {
   password: string
 }
 
+const getType = (type: string) => {
+  switch (type) {
+  case 'public':
+    return channelTypesDTO.PUBLIC;
+  case 'protected':
+    return channelTypesDTO.PROTECTED;
+  case 'private':
+    return channelTypesDTO.PRIVATE;
+  default:
+    return channelTypesDTO.DIRECT;
+  }
+};
+
 @WebSocketGateway({
   namespace: 'chat::',
   cors: {
@@ -81,18 +94,6 @@ export class MainGateway implements NestGateway
   async newChannel(channel: receiveChannel, sender: Socket) {
     this.logger.log(`Client ${sender.id} create a channel at ${new Date().toDateString()}`);
     const __owner = await this.userService.getOne(channel.creator);
-    const getType = (type: string) => {
-      switch (type) {
-      case 'public':
-        return channelTypesDTO.PUBLIC;
-      case 'protected':
-        return channelTypesDTO.PROTECTED;
-      case 'private':
-        return channelTypesDTO.PRIVATE;
-      default:
-        return channelTypesDTO.DIRECT;
-      }
-    };
     const __newChannel: ChannelDTO = {
       id: undefined,
       owner: __owner,
@@ -121,7 +122,7 @@ export class MainGateway implements NestGateway
       id: channel.id,
       owner: await this.userService.getOne(channel.creator),
       name: channel.name,
-      type: undefined,
+      type: getType(channel.type),
       password: channel.password,
       creationDate: undefined,
       messages: null,

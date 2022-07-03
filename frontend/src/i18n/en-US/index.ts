@@ -19,7 +19,8 @@ export default {
 							error: {
 								name: 'The channel must have a name',
 								pass: 'The old password does not match',
-								passNew: 'The new password must not be empty'
+								passNew: 'The new password must not be empty',
+								toProtected: 'A protected channel requires a password'
 							}
 						},
 						user: {

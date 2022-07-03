@@ -321,14 +321,27 @@
 									<q-icon name="info" size="2em"></q-icon>
 									<span class="text-h6">{{ $t('chat.channel.menu.edit.tabs.general.type') }}</span>
 								</div>
-								<div style="min-width: min-content">
-									<span>{{ $t(`chat.channel.modal.${contextMenuSelectType}`) }}</span>
-									<q-tooltip
-										anchor="center right"
-										self="center left"
-										:offset="[10, 10]"
-									>{{ $t('chat.channel.menu.edit.tabs.general.typeInfo') }}</q-tooltip>
-								</div>
+								<q-option-group
+									v-model="dialogEditGeneralType"
+									inline
+									:options="[
+										{
+											label: $t('chat.channel.modal.public'),
+											value: 'public'
+										},
+										{
+											label: $t('chat.channel.modal.protected'),
+											value: 'protected'
+										},
+										{
+											label: $t('chat.channel.modal.private'),
+											value: 'private'
+										}
+									]"
+									:rules="[
+										(val: string) => val && val.length > 0 || $t('chat.channel.modal.error')
+									]"
+								/>
 							</div>
 							<div class="row no-wrap items-center tab-row">
 								<div class="row no-wrap items-center is-input">
@@ -345,7 +358,7 @@
 								></q-input>
 							</div>
 							<div
-								v-if="contextMenuSelectType === 'protected'"
+								v-if="dialogEditGeneralType === 'protected'"
 								class="row no-wrap items-center tab-row"
 							>
 								<div class="row no-wrap items-center is-input">
@@ -353,44 +366,42 @@
 									<span class="text-h6">{{ $t('chat.channel.menu.edit.tabs.general.password') }}</span>
 								</div>
 								<div class="fill-input">
-									<q-toggle v-model="dialogEditGeneralChangeType" :label="$t('chat.channel.menu.edit.tabs.general.protected')" />
-									<template v-if="dialogEditGeneralChangeType">
+									<q-input
+										v-if="contextMenuSelectType === 'protected'"
+										filled
+										style="margin-bottom: 2em"
+										class="fill-input"
+										:type="dialogEditGeneralOldPasswordVisible ? 'password' : 'text'"
+										v-model="dialogEditGeneralOldPassword"
+										ref="dialogEditGeneralOldPasswordRef"
+										:label="$t('chat.channel.menu.edit.tabs.general.oldPassword')"
+									>
+										<template v-slot:append>
+											<q-icon
+												:name="dialogEditGeneralOldPasswordVisible ? 'visibility_off' : 'visibility'"
+												class="cursor-pointer"
+												@click="dialogEditGeneralOldPasswordVisible = !dialogEditGeneralOldPasswordVisible"
+											/>
+										</template>
+									</q-input>
+									<div style="margin-bottom: 1em">
 										<q-input
 											filled
-											style="margin-bottom: 2em"
 											class="fill-input"
-											:type="dialogEditGeneralOldPasswordVisible ? 'password' : 'text'"
-											v-model="dialogEditGeneralOldPassword"
-											ref="dialogEditGeneralOldPasswordRef"
-											:label="$t('chat.channel.menu.edit.tabs.general.oldPassword')"
+											:type="dialogEditGeneralNewPasswordVisible ? 'password' : 'text'"
+											v-model="dialogEditGeneralNewPassword"
+											ref="dialogEditGeneralNewPasswordRef"
+											:label="$t('chat.channel.menu.edit.tabs.general.newPassword')"
 										>
 											<template v-slot:append>
 												<q-icon
-													:name="dialogEditGeneralOldPasswordVisible ? 'visibility_off' : 'visibility'"
+													:name="dialogEditGeneralNewPasswordVisible ? 'visibility_off' : 'visibility'"
 													class="cursor-pointer"
-													@click="dialogEditGeneralOldPasswordVisible = !dialogEditGeneralOldPasswordVisible"
+													@click="dialogEditGeneralNewPasswordVisible = !dialogEditGeneralNewPasswordVisible"
 												/>
 											</template>
 										</q-input>
-										<div style="margin-bottom: 1em">
-											<q-input
-												filled
-												class="fill-input"
-												:type="dialogEditGeneralNewPasswordVisible ? 'password' : 'text'"
-												v-model="dialogEditGeneralNewPassword"
-												ref="dialogEditGeneralNewPasswordRef"
-												:label="$t('chat.channel.menu.edit.tabs.general.newPassword')"
-											>
-												<template v-slot:append>
-													<q-icon
-														:name="dialogEditGeneralNewPasswordVisible ? 'visibility_off' : 'visibility'"
-														class="cursor-pointer"
-														@click="dialogEditGeneralNewPasswordVisible = !dialogEditGeneralNewPasswordVisible"
-													/>
-												</template>
-											</q-input>
-										</div>
-									</template>
+									</div>
 								</div>
 							</div>
 							<div class="row justify-end content-between">
@@ -606,6 +617,7 @@ export default defineComponent({
 						{
 							dialogEditGeneralName.value = channel.name;
 							contextMenuSelectType.value = channel.type;
+							dialogEditGeneralType.value = contextMenuSelectType.value;
 							contextMenuSelectPassword.value = channel.password;
 							contextMenuSelectName.value = channel.name;
 							return;
@@ -638,7 +650,7 @@ export default defineComponent({
 
 		// #region Edit Dialog
 		const dialogEditGeneralName = ref();
-		const dialogEditGeneralChangeType = ref(true);
+		const dialogEditGeneralType = ref();
 		const dialogEditGeneralOldPassword = ref();
 		const dialogEditGeneralOldPasswordRef = ref<QInput | null>(null);
 		const dialogEditGeneralOldPasswordVisible = ref(true);
@@ -654,7 +666,6 @@ export default defineComponent({
 			dialogEditGeneralOldPassword.value = null;
 			dialogEditGeneralNewPassword.value = null;
 			dialogEditGeneralNameError.value = null;
-
 			dialogEditGeneralOldPasswordRef.value?.resetValidation();
 			dialogEditGeneralNewPasswordRef.value?.resetValidation();
 		};
@@ -667,7 +678,15 @@ export default defineComponent({
 				return;
 			}
 
-			if (dialogEditGeneralChangeType.value)
+			if (dialogEditGeneralType.value === 'protected' &&
+				contextMenuSelectType.value !== 'protected' &&
+				!dialogEditGeneralNewPassword.value)
+			{
+				dialogEditGeneralNameError.value = 'toProtected';
+				return;
+			}
+
+			if (dialogEditGeneralType.value === 'protected')
 			{
 				if ((dialogEditGeneralOldPassword.value &&
 					dialogEditGeneralOldPassword.value !== contextMenuSelectPassword.value))
@@ -681,14 +700,17 @@ export default defineComponent({
 					return;
 				}
 			}
+
 			socket.emit('channel::update', {
 				id: contextMenuSelectId.value,
 				creator: userId.value,
+				type: dialogEditGeneralType.value,
 				name: dialogEditGeneralName.value,
-				password: (dialogEditGeneralNewPassword.value && dialogEditGeneralChangeType.value)
+				password: (dialogEditGeneralNewPassword.value && dialogEditGeneralType.value === 'protected')
 					? dialogEditGeneralNewPassword.value
 					: null
 			});
+
 			dialogEditGeneralNameError.value = null;
 			dialogEditGeneralSuccess.value = true;
 		};
@@ -809,7 +831,7 @@ export default defineComponent({
 			dialogEditTab,
 
 			dialogEditGeneralName,
-			dialogEditGeneralChangeType,
+			dialogEditGeneralType,
 			dialogEditGeneralOldPassword,
 			dialogEditGeneralOldPasswordRef,
 			dialogEditGeneralOldPasswordVisible,

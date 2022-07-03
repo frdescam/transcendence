@@ -80,7 +80,6 @@ export class ChannelService {
         created: true,
       };
     } catch (err) {
-      console.log(err);
       return {
         message: 'Channel don\'t created',
         data: undefined,
@@ -93,15 +92,16 @@ export class ChannelService {
     try {
       const __ret = {
         owner: data.owner,
-        name: data.name
+        name: data.name,
+        type: data.type,
       };
-      if (data.password)
+      if (data.type === 'protected' && data.password)
         __ret['password'] = data.password;
-      console.log(await this.channelRepository.createQueryBuilder()
+      await this.channelRepository.createQueryBuilder()
         .update(Channel)
         .set(__ret)
         .where('id = :id', { id: data.id })
-        .execute());
+        .execute();
       return {
         message: 'Channel updated',
         data: await this.getOne(data.id),

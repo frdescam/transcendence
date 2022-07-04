@@ -73,13 +73,10 @@ export class PartyController
 
     @Post()
     @UsePipes(new ValidationPipe({ transform: true, transformOptions: {enableImplicitConversion: true} }))
-    create(@Body() {room, map = "classic", adversary = null}: CreatePartyDto): string
+    create(@Body() {room = null, map = "classic", adversary = null}: CreatePartyDto): string
     {
         const himself: userId = 1;
 
-        if (typeof room == "undefined")
-            room = nanoid();
-        
         // @TODO: check adversary ID existence
         const party = this.partyService.createParty(
             room,
@@ -87,7 +84,6 @@ export class PartyController
             [himself, adversary]
         );
         return (party.room);
-
     }
 
     // @TODO: Allow to give up / leave party from REST

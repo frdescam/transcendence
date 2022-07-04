@@ -32,6 +32,7 @@ interface state extends serverState {
 	can_join: boolean
 }
 
+// @TODO: also save adversary criteria
 interface partyQuery {
 	map?: string
 }

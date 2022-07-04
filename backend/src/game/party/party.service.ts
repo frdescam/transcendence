@@ -9,6 +9,7 @@ import maps from 'src/common/game/maps/headless';
 import type { Socket } from 'socket.io';
 import { Match } from 'src/match.entity';
 import { User } from 'src/user.entity';
+import { nanoid } from 'nanoid';
 
 @Injectable()
 export class PartyService
@@ -695,11 +696,13 @@ export class PartyService
         return (party);
     }
     
-    public createParty (room: string, map: map, userIds: [userId, userId | null], client?: Socket): Party
+    public createParty (room: string | null, map: map | null = "classic", userIds: [userId, userId | null], client?: Socket): Party
     {
-        let party = this.findParty(room);
+        let party = room && this.findParty(room);
         let involvedParty = this.findPartyWithUser(userIds[0])
 
+        if (!room)
+            room = nanoid();
         // @TODO: Validate the map existence
         
         if (room == "mine")
@@ -816,12 +819,54 @@ export class PartyService
             return (null);
     }
 
+    private isQueryCompatible (query1: partyQuery, query2: partyQuery): boolean
+    {
+        // @TODO also use socket to test "player=" criteria
+
+        if (query1.map && query2.map)
+            if (query1.map != query2.map)
+                return (false);
+        
+        return (true);
+    }
+
+    private createPartyForQuery (query1: partyQuery, query2: partyQuery): Party
+    {
+        const map = query1.map || query2.map || null;
+
+        // @TODO: Get userId from sockets
+        const party = this.createParty(null, map, [1, 2]);
+
+        return (party);
+    }
+
     public queryParty (client: Socket, query: partyQuery)
     {
-        this.queries.push({
-            client,
-            query
-        });
+        // @TODO: manage error: eg: disallow if involved in other party (or auto give-up)
+
+        const hasToCreateQuery = this.queries.every(
+            ({client: testedClient, query: testedQuery}) =>
+            {
+                if (this.isQueryCompatible(query, testedQuery))
+                {
+                    const party = this.createPartyForQuery(query, testedQuery);
+
+                    client.emit('game::query::found', party.room);
+                    testedClient.emit('game::query::found', party.room);
+                    this.leaveAll(testedClient);
+                    return (false);
+                }
+                return (true);
+            }
+        );
+
+        if (hasToCreateQuery)
+        {
+            this.queries.push({
+                client,
+                query
+            });
+        }
     }
 
     public leaveAllQuery (client: Socket)

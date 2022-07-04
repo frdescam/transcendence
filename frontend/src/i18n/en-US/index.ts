@@ -20,7 +20,8 @@ export default {
 								name: 'The channel must have a name',
 								pass: 'The old password does not match',
 								passNew: 'The new password must not be empty',
-								toProtected: 'A protected channel requires a password'
+								toProtected: 'A protected channel requires a password',
+								same: 'The new password is the same as the old one'
 							}
 						},
 						user: {

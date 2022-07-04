@@ -49,7 +49,7 @@
 						<q-list bordered padding>
 							<q-item
 								clickable
-								@click="dialogEdit?.show(); contextmenu?.hide()"
+								@click="openDialogEdition(); contextmenu?.hide()"
 							>
 								<q-item-section avatar>
 									<q-icon name="edit"></q-icon>
@@ -91,211 +91,41 @@
 			</template>
 		</q-list>
 	</div>
-
 	<dialog-creation
 		:dialogCreationShow="dialogCreationShow"
 		@dialog-creation-hide="dialogCreationShow = false"
 	/>
-
-	<q-dialog
-		ref="dialogpassword"
-		model="fixed"
-		square
-		@hide="resetDialogPassword"
-	>
-		<q-card>
-			<q-card-section class="row items-center bg-primary text-white">
-				<div class="text-h6" >{{ selectedChannelName }}</div>
-				<q-space />
-				<q-btn icon="close" flat round dense v-close-popup />
-			</q-card-section>
-			<q-separator />
-			<q-card-section class="dialog">
-				<template v-if="selectedChannelError">
-					<q-banner
-						inline-actions
-						class="text-white bg-red"
-					>
-						{{ $t('chat.channel.password.incorrect') }}
-					</q-banner>
-					<span style="display: block; height:1em"></span>
-				</template>
-				<q-form
-					class="column justify-around"
-					@submit="verifyPassword"
-				>
-					<q-input
-						type="text"
-						filled
-						v-model="selectedChannelPassword"
-						:label="$t('chat.channel.password.password')"
-						:rules="[(val: string) => val && val.length > 0 || $t('chat.channel.password.error')]"
-					/>
-					<q-space />
-					<q-btn :label="$t('chat.channel.password.valid')" type="submit" color="primary"/>
-				</q-form>
-			</q-card-section>
-		</q-card>
-	</q-dialog>
-
-	<q-dialog
-		ref="dialogEdit"
-		model="medium"
-		@before-hide="editChannelReset"
-		square
-	>
-		<q-card style="width: 700px; max-width: 80vw">
-			<q-tabs
-				dense
-				align="justify"
-				class="bg-primary text-white shadow-2"
-				:breakpoint="0"
-				v-model="dialogEditTab"
-			>
-				<q-tab name="general" icon="settings" :label="$t('chat.channel.menu.edit.tabs.general.title')" />
-				<q-tab name="users" icon="groups" :label="$t('chat.channel.menu.edit.tabs.user.title')" />
-				<q-tab name="mutedUsers" icon="voice_over_off" :label="$t('chat.channel.menu.edit.tabs.muted.title')" />
-				<q-tab name="bannedUsers" icon="person_off" :label="$t('chat.channel.menu.edit.tabs.banned.title')" />
-			</q-tabs>
-			<q-card-section>
-				<q-tab-panels
-					v-model="dialogEditTab"
-					animated
-					swipeable
-					transition-prev="jump-left"
-					transition-next="jump-right"
-				>
-					<q-tab-panel name="general">
-						<q-banner v-if="dialogEditGeneralNameError" class="bg-red text-white">
-							{{ $t(`chat.channel.menu.edit.tabs.general.error.${dialogEditGeneralNameError}`) }}
-						</q-banner>
-						<q-banner v-if="dialogEditGeneralSuccess" class="bg-green text-white">
-							{{ $t('chat.channel.menu.edit.tabs.general.success') }}
-						</q-banner>
-						<q-form
-							@submit="editChannelGeneral"
-						>
-							<div class="row no-wrap items-center tab-row">
-								<div class="row no-wrap items-center is-general">
-									<q-icon name="info" size="2em"></q-icon>
-									<span class="text-h6">{{ $t('chat.channel.menu.edit.tabs.general.type') }}</span>
-								</div>
-								<q-option-group
-									v-model="dialogEditGeneralType"
-									inline
-									:options="[
-										{
-											label: $t('chat.channel.modal.public'),
-											value: 'public'
-										},
-										{
-											label: $t('chat.channel.modal.protected'),
-											value: 'protected'
-										},
-										{
-											label: $t('chat.channel.modal.private'),
-											value: 'private'
-										}
-									]"
-									:rules="[
-										(val: string) => val && val.length > 0 || $t('chat.channel.modal.error')
-									]"
-								/>
-							</div>
-							<div class="row no-wrap items-center tab-row">
-								<div class="row no-wrap items-center is-input">
-									<q-icon name="drive_file_rename_outline" size="2em"></q-icon>
-									<span class="text-h6">{{ $t('chat.channel.menu.edit.tabs.general.name') }}</span>
-								</div>
-								<q-input
-									filled
-									class="fill-input"
-									type="text"
-									v-model="dialogEditGeneralName"
-									:label="$t('chat.channel.menu.edit.tabs.general.name')"
-									:rules="[(val: string) => val && val.length > 0 || `${$t('chat.channel.menu.edit.tabs.general.name')} ${$t('chat.channel.menu.edit.tabs.need')}`]"
-								></q-input>
-							</div>
-							<div
-								v-if="dialogEditGeneralType === 'protected'"
-								class="row no-wrap items-center tab-row"
-							>
-								<div class="row no-wrap items-center is-input">
-									<q-icon name="key" size="2em"></q-icon>
-									<span class="text-h6">{{ $t('chat.channel.menu.edit.tabs.general.password') }}</span>
-								</div>
-								<div class="fill-input">
-									<q-input
-										v-if="contextMenuSelectType === 'protected'"
-										filled
-										style="margin-bottom: 2em"
-										class="fill-input"
-										:type="dialogEditGeneralOldPasswordVisible ? 'password' : 'text'"
-										v-model="dialogEditGeneralOldPassword"
-										ref="dialogEditGeneralOldPasswordRef"
-										:label="$t('chat.channel.menu.edit.tabs.general.oldPassword')"
-									>
-										<template v-slot:append>
-											<q-icon
-												:name="dialogEditGeneralOldPasswordVisible ? 'visibility_off' : 'visibility'"
-												class="cursor-pointer"
-												@click="dialogEditGeneralOldPasswordVisible = !dialogEditGeneralOldPasswordVisible"
-											/>
-										</template>
-									</q-input>
-									<div style="margin-bottom: 1em">
-										<q-input
-											filled
-											class="fill-input"
-											:type="dialogEditGeneralNewPasswordVisible ? 'password' : 'text'"
-											v-model="dialogEditGeneralNewPassword"
-											ref="dialogEditGeneralNewPasswordRef"
-											:label="$t('chat.channel.menu.edit.tabs.general.newPassword')"
-										>
-											<template v-slot:append>
-												<q-icon
-													:name="dialogEditGeneralNewPasswordVisible ? 'visibility_off' : 'visibility'"
-													class="cursor-pointer"
-													@click="dialogEditGeneralNewPasswordVisible = !dialogEditGeneralNewPasswordVisible"
-												/>
-											</template>
-										</q-input>
-									</div>
-								</div>
-							</div>
-							<div class="row justify-end content-between">
-								<q-btn :label="$t('chat.channel.menu.edit.tabs.reset')" color="secondary" @click="editChannelReset" style="margin-right: 2em"/>
-								<div style="width:2em"></div>
-								<q-btn :label="$t('chat.channel.menu.edit.tabs.apply')" type="submit" color="primary"/>
-							</div>
-						</q-form>
-					</q-tab-panel>
-					<q-tab-panel name="users">
-						<p>bannedUsers</p>
-					</q-tab-panel>
-					<q-tab-panel name="mutedUsers">
-						<p>muted user</p>
-					</q-tab-panel>
-					<q-tab-panel name="bannedUsers">
-						<p>banned user</p>
-					</q-tab-panel>
-				</q-tab-panels>
-			</q-card-section>
-		</q-card>
-	</q-dialog>
+	<dialog-password
+		:dialogPasswordShow="dialogPasswordShow"
+		:channelName="selectedChannelName"
+		:channelPassword="selectedChannelPasswordValue"
+		@dialog-password-hide="dialogPasswordShow = false"
+		@dialog-password-ok="openDialogPasswordOk"
+	/>
+	<dialog-edition
+		:dialogEditionShow="dialogEditionShow"
+		:channelId="contextMenuSelectId"
+		:channelName="contextMenuSelectName"
+		:channelType="contextMenuSelectType"
+		:channelPassword="contextMenuSelectPassword"
+		:channelOwner="contextMenuSelectOwner"
+		:userId="userId"
+		@dialog-edition-hide="dialogEditionShow = false"
+	/>
 </template>
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AxiosInstance } from 'axios';
-import { QDialog, QMenu, QInput } from 'quasar';
+import { QMenu } from 'quasar';
 import { Socket } from 'socket.io-client';
-// import sanitizeHtml from 'sanitize-html';
-import { TypeOfObject } from 'src/boot/typeofData';
+import { TypeOfObject } from 'src/boot/libs';
 import { defineComponent, onMounted, ref, inject } from 'vue';
 
 import dialogCreation from './chatComponents/DialogCreation.vue';
 import dialogDeletion from './chatComponents/DialogDeletion.vue';
+import dialogEdition from './chatComponents/DialogEdition.vue';
+import dialogPassword from './chatComponents/DialogPassword.vue';
 
 interface channelInterface {
 	id: number,
@@ -311,7 +141,9 @@ export default defineComponent({
 	name: 'chat_channel',
 	components: {
 		dialogCreation,
-		dialogDeletion
+		dialogDeletion,
+		dialogEdition,
+		dialogPassword
 	},
 	setup ()
 	{
@@ -321,30 +153,27 @@ export default defineComponent({
 
 		const loading = ref(true);
 		const noError = ref(true);
+
 		const channels = ref(new Array<channelInterface>()); // eslint-disable-line no-array-constructor
 
 		// A modifier plus tard
 		const userId = ref(Number(localStorage.getItem('chat::user::id')));
 
+		const contextmenu = ref<QMenu | null>(null);
+		const contextMenuSelectId = ref(0);
+		const contextMenuSelectName = ref();
+		const contextMenuSelectType = ref();
+		const contextMenuSelectOwner = ref(0);
+		const contextMenuSelectPassword = ref();
+
 		const selectedChannel = ref(0);
 		if (localStorage.getItem('chat::channel::id'))
 			selectedChannel.value = Number(localStorage.getItem('chat::channel::id'));
-
-		const contextmenu = ref<QMenu | null>(null);
-		const contextMenuSelectId = ref(0);
-		const contextMenuSelectType = ref();
-		const contextMenuSelectPassword = ref();
-		const contextMenuSelectName = ref();
-
-		const dialogpassword = ref<QDialog | null>(null);
 		const selectedChannelError = ref<boolean>(false);
-		const selectedChannelPassword = ref(null);
+		const selectedChannelPassword = ref();
 		const selectedChannelId = ref(0);
-		const selectedChannelPasswordValue = ref(null);
-		const selectedChannelName = ref(null);
-
-		const dialogEdit = ref<QDialog | null>(null);
-		const dialogEditTab = ref('general');
+		const selectedChannelPasswordValue = ref();
+		const selectedChannelName = ref();
 
 		const sendEvent = (channelId: number, isDeleted = false) =>
 		{
@@ -380,44 +209,12 @@ export default defineComponent({
 							selectedChannelPasswordValue.value = res.data.channel.password;
 							selectedChannelName.value = res.data.channel.name;
 							selectedChannelId.value = res.data.channel.id;
-							dialogpassword.value?.show();
+							openDialogPassword();
 						})
 						.catch((err) => console.log(err));
 				}
 			}
 			return channelId;
-		};
-
-		const dialogCreationShow = ref(false);
-		const openDialogCreation = () =>
-		{
-			dialogCreationShow.value = true;
-			console.log('creation modal open', dialogCreationShow.value);
-		};
-
-		const dialogDeletionShow = ref(false);
-		const openDialogDeletion = () =>
-		{
-			dialogDeletionShow.value = true;
-			console.log('deletion modal open', dialogDeletionShow.value);
-		};
-
-		const resetDialogPassword = () =>
-		{
-			selectedChannelPassword.value = null;
-			selectedChannelError.value = false;
-		};
-
-		const verifyPassword = () =>
-		{
-			if (selectedChannelPassword.value !== selectedChannelPasswordValue.value)
-				selectedChannelError.value = true;
-			else
-			{
-				sendEvent(selectedChannelId.value);
-				dialogpassword.value?.hide();
-				resetDialogPassword();
-			}
 		};
 
 		const openContextualMenu = (e: Event) =>
@@ -435,11 +232,11 @@ export default defineComponent({
 						if (channel.id === contextMenuSelectId.value &&
 							channel.owner === userId.value)
 						{
-							dialogEditGeneralName.value = channel.name;
-							contextMenuSelectType.value = channel.type;
-							dialogEditGeneralType.value = contextMenuSelectType.value;
-							contextMenuSelectPassword.value = channel.password;
+							contextMenuSelectId.value = channel.id;
 							contextMenuSelectName.value = channel.name;
+							contextMenuSelectType.value = channel.type;
+							contextMenuSelectPassword.value = channel.password;
+							contextMenuSelectOwner.value = channel.owner;
 							return;
 						}
 					}
@@ -448,73 +245,30 @@ export default defineComponent({
 			contextmenu.value?.hide();
 		};
 
-		// #region Edit Dialog
-		const dialogEditGeneralName = ref();
-		const dialogEditGeneralType = ref();
-		const dialogEditGeneralOldPassword = ref();
-		const dialogEditGeneralOldPasswordRef = ref<QInput | null>(null);
-		const dialogEditGeneralOldPasswordVisible = ref(true);
-		const dialogEditGeneralNewPassword = ref();
-		const dialogEditGeneralNewPasswordRef = ref<QInput | null>(null);
-		const dialogEditGeneralNewPasswordVisible = ref(true);
-		const dialogEditGeneralNameError = ref();
-		const dialogEditGeneralSuccess = ref(false);
-
-		const editChannelReset = () =>
+		const dialogCreationShow = ref(false);
+		const openDialogCreation = () =>
 		{
-			dialogEditGeneralName.value = contextMenuSelectName.value;
-			dialogEditGeneralOldPassword.value = null;
-			dialogEditGeneralNewPassword.value = null;
-			dialogEditGeneralNameError.value = null;
-			dialogEditGeneralOldPasswordRef.value?.resetValidation();
-			dialogEditGeneralNewPasswordRef.value?.resetValidation();
+			dialogCreationShow.value = true;
 		};
 
-		const editChannelGeneral = () =>
+		const dialogDeletionShow = ref(false);
+		const openDialogDeletion = () =>
 		{
-			if (!dialogEditGeneralName.value)
-			{
-				dialogEditGeneralNameError.value = 'name';
-				return;
-			}
-
-			if (dialogEditGeneralType.value === 'protected' &&
-				contextMenuSelectType.value !== 'protected' &&
-				!dialogEditGeneralNewPassword.value)
-			{
-				dialogEditGeneralNameError.value = 'toProtected';
-				return;
-			}
-
-			if (dialogEditGeneralType.value === 'protected')
-			{
-				if ((dialogEditGeneralOldPassword.value &&
-					dialogEditGeneralOldPassword.value !== contextMenuSelectPassword.value))
-				{
-					dialogEditGeneralNameError.value = 'pass';
-					return;
-				}
-				else if ((dialogEditGeneralOldPassword.value && !dialogEditGeneralNewPassword.value))
-				{
-					dialogEditGeneralNameError.value = 'passNew';
-					return;
-				}
-			}
-
-			socket.emit('channel::update', {
-				id: contextMenuSelectId.value,
-				creator: userId.value,
-				type: dialogEditGeneralType.value,
-				name: dialogEditGeneralName.value,
-				password: (dialogEditGeneralNewPassword.value && dialogEditGeneralType.value === 'protected')
-					? dialogEditGeneralNewPassword.value
-					: null
-			});
-
-			dialogEditGeneralNameError.value = null;
-			dialogEditGeneralSuccess.value = true;
+			dialogDeletionShow.value = true;
 		};
-		// #endregion
+
+		const dialogPasswordShow = ref(false);
+		const openDialogPassword = () =>
+		{
+			dialogPasswordShow.value = true;
+		};
+		const openDialogPasswordOk = () => sendEvent(selectedChannelId.value);
+
+		const dialogEditionShow = ref(false);
+		const openDialogEdition = () =>
+		{
+			dialogEditionShow.value = true;
+		};
 
 		onMounted(() =>
 		{
@@ -587,6 +341,21 @@ export default defineComponent({
 				}
 			});
 
+			socket.on('updateChannel', (ret) =>
+			{
+				for (const i in channels.value)
+				{
+					if (channels.value[i].id === ret.data.id)
+					{
+						channels.value[i].name = ret.data.name;
+						channels.value[i].type = ret.data.type;
+						channels.value[i].owner = ret.data.owner.id;
+						channels.value[i].password = ret.data.password;
+						return;
+					}
+				}
+			});
+
 			socket.on('deleteChannel', (ret) =>
 			{
 				for (const i in channels.value)
@@ -595,7 +364,7 @@ export default defineComponent({
 					{
 						channels.value.splice(Number(i), 1);
 						sendEvent(-1, true);
-						break;
+						return;
 					}
 				}
 			});
@@ -604,41 +373,29 @@ export default defineComponent({
 		return {
 			loading,
 			noError,
+
 			channels,
+
 			userId,
-			selectedChannel,
 
 			contextmenu,
 			contextMenuSelectId,
 			contextMenuSelectType,
 			contextMenuSelectName,
+			contextMenuSelectPassword,
+			contextMenuSelectOwner,
 
-			openContextualMenu,
-			editChannelGeneral,
-
-			dialogpassword,
+			selectedChannel,
 			selectedChannelId,
 			selectedChannelError,
 			selectedChannelPassword,
 			selectedChannelPasswordValue,
 			selectedChannelName,
 
-			dialogEdit,
-			dialogEditTab,
-
-			dialogEditGeneralName,
-			dialogEditGeneralType,
-			dialogEditGeneralOldPassword,
-			dialogEditGeneralOldPasswordRef,
-			dialogEditGeneralOldPasswordVisible,
-			dialogEditGeneralNewPassword,
-			dialogEditGeneralNewPasswordRef,
-			dialogEditGeneralNewPasswordVisible,
-			dialogEditGeneralNameError,
-			dialogEditGeneralSuccess,
-			editChannelReset,
-
+			// ====== Dialogs ====== //
+			sendEvent,
 			channelIsSelected,
+			openContextualMenu,
 
 			dialogCreationShow,
 			openDialogCreation,
@@ -646,8 +403,12 @@ export default defineComponent({
 			dialogDeletionShow,
 			openDialogDeletion,
 
-			resetDialogPassword,
-			verifyPassword
+			dialogPasswordShow,
+			openDialogPassword,
+			openDialogPasswordOk,
+
+			dialogEditionShow,
+			openDialogEdition
 		};
 	}
 });

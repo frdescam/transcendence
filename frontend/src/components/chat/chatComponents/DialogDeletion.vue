@@ -18,6 +18,7 @@
 						style="width: 100%;"
 						v-model="name"
 						filled
+						autofocus
 						type="text"
 						:label="$t('chat.channel.modal.name')"
 						:rules="[
@@ -95,7 +96,10 @@ export default defineComponent({
 		watch(() => props.dialogDeletionShow, (after, before) =>
 		{
 			if (before === false && after === true)
+			{
 				dialog.value?.show();
+				name.value?.focus();
+			}
 		});
 
 		return {

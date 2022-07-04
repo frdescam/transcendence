@@ -28,7 +28,7 @@ module.exports = configure(() =>
 			'axios',
 			'i18n',
 			'socket',
-			'typeofData'
+			'libs'
 		],
 
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css

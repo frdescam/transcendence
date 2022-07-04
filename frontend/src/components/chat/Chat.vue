@@ -113,7 +113,7 @@
 
 <script lang="ts">
 import { AxiosInstance } from 'axios';
-import { TypeOfObject } from 'src/boot/typeofData';
+import { TypeOfObject, Timestamp } from 'src/boot/libs';
 import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, nextTick } from 'vue';
 import { QMenu } from 'quasar';
@@ -141,6 +141,7 @@ export default defineComponent({
 		const socket: Socket = inject('socketChat') as Socket;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
+		const timestamp: Timestamp = inject('timestamp') as Timestamp;
 
 		const contextmenu = ref<QMenu | null>(null);
 		const chat = ref<HTMLDivElement | null>(null);
@@ -161,14 +162,6 @@ export default defineComponent({
 				if (chat.value)
 					chat.value.scrollTop = chat.value.scrollHeight;
 			});
-		};
-
-		const parseTime = (timestamp: string) =>
-		{
-			const ret = /^(?<year>\d{4})-(?<month>\d{1,2})-(?<day>\d{1,2})T(?<hour>\d{1,2}):(?<minute>\d{1,2}):(?<second>\d{1,2}).(?<milliseconds>\d+)Z$/.exec(timestamp);
-			if (ret)
-				return ret.groups;
-			return undefined;
 		};
 
 		const calcHash = async (str: string) =>
@@ -208,9 +201,9 @@ export default defineComponent({
 				target.src = 'imgs/chat/default.webp';
 		};
 
-		const generateTimestamp = (timestamp: string) =>
+		const generateTimestamp = (time: string) =>
 		{
-			const messageDate = parseTime(timestamp);
+			const messageDate = timestamp(time);
 			if (!messageDate)
 				return '';
 			return `${messageDate.day}/${messageDate.month}/${messageDate.year} - ${messageDate.hour}h${messageDate.minute}`;

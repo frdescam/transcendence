@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import { AxiosInstance } from 'axios';
-import { TypeOfObject } from 'src/boot/typeofData';
+import { TypeOfObject } from 'src/boot/libs';
 import { defineComponent, onMounted, ref, inject } from 'vue';
 
 export default defineComponent({
@@ -58,7 +58,7 @@ export default defineComponent({
 
 		const getData = (id: number) =>
 		{
-			api.get(`/chat/channel/get/${id}`)
+			api.get(`/chat/channel/get/no-messages/${id}`)
 				.then(async (res) =>
 				{
 					if (typeofObject(res.data) !== 'object')

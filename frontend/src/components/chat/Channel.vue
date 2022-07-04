@@ -13,6 +13,19 @@
 			</template>
 			<template v-else>
 				<template v-if="noError">
+					<q-item>
+						<q-item-section class="create-channel">
+							<q-btn
+								round
+								flat
+								icon="add_circle_outline"
+								size="1.3em"
+								@click="openModal"
+							>
+								<q-tooltip>{{ $t('chat.channel.createTooltip') }}</q-tooltip>
+							</q-btn>
+						</q-item-section>
+					</q-item>
 					<q-item clickable v-ripple
 						v-for="channel in channels"
 						v-bind:key="channel.id"
@@ -26,19 +39,6 @@
 							</div>
 						</q-item-section>
 						<q-item-section>{{ channel.name }}</q-item-section>
-					</q-item>
-					<q-item>
-						<q-item-section class="create-channel">
-							<q-btn
-								round
-								flat
-								icon="add_circle_outline"
-								size="1.3em"
-								@click="openModal"
-							>
-								<q-tooltip>{{ $t('chat.channel.createTooltip') }}</q-tooltip>
-							</q-btn>
-						</q-item-section>
 					</q-item>
 					<q-menu
 						ref="contextmenu"
@@ -135,108 +135,11 @@
 			</template>
 		</q-list>
 	</div>
-	<q-dialog
-		ref="dialogchannel"
-		model="fixed"
-		square
-		@hide="resetDialog"
-	>
-		<q-card>
-			<q-card-section class="row items-center bg-primary text-white">
-				<div class="text-h6">{{ $t('chat.channel.createTooltip') }}</div>
-				<q-space />
-				<q-btn icon="close" flat round dense v-close-popup />
-			</q-card-section>
-			<q-separator />
-			<q-card-section class="dialog">
-				<template v-if="newChannelError > 0">
-					<q-banner
-						inline-actions
-						class="text-white bg-red"
-					>
-						<div v-if="newChannelError === 1">{{ $t('chat.channel.modal.listErrors.name') }}</div>
-						<div v-if="newChannelError === 2">{{ $t('chat.channel.modal.listErrors.type') }}</div>
-						<div v-if="newChannelError === 3">{{ $t('chat.channel.modal.listErrors.password') }}</div>
-					</q-banner>
-					<span style="display: block; height:1em"></span>
-				</template>
-				<q-form
-					class="column justify-around"
-					@submit="createChannel"
-				>
-					<q-input
-						type="text"
-						filled
-						v-model="newChannelName"
-						:label="$t('chat.channel.modal.name')"
-						:rules="[(val: string) => val && val.length > 0 || $t('chat.channel.modal.error')]"
-					/>
-					<q-space />
-					<q-option-group
-						v-model="newChannelType"
-						:options="[
-							{
-								label: $t('chat.channel.modal.public'),
-								value: 'public'
-							},
-							{
-								label: $t('chat.channel.modal.protected'),
-								value: 'protected'
-							},
-							{
-								label: $t('chat.channel.modal.private'),
-								value: 'private'
-							}
-						]"
-						:label="$t('chat.channel.modal.type')"
-						:rules="[
-							(val: string) => val && val.length > 0 || $t('chat.channel.modal.error')
-						]"
-					/>
-					<div v-if="newChannelType === 'protected'">
-						<q-separator inset style="margin-bottom: 1em;"/>
-						<q-input
-							v-model="newChannelPasswordOne"
-							filled
-							:type="isPwdOne ? 'password' : 'text'"
-							:label="$t('chat.channel.modal.password')"
-							:rules="[
-								(val: string) => val && val.length > 0 || $t('chat.channel.modal.error')
-							]"
-						>
-							<template v-slot:append>
-								<q-icon
-									:name="isPwdOne ? 'visibility_off' : 'visibility'"
-									class="cursor-pointer"
-									@click="isPwdOne = !isPwdOne"
-								/>
-							</template>
-						</q-input>
-						<span style="display: block; height:1em"></span>
-						<q-input
-							v-model="newChannelPasswordTwo"
-							filled
-							:type="isPwdTwo ? 'password' : 'text'"
-							:label="$t('chat.channel.modal.repeat')"
-							:rules="[
-								(val: string) => val && val.length > 0 || $t('chat.channel.modal.error')
-							]"
-						>
-							<template v-slot:append>
-								<q-icon
-									:name="isPwdTwo ? 'visibility_off' : 'visibility'"
-									class="cursor-pointer"
-									@click="isPwdTwo = !isPwdTwo"
-								/>
-							</template>
-						</q-input>
-						<q-separator inset style="margin-top: 1em;"/>
-					</div>
-					<q-btn :label="$t('chat.channel.modal.submit')" type="submit" color="primary"/>
-				</q-form>
-			</q-card-section>
-		</q-card>
-	</q-dialog>
+
+	<dialog-creation
+		:dialogCreationShow="dialogCreationShow"
+		@dialog-creation-hide="dialogCreationShow = false"
+	/>
 
 	<q-dialog
 		ref="dialogpassword"
@@ -431,9 +334,11 @@
 import { AxiosInstance } from 'axios';
 import { QDialog, QMenu, QInput } from 'quasar';
 import { io } from 'socket.io-client';
-import sanitizeHtml from 'sanitize-html';
+// import sanitizeHtml from 'sanitize-html';
 import { TypeOfObject } from 'src/boot/typeofData';
 import { defineComponent, onMounted, ref, inject } from 'vue';
+
+import dialogCreation from './chatComponents/DialogCreation.vue';
 
 interface channelInterface {
 	id: number,
@@ -447,6 +352,9 @@ interface channelInterface {
 
 export default defineComponent({
 	name: 'chat_channel',
+	components: {
+		dialogCreation
+	},
 	setup ()
 	{
 		const socket = io('http://localhost:8080/chat::');
@@ -480,13 +388,6 @@ export default defineComponent({
 		const selectedChannelId = ref(0);
 		const selectedChannelPasswordValue = ref(null);
 		const selectedChannelName = ref(null);
-
-		const dialogchannel = ref<QDialog | null>(null);
-		const newChannelName = ref(null);
-		const newChannelType = ref(null);
-		const newChannelPasswordOne = ref(null);
-		const newChannelPasswordTwo = ref(null);
-		const newChannelError = ref(0);
 
 		const dialogEdit = ref<QDialog | null>(null);
 		const dialogEditTab = ref('general');
@@ -533,53 +434,11 @@ export default defineComponent({
 			return channelId;
 		};
 
+		const dialogCreationShow = ref(false);
 		const openModal = () =>
 		{
-			if (!dialogchannel.value)
-				return;
-			dialogchannel.value.show();
-		};
-
-		const resetDialog = () =>
-		{
-			newChannelName.value = null;
-			newChannelType.value = null;
-			newChannelPasswordOne.value = null;
-			newChannelPasswordTwo.value = null;
-			newChannelError.value = 0;
-		};
-
-		const createChannel = () =>
-		{
-			if (!newChannelName.value)
-			{
-				newChannelError.value = 1;
-				return;
-			}
-			if (!newChannelType.value)
-			{
-				newChannelError.value = 2;
-				return;
-			}
-			if (newChannelType.value === 'protected')
-			{
-				if (!newChannelPasswordOne.value || !newChannelPasswordTwo.value ||
-					newChannelPasswordOne.value !== newChannelPasswordTwo.value
-				)
-				{
-					newChannelError.value = 3;
-					return;
-				}
-			}
-			socket.emit('channel::add', {
-				id: null,
-				creator: Number(localStorage.getItem('chat::user::id')),
-				name: sanitizeHtml(newChannelName.value),
-				type: sanitizeHtml(newChannelType.value),
-				password: newChannelPasswordOne.value
-			});
-			dialogchannel.value?.hide();
-			resetDialog();
+			dialogCreationShow.value = true;
+			console.log('modal open', dialogCreationShow.value);
 		};
 
 		const resetDialogPassword = () =>
@@ -843,19 +702,11 @@ export default defineComponent({
 			editChannelReset,
 			deleteChannel,
 
-			dialogchannel,
-			newChannelName,
-			newChannelType,
-			newChannelPasswordOne,
-			newChannelPasswordTwo,
-			newChannelError,
-			isPwdOne: ref(true),
-			isPwdTwo: ref(true),
 			channelIsSelected,
+
+			dialogCreationShow,
 			openModal,
-			resetDialog,
 			resetDialogPassword,
-			createChannel,
 			verifyPassword
 		};
 	}

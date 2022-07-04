@@ -27,6 +27,7 @@ module.exports = configure(() =>
 		boot: [
 			'axios',
 			'i18n',
+			'socket',
 			'typeofData'
 		],
 

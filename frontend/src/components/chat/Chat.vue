@@ -114,7 +114,7 @@
 <script lang="ts">
 import { AxiosInstance } from 'axios';
 import { TypeOfObject } from 'src/boot/typeofData';
-import { io } from 'socket.io-client';
+import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, nextTick } from 'vue';
 import { QMenu } from 'quasar';
 
@@ -138,7 +138,7 @@ export default defineComponent({
 	name: 'chat_channel',
 	setup ()
 	{
-		const socket = io('http://localhost:8080/chat::');
+		const socket: Socket = inject('socketChat') as Socket;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
 

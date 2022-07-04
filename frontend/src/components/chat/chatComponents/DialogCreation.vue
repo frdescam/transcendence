@@ -117,7 +117,7 @@ export default defineComponent({
 	emits: ['dialog-creation-hide'],
 	setup (props, { emit })
 	{
-		const socket: Socket = inject('socket') as Socket;
+		const socket: Socket = inject('socketChat') as Socket;
 
 		const dialog = ref<QDialog | null>(null);
 		const error = ref(0);
@@ -161,7 +161,7 @@ export default defineComponent({
 					return;
 				}
 			}
-			socket.emit('chat::channel::add', {
+			socket.emit('channel::add', {
 				id: null,
 				creator: Number(localStorage.getItem('chat::user::id')),
 				name: sanitizeHtml(name.value),

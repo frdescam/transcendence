@@ -20,7 +20,7 @@
 								flat
 								icon="add_circle_outline"
 								size="1.3em"
-								@click="openModal"
+								@click="openDialogCreation"
 							>
 								<q-tooltip>{{ $t('chat.channel.createTooltip') }}</q-tooltip>
 							</q-btn>
@@ -58,7 +58,7 @@
 							</q-item>
 							<q-item
 								clickable
-								@click="deleteDialog?.show(); contextmenu?.hide()"
+								@click="openDialogDeletion(); contextmenu?.hide()"
 							>
 								<q-item-section avatar>
 									<q-icon name="delete"></q-icon>
@@ -75,57 +75,13 @@
 							</q-item>
 						</q-list>
 					</q-menu>
-
-					<q-dialog
-						ref="deleteDialog"
-						persistent
-						@before-hide="deleteDialogHide"
-					>
-					<q-card>
-						<q-form
-							@submit="deleteChannel"
-						>
-							<q-card-section class="row items-center">
-								<q-avatar icon="delete_forever" />
-								<span class="q-ml-sm">{{ $t('chat.channel.menu.delete.info') }}</span>
-							</q-card-section>
-							<q-card-section class="row items-center">
-								<div class="text-h6">
-									{{ $t('chat.channel.menu.delete.explanation') }} (<span style="text-decoration: underline">{{ contextMenuSelectName }}</span>)
-								</div>
-								<q-input
-									style="width: 100%;"
-									v-model="deleteDialogName"
-									filled
-									type="text"
-									:label="$t('chat.channel.modal.name')"
-									:rules="[
-										(val: string) => val && val.length > 0 && val === contextMenuSelectName || $t('chat.channel.menu.delete.error')
-									]"
-								></q-input>
-							</q-card-section>
-							<q-card-actions align="right">
-								<q-btn
-									flat
-									icon="close"
-									color="red"
-									:label="$t('chat.channel.menu.delete.cancel')"
-									v-close-popup
-									@click="deleteDialogConfirm = false"
-								/>
-								<q-btn
-									flat
-									icon="done"
-									color="secondary"
-									type="submit"
-									:label="$t('chat.channel.menu.delete.delete')"
-									@click="deleteDialogConfirm = true"
-								/>
-							</q-card-actions>
-						</q-form>
-					</q-card>
-					</q-dialog>
-
+					<dialog-deletion
+						:dialogDeletionShow="dialogDeletionShow"
+						:contextMenuSelectId="contextMenuSelectId"
+						:contextMenuSelectName="contextMenuSelectName"
+						:userId="userId"
+						@dialog-deletion-hide="dialogDeletionShow = false"
+					/>
 				</template>
 				<template v-else>
 					<q-item v-ripple class="full-width row no-wrap justify-center">
@@ -333,12 +289,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AxiosInstance } from 'axios';
 import { QDialog, QMenu, QInput } from 'quasar';
-import { io } from 'socket.io-client';
+import { Socket } from 'socket.io-client';
 // import sanitizeHtml from 'sanitize-html';
 import { TypeOfObject } from 'src/boot/typeofData';
 import { defineComponent, onMounted, ref, inject } from 'vue';
 
 import dialogCreation from './chatComponents/DialogCreation.vue';
+import dialogDeletion from './chatComponents/DialogDeletion.vue';
 
 interface channelInterface {
 	id: number,
@@ -353,11 +310,12 @@ interface channelInterface {
 export default defineComponent({
 	name: 'chat_channel',
 	components: {
-		dialogCreation
+		dialogCreation,
+		dialogDeletion
 	},
 	setup ()
 	{
-		const socket = io('http://localhost:8080/chat::');
+		const socket: Socket = inject('socketChat') as Socket;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
 
@@ -377,10 +335,6 @@ export default defineComponent({
 		const contextMenuSelectType = ref();
 		const contextMenuSelectPassword = ref();
 		const contextMenuSelectName = ref();
-
-		const deleteDialog = ref<QDialog | null>(null);
-		const deleteDialogName = ref();
-		const deleteDialogConfirm = ref(false);
 
 		const dialogpassword = ref<QDialog | null>(null);
 		const selectedChannelError = ref<boolean>(false);
@@ -435,10 +389,17 @@ export default defineComponent({
 		};
 
 		const dialogCreationShow = ref(false);
-		const openModal = () =>
+		const openDialogCreation = () =>
 		{
 			dialogCreationShow.value = true;
-			console.log('modal open', dialogCreationShow.value);
+			console.log('creation modal open', dialogCreationShow.value);
+		};
+
+		const dialogDeletionShow = ref(false);
+		const openDialogDeletion = () =>
+		{
+			dialogDeletionShow.value = true;
+			console.log('deletion modal open', dialogDeletionShow.value);
 		};
 
 		const resetDialogPassword = () =>
@@ -485,26 +446,6 @@ export default defineComponent({
 				}
 			}
 			contextmenu.value?.hide();
-		};
-
-		const deleteChannel = () =>
-		{
-			if (deleteDialogConfirm.value === false || deleteDialogName.value !== contextMenuSelectName.value)
-				return;
-			deleteDialog.value?.hide();
-			socket.emit('channel::delete', {
-				id: contextMenuSelectId.value,
-				creator: userId.value,
-				name: null,
-				type: null,
-				password: null
-			});
-		};
-
-		const deleteDialogHide = () =>
-		{
-			deleteDialogConfirm.value = false;
-			deleteDialogName.value = '';
 		};
 
 		// #region Edit Dialog
@@ -664,17 +605,13 @@ export default defineComponent({
 			loading,
 			noError,
 			channels,
+			userId,
 			selectedChannel,
 
 			contextmenu,
 			contextMenuSelectId,
 			contextMenuSelectType,
 			contextMenuSelectName,
-			deleteDialog,
-			deleteDialogName,
-			deleteDialogConfirm,
-
-			deleteDialogHide,
 
 			openContextualMenu,
 			editChannelGeneral,
@@ -700,12 +637,15 @@ export default defineComponent({
 			dialogEditGeneralNameError,
 			dialogEditGeneralSuccess,
 			editChannelReset,
-			deleteChannel,
 
 			channelIsSelected,
 
 			dialogCreationShow,
-			openModal,
+			openDialogCreation,
+
+			dialogDeletionShow,
+			openDialogDeletion,
+
 			resetDialogPassword,
 			verifyPassword
 		};

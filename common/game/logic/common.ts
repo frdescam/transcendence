@@ -94,57 +94,62 @@ function bounceBall (state: serverState, config: mapConfig, delta: number, playe
 	{
 		forward(state, delta);
 
-		if (state.ballY < 0)
+		while (state.ballY < 0 || state.ballY > 1 || state.ballX < 0 || state.ballX > 1)
 		{
-			state.ballSpeedY *= -1;
-			state.ballY *= -1;
-		}
-		else if (state.ballY > 1)
-		{
-			state.ballSpeedY *= -1;
-			state.ballY = state.ballY - (state.ballY - 1) * 2;
-		}
-
-		if (state.ballX < 0)
-		{
-			const remainingDelta = wayBackToLimit(state);
-			const missed = didPlayerMissBall(state, config, 0);
-
-			if (missed)
+			if (state.ballY < 0)
 			{
-				state.offside = true;
-				player1Miss(state, remainingDelta);
+				state.ballSpeedY *= -1;
+				state.ballY *= -1;
 			}
-			else
+			else if (state.ballY > 1)
 			{
-				const bounceAngle = getBounceAngle(state, config, 0);
-				const speed = getSpeed(state);
-				state.ballSpeedY = -Math.sin(bounceAngle * Math.PI / 2) * speed;
-				state.ballSpeedX = Math.cos(bounceAngle * Math.PI / 2) * speed;
-				state.ballX += (remainingDelta * state.ballSpeedX);
-				state.ballY += (remainingDelta * state.ballSpeedY);
-				if (playerBounced)
-					playerBounced(state);
+				state.ballSpeedY *= -1;
+				state.ballY = state.ballY - (state.ballY - 1) * 2;
 			}
-		}
-		else if (state.ballX > 1)
-		{
-			const remainingDelta = wayBackToLimit(state);
-			const missed = didPlayerMissBall(state, config, 1);
 
-			if (missed)
+			if (state.ballX < 0)
 			{
-				state.offside = true;
-				player2Miss(state, remainingDelta);
+				const remainingDelta = wayBackToLimit(state);
+				const missed = didPlayerMissBall(state, config, 0);
+
+				if (missed)
+				{
+					state.offside = true;
+					player1Miss(state, remainingDelta);
+					break;
+				}
+				else
+				{
+					const bounceAngle = getBounceAngle(state, config, 0);
+					const speed = getSpeed(state);
+					state.ballSpeedY = -Math.sin(bounceAngle * Math.PI / 2) * speed;
+					state.ballSpeedX = Math.cos(bounceAngle * Math.PI / 2) * speed;
+					state.ballX += (remainingDelta * state.ballSpeedX);
+					state.ballY += (remainingDelta * state.ballSpeedY);
+					if (playerBounced)
+						playerBounced(state);
+				}
 			}
-			else
+			else if (state.ballX > 1)
 			{
-				const bounceAngle = getBounceAngle(state, config, 1);
-				const speed = getSpeed(state);
-				state.ballSpeedY = -Math.sin(bounceAngle * Math.PI / 2) * speed;
-				state.ballSpeedX = -Math.cos(bounceAngle * Math.PI / 2) * speed;
-				state.ballX += (remainingDelta * state.ballSpeedX);
-				state.ballY += (remainingDelta * state.ballSpeedY);
+				const remainingDelta = wayBackToLimit(state);
+				const missed = didPlayerMissBall(state, config, 1);
+
+				if (missed)
+				{
+					state.offside = true;
+					player2Miss(state, remainingDelta);
+					break;
+				}
+				else
+				{
+					const bounceAngle = getBounceAngle(state, config, 1);
+					const speed = getSpeed(state);
+					state.ballSpeedY = -Math.sin(bounceAngle * Math.PI / 2) * speed;
+					state.ballSpeedX = -Math.cos(bounceAngle * Math.PI / 2) * speed;
+					state.ballX += (remainingDelta * state.ballSpeedX);
+					state.ballY += (remainingDelta * state.ballSpeedY);
+				}
 			}
 		}
 	}

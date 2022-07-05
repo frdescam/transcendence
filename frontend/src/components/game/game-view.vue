@@ -36,7 +36,7 @@ function resize ()
 
 function onState (state: Partial<commonState>)
 {
-	// @TODO: Take ping in account, and pass ping/2
+	// @TODO: Use date sended along to simulate frame latency
 	scene?.setState(state, 0);
 }
 

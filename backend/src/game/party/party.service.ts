@@ -252,6 +252,7 @@ export class PartyService
                                 this.retake(party);
                                 break;
                         }
+                        party.statusData.counter = elapsedSeconds;
                     }
                     break;
                 case partyStatus.Running:

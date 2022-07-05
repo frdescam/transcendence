@@ -149,6 +149,8 @@ function bounceBall (state: serverState, config: mapConfig, delta: number, playe
 					state.ballSpeedX = -Math.cos(bounceAngle * Math.PI / 2) * speed;
 					state.ballX += (remainingDelta * state.ballSpeedX);
 					state.ballY += (remainingDelta * state.ballSpeedY);
+					if (playerBounced)
+						playerBounced(state);
 				}
 			}
 		}

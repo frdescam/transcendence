@@ -31,11 +31,21 @@ export class PartyService
         return Math.random() * (max - min) + min;
     }
 
-    private getSlotFromSocket (party: Party, client: Socket): -1 | 0 | 1
+    public getSlotFromSocket (party: Party, client: Socket): -1 | 0 | 1
     {
         if (party.playersSocket[0] && party.playersSocket[0].id == client.id)
             return 0;
         else if (party.playersSocket[1] && party.playersSocket[1].id == client.id)
+            return 1;
+        else
+            return -1;
+    }
+
+    public getSlotFromUser (party: Party, userId: userId): -1 | 0 | 1
+    {
+        if (party.playersId[0] && party.playersId[0] == userId)
+            return 0;
+        else if (party.playersId[1] && party.playersId[1] == userId)
             return 1;
         else
             return -1;
@@ -560,17 +570,8 @@ export class PartyService
         this.pause(party, pauseReason.Explicit);
     }
 
-    public admitDefeat (client: Socket)
+    public admitDefeat (party: Party, slot: 0 | 1)
     {
-        const party = this.findPartyFromSocket(client);
-
-        if (!party)
-            return ;
-        let slot = this.getSlotFromSocket(party, client);
-
-        if (slot == -1)
-            return ;
-
         if (party.status == partyStatus.Finish)
             return ;
         

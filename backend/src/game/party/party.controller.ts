@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, UsePipes, ValidationPipe } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import { PartyService } from './party.service';
 import { userId } from 'src/common/game/logic/common';
@@ -63,6 +63,20 @@ export class PartyController
         return (party ? party.room : null);        
     }
 
+    @Put('giveup')
+    giveup()
+    {
+        const himself: userId = 1;
+        const party = this.partyService.findPartyWithUser(himself);
+        if (!party)
+            return null;
+        const slot = this.partyService.getSlotFromUser(party, himself);
+        if (slot == -1)
+            return ;
+
+        this.partyService.admitDefeat(party, slot);
+    }
+
     @Get(':room')
     findOne(@Param() params): getPartyDto | null
     {
@@ -85,6 +99,4 @@ export class PartyController
         );
         return (party.room);
     }
-
-    // @TODO: Allow to give up / leave party from REST
 }

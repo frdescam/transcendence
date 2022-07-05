@@ -118,7 +118,14 @@ export class GameGateway
     @ConnectedSocket() client: Socket,
   ): void
   {
-    this.partyService.admitDefeat(client);
+    const party = this.partyService.findPartyFromSocket(client);
+    if (!party)
+        return null;
+    const slot = this.partyService.getSlotFromSocket(party, client);
+    if (slot == -1)
+        return ;
+
+    this.partyService.admitDefeat(party, slot);
   }
 
   @SubscribeMessage('game::query::find')

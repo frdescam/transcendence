@@ -25,7 +25,14 @@ export default {
 							}
 						},
 						user: {
-							title: 'Users'
+							title: 'Users',
+							badge: {
+								administrator: 'administrator',
+								banned: 'banned',
+								creator: 'creator',
+								muted: 'muted',
+								user: 'user'
+							}
 						},
 						muted: {
 							title: 'Muted users'

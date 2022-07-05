@@ -13,6 +13,6 @@ export class Muted extends BaseEntity {
     @ManyToOne(() => User, (user) => user.bannedFrom)
       user: User;
 
-    @Column({type: 'date'})
+    @Column({type: 'timestamp', default: () => 'now()'})
       until: Date;
 }

@@ -30,8 +30,10 @@ export default defineComponent({
 	setup ()
 	{
 		const selectedChannel = ref(0);
+		const user = ref(1);
 		return {
-			selectedChannel
+			selectedChannel,
+			user
 		};
 	}
 });

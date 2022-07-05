@@ -14,6 +14,6 @@ export class Banned extends BaseEntity {
     @ManyToOne(() => User, (user) => user.bannedFrom)
       user: User;
 
-    @Column({type: 'timestamptz', default: () => 'now()'})
+    @Column({type: 'timestamp', default: () => 'now()'})
       until: Date;
 }

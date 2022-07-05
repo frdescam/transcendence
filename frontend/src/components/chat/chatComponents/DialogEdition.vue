@@ -143,31 +143,56 @@
 											<img src="imgs/chat/default.webp" />
 										</q-avatar>
 									</q-item-section>
-									<q-item-section class="overflow-text">
-										{{ user.pseudo }} {{ user.id }} {{ channelOwner }}
+									<q-item-section class="overflow-text">{{ user.pseudo }} {{ user.id }}</q-item-section>
+									<q-separator vertical class="sep" />
+									<q-item-section class="badge-parent sep">
+										<q-badge v-if="getUsersOptionsModel(user.id).isCreator"
+											color="purple-7" :label="$t('chat.channel.menu.edit.tabs.user.badge.creator')" class="badge"
+										/>
+										<q-badge v-if="getUsersOptionsModel(user.id).isAdmin"
+											color="light-green-7" :label="$t('chat.channel.menu.edit.tabs.user.badge.administrator')" class="badge"
+										/>
+										<q-badge v-if="getUsersOptionsModel(user.id).isMuted"
+											color="deep-orange-7" :label="$t('chat.channel.menu.edit.tabs.user.badge.muted')" class="badge"
+										/>
+										<q-badge v-if="getUsersOptionsModel(user.id).isBanned"
+											color="blue-grey-7" :label="$t('chat.channel.menu.edit.tabs.user.badge.banned')" class="badge"
+										/>
+										<q-badge
+											color="light-blue-8" :label="$t('chat.channel.menu.edit.tabs.user.badge.user')" class="badge"
+										/>
 									</q-item-section>
 									<q-separator vertical class="sep" />
-									<q-item-section>
-										<q-badge v-if="Number(user.id) === channelOwner"
-											color="purple-7"
-											label="creator"
-											class="badge"
-										/>
-										<q-badge
-											color="light-green-7"
-											label="administrator"
-											class="badge"
-										/>
-										<q-badge
-											color="deep-orange-7"
-											label="muted"
-											class="badge"
-										/>
-										<q-badge
-											color="blue-grey-7"
-											label="banned"
-											class="badge"
-										/>
+									<q-item-section class="option-section">
+										<div class="toggle-section">
+											<span>{{ capitalize($t('chat.channel.menu.edit.tabs.user.badge.administrator')) }}</span>
+											<q-toggle
+												v-model="getUsersOptionsModel(user.id).isAdmin"
+												checked-icon="security"
+												color="green"
+												size="lg"
+											/>
+										</div>
+										<div class="toggle-section">
+											<span>{{ capitalize($t('chat.channel.menu.edit.tabs.user.badge.banned')) }}</span>
+											<q-toggle
+												v-model="getUsersOptionsModel(user.id).isBanned"
+												checked-icon="dangerous"
+												color="green"
+												size="lg"
+												:disable="!getUsersOptionsModel(Number(userId)).isAdmin"
+											/>
+										</div>
+										<div class="toggle-section">
+											<span>{{ capitalize($t('chat.channel.menu.edit.tabs.user.badge.muted')) }}</span>
+											<q-toggle
+												v-model="getUsersOptionsModel(user.id).isMuted"
+												checked-icon="dangerous"
+												color="green"
+												size="lg"
+												:disable="!getUsersOptionsModel(Number(userId)).isAdmin"
+											/>
+										</div>
 									</q-item-section>
 								</q-item>
 								<q-separator />
@@ -190,8 +215,16 @@
 import { Socket } from 'socket.io-client';
 import { QInput, QDialog } from 'quasar';
 import { AxiosInstance } from 'axios';
-import { TypeOfObject, Timestamp } from 'src/boot/libs';
-import { defineComponent, ref, inject, watch } from 'vue';
+import { TypeOfObject, Timestamp, TimestampFunction, ObjDiff } from 'src/boot/libs';
+import { defineComponent, ref, reactive, inject, watch } from 'vue';
+
+interface usersOptionsInterface {
+	id: number,
+	isCreator: boolean,
+	isAdmin: boolean,
+	isMuted: boolean,
+	isBanned: boolean
+}
 
 export default defineComponent({
 	name: 'dialog_edition',
@@ -210,10 +243,12 @@ export default defineComponent({
 		const socket: Socket = inject('socketChat') as Socket;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
-		const timestamp: Timestamp = inject('timestamp') as Timestamp;
+		const timestamp: TimestampFunction = inject('timestamp') as TimestampFunction;
+		const objDiff: ObjDiff = inject('objDiff') as ObjDiff;
 
 		const loading = ref(true);
 		const channel = ref();
+		const usersOptions = reactive<usersOptionsInterface []>([]);
 		const dialog = ref<QDialog | null>(null);
 		const selectedTab = ref('general');
 
@@ -234,7 +269,7 @@ export default defineComponent({
 			generalName.value = props.channelName;
 			generalType.value = props.channelType;
 			generalNameError.value = null;
-			generalOldPassword.value = props.channelPassword;
+			generalOldPassword.value = null;
 			generalNewPassword.value = null;
 			generalOldPasswordRef.value?.resetValidation();
 			generallNewPasswordRef.value?.resetValidation();
@@ -256,7 +291,7 @@ export default defineComponent({
 				return;
 			}
 
-			if (generalType.value === 'protected')
+			if (generalType.value === 'protected' && generalOldPassword.value)
 			{
 				if (!generalOldPassword.value || (generalOldPassword.value !== props.channelPassword))
 				{
@@ -289,7 +324,42 @@ export default defineComponent({
 		// #endregion
 
 		// #region User
+		const generateDate = (): Timestamp =>
+		{
+			const __temp = new Date();
+			const currentDate: Timestamp = {
+				year: __temp.getUTCFullYear(),
+				month: __temp.getUTCMonth(),
+				day: __temp.getUTCDay(),
+				hour: __temp.getUTCHours(),
+				minute: __temp.getUTCMinutes(),
+				second: __temp.getUTCSeconds(),
+				millisecond: __temp.getUTCMilliseconds()
+			};
+			return currentDate;
+		};
+
+		const compareDate = (a: Timestamp, b: Timestamp) =>
+		{
+			let result: number;
+			result = a.year = b.year;
+			if (result !== 0) return result;
+			result = a.month = b.month;
+			if (result !== 0) return result;
+			result = a.day = b.day;
+			if (result !== 0) return result;
+			result = a.hour = b.hour;
+			if (result !== 0) return result;
+			result = a.minute = b.minute;
+			if (result !== 0) return result;
+			result = a.second = b.second;
+			if (result !== 0) return result;
+			result = a.millisecond = b.millisecond;
+			return result;
+		};
+
 		const isCreator = (id: number) => id === props.channelOwner;
+
 		const isAdministrator = (id: number) =>
 		{
 			for (const administrator of channel.value.admins)
@@ -299,22 +369,51 @@ export default defineComponent({
 			}
 			return false;
 		};
+
 		const isMuted = (id: number) =>
 		{
-			const currentDate = new Date();
+			const currentDate = generateDate();
 			for (const muted of channel.value.mutedUsers)
 			{
 				if (muted.id === id)
-				{
-					const finish = timestamp(muted.until);
-				}
+					return (compareDate(currentDate, timestamp(muted.until)) !== 0);
 			}
 			return false;
 		};
+
+		const isBanned = (id: number) =>
+		{
+			const currentDate = generateDate();
+			for (const banned of channel.value.bannedUsers)
+			{
+				if (banned.id === id)
+					return (compareDate(currentDate, timestamp(banned.until)) !== 0);
+			}
+			return false;
+		};
+
+		const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);
+
+		const getUsersOptionsModel = (id: number): usersOptionsInterface =>
+		{
+			for (const i in usersOptions)
+			{
+				if (usersOptions[i].id === id)
+					return usersOptions[i];
+			}
+			return usersOptions[0];
+		};
+
+		watch(() => usersOptions, (_new, _old) =>
+		{
+			console.log(_new, _old);
+			console.log(objDiff({ one: 'two' }, { one: 'three' }));
+		}, { deep: true });
 		// #endregion
 
 		const reset = () =>
 		{
+			selectedTab.value = 'general';
 			generalReset();
 			emit('dialog-edition-hide');
 			dialog.value?.hide();
@@ -329,7 +428,16 @@ export default defineComponent({
 						throw new Error();
 					loading.value = false;
 					channel.value = res.data.channel;
-					console.log(channel.value);
+					for (const i in channel.value.users)
+					{
+						usersOptions.push({
+							id: channel.value.users[i].id,
+							isCreator: isCreator(channel.value.users[i].id),
+							isAdmin: isAdministrator(channel.value.users[i].id),
+							isMuted: isMuted(channel.value.users[i].id),
+							isBanned: isBanned(channel.value.users[i].id)
+						});
+					}
 				})
 				.catch(() =>
 				{
@@ -344,8 +452,6 @@ export default defineComponent({
 				getUsers();
 				generalName.value = props.channelName;
 				generalType.value = props.channelType;
-				if (props.channelType === 'protected')
-					generalOldPassword.value = props.channelPassword;
 				dialog.value?.show();
 			}
 		});
@@ -368,7 +474,14 @@ export default defineComponent({
 			generalSuccess,
 			editGeneral,
 			// #endregion
-
+			// #region User tab
+			isCreator,
+			isAdministrator,
+			isMuted,
+			isBanned,
+			capitalize,
+			getUsersOptionsModel,
+			// #endregion
 			generalReset,
 			reset
 		};
@@ -380,11 +493,30 @@ export default defineComponent({
 .overflow-text {
 	max-width: 7em;
 }
+.badge-parent {
+	max-width: max-content;
+}
 .badge {
 	width: fit-content;
 	margin-bottom: .2em;
 }
 .sep {
 	margin-right: .5em;
+	max-width: 100px;
+}
+.toggle-section {
+	display: flex;
+	flex-direction: column;
+	width: fit-content;
+	padding: 0 .5em;
+}
+.option-section {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	flex-wrap: nowrap;
+}
+.toggle-section > span {
+	text-align: center;
 }
 </style>

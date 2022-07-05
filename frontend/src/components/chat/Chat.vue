@@ -113,9 +113,9 @@
 
 <script lang="ts">
 import { AxiosInstance } from 'axios';
-import { TypeOfObject, Timestamp } from 'src/boot/libs';
+import { TypeOfObject, Timestamp, TimestampFunction } from 'src/boot/libs';
 import { Socket } from 'socket.io-client';
-import { defineComponent, onMounted, ref, inject, nextTick } from 'vue';
+import { defineComponent, onMounted, ref, inject, nextTick, watch } from 'vue';
 import { QMenu } from 'quasar';
 
 interface arrayInterface {
@@ -141,7 +141,7 @@ export default defineComponent({
 		const socket: Socket = inject('socketChat') as Socket;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
-		const timestamp: Timestamp = inject('timestamp') as Timestamp;
+		const timestamp: TimestampFunction = inject('timestamp') as TimestampFunction;
 
 		const contextmenu = ref<QMenu | null>(null);
 		const chat = ref<HTMLDivElement | null>(null);
@@ -152,6 +152,11 @@ export default defineComponent({
 		const userId = ref(1); // A changer avec le vrai id de l'utilisateur
 
 		// Clean var is reload
+		watch(() => userId.value, () =>
+		{
+			localStorage.setItem('chat::user::id', String(userId.value));
+		});
+
 		localStorage.setItem('chat::user::id', String(userId.value)); // A revoir plus tard
 		const messageEditId = ref(-1);
 
@@ -203,7 +208,7 @@ export default defineComponent({
 
 		const generateTimestamp = (time: string) =>
 		{
-			const messageDate = timestamp(time);
+			const messageDate: Timestamp = timestamp(time);
 			if (!messageDate)
 				return '';
 			return `${messageDate.day}/${messageDate.month}/${messageDate.year} - ${messageDate.hour}h${messageDate.minute}`;

@@ -17,13 +17,13 @@
 				Watch game ({{ game.spectators }} watching)
 			</q-btn>
 			<q-btn v-else label="Game ended" class="q-mt-sm" icon="cancel" disable color="primary" />
-			<q-field class="link-to-game q-mt-sm" v-if="game.status != 'done'" outlined :model-value="text" label="Link to game" stack-label>
+			<q-field class="link-to-game q-mt-sm" v-if="game.status != 'done'" outlined label="Link to game" stack-label>
 				<template v-slot:control>
-					<div class="self-center full-width no-outline" tabindex="0">{{text}}</div>
+					<div class="self-center full-width no-outline" tabindex="0">http://localhost:3000/game/{{ game.room }}</div>
 				</template>
 
 				<template v-slot:after>
-					<q-btn round dense flat icon="content_copy" />
+					<q-btn round dense flat @click="createUrlAndCopyToClipboard(game.room)" icon="content_copy" />
 				</template>
 			</q-field>
 		</q-card-section>
@@ -33,12 +33,34 @@
 <script lang="ts">
 // import { ref } from 'vue';
 
+function copyTextToClipboard (text: string)
+{
+	if (!navigator.clipboard)
+	{
+		console.error('Could not copy to clipboard');
+		return;
+	}
+	navigator.clipboard.writeText(text).then(function ()
+	{
+		console.log('Async: Copying to clipboard was successful!');
+	}, function (err)
+	{
+		console.error('Async: Could not copy text: ', err);
+	});
+}
+
+function createUrlAndCopyToClipboard (text: string)
+{
+	const url: string = "http://localhost:3000/game/" + text;
+	copyTextToClipboard(url);
+}
+
 export default ({
 	setup ()
 	{
 		const gameList = [
 			{
-				room: '',
+				room: 'jvowmfk',
 				map: 'forest',
 				status: 'playing',
 				spectators: 3,
@@ -66,6 +88,7 @@ export default ({
 			}
 		];
 		return {
+			createUrlAndCopyToClipboard,
 			gameList
 		};
 	}

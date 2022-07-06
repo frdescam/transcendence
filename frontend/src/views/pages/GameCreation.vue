@@ -5,6 +5,7 @@
 			<div class="q-ma-md">
 				<h3>Game creation</h3>
 			</div>
+			<q-input v-model="partyName" label="Party name" hint="optional" class="q-ma-md" />
 			<q-select filled v-model="map" :options="mapOptions" label="Map selection" class="bg-blue-grey-1 q-ma-md" />
 			<q-btn-toggle v-model="opponentType" toggle-color="primary" class="bg-blue-grey-1 q-ma-md" :options="[
 				{ label: 'Play with anyone', value: 'any' },
@@ -25,6 +26,7 @@ import { ref } from 'vue';
 export default {
 	setup ()
 	{
+		const partyName = ref('');
 		const map = ref('Any');
 		const mapOptions = [
 			'Any',
@@ -46,6 +48,7 @@ export default {
 		return {
 			friendList,
 			map,
+			partyName,
 			mapOptions,
 			opponent,
 			opponentType,

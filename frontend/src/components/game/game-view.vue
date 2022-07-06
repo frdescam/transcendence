@@ -36,8 +36,14 @@ function resize ()
 
 function onState (state: Partial<commonState>)
 {
-	// @TODO: Use date sended along to simulate frame latency
-	scene?.setState(state, 0);
+	let latency = 0;
+	if ('date' in state)
+	{
+		const now: Date = new Date();
+		const serverDate: Date = new Date(state.date);
+		latency = (now.getTime() - serverDate.getTime()); // @TODO: adjust time cause client/server may have different time
+	}
+	scene?.setState(state, latency);
 }
 
 function onDisconnect ()

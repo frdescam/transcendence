@@ -8,6 +8,7 @@ type teamNone = typeof teamNoneVal;
 type avatar = string | null;
 
 interface serverState {
+	date: Date | string,
 	positions: [number, number],
 	scores: [number, number],
 	ball: boolean,

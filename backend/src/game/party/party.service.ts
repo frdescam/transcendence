@@ -187,6 +187,8 @@ export class PartyService
 
     private run(party: Party, delta: number)
     {
+        const date = new Date();
+
         bounceBall(
             party.state,
             maps[party.map],
@@ -208,6 +210,7 @@ export class PartyService
                 this.sendState(
                     party,
                     {
+                        date: date.toISOString(),
                         offside,
                         ballX,
                         ballY,
@@ -583,6 +586,7 @@ export class PartyService
                     text: 'Party canceled',
                     textSize: 0.5,
                     textColor: 0xff8030,
+                    finish: true,
                     ball: false,
                     offside: false,
                     lobby: true,
@@ -743,6 +747,7 @@ export class PartyService
                 playersId: userIds,
                 playersReady: [false, false],
                 state: {
+                    date: new Date(),
                     positions: [0.5, 0.5],
                     scores: [0, 0],
                     ball: true,
@@ -774,7 +779,7 @@ export class PartyService
                     textSize: 0.5,
                     textColor: 0xffff00
                 },
-                true,
+                false,
                 true
             );
 

@@ -105,6 +105,7 @@ class PongScene
 			spectator: true,
 			can_join: false,
 			finish: false,
+			date: new Date(),
 			positions: [0.5, 0.5],
 			scores: [0, 0],
 			ball: true,
@@ -854,7 +855,7 @@ class PongScene
 		this.renderer.setAnimationLoop(animate);
 	}
 
-	setState (state: Partial<state>, ping: number)
+	setState (state: Partial<state>, latency: number)
 	{
 		const oldState = Object.assign({}, this.state);
 		const newState = Object.assign({}, this.state, state);
@@ -880,10 +881,10 @@ class PongScene
 		if (newState.avatars[0] !== oldState.avatars[0] || newState.avatars[1] !== oldState.avatars[1])
 			this._refreshAvatar();
 
-		if (ping)
+		if (latency)
 		{
 			this.clock.getDelta();
-			clientLogic(this.state, this.config, ping / 2);
+			clientLogic(this.state, this.config, latency / 1000);
 		}
 
 		if (this.options.onStateChange)

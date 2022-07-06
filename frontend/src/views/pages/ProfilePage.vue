@@ -1,23 +1,33 @@
 <template>
 	<q-page class="row items-start">
 		<q-card bordered style='width: 300px;' class="q-ma-md">
-			<q-card-section>
-				<div class="text-h6">
-					<q-icon v-if="online" name="fiber_manual_record" color="green" />
-					<q-icon v-else name="fiber_manual_record" color="red" />
-					{{ currentUsername }}
-				</div>
-			</q-card-section>
-			<q-separator inset />
-			<q-card-section>
-				<q-form
-					method="post"
-					@submit="usernameSubmit"
-				>
-					<q-input v-model="newUsername" label="Change username" />
+			<q-form
+				method="post"
+				@submit="editUsernameAndOrProfilePicture"
+			>
+				<q-card-section>
+					<div class="text-h6">
+						<span class="q-mr-sm">
+							<q-badge v-if="online" rounded color="green" />
+							<q-badge v-else rounded color="red" />
+						</span>
+						<span id="username-display">{{ currentUsername }}</span>
+						<span id="username-edit" style="display:none;">
+							<q-input v-model="newUsername" label="Change username" />
+						</span>
+						<q-btn @click="toggleNameEdit" flat round icon="edit" />
+					</div>
+				</q-card-section>
+				<q-separator inset />
+				<q-card-section>
+					<q-img :src="oldProfilePicture" class="profile-picture">
+						<div class="absolute-full text-subtitle2 flex flex-center profile-picture-edit">
+							<q-file outlined bg-color="white" v-model="newProfilePicture" label="Change your picture"/>
+						</div>
+					</q-img>
 					<q-btn type="submit" class="q-mt-md" label='Update' />
-				</q-form>
-			</q-card-section>
+				</q-card-section>
+			</q-form>
 		</q-card>
 
 		<q-card bordered style='width: 300px;' class="q-ma-md">
@@ -26,7 +36,6 @@
 			</q-card-section>
 			<q-separator inset />
 			<q-card-section>
-				<q-img :src="oldProfilePicture" />
 				<q-separator inset class="q-my-sm"/>
 				<q-form
 					method="post"
@@ -150,7 +159,7 @@
 			<q-card-section>
 				<q-form
 					method="post"
-					@submit="TFASubmit"
+					@submit="GameOptionsSubmit"
 				>
 					<q-select v-model="paddleSelected" :options="paddleOptions" label="Paddle Color" />
 					<q-btn type="submit" class="q-mt-md" label='Update' />
@@ -176,17 +185,31 @@
 <script lang="ts">
 import { ref } from 'vue';
 
+function toggleInlineDisplay (id: string)
+{
+	const element = document.getElementById(id);
+
+	if (element)
+	{
+		if (element.style.display === 'none')
+			element.style.display = 'inline-block';
+		else
+			element.style.display = 'none';
+	}
+}
+
 export default ({
 	name: 'IndexPage',
 	setup ()
 	{
 		const oldProfilePicture = ref('https://placeimg.com/500/300/nature');
 		const newProfilePicture = ref(null);
-		const currentUsername = ref('gros nullos');
+		const currentUsername = ref('pohl');
 		const newUsername = ref('');
 		const newPassword = ref('');
 		const oldPassword = ref('');
 		const use2FA = ref(false);
+		const paddleSelected = ref('Normal');
 
 		return {
 			oldProfilePicture,
@@ -196,29 +219,36 @@ export default ({
 			isOldPswd: ref(true),
 			isNewPswd: ref(true),
 			newUsername,
+			paddleSelected,
 			use2FA,
 			newProfilePicture,
-			usernameSubmit ()
+			toggleNameEdit ()
 			{
-				console.log(newUsername);
+				const usernameInput = document.getElementById('username-edit')?.getElementsByTagName('input')[0];
+				toggleInlineDisplay('username-display');
+				toggleInlineDisplay('username-edit');
+				usernameInput?.focus();
 			},
-			profilePictureSubmit ()
+			editUsernameAndOrProfilePicture ()
 			{
-				console.log(newProfilePicture);
+				console.log(newUsername.value, newProfilePicture.value);
+			},
+			GameOptionsSubmit ()
+			{
+				console.log(paddleSelected.value);
 			},
 			TFASubmit ()
 			{
-				console.log(use2FA);
+				console.log(use2FA.value);
 			},
 			passwordSubmit ()
 			{
-				console.log(oldPassword, newPassword);
+				console.log(oldPassword.value, newPassword.value);
 			},
 			deleteAccount ()
 			{
-				console.log("User deleted their account");
+				console.log('User deleted their account');
 			},
-			paddleSelected: ref('Normal'),
 			online: ref(true),
 			paddleOptions: [
 				'Normal', 'Fire', 'Air', 'Water', 'Earth'
@@ -229,3 +259,17 @@ export default ({
 	}
 });
 </script>
+
+<style lang="scss">
+.profile-picture .profile-picture-edit {
+  visibility: hidden;
+  opacity: 0;
+  transition: .5s;
+}
+
+.profile-picture:hover .profile-picture-edit {
+  visibility: visible;
+  opacity: 1;
+  transition: .5s;
+}
+</style>

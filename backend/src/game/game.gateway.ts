@@ -2,7 +2,7 @@ import { ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage, We
 import { map } from './party/interfaces/party.interface';
 import { PartyService } from './party/party.service';
 import type { Socket, Server } from 'socket.io';
-import type { userId } from 'src/common/game/logic/common';
+import type { userId, Pong } from 'src/common/game/logic/common';
 
 @WebSocketGateway({
   namespace: 'game',
@@ -22,6 +22,15 @@ export class GameGateway
   {
     this.partyService.leaveAll(client);
     this.partyService.leaveAllQuery(client);
+  }
+
+  @SubscribeMessage('party::ping')
+  ping(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('cdate') cdate: string,
+  ): void
+  {
+    client.volatile.emit('party::pong', {cdate, sdate: (new Date()).toISOString()} as Pong);
   }
 
   @SubscribeMessage('party::create')

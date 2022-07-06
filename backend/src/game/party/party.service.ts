@@ -747,7 +747,7 @@ export class PartyService
                 playersId: userIds,
                 playersReady: [false, false],
                 state: {
-                    date: new Date(),
+                    date: new Date(0),
                     positions: [0.5, 0.5],
                     scores: [0, 0],
                     ball: true,

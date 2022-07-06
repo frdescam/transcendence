@@ -38,6 +38,14 @@ interface partyQuery {
 	map?: string
 }
 
+interface Ping {
+	cdate: string
+}
+
+interface Pong extends Ping{
+	sdate: string
+}
+
 type missedCallback = (state: serverState, remainingDelta: number) => void;
 type bouncedCallback = (state: serverState) => void;
 
@@ -158,5 +166,5 @@ function bounceBall (state: serverState, config: mapConfig, delta: number, playe
 	}
 }
 
-export type { userId, team, teamNone, avatar, serverState, state, partyQuery, missedCallback };
+export type { userId, team, teamNone, avatar, serverState, state, partyQuery, Ping, Pong, missedCallback };
 export { bounceBall, forward, teamNoneVal };

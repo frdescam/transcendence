@@ -2,20 +2,46 @@
 	<q-page class="row items-start">
 		<q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section>
-				<div class="text-h6">Username</div>
+				<div class="text-h6">
+					<q-icon v-if="online" name="fiber_manual_record" color="green" />
+					<q-icon v-else name="fiber_manual_record" color="red" />
+					{{ currentUsername }}
+				</div>
 			</q-card-section>
 			<q-separator inset />
 			<q-card-section>
-				<p>Current username: {{ currentUsername }}</p>
 				<q-form
 					method="post"
 					@submit="usernameSubmit"
 				>
-					<q-input v-model="newUsername" label="New username" />
+					<q-input v-model="newUsername" label="Change username" />
 					<q-btn type="submit" class="q-mt-md" label='Update' />
 				</q-form>
 			</q-card-section>
 		</q-card>
+
+		<q-card bordered style='width: 300px;' class="q-ma-md">
+			<q-card-section>
+				<div class="text-h6">Avatar</div>
+			</q-card-section>
+			<q-separator inset />
+			<q-card-section>
+				<q-img :src="oldProfilePicture" />
+				<q-separator inset class="q-my-sm"/>
+				<q-form
+					method="post"
+					@submit="profilePictureSubmit"
+				>
+					<q-file v-model="newProfilePicture" label="Change your picture">
+						<template v-slot:prepend>
+							<q-icon name="attach_file" />
+						</template>
+					</q-file>
+					<q-btn type="submit" class="q-mt-md" label='Update' />
+				</q-form>
+			</q-card-section>
+		</q-card>
+
 		<q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section>
 				<div class="text-h6">Password</div>
@@ -66,27 +92,7 @@
 				</q-form>
 			</q-card-section>
 		</q-card>
-		<q-card bordered style='width: 300px;' class="q-ma-md">
-			<q-card-section>
-				<div class="text-h6">Avatar</div>
-			</q-card-section>
-			<q-separator inset />
-			<q-card-section>
-				<q-img :src="oldProfilePicture" />
-				<q-separator inset class="q-my-sm"/>
-				<q-form
-					method="post"
-					@submit="profilePictureSubmit"
-				>
-					<q-file v-model="newProfilePicture" label="Change your picture">
-						<template v-slot:prepend>
-							<q-icon name="attach_file" />
-						</template>
-					</q-file>
-					<q-btn type="submit" class="q-mt-md" label='Update' />
-				</q-form>
-			</q-card-section>
-		</q-card>
+
 		<q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section>
 				<div class="text-h6">Two factor authentication</div>
@@ -133,13 +139,45 @@
 				</q-form>
 			</q-card-section>
 		</q-card>
+
+		<q-card bordered class="my-card q-ma-md">
+			<q-card-section>
+				<div class="text-h6">Game options</div>
+			</q-card-section>
+
+			<q-separator />
+
+			<q-card-section>
+				<q-form
+					method="post"
+					@submit="TFASubmit"
+				>
+					<q-select v-model="paddleSelected" :options="paddleOptions" label="Paddle Color" />
+					<q-btn type="submit" class="q-mt-md" label='Update' />
+				</q-form>
+			</q-card-section>
+		</q-card>
+
+		<q-card bordered class="my-card q-ma-md">
+			<q-card-section>
+				<div class="text-h6">Score</div>
+			</q-card-section>
+
+			<q-separator />
+
+			<q-card-section>
+				<div class="text-p">Wins: {{ wins }} / Losses: {{ losses }}</div>
+				<div class="text-p">Ratio: {{ Math.round(wins / losses * 10) / 10 }}</div>
+			</q-card-section>
+		</q-card>
 	</q-page>
 </template>
 
 <script lang="ts">
 import { ref } from 'vue';
 
-export default {
+export default ({
+	name: 'IndexPage',
 	setup ()
 	{
 		const oldProfilePicture = ref('https://placeimg.com/500/300/nature');
@@ -179,8 +217,15 @@ export default {
 			deleteAccount ()
 			{
 				console.log("User deleted their account");
-			}
+			},
+			paddleSelected: ref('Normal'),
+			online: ref(true),
+			paddleOptions: [
+				'Normal', 'Fire', 'Air', 'Water', 'Earth'
+			],
+			wins: ref(7),
+			losses: ref(4)
 		};
 	}
-};
+});
 </script>

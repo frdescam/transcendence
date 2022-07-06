@@ -15,9 +15,6 @@
 					<q-btn flat rounded :to="{ path: '/leaderboards' }" label="Leaderboards" />
 				</div>
 				<div class="row q-ml-md no-wrap">
-					<q-btn flat rounded :to="{ path: '/settings' }">
-						<q-icon name="settings" />
-					</q-btn>
 					<q-btn flat rounded :to="{ path: '/login' }">
 						<q-icon name="person" />
 					</q-btn>

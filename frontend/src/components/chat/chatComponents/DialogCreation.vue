@@ -112,6 +112,7 @@ import { defineComponent, ref, inject, watch } from 'vue';
 export default defineComponent({
 	name: 'dialog_creation',
 	props: {
+		userId: Number,
 		dialogCreationShow: Boolean
 	},
 	emits: ['dialog-creation-hide'],
@@ -163,7 +164,7 @@ export default defineComponent({
 			}
 			socket.emit('channel::add', {
 				id: null,
-				creator: Number(localStorage.getItem('chat::user::id')),
+				creator: props.userId,
 				name: sanitizeHtml(name.value),
 				type: sanitizeHtml(type.value),
 				password: passwordOne.value

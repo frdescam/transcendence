@@ -1,9 +1,5 @@
 <template>
-	<div>
-		<q-radio v-model="userId" :val="Number(1)">Clément user</q-radio>
-		<q-radio v-model="userId" :val="Number(2)">John user</q-radio>
-		<q-radio v-model="userId" :val="Number(3)">Titi user</q-radio>
-	</div>
+  <p>UserId={{ userId }}</p>
 	<form
 		autocorrect="off"
 		autocapitalize="off"
@@ -136,7 +132,10 @@ interface messageInterface {
 
 export default defineComponent({
 	name: 'chat_channel',
-	setup ()
+	props: {
+		userId: Number
+	},
+	setup (props)
 	{
 		const socket: Socket = inject('socketChat') as Socket;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
@@ -149,15 +148,6 @@ export default defineComponent({
 		const noError = ref(true);
 		const editor = ref('');
 		const messages = ref(new Array<messageInterface>()); // eslint-disable-line no-array-constructor
-		const userId = ref(1); // A changer avec le vrai id de l'utilisateur
-
-		// Clean var is reload
-		watch(() => userId.value, () =>
-		{
-			localStorage.setItem('chat::user::id', String(userId.value));
-		});
-
-		localStorage.setItem('chat::user::id', String(userId.value)); // A revoir plus tard
 		const messageEditId = ref(-1);
 
 		const getBottomOfChat = () =>
@@ -273,7 +263,7 @@ export default defineComponent({
 			{
 				socket.emit('message::add',
 					{
-						id: userId.value,
+						id: props.userId,
 						channel: localStorage.getItem('chat::channel::id'),
 						message: editor.value,
 						length: editor.value.length,
@@ -285,7 +275,7 @@ export default defineComponent({
 			{
 				socket.emit('message::update',
 					{
-						id: userId.value,
+						id: props.userId,
 						channel: localStorage.getItem('chat::channel::id'),
 						messageId: messageEditId.value,
 						message: editor.value,
@@ -326,7 +316,7 @@ export default defineComponent({
 					contextmenu.value?.hide();
 					socket.emit('message::delete',
 						{
-							id: userId.value,
+							id: props.userId,
 							channel: localStorage.getItem('chat::channel::id'),
 							messageId: messageEditId.value,
 							message: editor.value,
@@ -449,7 +439,7 @@ export default defineComponent({
 				}
 				for (const block of messages.value)
 				{
-					if (block.user.id === userId.value)
+					if (block.user.id === props.userId)
 					{
 						for (const i in block.messages)
 						{
@@ -470,7 +460,7 @@ export default defineComponent({
 			{
 				for (const x in messages.value)
 				{
-					if (messages.value[x].user.id === userId.value)
+					if (messages.value[x].user.id === props.userId)
 					{
 						for (const y in messages.value[x].messages)
 						{
@@ -501,7 +491,6 @@ export default defineComponent({
 			noError,
 			editor,
 			messages,
-			userId,
 			openContextualMenu,
 			imageError,
 			insertImage,

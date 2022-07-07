@@ -1,4 +1,5 @@
 <template>
+	<p>UserId={{ userId }}</p>
 	<div class="q-pa-md" style="max-width: 100%;">
 		<q-list>
 			<template v-if="loading">
@@ -40,6 +41,9 @@ import { defineComponent, onMounted, ref, inject } from 'vue';
 
 export default defineComponent({
 	name: 'user_channel',
+	props: {
+		userId: Number
+	},
 	setup ()
 	{
 		const api: AxiosInstance = inject('api') as AxiosInstance;

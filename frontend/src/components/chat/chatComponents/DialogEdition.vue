@@ -133,69 +133,8 @@
 					</q-tab-panel>
 					<q-tab-panel name="users">
 						<q-list>
-							<template
-								v-for="user of channel.users"
-								v-bind:key="user.id"
-							>
-								<q-item>
-									<q-item-section avatar>
-										<q-avatar>
-											<img src="imgs/chat/default.webp" />
-										</q-avatar>
-									</q-item-section>
-									<q-item-section class="overflow-text">{{ user.pseudo }} {{ user.id }}</q-item-section>
-									<q-separator vertical class="sep" />
-									<q-item-section class="badge-parent sep">
-										<q-badge v-if="getUsersOptionsModel(user.id).isCreator"
-											color="purple-7" :label="$t('chat.channel.menu.edit.tabs.user.badge.creator')" class="badge"
-										/>
-										<q-badge v-if="getUsersOptionsModel(user.id).isAdmin"
-											color="light-green-7" :label="$t('chat.channel.menu.edit.tabs.user.badge.administrator')" class="badge"
-										/>
-										<q-badge v-if="getUsersOptionsModel(user.id).isMuted"
-											color="deep-orange-7" :label="$t('chat.channel.menu.edit.tabs.user.badge.muted')" class="badge"
-										/>
-										<q-badge v-if="getUsersOptionsModel(user.id).isBanned"
-											color="blue-grey-7" :label="$t('chat.channel.menu.edit.tabs.user.badge.banned')" class="badge"
-										/>
-										<q-badge
-											color="light-blue-8" :label="$t('chat.channel.menu.edit.tabs.user.badge.user')" class="badge"
-										/>
-									</q-item-section>
-									<q-separator vertical class="sep" />
-									<q-item-section class="option-section">
-										<div class="toggle-section">
-											<span>{{ capitalize($t('chat.channel.menu.edit.tabs.user.badge.administrator')) }}</span>
-											<q-toggle
-												v-model="getUsersOptionsModel(user.id).isAdmin"
-												checked-icon="security"
-												color="green"
-												size="lg"
-											/>
-										</div>
-										<div class="toggle-section">
-											<span>{{ capitalize($t('chat.channel.menu.edit.tabs.user.badge.banned')) }}</span>
-											<q-toggle
-												v-model="getUsersOptionsModel(user.id).isBanned"
-												checked-icon="dangerous"
-												color="green"
-												size="lg"
-												:disable="!getUsersOptionsModel(Number(userId)).isAdmin"
-											/>
-										</div>
-										<div class="toggle-section">
-											<span>{{ capitalize($t('chat.channel.menu.edit.tabs.user.badge.muted')) }}</span>
-											<q-toggle
-												v-model="getUsersOptionsModel(user.id).isMuted"
-												checked-icon="dangerous"
-												color="green"
-												size="lg"
-												:disable="!getUsersOptionsModel(Number(userId)).isAdmin"
-											/>
-										</div>
-									</q-item-section>
-								</q-item>
-								<q-separator />
+							<template v-for="user in channel.users" v-bind:key="user.id">
+								<DialogEditionUserListVue :user="user" :info="getUser(Number(user.id))" />
 							</template>
 						</q-list>
 					</q-tab-panel>
@@ -215,8 +154,10 @@
 import { Socket } from 'socket.io-client';
 import { QInput, QDialog } from 'quasar';
 import { AxiosInstance } from 'axios';
-import { TypeOfObject, Timestamp, TimestampFunction, ObjDiff } from 'src/boot/libs';
+import { TypeOfObject, Timestamp, TimestampFunction } from 'src/boot/libs';
 import { defineComponent, ref, reactive, inject, watch } from 'vue';
+
+import DialogEditionUserListVue from './DialogEditionUserList.vue';
 
 interface usersOptionsInterface {
 	id: number,
@@ -228,6 +169,9 @@ interface usersOptionsInterface {
 
 export default defineComponent({
 	name: 'dialog_edition',
+	components: {
+		DialogEditionUserListVue
+	},
 	props: {
 		dialogEditionShow: Boolean,
 		channelId: Number,
@@ -244,7 +188,6 @@ export default defineComponent({
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
 		const timestamp: TimestampFunction = inject('timestamp') as TimestampFunction;
-		const objDiff: ObjDiff = inject('objDiff') as ObjDiff;
 
 		const loading = ref(true);
 		const channel = ref();
@@ -392,33 +335,6 @@ export default defineComponent({
 			return false;
 		};
 
-		const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);
-
-		const getUsersOptionsModel = (id: number): usersOptionsInterface =>
-		{
-			for (const i in usersOptions)
-			{
-				if (usersOptions[i].id === id)
-					return usersOptions[i];
-			}
-			return usersOptions[0];
-		};
-
-		watch(() => usersOptions, (_new, _old) =>
-		{
-			console.log(_new, _old);
-			console.log(objDiff({ one: 'two' }, { one: 'three' }));
-		}, { deep: true });
-		// #endregion
-
-		const reset = () =>
-		{
-			selectedTab.value = 'general';
-			generalReset();
-			emit('dialog-edition-hide');
-			dialog.value?.hide();
-		};
-
 		const getUsers = async () =>
 		{
 			api.get(`/chat/channel/get/no-messages/${props.channelId}`)
@@ -443,6 +359,39 @@ export default defineComponent({
 				{
 					loading.value = false;
 				});
+		};
+
+		const getUser = (id: number) =>
+		{
+			const ret: usersOptionsInterface = {
+				id: -1,
+				isCreator: false,
+				isAdmin: false,
+				isMuted: false,
+				isBanned: false
+			};
+			usersOptions.forEach((el) =>
+			{
+				if (el.id === id)
+				{
+					ret.id = el.id;
+					ret.isAdmin = el.isAdmin;
+					ret.isBanned = el.isBanned;
+					ret.isCreator = el.isCreator;
+					ret.isMuted = el.isMuted;
+					return el;
+				}
+			});
+			return ret;
+		};
+		// #endregion
+
+		const reset = () =>
+		{
+			selectedTab.value = 'general';
+			generalReset();
+			emit('dialog-edition-hide');
+			dialog.value?.hide();
 		};
 
 		watch(() => props.dialogEditionShow, (after, before) =>
@@ -475,13 +424,8 @@ export default defineComponent({
 			editGeneral,
 			// #endregion
 			// #region User tab
-			isCreator,
-			isAdministrator,
-			isMuted,
-			isBanned,
-			capitalize,
-			getUsersOptionsModel,
-			// #endregion
+			getUser,
+			// #endregion User tab
 			generalReset,
 			reset
 		};

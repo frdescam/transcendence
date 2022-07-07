@@ -1,4 +1,5 @@
 <template>
+	<p>UserId={{ userId }}</p>
 	<div class="q-pa-md" style="max-width: 100%;">
 		<q-list>
 			<template v-if="loading">
@@ -92,6 +93,7 @@
 		</q-list>
 	</div>
 	<dialog-creation
+		:userId="userId"
 		:dialogCreationShow="dialogCreationShow"
 		@dialog-creation-hide="dialogCreationShow = false"
 	/>
@@ -103,13 +105,13 @@
 		@dialog-password-ok="openDialogPasswordOk"
 	/>
 	<dialog-edition
+		:userId="userId"
 		:dialogEditionShow="dialogEditionShow"
 		:channelId="contextMenuSelectId"
 		:channelName="contextMenuSelectName"
 		:channelType="contextMenuSelectType"
 		:channelPassword="contextMenuSelectPassword"
 		:channelOwner="contextMenuSelectOwner"
-		:userId="userId"
 		@dialog-edition-hide="dialogEditionShow = false"
 	/>
 </template>
@@ -139,13 +141,16 @@ interface channelInterface {
 
 export default defineComponent({
 	name: 'chat_channel',
+	props: {
+		userId: Number
+	},
 	components: {
 		dialogCreation,
 		dialogDeletion,
 		dialogEdition,
 		dialogPassword
 	},
-	setup ()
+	setup (props)
 	{
 		const socket: Socket = inject('socketChat') as Socket;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
@@ -155,9 +160,6 @@ export default defineComponent({
 		const noError = ref(true);
 
 		const channels = ref(new Array<channelInterface>()); // eslint-disable-line no-array-constructor
-
-		// A modifier plus tard
-		const userId = ref(Number(localStorage.getItem('chat::user::id')));
 
 		const contextmenu = ref<QMenu | null>(null);
 		const contextMenuSelectId = ref(0);
@@ -230,7 +232,7 @@ export default defineComponent({
 					for (const channel of channels.value)
 					{
 						if (channel.id === contextMenuSelectId.value &&
-							channel.owner === userId.value)
+							channel.owner === props.userId)
 						{
 							contextMenuSelectId.value = channel.id;
 							contextMenuSelectName.value = channel.name;
@@ -302,7 +304,7 @@ export default defineComponent({
 						{
 							for (const user of res.data.channels[el].users)
 							{
-								if (user.id === userId.value)
+								if (user.id === props.userId)
 								{
 									channels.value.push({
 										id: res.data.channels[el].id,
@@ -327,7 +329,7 @@ export default defineComponent({
 
 			socket.on('newChannel', (ret) =>
 			{
-				if (ret.created && ret.data.owner.id === userId.value)
+				if (ret.created && ret.data.owner.id === props.userId)
 				{
 					channels.value.push({
 						id: ret.data.id,
@@ -375,8 +377,6 @@ export default defineComponent({
 			noError,
 
 			channels,
-
-			userId,
 
 			contextmenu,
 			contextMenuSelectId,

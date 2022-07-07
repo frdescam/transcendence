@@ -5,15 +5,16 @@ import { UsersService } from "src/users/services/users.service";
 import { AuthDto } from './dto';
 
 // add jwt later
+// dont forget log out
 
 @Injectable({})
 export class AuthService {
-    constructor(private jwt: JwtService, private readonly users_svc: UsersService) {}
+    constructor(private jwt_svc: JwtService, private readonly users_svc: UsersService) {}
 
     async login(user_dto: AuthDto): Promise<User> {
         const user: User = await this.users_svc.findOne(user_dto);
 
-        console.log(user);
+        //console.log(user);
 
 		if (!user)
             return undefined;

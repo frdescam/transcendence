@@ -5,13 +5,14 @@ import { AuthService } from '../auth.service';
 import { Strategy } from 'passport-oauth2';
 import { stringify } from 'querystring';
 import { ConfigService } from '@nestjs/config';
+
 import { AuthDto } from '../dto';
 import { User } from 'src/users/entities/user.entity';
 
 // maybe use STATE in request cos of attacks?
 
 @Injectable()
-export class FortyTwoStrategy extends PassportStrategy(Strategy, 'login')
+export class FortyTwoStrategy extends PassportStrategy(Strategy, 'login') // change login to auth?
 {
 	constructor(
 		config: ConfigService,
@@ -39,9 +40,6 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, 'login')
 			headers: { Authorization: `Bearer ${accessToken}` },
 		}).toPromise();
 
-        //return JWT? not here most likely
-        //return User; ???
-		
 		const user_dto: AuthDto = {
 			fortytwo_id: data.id,
 			pseudo: data.login,

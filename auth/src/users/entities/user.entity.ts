@@ -13,7 +13,9 @@ export enum TypesOf2FA {
     AUTH_APP = "auth_app" // TODO: check what 2FA types we implement
 }
 
-// wehre is the email?
+// Add refresh_token and status : online | offline?
+// add isTwoFactorAuthenticationEnabled boolean?
+// keep refresh token?
 
 @Entity()
 export class User extends BaseEntity {
@@ -23,7 +25,7 @@ export class User extends BaseEntity {
     @Column({nullable: true, unique: true}) //idk if column or other stuff here // if we dont do passwords then this shouldnt be null!
     public fortytwo_id: number; // marvin id to look for ppl;
 
-    @Column({type: "varchar", length: 50, unique: true}) // chnage to unique cos must be unique!
+    @Column({type: "varchar", length: 50, unique: true}) // change to unique cos must be unique!
     pseudo: string;
 
     @Column({type: "varchar", length: 50}) // is email even useful here? could erase mosty likely

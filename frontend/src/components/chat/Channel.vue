@@ -136,7 +136,10 @@ interface channelInterface {
 	type: string,
 	name: string,
 	password: string,
-	creationDate: Date
+	creationDate: Date,
+	admins: number[],
+	muted: number[],
+	banned: number[]
 }
 
 export default defineComponent({
@@ -232,7 +235,8 @@ export default defineComponent({
 					for (const channel of channels.value)
 					{
 						if (channel.id === contextMenuSelectId.value &&
-							channel.owner === props.userId)
+							(channel.owner === props.userId || channel.admins.includes(Number(props.userId)))
+						)
 						{
 							contextMenuSelectId.value = channel.id;
 							contextMenuSelectName.value = channel.name;
@@ -280,6 +284,23 @@ export default defineComponent({
 				return __colors[Math.floor(Math.random() * __colors.length)];
 			};
 
+			const generateData = (channel: any) =>
+			{
+				const ret: channelInterface = {
+					id: channel.id,
+					owner: channel.owner.id,
+					color: randomColor(),
+					type: channel.type,
+					name: channel.name,
+					password: channel.password,
+					creationDate: channel.creationDate,
+					admins: channel.admins.map((el: any) => el.id),
+					muted: channel.mutedUsers.map((el: any) => el.id),
+					banned: channel.bannedUsers.map((el: any) => el.id)
+				};
+				return ret;
+			};
+
 			api.get<any>('/chat/channel/get/no-messages')
 				.then((res) =>
 				{
@@ -289,32 +310,14 @@ export default defineComponent({
 					for (const el in res.data.channels)
 					{
 						if (res.data.channels[el].type === 'public' || res.data.channels[el].type === 'protected')
-						{
-							channels.value.push({
-								id: res.data.channels[el].id,
-								owner: res.data.channels[el].owner.id,
-								color: randomColor(),
-								type: res.data.channels[el].type,
-								name: res.data.channels[el].name,
-								password: res.data.channels[el].password,
-								creationDate: res.data.channels[el].creationDate
-							});
-						}
+							channels.value.push(generateData(res.data.channels[el]));
 						else
 						{
 							for (const user of res.data.channels[el].users)
 							{
 								if (user.id === props.userId)
 								{
-									channels.value.push({
-										id: res.data.channels[el].id,
-										owner: res.data.channels[el].owner.id,
-										color: randomColor(),
-										type: res.data.channels[el].type,
-										name: res.data.channels[el].name,
-										password: res.data.channels[el].password,
-										creationDate: res.data.channels[el].creationDate
-									});
+									channels.value.push(generateData(res.data.channels[el]));
 									break;
 								}
 							}
@@ -330,17 +333,7 @@ export default defineComponent({
 			socket.on('newChannel', (ret) =>
 			{
 				if (ret.created && ret.data.owner.id === props.userId)
-				{
-					channels.value.push({
-						id: ret.data.id,
-						owner: ret.data.owner.id,
-						color: randomColor(),
-						type: ret.data.type,
-						name: ret.data.name,
-						password: ret.data.password,
-						creationDate: ret.data.creationDate
-					});
-				}
+					channels.value.push();
 			});
 
 			socket.on('updateChannel', (ret) =>

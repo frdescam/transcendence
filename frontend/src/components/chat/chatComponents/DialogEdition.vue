@@ -13,12 +13,10 @@
 				:breakpoint="0"
 				v-model="selectedTab"
 			>
-				<q-tab name="general" icon="settings" :label="$t('chat.channel.menu.edit.tabs.general.title')" />
+				<q-tab v-if="isCreator(Number(userId))" name="general" icon="settings" :label="$t('chat.channel.menu.edit.tabs.general.title')" />
 				<q-tab name="users" icon="groups" :label="$t('chat.channel.menu.edit.tabs.user.title')" />
-				<q-tab name="mutedUsers" icon="voice_over_off" :label="$t('chat.channel.menu.edit.tabs.muted.title')" />
-				<q-tab name="bannedUsers" icon="person_off" :label="$t('chat.channel.menu.edit.tabs.banned.title')" />
 			</q-tabs>
-			<q-card-section>
+			<q-card-section style="max-height: 50vh" class="scroll">
 				<q-tab-panels
 					v-model="selectedTab"
 					animated
@@ -26,7 +24,7 @@
 					transition-prev="jump-left"
 					transition-next="jump-right"
 				>
-					<q-tab-panel name="general">
+					<q-tab-panel v-if="isCreator(Number(userId))" name="general">
 						<q-banner v-if="generalNameError" class="bg-red text-white">
 							{{ $t(`chat.channel.menu.edit.tabs.general.error.${generalNameError}`) }}
 						</q-banner>
@@ -134,15 +132,49 @@
 					<q-tab-panel name="users">
 						<q-list>
 							<template v-for="user in channel.users" v-bind:key="user.id">
-								<DialogEditionUserListVue :user="user" :info="getUser(Number(user.id))" />
+								<DialogEditionUserListVue
+									:user="user"
+									:info="getUser(Number(user.id))"
+									:connectedUser="getUser(Number(userId))"
+									@dialog-edition-users-timepicker="openTimepicker"
+								/>
 							</template>
+							<q-dialog
+								ref="timepicker"
+								model="fullWidth"
+								full-width
+								persistent
+							>
+								<q-card>
+									<q-card-section>
+										<div class="text-h6 text-center">
+											{{ $t(`chat.channel.menu.edit.tabs.user.timepicker.${timepickerType}`) }}
+										</div>
+									</q-card-section>
+									<q-card-section class="row no-wrap justify-evenly">
+										<q-date v-model="timepickerDate" mask="YYYY-MM-DD HH:mm" />
+										<q-time v-model="timepickerDate" mask="YYYY-MM-DD HH:mm" />
+									</q-card-section>
+									<q-card-actions align="right" class="text-primary">
+										<q-btn outline
+											color="secondary"
+											:label="$t('chat.channel.menu.edit.tabs.reset')"
+											@click="defineTimepickerValue"
+										/>
+										<q-btn flat
+											color="red-6"
+											:label="$t('chat.channel.menu.delete.cancel')"
+											v-close-popup
+										/>
+										<q-btn flat
+											:label="$t('chat.channel.menu.edit.tabs.user.apply')"
+											@click="submitTimepicker"
+											v-close-popup
+										/>
+									</q-card-actions>
+								</q-card>
+							</q-dialog>
 						</q-list>
-					</q-tab-panel>
-					<q-tab-panel name="mutedUsers">
-						<p>muted user</p>
-					</q-tab-panel>
-					<q-tab-panel name="bannedUsers">
-						<p>banned user</p>
 					</q-tab-panel>
 				</q-tab-panels>
 			</q-card-section>
@@ -384,6 +416,29 @@ export default defineComponent({
 			});
 			return ret;
 		};
+
+		const timepicker = ref<QDialog | null>(null);
+		const timepickerDate = ref<string>();
+		const timepickerType = ref<string>();
+
+		const defineTimepickerValue = () =>
+		{
+			const time = timestamp(new Date().toISOString());
+			const addPadding = (time: number) => (time < 10) ? `0${time}` : String(time);
+			timepickerDate.value = `${time.year}-${addPadding(time.month)}-${addPadding(time.day)} ${addPadding(time.hour)}:${addPadding(time.minute)}`;
+		};
+
+		const openTimepicker = (id: number, type: string) =>
+		{
+			defineTimepickerValue();
+			timepickerType.value = type;
+			timepicker.value?.show();
+		};
+
+		const submitTimepicker = () =>
+		{
+			console.log('submit');
+		};
 		// #endregion
 
 		const reset = () =>
@@ -399,6 +454,7 @@ export default defineComponent({
 			if (before === false && after === true)
 			{
 				getUsers();
+				selectedTab.value = isCreator(Number(props.userId)) ? 'general' : 'users';
 				generalName.value = props.channelName;
 				generalType.value = props.channelType;
 				dialog.value?.show();
@@ -410,6 +466,9 @@ export default defineComponent({
 			channel,
 			dialog,
 			selectedTab,
+			timepicker,
+			timepickerDate,
+			timepickerType,
 			// #region General tab
 			generalName,
 			generalType,
@@ -425,6 +484,10 @@ export default defineComponent({
 			// #endregion
 			// #region User tab
 			getUser,
+			isCreator,
+			defineTimepickerValue,
+			openTimepicker,
+			submitTimepicker,
 			// #endregion User tab
 			generalReset,
 			reset

@@ -25,7 +25,17 @@
 			/>
 		</q-item-section>
 		<q-separator vertical class="sep" />
-		<q-item-section class="option-section">
+		<q-item-section
+			class="option-section"
+			:style="(data.isCreator) ? 'cursor: not-allowed' : ''"
+		>
+			<q-tooltip
+				v-if="data.isCreator"
+				class="bg-purple text-body2"
+				anchor="top middle"
+			>
+				{{ $t('chat.channel.menu.edit.tabs.user.error.creator') }}
+			</q-tooltip>
 			<div class="toggle-section">
 				<span>{{ capitalize($t('chat.channel.menu.edit.tabs.user.badge.administrator')) }}</span>
 				<q-toggle
@@ -33,7 +43,7 @@
 					checked-icon="security"
 					color="green"
 					size="lg"
-					:disable="data.isCreator || !data.isAdmin"
+					:disable="data.isCreator || !connectedUser.isCreator"
 				/>
 			</div>
 			<div class="toggle-section">
@@ -43,7 +53,7 @@
 					checked-icon="dangerous"
 					color="green"
 					size="lg"
-					:disable="!data.isAdmin"
+					:disable="data.isCreator || !connectedUser.isAdmin"
 				/>
 			</div>
 			<div class="toggle-section">
@@ -53,7 +63,7 @@
 					checked-icon="dangerous"
 					color="green"
 					size="lg"
-					:disable="!data.isAdmin"
+					:disable="data.isCreator || !connectedUser.isAdmin"
 				/>
 			</div>
 		</q-item-section>
@@ -62,7 +72,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue';
+import { defineComponent, reactive, watch } from 'vue';
 
 interface usersOptionsInterface {
 	id: number,
@@ -74,7 +84,8 @@ interface usersOptionsInterface {
 
 export default defineComponent({
 	name: 'chat_dialog_edit_user_list',
-	props: ['user', 'info'],
+	props: ['user', 'info', 'connectedUser'],
+	emits: ['dialog-edition-users-timepicker'],
 	setup (props, { emit })
 	{
 		const data: usersOptionsInterface = reactive({
@@ -86,6 +97,23 @@ export default defineComponent({
 		});
 
 		const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);
+
+		watch(() => data.isAdmin, () =>
+		{
+			console.log('Admin change', data.isAdmin);
+		});
+		watch(() => data.isBanned, () =>
+		{
+			console.log('Banned change', data.isBanned);
+			if (data.isBanned)
+				emit('dialog-edition-users-timepicker', data.id, 'banned');
+		});
+		watch(() => data.isMuted, () =>
+		{
+			console.log('Muted change', data.isMuted);
+			if (data.isMuted)
+				emit('dialog-edition-users-timepicker', data.id, 'muted');
+		});
 
 		return {
 			data,

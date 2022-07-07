@@ -32,13 +32,15 @@ export default {
 								creator: 'creator',
 								muted: 'muted',
 								user: 'user'
-							}
-						},
-						muted: {
-							title: 'Muted users'
-						},
-						banned: {
-							title: 'Banned users'
+							},
+							timepicker: {
+								banned: 'Choose the date and time when the ban will end',
+								muted: 'Choose the date and time when the user will no longer be muted'
+							},
+							error: {
+								creator: 'The channel creator must be an administrator, and cannot be mute or banned'
+							},
+							apply: 'Apply'
 						},
 						reset: 'Reset',
 						apply: 'Apply changes',

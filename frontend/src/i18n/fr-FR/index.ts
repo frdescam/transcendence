@@ -32,13 +32,15 @@ export default {
 								creator: 'créateur',
 								muted: 'muet',
 								user: 'utilisateur'
-							}
-						},
-						muted: {
-							title: 'Utilisateurs muets'
-						},
-						banned: {
-							title: 'Utilisateurs interdits'
+							},
+							timepicker: {
+								banned: 'Choisissez la date et l\'heure auxquelles le bannissement prendra fin',
+								muted: 'Choisissez la date et l\'heure à laquelle l\'utilisateur ne sera plus muet'
+							},
+							error: {
+								creator: 'Le créateur du canal est obligatoirement un administrateur, et ne peut être ni muet ou banni'
+							},
+							apply: 'Appliquer'
 						},
 						reset: 'Réinitialiser',
 						apply: 'Appliquer les modifications',
@@ -51,7 +53,7 @@ export default {
 					explanation: 'Entrer le nom du canal pour confirmer sa suppression',
 					error: 'Le nom du canal ne correspond pas',
 					cancel: 'Annuler',
-					delete: 'Delete'
+					delete: 'Supprimer'
 				},
 				quit: 'Quitter le canal'
 			},

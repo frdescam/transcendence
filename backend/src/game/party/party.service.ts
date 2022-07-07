@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Interval } from '@nestjs/schedule';
 import { Party, partyStatus, pauseReason, map, Query } from './interfaces/party.interface';
+import { getPartyDto } from 'src/common/game/logic/getParty.dto';
 import { Clock } from 'three';  // @TODO : should find a lighter technologie
 import { bounceBall, serverState, team, teamNoneVal, partyQuery, userId } from 'src/common/game/logic/common';
 import maps from 'src/common/game/maps/headless';
@@ -11,12 +12,15 @@ import { Match } from 'src/match.entity';
 import { User } from 'src/user.entity';
 import { nanoid } from 'nanoid';
 
+export type listChangeCallback = (partyJson: getPartyDto) => void;
+
 @Injectable()
 export class PartyService
 {
     private parties: Party[] = [];
     private partiesBySocket: any = {};
     private queries: Query[] = [];
+    private onListChange: listChangeCallback | null = null;
 
     constructor (
         @InjectRepository(User)
@@ -185,6 +189,30 @@ export class PartyService
         }
     }
 
+    private handleListChange(party: Party, newState: Partial<serverState>, force: boolean = false)
+    {
+        let changed = force;
+
+        if (!this.onListChange)
+            return ;
+        if (!changed && ('avatars' in newState || 'scores' in newState || 'finish' in newState))
+            changed = true;
+        
+        const mutedParty: Party = {
+            ...party,
+            state: Object.assign({}, party.state, newState)
+        };
+
+        this.onListChange(
+            this.partyToPublicJson(mutedParty)
+        )
+    }
+
+    public setOnListChange(callback: listChangeCallback | null)
+    {
+        this.onListChange = callback;
+    }
+
     private run(party: Party, delta: number)
     {
         const date = new Date();
@@ -308,7 +336,7 @@ export class PartyService
 
     private sendState (party: Party, state: Partial<serverState>, sendFull: boolean = false, sendTeam: boolean = false)
     {
-        let stateToSend = sendFull ? Object.assign(party.state, state) : state;
+        let stateToSend = sendFull ? Object.assign({}, party.state, state) : state;
 
         if (party.status != partyStatus.Running && sendFull)
             stateToSend = Object.assign(stateToSend, {ballSpeedX: 0, ballSpeedY: 0});
@@ -323,7 +351,9 @@ export class PartyService
             {
                 this.sendSocketState(spectator, stateToSend, undefined);
             }
-        )
+        );
+
+        this.handleListChange(party, state);
     }
 
     private setState (party: Party, state: Partial<serverState>)
@@ -369,6 +399,7 @@ export class PartyService
                 ballSpeedY: Math.sin(ballAngle)
             }
         );
+        this.handleListChange(party, {}, true);
     }
 
     private retake (party: Party)
@@ -394,7 +425,8 @@ export class PartyService
                         ballSpeedX, ballSpeedY, ballX, ballY, positions
                     }
                 );
-                party.status = partyStatus.Running;            
+                party.status = partyStatus.Running;      
+                this.handleListChange(party, {}, true);      
                 break;
         
             default:
@@ -419,6 +451,7 @@ export class PartyService
                 textColor: 0x00ffff,
             }
         );
+        this.handleListChange(party, {}, true);
     }
 
     public pause (party: Party, reason: pauseReason)
@@ -490,6 +523,7 @@ export class PartyService
             if (party.status != partyStatus.Warmup)
                 party.statusData.previousStatus = party.status;
             party.status = partyStatus.Paused;
+            this.handleListChange(party, {}, true);
         }
         party.playersReady = [false, false];
     }
@@ -580,6 +614,7 @@ export class PartyService
         
         if (party.statusData.previousStatus == partyStatus.AwaitingPlayer && party.status == partyStatus.Paused)
         {
+            party.status = partyStatus.Finish;
             this.patchState(
                 party,
                 {
@@ -597,7 +632,6 @@ export class PartyService
                 true,
                 true
             );
-            party.status = partyStatus.Finish;
         }
         else
             this.onFinish(party, slot == 0 ? 1 : 0, slot);
@@ -675,7 +709,9 @@ export class PartyService
                         ballSpeedY: 0,
                     },
                     true
-                )
+                );
+
+                this.handleListChange(party, {}, true);
             }
             else
                 this.pause(party, pauseReason.Regain);
@@ -732,6 +768,7 @@ export class PartyService
         else
         {
             party = {
+                createdAt: new Date(),
                 room,
                 map,
                 clock: new Clock(),
@@ -783,6 +820,7 @@ export class PartyService
                 true
             );
 
+            this.handleListChange(party, {}, true);
             this.wireMatchingQuery(party);
 
             return (party);
@@ -900,5 +938,48 @@ export class PartyService
                 return (true);
             }
         );
+    }
+
+    public statusToString (status: partyStatus): string
+    {
+        switch (status) {
+            case partyStatus.AwaitingPlayer:
+                return "awaiting-player";
+            case partyStatus.Warmup:
+                return "warmup";
+            case partyStatus.Paused:
+                return "paused";
+            case partyStatus.IntroducingSleeve:
+                return "introducing-sleeve";
+            case partyStatus.Running:
+                return "running";
+            case partyStatus.Finish:
+                return "finish"
+                break;
+                    
+            default:
+                return "unknown";
+        }
+    }
+
+    public partyToPublicJson (party: Party): getPartyDto
+    {
+        const {createdAt, room, map, status, playersId, state: {avatars, scores, finish}} = party;
+
+        return ({
+            room,
+            createdAt: createdAt.toISOString(),
+            map,
+            status: this.statusToString(status),
+            players: playersId,
+            avatars,
+            scores,
+            finish
+        });
+    }
+
+    public getAllAsJSON(): getPartyDto[]
+    {
+        return (this.getAll().map(this.partyToPublicJson.bind(this)));
     }
 }

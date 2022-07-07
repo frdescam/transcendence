@@ -23,6 +23,7 @@ export enum pauseReason
 
 export interface Party
 {
+    createdAt: Date,
     room: string,
     map: string,
     clock: Clock,

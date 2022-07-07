@@ -1,57 +1,19 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, UsePipes, ValidationPipe } from '@nestjs/common';
-import { nanoid } from 'nanoid';
 import { PartyService } from './party.service';
 import { userId } from 'src/common/game/logic/common';
-import { Party, partyStatus } from './interfaces/party.interface';
+import { getPartyDto } from 'src/common/game/logic/getParty.dto';
 import { CreatePartyDto } from './createParty.dto';
-import { getPartyDto } from './getParty.dto';
 
 @Controller('party')
 export class PartyController
 {
     constructor (private partyService: PartyService)
     {}
-
-    private statusToString (status: partyStatus): string
-    {
-        switch (status) {
-            case partyStatus.AwaitingPlayer:
-                return "awaiting-player";
-            case partyStatus.Warmup:
-                return "warmup";
-            case partyStatus.Paused:
-                return "paused";
-            case partyStatus.IntroducingSleeve:
-                return "introducing-sleeve";
-            case partyStatus.Running:
-                return "running";
-            case partyStatus.Finish:
-                "finish"
-                break;
-                    
-            default:
-                return "unknown";
-        }
-    }
-
-    private partyToPublicJson (party: Party): getPartyDto
-    {
-        const {room, map, status, playersId, state: {avatars, scores}} = party;
-
-        return ({
-            room,
-            map,
-            status: this.statusToString(status),
-            players: playersId,
-            avatars,
-            scores
-        });
-    }
     
     @Get()
     findAll(): getPartyDto[]
     {
-        return (this.partyService.getAll().map(this.partyToPublicJson.bind(this)));
+        return (this.partyService.getAllAsJSON());
     }
 
     @Get('mine')
@@ -82,7 +44,7 @@ export class PartyController
     {
         const partyArr = this.partyService.getAll().filter(({room}) => (room == params.room));
 
-        return (partyArr.length ? this.partyToPublicJson(partyArr[0]) : null);
+        return (partyArr.length ? this.partyService.partyToPublicJson(partyArr[0]) : null);
     }
 
     @Post()

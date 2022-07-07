@@ -3,6 +3,7 @@ import { map } from './party/interfaces/party.interface';
 import { PartyService } from './party/party.service';
 import type { Socket, Server } from 'socket.io';
 import type { userId, Pong } from 'src/common/game/logic/common';
+import { getPartyDto } from 'src/common/game/logic/getParty.dto';
 
 @WebSocketGateway({
   namespace: 'game',
@@ -13,10 +14,13 @@ import type { userId, Pong } from 'src/common/game/logic/common';
 export class GameGateway
   implements OnGatewayDisconnect
 {
-  constructor(private partyService: PartyService) {}
+  constructor(private partyService: PartyService)
+  {
+    partyService.setOnListChange(this.onListChange.bind(this));
+  }
 
   @WebSocketServer()
-  server: Server;
+  protected server: Server;
 
   handleDisconnect(client: Socket)
   {
@@ -160,5 +164,31 @@ export class GameGateway
   ): void
   {
     this.partyService.leaveAllQuery(client);
+  }
+
+  @SubscribeMessage('game::list::start')
+  listStart(
+    @ConnectedSocket() client: Socket
+  ): void
+  {
+    client.join('game::list');
+    client.emit(
+      'game::list::full',
+      this.partyService.getAllAsJSON()
+    );
+  }
+
+  @SubscribeMessage('game::list::stop')
+  listStop(
+    @ConnectedSocket() client: Socket
+  ): void
+  {
+    client.leave('game::list');
+  }
+
+  public onListChange (partyJson: getPartyDto)
+  {
+    if (this.server)
+      this.server.to('game::list').emit('game::list::update', partyJson);
   }
 }

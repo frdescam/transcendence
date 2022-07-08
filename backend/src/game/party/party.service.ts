@@ -152,6 +152,8 @@ export class PartyService
                     undefined
                 );
             }
+
+            setTimeout(this.removeParty.bind(this, party), 10*1000);
         }
         catch (e)
         {
@@ -162,8 +164,10 @@ export class PartyService
                     textSize: 0.8,
                     textColor: 0xff0000,
                 }
-            )
+            );
+            setTimeout(this.removeParty.bind(this, party), 24*60*60*1000);
         }
+
     }
 
     private onOffside (party: Party, state: serverState)
@@ -824,6 +828,15 @@ export class PartyService
             this.wireMatchingQuery(party);
 
             return (party);
+        }
+    }
+
+    private removeParty (party: Party)
+    {
+        for (let i = 0; i < this.parties.length; ++i)
+        { 
+            if (this.parties[i] === party)
+                this.parties.splice(i, 1); 
         }
     }
 

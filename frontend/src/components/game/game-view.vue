@@ -218,6 +218,7 @@ defineExpose({
 	onClick,
 	admitDefeat,
 	setQuality,
+	resize,
 	state: readonly(state)
 });
 </script>

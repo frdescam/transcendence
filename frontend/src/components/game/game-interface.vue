@@ -12,7 +12,24 @@ const pong = ref<Ref | null>(null);
 
 function toggleFullscreen ()
 {
-	AppFullscreen.toggle(self.value);
+	AppFullscreen
+		.toggle(self.value)
+		.then(() =>
+		{
+			pong.value?.resize();
+			requestAnimationFrame(
+				function ()
+				{
+					requestAnimationFrame(
+						function ()
+						{
+							console.log("resize animation frame");
+							pong.value?.resize();
+						}
+					);
+				}
+			);
+		});
 }
 
 function teamActionIcon (state: interfaceState): string | undefined

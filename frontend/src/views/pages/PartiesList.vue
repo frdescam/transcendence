@@ -19,7 +19,7 @@
 			<q-btn v-else label="Game ended" class="q-mt-sm" icon="cancel" disable color="primary" />
 			<q-field class="link-to-game q-mt-sm" v-if="game.status != 'done'" outlined label="Link to game" stack-label>
 				<template v-slot:control>
-					<div class="self-center full-width no-outline" tabindex="0">http://localhost:3000/game/{{ game.room }}</div>
+					<div class="self-center full-width no-outline" tabindex="0">{{ baseUrl }}/game/{{ game.room }}</div>
 				</template>
 
 				<template v-slot:after>
@@ -51,13 +51,14 @@ function copyTextToClipboard (text: string)
 
 function createUrlAndCopyToClipboard (text: string)
 {
-	const url: string = "http://localhost:3000/game/" + text;
+	const url: string = window.location.origin + "/game/" + text;
 	copyTextToClipboard(url);
 }
 
 export default ({
 	setup ()
 	{
+		const baseUrl = window.location.origin;
 		const gameList = [
 			{
 				room: 'jvowmfk',
@@ -88,6 +89,7 @@ export default ({
 			}
 		];
 		return {
+			baseUrl,
 			createUrlAndCopyToClipboard,
 			gameList
 		};

@@ -25,6 +25,7 @@ export class UsersService {
 
     // need to test more!
     // and use this when changing pseudo too not just register
+    // cant have mutiple ppl with same pseudo nick, nickname
     private async getUniquePseudo(login: string): Promise<string> {
 		const found: User = await this.users_repo.findOne({ where: {pseudo: login} });
 

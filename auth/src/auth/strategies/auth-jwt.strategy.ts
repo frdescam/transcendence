@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { AuthDto } from '../dto'; // not needed for now
 import { User } from 'src/users/entities/user.entity';
-import { AuthService } from '../auth.service'; // update later
+import { AuthService } from '../services/auth.service'; // update later
 //import { TokenPayload } from '../interfaces/token-payload.interface'; // update later
 
 // Create token dto! 

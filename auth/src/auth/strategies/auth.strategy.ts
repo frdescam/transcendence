@@ -1,7 +1,7 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { AuthService } from '../auth.service';
+import { AuthService } from '../services/auth.service';
 import { Strategy } from 'passport-oauth2';
 import { stringify } from 'querystring';
 import { ConfigService } from '@nestjs/config';
@@ -9,10 +9,8 @@ import { ConfigService } from '@nestjs/config';
 import { AuthDto } from '../dto';
 import { User } from 'src/users/entities/user.entity';
 
-// maybe use STATE in request cos of attacks?
-
 @Injectable()
-export class FortyTwoStrategy extends PassportStrategy(Strategy, 'login') // change login to auth?
+export class FortyTwoStrategy extends PassportStrategy(Strategy, 'auth') // change to oauth?
 {
 	constructor(
 		config: ConfigService,

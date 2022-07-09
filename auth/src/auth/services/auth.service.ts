@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "src/users/entities/user.entity";
 import { UsersService } from "src/users/services/users.service";
-import { AuthDto } from './dto';
+import { AuthDto } from '../dto';
 
 // add jwt later
 // dont forget log out

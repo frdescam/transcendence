@@ -1,84 +1,17 @@
 import { Controller, Get, HttpCode, HttpStatus, Injectable, Query, Req, Response, UnauthorizedException, UseFilters, UseGuards } from "@nestjs/common";
-import { request, Request } from 'express';
-import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
 import { ConfigService } from "@nestjs/config";
 
-import { AuthService } from "./auth.service";
+import { JwtRefreshGuard } from "./guards/auth-jwt-refresh.guard";
+import { JwtAuthGuard } from "./guards/auth-jwt.guard";
+import { OAuthGuard } from "./guards/auth.guard";
+import { AuthService } from "./services/auth.service";
 import { CookiesService } from './services/cookies.service';
 import { AuthUser } from "./decorators/auth-user.decorator";
 import { User } from "src/users/entities/user.entity";
 
 
-// decide what guard im using!
-// 2:05:00 of nestjs video, use put guard in its own file
-// put this into its own file LULz
-
-/*
-import {
-    ExceptionFilter,
-    Catch,
-    ArgumentsHost,
-  } from '@nestjs/common';
-  import { Response } from 'express';
-import { TokenError } from "passport-oauth2";
-  
-  @Catch()
-  export class ViewAuthFilter implements ExceptionFilter {
-    catch(exception: [TokenError, UnauthorizedException], host: ArgumentsHost) {
-      const ctx = host.switchToHttp();
-      const response = ctx.getResponse<Response>();
-  
-      console.log("error");
-
-      // send to index or to error page?
-      response.redirect('/');
-    }
-}
-*/
-
-// OAuth guard
-@Injectable()
-export class OAuthGuard extends AuthGuard('login') { // change name of guard here
-	handleRequest<User>(error: any, user: User): User {
-		if (error || !user)
-        {
-         console.log("error: ", error, user);
-         throw new UnauthorizedException('OAuth guard failed.');
-            // send to index or to error page?
-            //response.redirect('/');
-        }
-		return user;
-	}
-}
-// *put this into its own file LULz
-
-// jwt guard
-@Injectable()
-export class JwtAuthGuard extends AuthGuard('auth-jwt') {
-	handleRequest<User>(error: any, user: User): User {
-		if (error || !user)
-        {
-            console.log("error: ", error, user);
-            throw new UnauthorizedException('Invalid JWT Token.');
-        }
-		return user;
-	}
-}
-// jwt refresh guard
-@Injectable()
-export class JwtRefreshGuard extends AuthGuard('auth-jwt-refresh') {
-	handleRequest<User>(error: any, user: User): User {
-		if (error || !user)
-        {
-            console.log("error: ", error, user);
-			throw new UnauthorizedException('Invalid JWT (Refresh) Token.');
-        }
-		return user;
-	}
-}
-// *put this into its own file LULz
-
-
+// change dis file to controllers/auth.controller.ts & add return types = async
 // cant have mutiple ppl with same pseudo nick, nickname
 // is authService needed now in constructor?
 // add async to route and stuff
@@ -101,12 +34,9 @@ export class AuthController {
         //return this.authService.auth();
     }
 
-    //@HttpCode(HttpStatus.UNAUTHORIZED)
     // stop using Requests -> use custom decorator + typeorm (vid 2:13:00).
-    // TODO *** JwtAuthStrategy guard!!!
     @UseGuards(OAuthGuard)
     @Get("test")
-    //@UseFilters(ViewAuthFilter)
     async test(@AuthUser() user: User, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
     {
         const auth = this.cookies_svc.getAuthJwtTokenCookie(
@@ -120,7 +50,6 @@ export class AuthController {
 		    //this.auth_svc.refresh(user, refresh.token);
 
         // if 2FA activated return obj to frontend to display 2FA to user, else set cookies with jwt (if logged in) and return to frontend obj two_factor_enabled: false.
-
         if (user.typeOf2FA !== "none") // use boolean in db instead of string?
         {
             return {
@@ -141,20 +70,18 @@ export class AuthController {
         });
 
         // return if 2FA or if logged to front end here! with a json obj
-
         return {
 			two_factor_enabled: false,
 		};
         
     }
 
-    //@UseFilters(ViewAuthFilter)
     @UseGuards(JwtAuthGuard)
     @Get("logged")
     logged(@Req() request: Request)//: Promise<any> {
     {
-        //console.log(request.cookies?.Authentication);
-        console.log(request.cookies);
+        //console.log(request.user);
+        //console.log(request.cookies);
 
         // how to clear cookie poc
         request.res.clearCookie("HAHA", {maxAge: 0,
@@ -189,10 +116,9 @@ export class AuthController {
 
     // change return type & add async
     @UseGuards(JwtRefreshGuard)
-    @Get("refresh") // change to logout
+    @Get("refresh")
     refresh(@Req() request: Request)//: Promise<any> {
     {
-        // just clear cookies
         return "refresh token working!";
     }
 }

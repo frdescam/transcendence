@@ -4,6 +4,7 @@ import { JwtService } from "@nestjs/jwt";
 import { User } from "../../users/entities/user.entity";
 
 // TODO here add types to payloads
+// create dtos
 
 // create its own dto?
 import { AuthDto } from '../dto';
@@ -38,7 +39,7 @@ export class CookiesService {
 	): { token: string; cookie: string } {
 		const secret = this.config.get('JWT_REFRESH_SECRET');
 		const lifetime = this.config.get('JWT_REFRESH_LIFETIME')
-		const payload: any = { user_id: user.id }; // any for now, create dto for this?
+		const payload: any = { user_id: user.id }; // any for now, create dto for this? // user_id or id?
 
 		const token = this.getJwtToken(payload, secret, lifetime);
 		const cookie = this.getJwtCookie(CookieType.REFRESH, token, lifetime);
@@ -55,7 +56,7 @@ export class CookiesService {
 	}
 
 	private getJwtToken(
-		payload: string | object, // why object here? // should be same dto i need to create for the payload in l38
+		payload: string | object, // why object here? // should be same dto i need to create for the payload in l38 (return object of func getRefreshJwtTokenCookie), and payload l27,41
 		secret: string,
 		lifetime: string,
 	): string {

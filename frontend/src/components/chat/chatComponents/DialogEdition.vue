@@ -136,7 +136,7 @@
 									:user="user"
 									:info="getUser(Number(user.id))"
 									:connectedUser="getUser(Number(userId))"
-									@dialog-edition-users-timepicker="openTimepicker"
+									@dialog-edition-users-timepicker="toggleChangeState"
 								/>
 							</template>
 							<q-dialog
@@ -195,8 +195,10 @@ interface usersOptionsInterface {
 	id: number,
 	isCreator: boolean,
 	isAdmin: boolean,
-	isMuted: boolean,
-	isBanned: boolean
+	bannedId: number,
+	isBanned: boolean,
+	mutedId: number,
+	isMuted: boolean
 }
 
 export default defineComponent({
@@ -350,10 +352,18 @@ export default defineComponent({
 			const currentDate = generateDate();
 			for (const muted of channel.value.mutedUsers)
 			{
-				if (muted.id === id)
-					return (compareDate(currentDate, timestamp(muted.until)) !== 0);
+				if (muted.user.id === id)
+				{
+					return ({
+						id: muted.id,
+						compare: (compareDate(currentDate, timestamp(muted.until)) !== 0)
+					});
+				}
 			}
-			return false;
+			return ({
+				id: -1,
+				compare: false
+			});
 		};
 
 		const isBanned = (id: number) =>
@@ -361,10 +371,18 @@ export default defineComponent({
 			const currentDate = generateDate();
 			for (const banned of channel.value.bannedUsers)
 			{
-				if (banned.id === id)
-					return (compareDate(currentDate, timestamp(banned.until)) !== 0);
+				if (banned.user.id === id)
+				{
+					return ({
+						id: banned.id,
+						compare: compareDate(currentDate, timestamp(banned.until)) !== 0
+					});
+				}
 			}
-			return false;
+			return ({
+				id: -1,
+				compare: false
+			});
 		};
 
 		const getUsers = async () =>
@@ -378,12 +396,17 @@ export default defineComponent({
 					channel.value = res.data.channel;
 					for (const i in channel.value.users)
 					{
+						const banned = isBanned(channel.value.users[i].id);
+						const muted = isMuted(channel.value.users[i].id);
+
 						usersOptions.push({
 							id: channel.value.users[i].id,
 							isCreator: isCreator(channel.value.users[i].id),
 							isAdmin: isAdministrator(channel.value.users[i].id),
-							isMuted: isMuted(channel.value.users[i].id),
-							isBanned: isBanned(channel.value.users[i].id)
+							bannedId: banned.id,
+							isBanned: banned.compare,
+							mutedId: muted.id,
+							isMuted: muted.compare
 						});
 					}
 				})
@@ -399,8 +422,10 @@ export default defineComponent({
 				id: -1,
 				isCreator: false,
 				isAdmin: false,
-				isMuted: false,
-				isBanned: false
+				bannedId: -1,
+				isBanned: false,
+				mutedId: -1,
+				isMuted: false
 			};
 			usersOptions.forEach((el) =>
 			{
@@ -408,8 +433,10 @@ export default defineComponent({
 				{
 					ret.id = el.id;
 					ret.isAdmin = el.isAdmin;
+					ret.bannedId = el.bannedId;
 					ret.isBanned = el.isBanned;
 					ret.isCreator = el.isCreator;
+					ret.mutedId = el.mutedId;
 					ret.isMuted = el.isMuted;
 					return el;
 				}
@@ -419,6 +446,8 @@ export default defineComponent({
 
 		const timepicker = ref<QDialog | null>(null);
 		const timepickerDate = ref<string>();
+		const timepickerIdEl = ref<number>();
+		const timepickerId = ref<number>();
 		const timepickerType = ref<string>();
 
 		const defineTimepickerValue = () =>
@@ -428,16 +457,38 @@ export default defineComponent({
 			timepickerDate.value = `${time.year}-${addPadding(time.month)}-${addPadding(time.day)} ${addPadding(time.hour)}:${addPadding(time.minute)}`;
 		};
 
-		const openTimepicker = (id: number, type: string) =>
+		const toggleChangeState = (id: number, idEl: number, value: boolean, type: string) =>
 		{
-			defineTimepickerValue();
-			timepickerType.value = type;
-			timepicker.value?.show();
+			if (value === true)
+			{
+				defineTimepickerValue();
+				timepickerIdEl.value = idEl;
+				timepickerId.value = id;
+				timepickerType.value = type;
+				timepicker.value?.show();
+				return;
+			}
+			console.log('hello');
+			socket.emit(`${type}::delete`, {
+				id: idEl,
+				userId: id,
+				channelId: props.channelId,
+				until: undefined
+			});
 		};
 
 		const submitTimepicker = () =>
 		{
-			console.log('submit');
+			const dateParse = /^(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2}) (?<hour>[0-9]{2}):(?<minute>[0-9]{2})$/.exec(String(timepickerDate.value));
+			if (!dateParse || !dateParse.groups)
+				return;
+			const date = new Date(`${dateParse.groups.year}-${dateParse.groups.month}-${dateParse.groups.day}T${dateParse.groups.hour}:${dateParse.groups.minute}:00.000Z`);
+			socket.emit(`${timepickerType.value}::set`, {
+				id: timepickerIdEl.value,
+				userId: timepickerId.value,
+				channelId: props.channelId,
+				until: date
+			});
 		};
 		// #endregion
 
@@ -486,7 +537,7 @@ export default defineComponent({
 			getUser,
 			isCreator,
 			defineTimepickerValue,
-			openTimepicker,
+			toggleChangeState,
 			submitTimepicker,
 			// #endregion User tab
 			generalReset,

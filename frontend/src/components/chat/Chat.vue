@@ -395,7 +395,7 @@ export default defineComponent({
 			// #endregion
 
 			// #region New message
-			socket.on('newMessage', (res) =>
+			socket.on('message::receive::add', (res) =>
 			{
 				const newMessages: messageInterface = {
 					user: {
@@ -430,7 +430,7 @@ export default defineComponent({
 			// #endregion
 
 			// #region Update message
-			socket.on('updateMessage', (res) =>
+			socket.on('message::receive::update', (res) =>
 			{
 				if (!res.data.content.length)
 				{
@@ -477,7 +477,7 @@ export default defineComponent({
 				}
 			};
 
-			socket.on('deleteMessage', (res) =>
+			socket.on('message::receive::delete', (res) =>
 			{
 				deleteMessage(res);
 			});

@@ -8,6 +8,7 @@ import { BannedService } from './banned.service';
 @Module({
   imports: [TypeOrmModule.forFeature([Banned])],
   controllers: [BannedController],
-  providers: [BannedService]
+  providers: [BannedService],
+  exports: [BannedService]
 })
 export class BannedModule {}

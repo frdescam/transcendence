@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryBuilder, Repository, SelectQueryBuilder } from 'typeorm';
 import * as argon2 from 'argon2';
 
 import { ChannelDTO } from '../orm/channel.dto';
 import { Channel } from '../orm/channel.entity';
-import { Message } from '../orm/message.entity';
+import { Banned } from '../orm/banned.entity';
+import { Muted } from '../orm/muted.entity';
 
 @Injectable()
 export class ChannelService {
@@ -15,47 +16,59 @@ export class ChannelService {
   ) {}
 
   getAll(): Promise<Channel[]> {
-    return this.channelRepository.createQueryBuilder('channel')
-      .leftJoinAndSelect('channel.owner', 'user')
-      .leftJoinAndSelect('channel.messages', 'message')
-      .leftJoinAndSelect('channel.bannedUsers', 'banned')
-      .leftJoinAndSelect('channel.mutedUsers', 'muted')
-      .leftJoinAndSelect('channel.admins', 'channel_admins_user')
-      .leftJoinAndSelect('channel.users', 'channel_users_user')
-      .getMany();
+    return this.channelRepository.find({
+      relations: [
+        'owner',
+        'messages',
+        'admins',
+        'users',
+        'bannedUsers', 'bannedUsers.user',
+        'mutedUsers', 'mutedUsers.user'
+      ]
+    });
   }
 
   getOne(id: number): Promise<Channel> {
-    return this.channelRepository.createQueryBuilder('channel')
-      .leftJoinAndSelect('channel.owner', 'user')
-      .leftJoinAndSelect('channel.messages', 'message')
-      .leftJoinAndSelect('channel.bannedUsers', 'banned')
-      .leftJoinAndSelect('channel.mutedUsers', 'muted')
-      .leftJoinAndSelect('channel.users', 'channel_users_user')
-      .leftJoinAndSelect('channel.admins', 'channel_admins_user')
-      .where('channel.id = :id', { id: id })
-      .getOne();
+    return this.channelRepository.findOne({
+      where: {
+        id: id
+      },
+      relations: [
+        'owner',
+        'messages',
+        'admins',
+        'users',
+        'bannedUsers', 'bannedUsers.user',
+        'mutedUsers', 'mutedUsers.user'
+      ]
+    });
   }
 
   getAllNoMessages(): Promise<Channel[]> {
-    return this.channelRepository.createQueryBuilder('channel')
-      .leftJoinAndSelect('channel.owner', 'user')
-      .leftJoinAndSelect('channel.bannedUsers', 'banned')
-      .leftJoinAndSelect('channel.mutedUsers', 'muted')
-      .leftJoinAndSelect('channel.admins', 'channel_admins_user')
-      .leftJoinAndSelect('channel.users', 'channel_users_user')
-      .getMany();
+    return this.channelRepository.find({
+      relations: [
+        'owner',
+        'admins',
+        'users',
+        'bannedUsers', 'bannedUsers.user',
+        'mutedUsers', 'mutedUsers.user'
+      ]
+    });
   }
 
   getOneNoMessages(id: number): Promise<Channel> {
-    return this.channelRepository.createQueryBuilder('channel')
-      .leftJoinAndSelect('channel.owner', 'user')
-      .leftJoinAndSelect('channel.bannedUsers', 'banned')
-      .leftJoinAndSelect('channel.mutedUsers', 'muted')
-      .leftJoinAndSelect('channel.admins', 'channel_admins_user')
-      .leftJoinAndSelect('channel.users', 'channel_users_user')
-      .where('channel.id = :id', { id: id })
-      .getOne();
+    return this.channelRepository.findOne({
+      where: {
+        id: id
+      },
+      relations: [
+        'owner',
+        'admins',
+        'users',
+        'bannedUsers', 'bannedUsers.user',
+        'mutedUsers', 'mutedUsers.user'
+      ]
+    });
   }
 
   async create(data: ChannelDTO) {

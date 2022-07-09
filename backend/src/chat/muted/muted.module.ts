@@ -8,6 +8,7 @@ import { MutedService } from './muted.service';
 @Module({
   imports: [TypeOrmModule.forFeature([Muted])],
   controllers: [MutedController],
-  providers: [MutedService]
+  providers: [MutedService],
+  exports: [MutedService]
 })
 export class MutedModule {}

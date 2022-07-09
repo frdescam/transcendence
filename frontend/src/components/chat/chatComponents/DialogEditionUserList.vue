@@ -78,8 +78,10 @@ interface usersOptionsInterface {
 	id: number,
 	isCreator: boolean,
 	isAdmin: boolean,
-	isMuted: boolean,
-	isBanned: boolean
+	bannedId: number,
+	isBanned: boolean,
+	mutedId: number,
+	isMuted: boolean
 }
 
 export default defineComponent({
@@ -92,7 +94,9 @@ export default defineComponent({
 			id: props.user.id,
 			isCreator: props.info.isCreator,
 			isAdmin: props.info.isAdmin,
+			mutedId: props.info.mutedId,
 			isMuted: props.info.isMuted,
+			bannedId: props.info.bannedId,
 			isBanned: props.info.isBanned
 		});
 
@@ -104,15 +108,11 @@ export default defineComponent({
 		});
 		watch(() => data.isBanned, () =>
 		{
-			console.log('Banned change', data.isBanned);
-			if (data.isBanned)
-				emit('dialog-edition-users-timepicker', data.id, 'banned');
+			emit('dialog-edition-users-timepicker', data.id, data.bannedId, data.isBanned, 'banned');
 		});
 		watch(() => data.isMuted, () =>
 		{
-			console.log('Muted change', data.isMuted);
-			if (data.isMuted)
-				emit('dialog-edition-users-timepicker', data.id, 'muted');
+			emit('dialog-edition-users-timepicker', data.id, data.mutedId, data.isMuted, 'muted');
 		});
 
 		return {

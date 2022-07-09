@@ -14,10 +14,29 @@ import { MessageDTO } from './orm/message.dto';
 
 import { UserService } from 'src/user/user/user.service';
 import { ChannelService } from './channel/channel.service';
+import { MutedService } from './muted/muted.service';
+import { BannedService } from './banned/banned.service';
 
 import * as crypto from 'crypto';
+
 import { ChannelDTO } from './orm/channel.dto';
 import { channelTypesDTO } from './orm/channelTypes.dto';
+import { MutedDTO } from './orm/muted.dto';
+
+interface interfaceMuted {
+  id: number,
+  userId: number,
+  channelId: number,
+  until: Date
+}
+
+interface receiveChannel {
+  id: number,
+  creator: number,
+  name: string,
+  type: string,
+  password: string
+}
 
 interface receiveMessage {
   id: number,
@@ -27,6 +46,7 @@ interface receiveMessage {
   timestamp: Date,
   hash: string
 }
+
 interface updateMessage {
   id: number,
   channel: number,
@@ -35,14 +55,6 @@ interface updateMessage {
   length: number,
   timestamp: Date,
   hash: string
-}
-
-interface receiveChannel {
-  id: number,
-  creator: number,
-  name: string,
-  type: string,
-  password: string
 }
 
 const getType = (type: string) => {
@@ -69,7 +81,9 @@ export class MainGateway implements NestGateway
   constructor(
     private readonly messageService: MessageService,
     private readonly userService: UserService,
-    private readonly channelService: ChannelService
+    private readonly channelService: ChannelService,
+    private readonly mutedService: MutedService,
+    private readonly bannedService: BannedService
   ) {}
 
   @WebSocketServer() server: Server;
@@ -88,6 +102,42 @@ export class MainGateway implements NestGateway
     this.server.emit('clientDisconnect', client.id);
   }
   
+  //#region Muted
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('muted::set')
+  async setMuted(muted: interfaceMuted, sender: Socket) {
+    this.logger.log(`Client ${sender.id} mute user ${muted.userId} until ${muted.until}`);
+    const __newMuted: MutedDTO = {
+      id: undefined,
+      channel: await this.channelService.getOne(muted.channelId),
+      user: await this.userService.getOne(muted.userId),
+      until: new Date(muted.until)
+    };
+    const ret = await this.mutedService.set(__newMuted);
+    if (ret.set === false)
+      throw new Error(ret.message);
+    else
+      this.server.emit('muted::receive::set', ret);
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('muted::delete')
+  async deleteMuted(muted: interfaceMuted, sender: Socket) {
+    this.logger.log(`Client ${sender.id} unmute user ${muted.userId}`);
+    const __newMuted: MutedDTO = {
+      id: muted.id,
+      channel: undefined,
+      user: undefined,
+      until: undefined
+    };
+    const ret = await this.mutedService.delete(__newMuted);
+    if (ret.deleted === false)
+      throw new Error(ret.message);
+    else
+      this.server.emit('muted::receive::delete', ret);
+  }
+  //#endregion
+
   //#region Channel
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('channel::add')
@@ -111,7 +161,7 @@ export class MainGateway implements NestGateway
     if (ret.created === false)
       throw new Error(ret.message);
     else
-      this.server.emit('newChannel', ret);
+      this.server.emit('channel::receive::add', ret);
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -134,7 +184,7 @@ export class MainGateway implements NestGateway
     if (ret.updated === false)
       throw new Error(ret.message);
     else
-      this.server.emit('updateChannel', ret);
+      this.server.emit('channel::receive::update', ret);
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -158,7 +208,7 @@ export class MainGateway implements NestGateway
     if (ret.deleted === false)
       throw new Error(ret.message);
     else
-      this.server.emit('deleteChannel', ret);
+      this.server.emit('channel::receive::delete', ret);
   }
   // #endregion
 
@@ -183,7 +233,7 @@ export class MainGateway implements NestGateway
     if (ret.created === false)
       throw new Error(ret.message);
     else
-      this.server.emit('newMessage', ret);
+      this.server.emit('message::receive::add', ret);
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -206,7 +256,7 @@ export class MainGateway implements NestGateway
     if (ret.updated === false)
       throw new Error(ret.message);
     else
-      this.server.emit('updateMessage', ret);
+      this.server.emit('message::receive::update', ret);
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -229,7 +279,7 @@ export class MainGateway implements NestGateway
     if (ret.deleted === false)
       throw new Error(ret.message);
     else
-      this.server.emit('deleteMessage', ret);
+      this.server.emit('message::receive::delete', ret);
   }
   // #endregion
 }

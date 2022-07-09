@@ -330,13 +330,13 @@ export default defineComponent({
 					noError.value = false;
 				});
 
-			socket.on('newChannel', (ret) =>
+			socket.on('channel::receive::add', (ret) =>
 			{
 				if (ret.created && ret.data.owner.id === props.userId)
 					channels.value.push();
 			});
 
-			socket.on('updateChannel', (ret) =>
+			socket.on('channel::receive::update', (ret) =>
 			{
 				for (const i in channels.value)
 				{
@@ -351,7 +351,7 @@ export default defineComponent({
 				}
 			});
 
-			socket.on('deleteChannel', (ret) =>
+			socket.on('channel::receive::delete', (ret) =>
 			{
 				for (const i in channels.value)
 				{

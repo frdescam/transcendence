@@ -12,37 +12,27 @@ export class MutedService {
     private mutedRepository: Repository<Muted>,
   ) {}
 
-  async getOne(channelId: number, userId: number): Promise<Muted> {
-    const data = await this.mutedRepository.createQueryBuilder('muted')
+  async getOne(channelId: number, userId: number): Promise<Muted>
+  {
+    return this.mutedRepository.createQueryBuilder('muted')
+      .where('muted.channel.id = :id', { id: channelId })
+      .where('muted.user.id = :id', { id: userId })
+      .leftJoinAndSelect('muted.channel', 'channel')
+      .leftJoinAndSelect('muted.user', 'user')
+      .getOne();
+  }
+
+  async getAll(channelId: number): Promise<Muted[]>
+  {
+    return this.mutedRepository.createQueryBuilder('muted')
+      .where('muted.channel.id = :id', { id: channelId })
       .leftJoinAndSelect('muted.channel', 'channel')
       .leftJoinAndSelect('muted.user', 'user')
       .getMany();
-    for (const el of data)
-    {
-      if (
-        Number(el.channel.id) === Number(channelId)
-        && Number(el.user.id) === Number(userId)
-      )
-        return el;
-    }
-    return null;
   }
 
-  async getAll(channelId: number): Promise<Muted[]> {
-    const ret = new Array<Muted>;
-    const data = await this.mutedRepository.createQueryBuilder('muted')
-      .leftJoinAndSelect('muted.channel', 'channel')
-      .leftJoinAndSelect('muted.user', 'user')
-      .getMany();
-    for (const el of data)
-    {
-      if (Number(el.channel.id) === Number(channelId))
-        ret.push(el);
-    }
-    return ret;
-  }
-
-  async isMuted(channelId: number, userId: number): Promise<unknown> {
+  async isMuted(channelId: number, userId: number): Promise<unknown>
+  {
     const muted = await this.getOne(channelId, userId);
     if (!muted)
       return {
@@ -52,7 +42,7 @@ export class MutedService {
     const currentDate = new Date();
     if (untilDate.getTime() <= currentDate.getTime()) {
       return {
-        isDeleted: await this.delete(channelId, userId),
+        isDeleted: await this.delete(muted),
         isMuted: false
       };
     }
@@ -62,45 +52,92 @@ export class MutedService {
     };
   }
 
-  async add(channelId: number, userId: number, milliseconds: number) {
-    const user = await this.getOne(channelId, userId);
-    const newDate = new Date(user.until);
-    newDate.setDate(newDate.getTime() + milliseconds);
-    user.until = newDate;
-    await this.mutedRepository.update({ id: user.id }, user);
-  }
-
-  async remove(channelId: number, userId: number, milliseconds: number) {
-    const user = await this.getOne(channelId, userId);
-    const newDate = new Date(user.until);
-    newDate.setDate(newDate.getTime() - milliseconds);
-    user.until = newDate;
-    await this.mutedRepository.update({ id: user.id }, user);
-  }
-
-  async update(channelId: number, userId: number, data: MutedDTO) {
-    const tempId = data.id;
-    delete data.id;
-    const update = await this.getOne(channelId, userId);
-    data.until = new Date(data.until);
-    await this.mutedRepository.update({ id: tempId }, update);
-  }
-
-  async delete(channelId: number, userId: number) {
-    const user = await this.getOne(channelId, userId);
+  async set(data: MutedDTO)
+  {
     try {
-      await this.mutedRepository.delete({ id: user.id });
+      if (await this.getOne(data.channel.id, data.user.id) !== undefined)
+      {
+        const setUser = await this.update(data);
+        return {
+          message: 'Muted user success',
+          data: setUser.data,
+          set: true
+        };
+      }
+      else
+      {
+        const setUser = this.mutedRepository.createQueryBuilder()
+          .insert()
+          .into(Muted)
+          .values([
+            {
+              channel: data.channel,
+              user: data.user,
+              until: data.until
+            }
+          ])
+          .execute();
+        return {
+          message: 'Muted user success',
+          data: setUser,
+          set: true
+        };
+      }
+      
+    } catch (___) {
       return {
-        message: 'User is no longer muted',
-        deleted: true,
-        userId: user.id,
+        message: 'Muted user failed',
+        data: undefined,
+        set: false
       };
     }
-    catch (___) {
+  }
+
+  async update(data: MutedDTO)
+  {
+    try {
+      const updateUser = await this.mutedRepository.createQueryBuilder('muted')
+        .update()
+        .set({
+          until: data.until
+        })
+        .where('muted.channel.id = :id', { id: data.channel.id })
+        .where('muted.user.id = :id', { id: data.user.id })
+        .execute();
       return {
-        message: 'An error has occurred, user is still muted',
+        message: 'Muted user update success',
+        data: updateUser,
+        update: true
+      };
+    } catch (___) {
+      return {
+        message: 'Muted user update failed',
+        data: undefined,
+        update: false
+      };
+    }
+  }
+
+  async delete(data: MutedDTO)
+  {
+    try {
+      await this.mutedRepository.createQueryBuilder()
+        .delete()
+        .from(Muted)
+        .where('id = :id', { id: data.id })
+        .execute();
+      return {
+        message: 'Muted user deleted',
+        id: data.id,
+        timestamp: Date,
+        deleted: true,
+      };
+    } catch (___) {
+      return {
+        message: 'Muted user don\'t deleted',
+        id: data.id,
+        timestamp: Date,
         deleted: false,
-        userId: user.id,
       };
     }
   }

@@ -4,7 +4,7 @@ import { AppFullscreen, Dialog } from 'quasar';
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
 import { gameSocket } from 'src/boot/socketio';
 import Scene, { mapConfig, options } from './canvas/scene';
-import config from './maps/forest';
+import config from './maps/synthwave';
 
 import type { state as commonState, Ping, Pong } from 'src/common/game/logic/common';
 
@@ -123,7 +123,7 @@ function onConnected ()
 		'party::create',
 		{
 			room: props.party,
-			map: 'forest'
+			map: 'synthwave'
 		}
 	);
 

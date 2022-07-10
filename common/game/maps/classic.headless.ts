@@ -6,10 +6,12 @@ const config: Partial<mapConfig> = {
 	cameraClip: [1, 45],
 	fov: 56,
 	forceRotationRatio: 1.3,
+	effects: ['film'],
 	skyboxAsEnvironment: false,
 	EnvironmentColor: 0xffffff,
 	lightDecayFactor: 0.5,
 	lightIntensityFactor: 0.15,
+	hasShadow: false,
 	transitionSpeed: 2,
 	playCameraPosition: new Vector3(0, 68.5, 11.5),
 	playCameraRotation: new Euler(-Math.PI / 2 * 0.88, 0, 0),
@@ -22,6 +24,7 @@ const config: Partial<mapConfig> = {
 	baseSize: [65, 53],
 	playerSize: [1, 3.75],
 	moveSteps: 70,
+	scoreFontHeight: 1,
 	scorePositions: [
 		new Vector3(-(32.5 - 8), 4, -(53 / 2 + 4)),
 		new Vector3((32.5 - 8), 4, -(53 / 2 + 4))
@@ -35,6 +38,7 @@ const config: Partial<mapConfig> = {
 		new Vector3(42, 4, 0)
 	],
 	avatarScale: 1.25,
+	textFontHeight: 1,
 	textPausePosition: new Vector3(0, 15, 10),
 	textPauseRotation: new Euler(-Math.PI / 2 * 0.75, 0, 0),
 	textPlayPosition: new Vector3(0, 8, 0),

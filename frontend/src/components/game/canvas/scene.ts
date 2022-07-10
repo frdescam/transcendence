@@ -1,5 +1,11 @@
 'use strict';
-import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Material, Texture, PlaneBufferGeometry, BoxBufferGeometry, ShadowMapType, LinearMipmapNearestFilter, BufferGeometry, Light, Object3D, SpotLight, PointLight, WebGLRenderTarget } from 'three';
+import { Notify } from 'quasar';
+import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Material, Texture, PlaneBufferGeometry, BoxBufferGeometry, ShadowMapType, LinearMipmapNearestFilter, BufferGeometry, Light, Object3D, SpotLight, PointLight, WebGLRenderTarget, AnimationMixer, Vector2 } from 'three';
+import { EffectComposer, Pass } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
@@ -8,10 +14,9 @@ import { quality, qualities } from './qualities';
 import clientLogic from '../logic/client';
 import { state } from 'src/common/game/logic/common';
 
-import { Notify } from 'quasar';
-
 import type { mapConfig } from 'src/common/game/logic/mapConfig';
 import type { Material as ThreeMaterial } from 'three';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 
 type onMoveCallback = ((position: number) => void) | null;
 type onStateChangeCallback = ((state: state) => void) | null;
@@ -28,7 +33,7 @@ type options = {
 	onStateChange: onStateChangeCallback,
 };
 
-type disposable = ThreeMaterial | BufferGeometry | Texture | Light | WebGLRenderer;
+type disposable = ThreeMaterial | BufferGeometry | Texture | Light | WebGLRenderer | Pass | AnimationMixer;
 
 const supportedDeltaModes = [0, 1, 2];
 
@@ -56,7 +61,14 @@ class PongScene
 	protected disposable: disposable[];
 	protected scene: Scene;
 	protected envTexture: Texture | null;
+	protected useEffects: boolean;
 	protected renderer: WebGLRenderer;
+	protected composer: EffectComposer;
+	protected renderPass: RenderPass;
+	protected fxaaPass: ShaderPass;
+	protected bloomPass: UnrealBloomPass;
+	protected filmPass: FilmPass;
+	protected mixer: AnimationMixer;
 	protected camera: PerspectiveCamera;
 	protected floorMirror: Reflector | null;
 	protected floor: Mesh;
@@ -187,6 +199,16 @@ class PongScene
 		this.renderer.outputEncoding = LinearEncoding;
 		this.renderer.toneMapping = ACESFilmicToneMapping;
 
+		this.useEffects = false;
+		this.composer = new EffectComposer(this.renderer);
+
+		this.renderPass = new RenderPass(this.scene, this.camera);
+		this.fxaaPass = new ShaderPass(FXAAShader);
+		this.bloomPass = new UnrealBloomPass(new Vector2(1, 1), 0.4, 0.5, 0.1);
+		this.filmPass = new FilmPass(0.1, 0.25, 648, 0);
+
+		this.mixer = new AnimationMixer(this.scene);
+
 		const ballGeometry = new BoxBufferGeometry(gameScale, gameScale, gameScale);
 		this.track(ballGeometry);
 		this.ball = new Mesh(ballGeometry, ballMaterial);
@@ -263,6 +285,12 @@ class PongScene
 							this.track(node as disposable);
 					});
 					this.scene.add(gltf.scene);
+					gltf.animations.forEach(
+						(clip) =>
+						{
+							this.mixer.clipAction(clip).play();
+						}
+					);
 					this._refreshQuality();
 				}
 			);
@@ -296,6 +324,7 @@ class PongScene
 
 		this._refreshQuality();
 		this._refreshSize();
+		this._refreshAvatar();
 
 		this.loadingManager.onLoad =
 			() =>
@@ -317,7 +346,7 @@ class PongScene
 			this.loadingManager.onError = onError;
 	}
 
-	_getFontGeometry (font: Font, text: string, sizeRatio = 1)
+	_getFontGeometry (font: Font, text: string, sizeRatio = 1, fontHeight)
 	{
 		const { gameScale } = this.config;
 
@@ -327,8 +356,8 @@ class PongScene
 				{
 					font,
 					size: 8 * gameScale * sizeRatio,
-					height: 1 * gameScale * sizeRatio,
-					curveSegments: 3,
+					height: fontHeight * gameScale * sizeRatio,
+					curveSegments: 2,
 					bevelEnabled: false
 				}
 			);
@@ -426,11 +455,62 @@ class PongScene
 		this._refreshEnv(canUseSkyboxAsEnvironment);
 	}
 
+	_addEffect (effectName: string)
+	{
+		switch (effectName)
+		{
+		case 'bloom':
+			this.composer.addPass(this.bloomPass);
+			break;
+
+		case 'film':
+			this.composer.addPass(this.filmPass);
+			break;
+
+		default:
+			console.warn("Map config provide unrecognized effect");
+			break;
+		}
+	}
+
+	_refreshEffect ()
+	{
+		const {
+			effects
+		} = this.config;
+		const {
+			qualityLevel
+		} = this.options;
+		const {
+			allowedEffects,
+			critical
+		} = qualities[qualityLevel] as quality;
+
+		this.useEffects = false;
+		this.composer.passes = [];
+		this.composer.addPass(this.renderPass);
+		this.composer.addPass(this.fxaaPass);
+
+		if (critical || !allowedEffects)
+			return;
+		effects.forEach(
+			(effectName: string) =>
+			{
+				if (allowedEffects.indexOf(effectName) !== -1)
+				{
+					this.useEffects = true;
+					this._addEffect(effectName);
+				}
+			}
+		);
+	}
+
 	_refreshQuality ()
 	{
 		const {
 			sceneFile, additionnalLight,
-			skybox, skyboxAsEnvironment, EnvironmentColor
+			skybox, skyboxAsEnvironment, EnvironmentColor,
+			hasShadow
 		} = this.config;
 		const {
 			qualityLevel
@@ -448,7 +528,7 @@ class PongScene
 		else
 			this.renderer.setPixelRatio(pixelRatio || 1);
 
-		if (useShadowmap)
+		if (useShadowmap && hasShadow)
 		{
 			this.renderer.shadowMap.enabled = true;
 			this.renderer.shadowMap.type = (shadowmap as ShadowMapType);
@@ -513,6 +593,8 @@ class PongScene
 				}
 			}
 		);
+
+		this._refreshEffect();
 	}
 
 	_refreshSize ()
@@ -526,6 +608,7 @@ class PongScene
 		} = this.config;
 
 		this.renderer.setSize(width, height);
+		this.composer.setSize(width, height);
 		this.camera.aspect = width / height;
 
 		if (width * 0.5625 < height)
@@ -545,7 +628,11 @@ class PongScene
 
 		this.camera.updateProjectionMatrix();
 		this._refreshFloorReflection();
-		// this.renderer.render(this.scene, this.camera);
+
+		const pixelRatio = this.renderer.getPixelRatio();
+
+		this.fxaaPass.material.uniforms.resolution.value.x = 1 / (width * pixelRatio);
+		this.fxaaPass.material.uniforms.resolution.value.y = 1 / (height * pixelRatio);
 	}
 
 	_setPosition (ratio: number)
@@ -644,7 +731,7 @@ class PongScene
 	_refreshScore ()
 	{
 		const { scores } = this.state;
-		const { gameScale, scoreMaterial, scorePositions, scoreRotations } = this.config;
+		const { gameScale, scoreMaterial, scoreFontHeight, scorePositions, scoreRotations } = this.config;
 
 		if (!this.scoreFont)
 		{
@@ -658,7 +745,7 @@ class PongScene
 			this.leftScore.geometry.dispose();
 		}
 
-		const leftScoreGeometry = this._getFontGeometry(this.scoreFont, scores[0] + '');
+		const leftScoreGeometry = this._getFontGeometry(this.scoreFont, scores[0] + '', undefined, scoreFontHeight);
 		this.leftScore = new Mesh(leftScoreGeometry, scoreMaterial);
 		this.leftScore.receiveShadow = true;
 		this.leftScore.castShadow = true;
@@ -674,7 +761,7 @@ class PongScene
 			this.rightScore.geometry.dispose();
 		}
 
-		const rightScoreGeometry = this._getFontGeometry(this.scoreFont, scores[1] + '');
+		const rightScoreGeometry = this._getFontGeometry(this.scoreFont, scores[1] + '', undefined, scoreFontHeight);
 		this.rightScore = new Mesh(rightScoreGeometry, scoreMaterial);
 		this.rightScore.receiveShadow = true;
 		this.rightScore.castShadow = true;
@@ -742,7 +829,7 @@ class PongScene
 	_refreshText ()
 	{
 		const { text, textSize, textColor, paused } = this.state;
-		const { gameScale, textMaterial, textPausePosition, textPlayPosition, textPauseRotation, textPlayRotation } = this.config;
+		const { gameScale, textMaterial, textFontHeight, textPausePosition, textPlayPosition, textPauseRotation, textPlayRotation } = this.config;
 		let oldPos, oldRot;
 
 		if (!this.textFont)
@@ -767,7 +854,7 @@ class PongScene
 		textMaterial.color.set(textColor);
 		if ('emissive' in textMaterial)
 			textMaterial.emissive.set(textColor);
-		const textGeometry = this._getFontGeometry(this.textFont, text, textSize);
+		const textGeometry = this._getFontGeometry(this.textFont, text, textSize, textFontHeight);
 		this.text = new Mesh(textGeometry, textMaterial);
 		this.text.receiveShadow = true;
 		this.text.castShadow = true;
@@ -847,7 +934,12 @@ class PongScene
 		if (this.rightAvatar)
 			this.rightAvatar.material.opacity = presences[1] ? 1 : 0.65;
 
-		this.renderer.render(this.scene, this.camera);
+		this.mixer.update(delta);
+
+		if (this.useEffects)
+			this.composer.render();
+		else
+			this.renderer.render(this.scene, this.camera);
 	}
 
 	setAnimationLoop (animate: (() => void) | null)
@@ -952,10 +1044,14 @@ class PongScene
 			this.track(this.rightAvatar.material);
 		}
 		if (this.text)
-
 			this.track(this.text.geometry);
 
 		this.track(this.renderer);
+		this.track(this.renderPass);
+		this.track(this.fxaaPass);
+		this.track(this.bloomPass);
+		this.track(this.filmPass);
+		this.track(this.mixer);
 
 		for (let i = 0; i < this.disposable.length - 1; ++i)
 		{

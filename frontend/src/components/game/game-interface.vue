@@ -23,7 +23,6 @@ function toggleFullscreen ()
 					requestAnimationFrame(
 						function ()
 						{
-							console.log("resize animation frame");
 							pong.value?.resize();
 						}
 					);

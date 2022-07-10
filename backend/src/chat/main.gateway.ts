@@ -22,8 +22,9 @@ import * as crypto from 'crypto';
 import { ChannelDTO } from './orm/channel.dto';
 import { channelTypesDTO } from './orm/channelTypes.dto';
 import { MutedDTO } from './orm/muted.dto';
+import { BannedDTO } from './orm/banned.dto';
 
-interface interfaceMuted {
+interface interfaceBanMut {
   id: number,
   userId: number,
   channelId: number,
@@ -105,7 +106,7 @@ export class MainGateway implements NestGateway
   //#region Muted
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('muted::set')
-  async setMuted(muted: interfaceMuted, sender: Socket) {
+  async setMuted(muted: interfaceBanMut, sender: Socket) {
     this.logger.log(`Client ${sender.id} mute user ${muted.userId} until ${muted.until}`);
     const __newMuted: MutedDTO = {
       id: undefined,
@@ -122,7 +123,7 @@ export class MainGateway implements NestGateway
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('muted::delete')
-  async deleteMuted(muted: interfaceMuted, sender: Socket) {
+  async deleteMuted(muted: interfaceBanMut, sender: Socket) {
     this.logger.log(`Client ${sender.id} unmute user ${muted.userId}`);
     const __newMuted: MutedDTO = {
       id: muted.id,
@@ -135,6 +136,42 @@ export class MainGateway implements NestGateway
       throw new Error(ret.message);
     else
       this.server.emit('muted::receive::delete', ret);
+  }
+  //#endregion
+
+  //#region Banned
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('banned::set')
+  async setBanned(banned: interfaceBanMut, sender: Socket) {
+    this.logger.log(`Client ${sender.id} mute user ${banned.userId} until ${banned.until}`);
+    const __newBanned: BannedDTO = {
+      id: undefined,
+      channel: await this.channelService.getOne(banned.channelId),
+      user: await this.userService.getOne(banned.userId),
+      until: new Date(banned.until)
+    };
+    const ret = await this.bannedService.set(__newBanned);
+    if (ret.set === false)
+      throw new Error(ret.message);
+    else
+      this.server.emit('banned::receive::set', ret);
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('banned::delete')
+  async deleteBanned(banned: interfaceBanMut, sender: Socket) {
+    this.logger.log(`Client ${sender.id} unmute user ${banned.userId}`);
+    const __newBanned: BannedDTO = {
+      id: banned.id,
+      channel: undefined,
+      user: undefined,
+      until: undefined
+    };
+    const ret = await this.bannedService.delete(__newBanned);
+    if (ret.deleted === false)
+      throw new Error(ret.message);
+    else
+      this.server.emit('banned::receive::delete', ret);
   }
   //#endregion
 

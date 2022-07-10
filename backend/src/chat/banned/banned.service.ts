@@ -13,33 +13,20 @@ export class BannedService {
   ) {}
 
   async getOne(channelId: number, userId: number): Promise<Banned> {
-    const data = await this.bannedRepository.createQueryBuilder('banned')
+    return this.bannedRepository.createQueryBuilder('banned')
+      .where('banned.channel.id = :id', {id: channelId})
+      .where('banned.user.id = :id', { id: userId })
       .leftJoinAndSelect('banned.channel', 'channel')
       .leftJoinAndSelect('banned.user', 'user')
-      .getMany();
-    for (const el of data)
-    {
-      if (
-        Number(el.channel.id) === Number(channelId)
-        && Number(el.user.id) === Number(userId)
-      )
-        return el;
-    }
-    return null;
+      .getOne();
   }
 
   async getAll(channelId: number): Promise<Banned[]> {
-    const ret = new Array<Banned>;
-    const data = await this.bannedRepository.createQueryBuilder('banned')
+    return this.bannedRepository.createQueryBuilder('banned')
+      .where('banned.channel.id = :id', {id: channelId})
       .leftJoinAndSelect('banned.channel', 'channel')
       .leftJoinAndSelect('banned.user', 'user')
       .getMany();
-    for (const el of data)
-    {
-      if (Number(el.channel.id) === Number(channelId))
-        ret.push(el);
-    }
-    return ret;
   }
 
   async isBanned(channelId: number, userId: number): Promise<unknown> {
@@ -52,7 +39,7 @@ export class BannedService {
     const currentDate = new Date();
     if (untilDate.getTime() <= currentDate.getTime()) {
       return {
-        isDeleted: await this.delete(channelId, userId),
+        isDeleted: await this.delete(banned),
         isBanned: false
       };
     }
@@ -62,45 +49,92 @@ export class BannedService {
     };
   }
 
-  async add(channelId: number, userId: number, milliseconds: number) {
-    const user = await this.getOne(channelId, userId);
-    const newDate = new Date(user.until);
-    newDate.setDate(newDate.getTime() + milliseconds);
-    user.until = newDate;
-    await this.bannedRepository.update({ id: user.id }, user);
-  }
-
-  async remove(channelId: number, userId: number, milliseconds: number) {
-    const user = await this.getOne(channelId, userId);
-    const newDate = new Date(user.until);
-    newDate.setDate(newDate.getTime() - milliseconds);
-    user.until = newDate;
-    await this.bannedRepository.update({ id: user.id }, user);
-  }
-
-  async update(channelId: number, userId: number, data: BannedDTO) {
-    const tempId = data.id;
-    delete data.id;
-    const update = await this.getOne(channelId, userId);
-    data.until = new Date(data.until);
-    await this.bannedRepository.update({ id: tempId }, update);
-  }
-
-  async delete(channelId: number, userId: number) {
-    const user = await this.getOne(channelId, userId);
+  async set(data: BannedDTO)
+  {
     try {
-      await this.bannedRepository.delete({ id: user.id });
+      if (await this.getOne(data.channel.id, data.user.id) !== undefined)
+      {
+        const setUser = await this.update(data);
+        return {
+          message: 'Muted user success',
+          data: setUser.data,
+          set: true
+        };
+      }
+      else
+      {
+        const setUser = this.bannedRepository.createQueryBuilder()
+          .insert()
+          .into(Banned)
+          .values([
+            {
+              channel: data.channel,
+              user: data.user,
+              until: data.until
+            }
+          ])
+          .execute();
+        return {
+          message: 'Banned user success',
+          data: setUser,
+          set: true
+        };
+      }
+      
+    } catch (___) {
       return {
-        message: 'User is no longer banned',
-        deleted: true,
-        userId: user.id,
+        message: 'Banned user failed',
+        data: undefined,
+        set: false
       };
     }
-    catch (___) {
+  }
+
+  async update(data: BannedDTO)
+  {
+    try {
+      const updateUser = await this.bannedRepository.createQueryBuilder('muted')
+        .update()
+        .set({
+          until: data.until
+        })
+        .where('banned.channel.id = :id', { id: data.channel.id })
+        .where('banned.user.id = :id', { id: data.user.id })
+        .execute();
       return {
-        message: 'An error has occurred, user is still banned',
+        message: 'Banned user update success',
+        data: updateUser,
+        update: true
+      };
+    } catch (___) {
+      return {
+        message: 'Banned user update failed',
+        data: undefined,
+        update: false
+      };
+    }
+  }
+
+  async delete(data: BannedDTO)
+  {
+    try {
+      await this.bannedRepository.createQueryBuilder()
+        .delete()
+        .from(Banned)
+        .where('id = :id', { id: data.id })
+        .execute();
+      return {
+        message: 'Banned user deleted',
+        id: data.id,
+        timestamp: Date,
+        deleted: true,
+      };
+    } catch (___) {
+      return {
+        message: 'Banned user don\'t deleted',
+        id: data.id,
+        timestamp: Date,
         deleted: false,
-        userId: user.id,
       };
     }
   }

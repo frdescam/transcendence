@@ -443,7 +443,9 @@ export default defineComponent({
 			});
 			return ret;
 		};
+		// #endregion
 
+		// #region Timepicker
 		const timepicker = ref<QDialog | null>(null);
 		const timepickerDate = ref<string>();
 		const timepickerIdEl = ref<number>();
@@ -468,7 +470,6 @@ export default defineComponent({
 				timepicker.value?.show();
 				return;
 			}
-			console.log('hello');
 			socket.emit(`${type}::delete`, {
 				id: idEl,
 				userId: id,

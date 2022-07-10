@@ -36,37 +36,11 @@ export class BannedController {
     };
   }
 
-  @Get(':channelId/:userId/add/:time')
-  async add(
-    @Param('channelId') channelId: number,
-    @Param('userId') userId: number,
-    @Param('time') time: number
-  ) {
-    return {
-      statusCode: HttpStatus.OK,
-      info: await this.bannedService.add(channelId, userId, time)
-    };
-  }
-
-  @Get(':channelId/:userId/remove/:time')
-  async remove(
-    @Param('channelId') channelId: number,
-    @Param('userId') userId: number,
-    @Param('time') time: number
-  ) {
-    return {
-      statusCode: HttpStatus.OK,
-      info: await this.bannedService.remove(channelId, userId, time)
-    };
-  }
-
-  @Put(':channelId/:userId/update')
+  @Put('update')
   async update(
-    @Param('channelId') channelId: number,
-    @Param('userId') userId: number,
     @Body() data: BannedDTO
   ) {
-    await this.bannedService.update(channelId, userId, data);
+    await this.bannedService.update(data);
     return {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Banned user is updated',
@@ -74,12 +48,11 @@ export class BannedController {
     };
   }
   
-  @Delete(':channelId/:userId')
+  @Delete(':delete')
   async delete(
-    @Param('channelId') channelId: number,
-    @Param('userId') userId: number,
+    @Body() data: BannedDTO
   ) {
-    const ret = await this.bannedService.delete(channelId, userId);
+    const ret = await this.bannedService.delete(data);
     return {
       statusCode: ret.deleted ? HttpStatus.OK : HttpStatus.FORBIDDEN,
       ret,

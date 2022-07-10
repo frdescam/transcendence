@@ -30,16 +30,16 @@ const config: mapConfig = {
 	player1Material: itemsMaterial,
 	player2Material: itemsMaterial,
 	scoreFont: scoreFont,
-	scoreMaterial: new MeshLambertMaterial({
+	scoreMaterial: new MeshPhongMaterial({
 		color: 0x44fc50,
 		emissive: 0x44fc50,
 		emissiveIntensity: 0.8
 	}),
 	textFont: textFont,
-	textMaterial: new MeshLambertMaterial({
+	textMaterial: new MeshPhongMaterial({
 		color: 0xffffff,
 		emissive: 0xffffff,
-		emissiveIntensity: 1.5
+		emissiveIntensity: 2
 	})
 };
 

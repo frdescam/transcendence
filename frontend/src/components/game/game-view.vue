@@ -9,6 +9,7 @@ import config from './maps/synthwave';
 import type { state as commonState, Ping, Pong } from 'src/common/game/logic/common';
 
 export interface interfaceState {
+	accessibility: boolean,
 	loaded: boolean,
 	graphics: 0|1|2|3|4|5,
 	can_join: boolean,
@@ -209,6 +210,11 @@ function admitDefeat ()
 		);
 }
 
+function toggleAccessibility ()
+{
+	scene?.setAccessibility(state.accessibility = !state.accessibility);
+}
+
 function setQuality (val: number)
 {
 	scene?.setQuality(val);
@@ -217,6 +223,7 @@ function setQuality (val: number)
 defineExpose({
 	onClick,
 	admitDefeat,
+	toggleAccessibility,
 	setQuality,
 	resize,
 	state: readonly(state)

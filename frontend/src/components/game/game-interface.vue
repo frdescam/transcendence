@@ -112,6 +112,12 @@ function teamActionText (state: interfaceState): string
 					@click="toggleFullscreen"
 				/>
 
+				<q-btn
+					icon="accessibility"
+					:color="pong && pong.state.accessibility ? 'amber-10' : 'black'"
+					@click="pong.toggleAccessibility()"
+				/>
+
 				<q-space />
 
 				<q-btn

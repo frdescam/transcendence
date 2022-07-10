@@ -22,6 +22,7 @@ type onMoveCallback = ((position: number) => void) | null;
 type onStateChangeCallback = ((state: state) => void) | null;
 
 type options = {
+	accessibility: boolean,
 	qualityLevel: number,
 	width: number,
 	height: number,
@@ -101,6 +102,7 @@ class PongScene
 	{
 		this.config = config;
 		this.options = Object.assign({}, {
+			accessibility: false,
 			qualityLevel: 1,
 			targetElem: document.body,
 			onReady: null,
@@ -491,7 +493,7 @@ class PongScene
 		this.composer.addPass(this.renderPass);
 		this.composer.addPass(this.fxaaPass);
 
-		if (critical || !allowedEffects)
+		if (critical || !allowedEffects || this.options.accessibility)
 			return;
 		effects.forEach(
 			(effectName: string) =>
@@ -934,7 +936,8 @@ class PongScene
 		if (this.rightAvatar)
 			this.rightAvatar.material.opacity = presences[1] ? 1 : 0.65;
 
-		this.mixer.update(delta);
+		if (!this.options.accessibility)
+			this.mixer.update(delta);
 
 		if (this.useEffects)
 			this.composer.render();
@@ -988,6 +991,14 @@ class PongScene
 		this.options.width = width;
 		this.options.height = height;
 		this._refreshSize();
+	}
+
+	setAccessibility (accessibility: boolean)
+	{
+		this.options.accessibility = accessibility;
+		this._refreshQuality();
+		this.mixer.setTime(0);
+		this.mixer.update(0);
 	}
 
 	setQuality (quality: number)

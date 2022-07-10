@@ -1,167 +1,130 @@
 <template>
 	<div class="q-pa-md">
 		<q-table
-			class="my-sticky-virtscroll-table"
-			virtual-scroll
-			v-model:pagination="pagination"
-			:rows-per-page-options="[0]"
-			:virtual-scroll-sticky-size-start="48"
-			row-key="rank"
 			title="Leaderboard"
 			:rows="rows"
-			:columns="columns">
-			<template v-slot:body-cell-picture="props">
-				<q-td :props="props">
-					<img src="image.url"/>
-				</q-td>
+			:columns="columns"
+			row-key="rank"
+			v-model:pagination="pagination"
+			:loading="loading"
+			:filter="filter"
+			@request="onRequest"
+			binary-state-sort
+		>
+			<template v-slot:top-right>
+				<q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
+					<template v-slot:append>
+						<q-icon name="search" />
+					</template>
+				</q-input>
 			</template>
 		</q-table>
-
 	</div>
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { api } from 'boot/axios';
+
 const columns = [
 	{
 		name: 'rank',
 		label: 'RANK',
 		field: 'rank',
 		required: true,
-		align: 'left',
-		sortable: true
-	},
-	{
-		name: 'picture',
-		required: true,
-		label: '',
-		align: 'right',
-		field: row => row.picture,
-		sortable: true
+		align: 'left'
 	},
 	{
 		name: 'user',
+		field: 'user',
 		required: true,
 		label: 'PLAYER',
-		align: 'left',
-		field: row => row.user,
-		format: val => `${val}`,
-		sortable: true
+		align: 'left'
 	},
 	{
 		name: 'ratio',
 		label: 'RATIO',
 		field: 'ratio',
-		sortable: true,
-		sort: (a, b) => parseInt(a, 10) - parseInt(b, 10)
+		required: true,
+		align: 'left'
 	}
 ];
-
-const seed = [
-	{
-		rank: '#1',
-		user: 'Frozen Yogurt',
-		picture: 'https://cdn.quasar.dev/img/boy-avatar.png',
-		ratio: '1%'
-	},
-	{
-		rank: '#2',
-		user: 'Ice cream sandwich',
-		picture: 'https://cdn.quasar.dev/img/boy-avatar.png',
-		ratio: '1%'
-	},
-	{
-		rank: '#3',
-		user: 'Eclair',
-		picture: 'https://cdn.quasar.dev/img/boy-avatar.png',
-		ratio: '7%'
-	},
-	{
-		rank: '#4',
-		user: 'Cupcake',
-		picture: 'https://cdn.quasar.dev/img/boy-avatar.png',
-		ratio: '8%'
-	},
-	{
-		rank: '#5',
-		user: 'Gingerbread',
-		picture: 'https://cdn.quasar.dev/img/boy-avatar.png',
-		ratio: '16%'
-	},
-	{
-		rank: '#6',
-		user: 'Jelly bean',
-		picture: 'https://cdn.quasar.dev/img/boy-avatar.png',
-		ratio: '0%'
-	},
-	{
-		rank: '#7',
-		user: 'Lollipop',
-		picture: 'https://cdn.quasar.dev/img/boy-avatar.png',
-		ratio: '2%'
-	},
-	{
-		rank: '#8',
-		user: 'Honeycomb',
-		picture: 'https://cdn.quasar.dev/img/boy-avatar.png',
-		ratio: '45%'
-	},
-	{
-		rank: '#9',
-		user: 'Donut',
-		picture: 'https://cdn.quasar.dev/img/boy-avatar.png',
-		ratio: '22%'
-	},
-	{
-		rank: '#10',
-		user: 'KitKat',
-		picture: 'https://cdn.quasar.dev/img/boy-avatar.png',
-		ratio: '6%'
-	}
-];
-
-// we generate lots of rows here
-let rows = [];
-for (let i = 0; i < 1000; i++)
-	rows = rows.concat(seed.slice(0).map(r => ({ ...r })));
-rows.forEach((row, index) =>
-{
-	row.index = index;
-});
 
 export default {
 	name: 'LeaderboardPage',
 	setup ()
 	{
+		const rows = ref([]);
+		const filter = ref('');
+		const loading = ref(false);
+		const pagination = ref({
+			sortBy: 'rank',
+			descending: false,
+			page: 1,
+			rowsPerPage: 4,
+			rowsNumber: getRowsNumberCount()
+		});
+
+		async function fetchFromServer (startRow, count, filter, sortBy, descending)
+		{
+			const res = await api.get('/test-user/getData', {
+				params: {
+					startRow: startRow,
+					count: count,
+					filter: filter,
+					sortBy: sortBy,
+					descending: descending
+				}
+			});
+			console.log(res.data);
+			return res.data;
+		}
+
+		async function getRowsNumberCount (filter)
+		{
+			const res = await api.get('/test-user/getRowsNumberCount');
+			return res.data;
+		}
+
+		async function onRequest (props)
+		{
+			const { page, rowsPerPage, sortBy, descending } = props.pagination;
+			const filter = props.filter;
+
+			loading.value = true;
+
+			pagination.value.rowsNumber = await getRowsNumberCount(filter);
+			const fetchCount = rowsPerPage === 0 ? pagination.value.rowsNumber : rowsPerPage;
+			const startRow = (page - 1) * rowsPerPage;
+			const returnedData = await fetchFromServer(startRow, fetchCount, filter, sortBy, descending);
+			rows.value.splice(0, rows.value.length, ...returnedData);
+
+			pagination.value.page = page;
+			pagination.value.rowsPerPage = rowsPerPage;
+			pagination.value.sortBy = sortBy;
+			pagination.value.descending = descending;
+
+			loading.value = false;
+		}
+
+		onMounted(() =>
+		{
+			onRequest({
+				pagination: pagination.value,
+				filter: undefined
+			});
+		});
+
 		return {
+			filter,
+			loading,
+			pagination,
 			columns,
 			rows,
+			pagesNumber: computed(() => Math.ceil(rows.value.length / pagination.value.rowsPerPage)),
 
-			pagination: ref({
-				rowsPerPage: 50
-			})
+			onRequest
 		};
 	}
 };
 </script>
-
-<style lang="sass">
-.my-sticky-virtscroll-table
-  /* height or max-height is important */
-  //height: 410px
-
-  .q-table__top,
-  .q-table__bottom,
-  thead tr:first-child th /* bg color is important for th; just specify one */
-  background-color: #fff
-
-  thead tr th
-  position: sticky
-  z-index: 1
-  /* this will be the loading indicator */
-  thead tr:last-child th
-  /* height of all previous header rows */
-  top: 48px
-  thead tr:first-child th
-  top: 0
-</style>

@@ -69,20 +69,23 @@ export default {
 		{
 			const res = await api.get('/test-user/getData', {
 				params: {
-					startRow: startRow,
-					count: count,
-					filter: filter,
-					sortBy: sortBy,
-					descending: descending
+					startRow,
+					count,
+					filter,
+					sortBy,
+					descending
 				}
 			});
-			console.log(res.data);
 			return res.data;
 		}
 
 		async function getRowsNumberCount (filter)
 		{
-			const res = await api.get('/test-user/getRowsNumberCount');
+			const res = await api.get('/test-user/getRowsNumberCount', {
+				params: {
+					filter
+				}
+			});
 			return res.data;
 		}
 

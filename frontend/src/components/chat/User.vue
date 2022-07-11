@@ -1,5 +1,4 @@
 <template>
-	<p>UserId={{ userId }}</p>
 	<div class="q-pa-md" style="max-width: 100%;">
 		<q-list>
 			<template v-if="loading">
@@ -37,14 +36,15 @@
 <script lang="ts">
 import { AxiosInstance } from 'axios';
 import { TypeOfObject } from 'src/boot/libs';
-import { defineComponent, onMounted, ref, inject } from 'vue';
+import { defineComponent, onMounted, ref, inject, watch } from 'vue';
 
 export default defineComponent({
 	name: 'user_channel',
-	props: {
-		userId: Number
-	},
-	setup ()
+	props: [
+		'selectedChannel',
+		'userId'
+	],
+	setup (props)
 	{
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
@@ -79,14 +79,14 @@ export default defineComponent({
 
 		onMounted(() =>
 		{
-			window.addEventListener('chat::channel::selected', (e: Event) =>
+			watch(() => props.selectedChannel, () =>
 			{
-				const detail = (e as CustomEvent).detail;
-				getData(detail.channelId);
+				if (!props.selectedChannel.isDeleted)
+					getData(props.selectedChannel.id);
 			});
-			const channelId = Number(localStorage.getItem('chat::channel::id'));
-			if (channelId)
-				getData(channelId);
+
+			if (props.selectedChannel.id > 0)
+				getData(props.selectedChannel.id);
 		});
 
 		return {

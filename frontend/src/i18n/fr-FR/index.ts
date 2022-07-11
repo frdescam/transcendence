@@ -33,14 +33,20 @@ export default {
 								muted: 'muet',
 								user: 'utilisateur'
 							},
+							tooltip: {
+								addUser: 'Ajouter un utilisateur',
+								search: 'Rechercher un utilisateur'
+							},
 							timepicker: {
 								banned: 'Choisissez la date et l\'heure auxquelles le bannissement prendra fin',
 								muted: 'Choisissez la date et l\'heure à laquelle l\'utilisateur ne sera plus muet'
 							},
 							error: {
-								creator: 'Le créateur du canal est obligatoirement un administrateur, et ne peut être ni muet ou banni'
+								creator: 'Le créateur du canal est obligatoirement un administrateur, et ne peut être ni muet ou banni',
+								add: 'Une erreur s\'est produite. L\'utilisateur existe t-il toujours ?'
 							},
-							apply: 'Appliquer'
+							apply: 'Appliquer',
+							reload: 'Recharger'
 						},
 						reset: 'Réinitialiser',
 						apply: 'Appliquer les modifications',

@@ -2,10 +2,10 @@
 	<q-item>
 		<q-item-section avatar>
 			<q-avatar>
-				<img src="imgs/chat/default.webp" />
+				<img :src="user.avatar" v-on:error="avatarError"/>
 			</q-avatar>
 		</q-item-section>
-		<q-item-section class="overflow-text">{{ user.pseudo }} {{ user.id }}</q-item-section>
+		<q-item-section class="overflow-text">{{ user.pseudo }}</q-item-section>
 		<q-separator vertical class="sep" />
 		<q-item-section class="badge-parent sep">
 			<q-badge v-if="data.isCreator"
@@ -86,8 +86,8 @@ interface usersOptionsInterface {
 
 export default defineComponent({
 	name: 'chat_dialog_edit_user_list',
-	props: ['user', 'info', 'connectedUser'],
-	emits: ['dialog-edition-users-timepicker'],
+	props: ['user', 'info', 'connectedUser', 'errorOccur'],
+	emits: ['dialog-edition-users-timepicker', 'dialog-edition-users-admin'],
 	setup (props, { emit })
 	{
 		const data: usersOptionsInterface = reactive({
@@ -100,24 +100,46 @@ export default defineComponent({
 			isBanned: props.info.isBanned
 		});
 
+		const avatarError = (e: Event) =>
+		{
+			const target = e.target as HTMLImageElement;
+			if (target)
+				target.src = 'imgs/chat/default.webp';
+		};
+
 		const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);
 
 		watch(() => data.isAdmin, () =>
 		{
-			console.log('Admin change', data.isAdmin);
+			emit('dialog-edition-users-admin', data.id, data.isAdmin);
 		});
+
 		watch(() => data.isBanned, () =>
 		{
 			emit('dialog-edition-users-timepicker', data.id, data.bannedId, data.isBanned, 'banned');
 		});
+
 		watch(() => data.isMuted, () =>
 		{
 			emit('dialog-edition-users-timepicker', data.id, data.mutedId, data.isMuted, 'muted');
 		});
 
+		watch(() => props.errorOccur, () =>
+		{
+			if (props.errorOccur.id === data.id)
+			{
+				console.log('user list', props.info);
+				if (props.errorOccur.type === 'banned')
+					data.isBanned = props.info.isBanned;
+				else
+					data.isMuted = props.info.isMuted;
+			}
+		});
+
 		return {
 			data,
-			capitalize
+			capitalize,
+			avatarError
 		};
 	}
 });

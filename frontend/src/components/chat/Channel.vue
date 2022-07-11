@@ -1,5 +1,4 @@
 <template>
-	<p>UserId={{ userId }}</p>
 	<div class="q-pa-md" style="max-width: 100%;">
 		<q-list>
 			<template v-if="loading">
@@ -30,8 +29,8 @@
 					<q-item clickable v-ripple
 						v-for="channel in channels"
 						v-bind:key="channel.id"
-						:class="(channel.id === selectedChannel) ? 'selected-channel' : ''"
-						@click="$emit('channelIsSelected', channelIsSelected(channel.id, channel.type))"
+						:class="(channel.id === selectedChannel?.id) ? 'selected-channel' : ''"
+						@click="channelIsSelected(channel.id, channel.type)"
 						:data-id="channel.id"
 					>
 						<q-item-section avatar>
@@ -58,6 +57,7 @@
 								<q-item-section>{{ $t('chat.channel.menu.edit.title') }}</q-item-section>
 							</q-item>
 							<q-item
+								v-if="contextMenuIsCreator"
 								clickable
 								@click="openDialogDeletion(); contextmenu?.hide()"
 							>
@@ -121,8 +121,7 @@
 import { AxiosInstance } from 'axios';
 import { QMenu } from 'quasar';
 import { Socket } from 'socket.io-client';
-import { TypeOfObject } from 'src/boot/libs';
-import { defineComponent, onMounted, ref, inject } from 'vue';
+import { defineComponent, onMounted, ref, inject, watch } from 'vue';
 
 import dialogCreation from './chatComponents/DialogCreation.vue';
 import dialogDeletion from './chatComponents/DialogDeletion.vue';
@@ -144,20 +143,21 @@ interface channelInterface {
 
 export default defineComponent({
 	name: 'chat_channel',
-	props: {
-		userId: Number
-	},
+	props: [
+		'selectedChannel',
+		'userId'
+	],
+	emits: ['channel-is-selected'],
 	components: {
 		dialogCreation,
 		dialogDeletion,
 		dialogEdition,
 		dialogPassword
 	},
-	setup (props)
+	setup (props, { emit })
 	{
 		const socket: Socket = inject('socketChat') as Socket;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
-		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
 
 		const loading = ref(true);
 		const noError = ref(true);
@@ -170,10 +170,8 @@ export default defineComponent({
 		const contextMenuSelectType = ref();
 		const contextMenuSelectOwner = ref(0);
 		const contextMenuSelectPassword = ref();
+		const contextMenuIsCreator = ref(false);
 
-		const selectedChannel = ref(0);
-		if (localStorage.getItem('chat::channel::id'))
-			selectedChannel.value = Number(localStorage.getItem('chat::channel::id'));
 		const selectedChannelError = ref<boolean>(false);
 		const selectedChannelPassword = ref();
 		const selectedChannelId = ref(0);
@@ -182,26 +180,15 @@ export default defineComponent({
 
 		const sendEvent = (channelId: number, isDeleted = false) =>
 		{
-			selectedChannel.value = channelId;
-			localStorage.setItem('chat::channel::id', channelId.toString(10));
-			window.dispatchEvent(
-				new CustomEvent('chat::channel::selected',
-					{
-						bubbles: true,
-						cancelable: true,
-						composed: true,
-						detail: {
-							channelId,
-							isDeleted
-						}
-					}
-				)
-			);
+			emit('channel-is-selected', {
+				id: channelId,
+				isDeleted
+			});
 		};
 
 		const channelIsSelected = (channelId: number, channelType: string) =>
 		{
-			const __saveId = Number(localStorage.getItem('chat::channel::id'));
+			const __saveId = props.selectedChannel.id;
 			if (!__saveId || (__saveId && __saveId !== channelId))
 			{
 				if (channelType !== 'protected')
@@ -225,6 +212,8 @@ export default defineComponent({
 		const openContextualMenu = (e: Event) =>
 		{
 			let target = e.target as HTMLElement;
+			dialogEditionShow.value = false;
+			contextMenuIsCreator.value = false;
 			if (target)
 			{
 				while (!target.classList.contains('q-item'))
@@ -238,6 +227,8 @@ export default defineComponent({
 							(channel.owner === props.userId || channel.admins.includes(Number(props.userId)))
 						)
 						{
+							if (channel.owner === props.userId)
+								contextMenuIsCreator.value = true;
 							contextMenuSelectId.value = channel.id;
 							contextMenuSelectName.value = channel.name;
 							contextMenuSelectType.value = channel.type;
@@ -276,93 +267,114 @@ export default defineComponent({
 			dialogEditionShow.value = true;
 		};
 
-		onMounted(() =>
+		onMounted(() => socket.emit('channel::gets'));
+
+		// #region Socket
+		const generateData = (channel: any) =>
 		{
 			const randomColor = () =>
 			{
 				const __colors = ['#ffc93c', '#ff9a3c', '#ff6f3c', '#49beb7', '#35bcbf', '#c5d86d'];
 				return __colors[Math.floor(Math.random() * __colors.length)];
 			};
-
-			const generateData = (channel: any) =>
-			{
-				const ret: channelInterface = {
-					id: channel.id,
-					owner: channel.owner.id,
-					color: randomColor(),
-					type: channel.type,
-					name: channel.name,
-					password: channel.password,
-					creationDate: channel.creationDate,
-					admins: channel.admins.map((el: any) => el.id),
-					muted: channel.mutedUsers.map((el: any) => el.id),
-					banned: channel.bannedUsers.map((el: any) => el.id)
-				};
-				return ret;
+			const ret: channelInterface = {
+				id: channel.id,
+				owner: channel.owner.id,
+				color: randomColor(),
+				type: channel.type,
+				name: channel.name,
+				password: channel.password,
+				creationDate: channel.creationDate,
+				admins: channel.admins.map((el: any) => el.id),
+				muted: channel.mutedUsers.map((el: any) => el.id),
+				banned: channel.bannedUsers.map((el: any) => el.id)
 			};
+			return ret;
+		};
 
-			api.get<any>('/chat/channel/get/no-messages')
-				.then((res) =>
+		socket.on('channel::receive::gets', (data) =>
+		{
+			if (!data)
+			{
+				loading.value = false;
+				noError.value = false;
+				return;
+			}
+			loading.value = false;
+			noError.value = true;
+			channels.value.length = 0;
+			for (const el in data)
+			{
+				if (data[el].type === 'public' || data[el].type === 'protected')
+					channels.value.push(generateData(data[el]));
+				else
 				{
-					if (typeofObject(res.data) !== 'object')
-						throw new Error();
-					loading.value = false;
-					for (const el in res.data.channels)
+					for (const user of data[el].users)
 					{
-						if (res.data.channels[el].type === 'public' || res.data.channels[el].type === 'protected')
-							channels.value.push(generateData(res.data.channels[el]));
-						else
+						if (user.id === props.userId)
 						{
-							for (const user of res.data.channels[el].users)
-							{
-								if (user.id === props.userId)
-								{
-									channels.value.push(generateData(res.data.channels[el]));
-									break;
-								}
-							}
+							channels.value.push(generateData(data[el]));
+							break;
 						}
 					}
-				})
-				.catch(() =>
-				{
-					loading.value = false;
-					noError.value = false;
-				});
+				}
+			}
+		});
 
-			socket.on('channel::receive::add', (ret) =>
+		socket.on('channel::receive::add', (ret) =>
+		{
+			if (ret && ret.created)
 			{
-				if (ret.created && ret.data.owner.id === props.userId)
-					channels.value.push();
-			});
-
-			socket.on('channel::receive::update', (ret) =>
-			{
-				for (const i in channels.value)
+				if (ret.data.type === 'public' || ret.data.type === 'protected')
+					channels.value.push(generateData(ret.data));
+				else if (ret.data.type === 'direct')
 				{
-					if (channels.value[i].id === ret.data.id)
+					for (const user of ret.data.users)
 					{
-						channels.value[i].name = ret.data.name;
-						channels.value[i].type = ret.data.type;
-						channels.value[i].owner = ret.data.owner.id;
-						channels.value[i].password = ret.data.password;
-						return;
+						if (user.id === props.userId)
+						{
+							channels.value.push(generateData(ret.data));
+							return;
+						}
 					}
 				}
-			});
+			}
+		});
 
-			socket.on('channel::receive::delete', (ret) =>
+		socket.on('channel::receive::update', (ret) =>
+		{
+			for (const i in channels.value)
 			{
-				for (const i in channels.value)
+				if (channels.value[i].id === ret.data.id)
 				{
-					if (channels.value[i].id === ret.id)
-					{
-						channels.value.splice(Number(i), 1);
-						sendEvent(-1, true);
-						return;
-					}
+					channels.value[i].name = ret.data.name;
+					channels.value[i].type = ret.data.type;
+					channels.value[i].owner = ret.data.owner.id;
+					channels.value[i].password = ret.data.password;
+					return;
 				}
-			});
+			}
+		});
+
+		socket.on('channel::receive::delete', (ret) =>
+		{
+			for (const i in channels.value)
+			{
+				if (channels.value[i].id === ret.id)
+				{
+					channels.value.splice(Number(i), 1);
+					sendEvent(-1, true);
+					return;
+				}
+			}
+		});
+		// #endregion Socket
+
+		watch(() => props.userId, () =>
+		{
+			loading.value = true;
+			noError.value = true;
+			socket.emit('channel::gets');
 		});
 
 		return {
@@ -377,8 +389,8 @@ export default defineComponent({
 			contextMenuSelectName,
 			contextMenuSelectPassword,
 			contextMenuSelectOwner,
+			contextMenuIsCreator,
 
-			selectedChannel,
 			selectedChannelId,
 			selectedChannelError,
 			selectedChannelPassword,

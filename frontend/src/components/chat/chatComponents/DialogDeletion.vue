@@ -16,7 +16,8 @@
 					</div>
 					<q-input
 						style="width: 100%;"
-						v-model="name"
+						ref="input"
+						v-model="channelName"
 						filled
 						autofocus
 						type="text"
@@ -51,7 +52,7 @@
 
 <script lang="ts">
 import { Socket } from 'socket.io-client';
-import { QDialog } from 'quasar';
+import { QDialog, QInput } from 'quasar';
 import { defineComponent, ref, inject, watch } from 'vue';
 
 export default defineComponent({
@@ -68,13 +69,14 @@ export default defineComponent({
 		const socket: Socket = inject('socketChat') as Socket;
 
 		const dialog = ref<QDialog | null>(null);
-		const name = ref();
+		const channelName = ref('');
+		const input = ref<QInput>();
 		const confirm = ref(false);
 
 		const deleteChannel = () =>
 		{
 			if (confirm.value === false ||
-				name.value !== props.contextMenuSelectName)
+				channelName.value !== props.contextMenuSelectName)
 				return;
 			dialog.value?.hide();
 			socket.emit('channel::delete', {
@@ -89,7 +91,7 @@ export default defineComponent({
 		const hide = () =>
 		{
 			confirm.value = false;
-			name.value = '';
+			channelName.value = '';
 			emit('dialog-deletion-hide');
 		};
 
@@ -98,13 +100,14 @@ export default defineComponent({
 			if (before === false && after === true)
 			{
 				dialog.value?.show();
-				name.value?.focus();
+				input.value?.focus();
 			}
 		});
 
 		return {
 			dialog,
-			name,
+			channelName,
+			input,
 			confirm,
 			deleteChannel,
 			hide

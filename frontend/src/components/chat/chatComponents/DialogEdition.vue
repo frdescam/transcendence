@@ -130,18 +130,46 @@
 						</q-form>
 					</q-tab-panel>
 					<q-tab-panel name="users">
+						<q-input bottom-slots v-model="searchUser" :label="$t('chat.channel.menu.edit.tabs.user.tooltip.search')">
+							<template v-slot:append>
+								<q-icon v-if="searchUser" name="close" @click="searchUser = ''" class="cursor-pointer" />
+								<q-icon name="search" />
+							</template>
+						</q-input>
 						<q-list>
+							<q-item v-if="isCreator(Number(userId))">
+								<q-item-section class="create-channel">
+									<q-btn
+										round
+										flat
+										icon="add_circle_outline"
+										size="1.3em"
+										@click="dialogEditionAddUserShow = true"
+									>
+										<q-tooltip
+											anchor="top middle"
+											:offset="[0, 35]"
+										>
+											{{ $t('chat.channel.menu.edit.tabs.user.tooltip.addUser') }}
+										</q-tooltip>
+									</q-btn>
+								</q-item-section>
+							</q-item>
 							<template v-for="user in channel.users" v-bind:key="user.id">
 								<DialogEditionUserListVue
+									v-if="(searchUser && search(user.pseudo)) || !searchUser"
 									:user="user"
+									:errorOccur="dialogEditionListError"
 									:info="getUser(Number(user.id))"
 									:connectedUser="getUser(Number(userId))"
 									@dialog-edition-users-timepicker="toggleChangeState"
+									@dialog-edition-users-admin="toggleAdmin"
 								/>
 							</template>
 							<q-dialog
 								ref="timepicker"
 								model="fullWidth"
+								square
 								full-width
 								persistent
 							>
@@ -164,6 +192,7 @@
 										<q-btn flat
 											color="red-6"
 											:label="$t('chat.channel.menu.delete.cancel')"
+											@click="cancelTimepicker"
 											v-close-popup
 										/>
 										<q-btn flat
@@ -174,6 +203,13 @@
 									</q-card-actions>
 								</q-card>
 							</q-dialog>
+							<DialogEditionAddUser
+								:presentUser="channel.users"
+								:error="dialogEditionAddUserError"
+								:dialog-edition-add-user-show="dialogEditionAddUserShow"
+								@dialog-edition-users-close="dialogEditionAddUserShow = false; dialogEditionAddUserError = false"
+								@dialog-edition-users-add="addUserToChannel"
+							/>
 						</q-list>
 					</q-tab-panel>
 				</q-tab-panels>
@@ -185,11 +221,11 @@
 <script lang="ts">
 import { Socket } from 'socket.io-client';
 import { QInput, QDialog } from 'quasar';
-import { AxiosInstance } from 'axios';
-import { TypeOfObject, Timestamp, TimestampFunction } from 'src/boot/libs';
+import { Timestamp, TimestampFunction } from 'src/boot/libs';
 import { defineComponent, ref, reactive, inject, watch } from 'vue';
 
 import DialogEditionUserListVue from './DialogEditionUserList.vue';
+import DialogEditionAddUser from './DialogEditionAddUser.vue';
 
 interface usersOptionsInterface {
 	id: number,
@@ -201,10 +237,16 @@ interface usersOptionsInterface {
 	isMuted: boolean
 }
 
+interface userListError {
+	id: number,
+	type: string
+}
+
 export default defineComponent({
 	name: 'dialog_edition',
 	components: {
-		DialogEditionUserListVue
+		DialogEditionUserListVue,
+		DialogEditionAddUser
 	},
 	props: {
 		dialogEditionShow: Boolean,
@@ -219,8 +261,6 @@ export default defineComponent({
 	setup (props, { emit })
 	{
 		const socket: Socket = inject('socketChat') as Socket;
-		const api: AxiosInstance = inject('api') as AxiosInstance;
-		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
 		const timestamp: TimestampFunction = inject('timestamp') as TimestampFunction;
 
 		const loading = ref(true);
@@ -246,6 +286,7 @@ export default defineComponent({
 			generalName.value = props.channelName;
 			generalType.value = props.channelType;
 			generalNameError.value = null;
+			generalSuccess.value = false;
 			generalOldPassword.value = null;
 			generalNewPassword.value = null;
 			generalOldPasswordRef.value?.resetValidation();
@@ -385,36 +426,39 @@ export default defineComponent({
 			});
 		};
 
-		const getUsers = async () =>
+		const addUserOption = (users: any) =>
 		{
-			api.get(`/chat/channel/get/no-messages/${props.channelId}`)
-				.then(async (res) =>
-				{
-					if (typeofObject(res.data) !== 'object')
-						throw new Error();
-					loading.value = false;
-					channel.value = res.data.channel;
-					for (const i in channel.value.users)
-					{
-						const banned = isBanned(channel.value.users[i].id);
-						const muted = isMuted(channel.value.users[i].id);
-
-						usersOptions.push({
-							id: channel.value.users[i].id,
-							isCreator: isCreator(channel.value.users[i].id),
-							isAdmin: isAdministrator(channel.value.users[i].id),
-							bannedId: banned.id,
-							isBanned: banned.compare,
-							mutedId: muted.id,
-							isMuted: muted.compare
-						});
-					}
-				})
-				.catch(() =>
-				{
-					loading.value = false;
-				});
+			const banned = isBanned(users.id);
+			const muted = isMuted(users.id);
+			usersOptions.push({
+				id: users.id,
+				isCreator: isCreator(users.id),
+				isAdmin: isAdministrator(users.id),
+				bannedId: banned.id,
+				isBanned: banned.compare,
+				mutedId: muted.id,
+				isMuted: muted.compare
+			});
 		};
+
+		const getChannel = async () =>
+		{
+			console.log('toto');
+			socket.emit('channel::get', props.channelId);
+		};
+
+		socket.on('channel::receive::get', (ret) =>
+		{
+			if (!ret)
+				loading.value = false;
+			else
+			{
+				loading.value = false;
+				channel.value = ret;
+				for (const i in channel.value.users)
+					addUserOption(channel.value.users[i]);
+			}
+		});
 
 		const getUser = (id: number) =>
 		{
@@ -445,7 +489,47 @@ export default defineComponent({
 		};
 		// #endregion
 
+		// #region Search user
+		const dialogEditionAddUserError = ref(false);
+		const dialogEditionAddUserShow = ref(false);
+		const searchUser = ref();
+
+		const search = (value: string) =>
+		{
+			if (value.toLowerCase().indexOf(searchUser.value.toLowerCase()) > -1)
+				return true;
+			return false;
+		};
+
+		const addUserToChannel = (userId: number) =>
+		{
+			socket.emit('channel::user::add', {
+				channelId: props.channelId,
+				userId
+			});
+		};
+
+		socket.on('channel::user::receive::add', (user, add) =>
+		{
+			if (add.added === true)
+				dialogEditionAddUserError.value = true;
+		});
+
+		socket.on('users::receive::get', (ret) =>
+		{
+			console.log('user receive', ret);
+		});
+		// #endregion
+
+		// #region Admin
+		const toggleAdmin = (userId: number, value: boolean) =>
+		{
+			console.log('toto', userId, value);
+		};
+		// #endregion
+
 		// #region Timepicker
+		const dialogEditionListError = ref<userListError>();
 		const timepicker = ref<QDialog | null>(null);
 		const timepickerDate = ref<string>();
 		const timepickerIdEl = ref<number>();
@@ -478,6 +562,21 @@ export default defineComponent({
 			});
 		};
 
+		const cancelTimepicker = () =>
+		{
+			for (const x in channel.value.users)
+			{
+				if (channel.value.users[x].id === timepickerId.value)
+				{
+					dialogEditionListError.value = {
+						id: Number(timepickerId.value),
+						type: String(timepickerType.value)
+					};
+					return;
+				}
+			}
+		};
+
 		const submitTimepicker = () =>
 		{
 			const dateParse = /^(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2}) (?<hour>[0-9]{2}):(?<minute>[0-9]{2})$/.exec(String(timepickerDate.value));
@@ -491,6 +590,28 @@ export default defineComponent({
 				until: date
 			});
 		};
+
+		socket.on('banned::receive::set', (ret) =>
+		{
+			if (ret && ret.set === true)
+				getChannel();
+		});
+		socket.on('banned::receive::delete', (ret) =>
+		{
+			if (ret && ret.deleted === true)
+				getChannel();
+		});
+
+		socket.on('muted::receive::set', (ret) =>
+		{
+			if (ret && ret.set === true)
+				getChannel();
+		});
+		socket.on('muted::receive::delete', (ret) =>
+		{
+			if (ret && ret.deleted === true)
+				getChannel();
+		});
 		// #endregion
 
 		const reset = () =>
@@ -505,7 +626,7 @@ export default defineComponent({
 		{
 			if (before === false && after === true)
 			{
-				getUsers();
+				getChannel();
 				selectedTab.value = isCreator(Number(props.userId)) ? 'general' : 'users';
 				generalName.value = props.channelName;
 				generalType.value = props.channelType;
@@ -518,9 +639,7 @@ export default defineComponent({
 			channel,
 			dialog,
 			selectedTab,
-			timepicker,
-			timepickerDate,
-			timepickerType,
+
 			// #region General tab
 			generalName,
 			generalType,
@@ -534,13 +653,35 @@ export default defineComponent({
 			generalSuccess,
 			editGeneral,
 			// #endregion
+
+			// #region Search user
+			dialogEditionAddUserError,
+			dialogEditionAddUserShow,
+			searchUser,
+			search,
+			addUserToChannel,
+			// #endregion
+
 			// #region User tab
-			getUser,
+			dialogEditionListError,
 			isCreator,
+			getUser,
+			// #endregion User tab
+
+			// #region Admin
+			toggleAdmin,
+			// #endregion Admin
+
+			// #region Timepicker
+			timepicker,
+			timepickerDate,
+			timepickerType,
 			defineTimepickerValue,
 			toggleChangeState,
+			cancelTimepicker,
 			submitTimepicker,
-			// #endregion User tab
+			// #endregion Timepicker
+
 			generalReset,
 			reset
 		};

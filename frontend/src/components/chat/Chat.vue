@@ -1,5 +1,4 @@
 <template>
-  <p>UserId={{ userId }}</p>
 	<form
 		autocorrect="off"
 		autocapitalize="off"
@@ -132,9 +131,10 @@ interface messageInterface {
 
 export default defineComponent({
 	name: 'chat_channel',
-	props: {
-		userId: Number
-	},
+	props: [
+		'selectedChannel',
+		'userId'
+	],
 	setup (props)
 	{
 		const socket: Socket = inject('socketChat') as Socket;
@@ -144,7 +144,7 @@ export default defineComponent({
 
 		const contextmenu = ref<QMenu | null>(null);
 		const chat = ref<HTMLDivElement | null>(null);
-		const loading = ref(true);
+		const loading = ref(false);
 		const noError = ref(true);
 		const editor = ref('');
 		const messages = ref(new Array<messageInterface>()); // eslint-disable-line no-array-constructor
@@ -222,7 +222,7 @@ export default defineComponent({
 						messages: []
 					};
 					let currentUser = 0;
-
+					messages.value.length = 0;
 					for (const message of res.data.messages)
 					{
 						if (!currentUser ||
@@ -264,7 +264,7 @@ export default defineComponent({
 				socket.emit('message::add',
 					{
 						id: props.userId,
-						channel: localStorage.getItem('chat::channel::id'),
+						channel: props.selectedChannel.id,
 						message: editor.value,
 						length: editor.value.length,
 						timestamp: Date.now(),
@@ -276,7 +276,7 @@ export default defineComponent({
 				socket.emit('message::update',
 					{
 						id: props.userId,
-						channel: localStorage.getItem('chat::channel::id'),
+						channel: props.selectedChannel.id,
 						messageId: messageEditId.value,
 						message: editor.value,
 						length: editor.value.length,
@@ -290,7 +290,7 @@ export default defineComponent({
 
 		const editMessage = () =>
 		{
-			const channelId = String(localStorage.getItem('chat::channel::id'));
+			const channelId = String(props.selectedChannel.id);
 			api.get(`/chat/message/get/${channelId}/${messageEditId.value}`)
 				.then((res) =>
 				{
@@ -307,7 +307,7 @@ export default defineComponent({
 
 		const deleteMessage = () =>
 		{
-			const channelId = String(localStorage.getItem('chat::channel::id'));
+			const channelId = String(props.selectedChannel.id);
 			api.get(`/chat/message/get/${channelId}/${messageEditId.value}`)
 				.then(async (res) =>
 				{
@@ -317,7 +317,7 @@ export default defineComponent({
 					socket.emit('message::delete',
 						{
 							id: props.userId,
-							channel: localStorage.getItem('chat::channel::id'),
+							channel: props.selectedChannel.id,
 							messageId: messageEditId.value,
 							message: editor.value,
 							length: editor.value.length,
@@ -382,21 +382,29 @@ export default defineComponent({
 		onMounted(() =>
 		{
 			// #region Detect channel changed
-			window.addEventListener('chat::channel::selected', (e: Event) =>
+			watch(() => props.selectedChannel, () =>
 			{
-				const detail = (e as CustomEvent).detail;
-				messages.value.length = 0;
-				if (!detail.isDeleted)
-					getMessages(detail.channelId);
+				if (!props.selectedChannel.isDeleted)
+				{
+					loading.value = true;
+					noError.value = true;
+					getMessages(props.selectedChannel.id);
+				}
 			});
-			const channelId = String(localStorage.getItem('chat::channel::id'));
-			if (channelId)
-				getMessages(channelId);
+			if (props.selectedChannel.id > 0)
+			{
+				loading.value = true;
+				noError.value = true;
+				getMessages(props.selectedChannel.id);
+			}
 			// #endregion
 
 			// #region New message
 			socket.on('message::receive::add', (res) =>
 			{
+				if (res.channel !== props.selectedChannel.id)
+					return;
+
 				const newMessages: messageInterface = {
 					user: {
 						id: res.data.creator.id,
@@ -432,9 +440,12 @@ export default defineComponent({
 			// #region Update message
 			socket.on('message::receive::update', (res) =>
 			{
+				if (res.channel !== props.selectedChannel.id)
+					return;
+
 				if (!res.data.content.length)
 				{
-					deleteMessage(res);
+					_deleteMessage(res);
 					return;
 				}
 				for (const block of messages.value)
@@ -456,30 +467,34 @@ export default defineComponent({
 
 			// #region Delete message
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const deleteMessage = (res: any) =>
+			const _deleteMessage = (res: any) =>
 			{
 				for (const x in messages.value)
 				{
-					if (messages.value[x].user.id === props.userId)
+					for (const y in messages.value[x].messages)
 					{
-						for (const y in messages.value[x].messages)
+						if (messages.value[x].messages[y].id === Number(res.id))
 						{
-							if (messages.value[x].messages[y].id === Number(res.id))
-							{
-								if (messages.value[x].messages.length === 1)
-									messages.value.splice(Number(x), 1);
-								else
-									messages.value[x].messages.splice(Number(y), 1);
-								return;
-							}
+							if (messages.value[x].messages.length === 1)
+								messages.value.splice(Number(x), 1);
+							else
+								messages.value[x].messages.splice(Number(y), 1);
+							return;
 						}
 					}
 				}
 			};
 
-			socket.on('message::receive::delete', (res) =>
+			socket.on('message::receive::delete', (res) => _deleteMessage(res));
+
+			socket.on('channel::receive::delete', (ret) =>
 			{
-				deleteMessage(res);
+				if (ret && ret.deleted === true && ret.id === props.selectedChannel.id)
+				{
+					messages.value.length = 0;
+					loading.value = false;
+					noError.value = true;
+				}
 			});
 			// #endregion
 		});

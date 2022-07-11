@@ -33,14 +33,20 @@ export default {
 								muted: 'muted',
 								user: 'user'
 							},
+							tooltip: {
+								addUser: 'Add new user',
+								search: 'Search user'
+							},
 							timepicker: {
 								banned: 'Choose the date and time when the ban will end',
 								muted: 'Choose the date and time when the user will no longer be muted'
 							},
 							error: {
-								creator: 'The channel creator must be an administrator, and cannot be mute or banned'
+								creator: 'The channel creator must be an administrator, and cannot be mute or banned',
+								add: 'An error has occurred. The user still exists ?'
 							},
-							apply: 'Apply'
+							apply: 'Apply',
+							reload: 'Reload'
 						},
 						reset: 'Reset',
 						apply: 'Apply changes',

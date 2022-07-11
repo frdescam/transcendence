@@ -1,18 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QueryBuilder, Repository, SelectQueryBuilder } from 'typeorm';
-import * as argon2 from 'argon2';
+import { Repository } from 'typeorm';
+
+//import * as argon2 from 'argon2';
 
 import { ChannelDTO } from '../orm/channel.dto';
 import { Channel } from '../orm/channel.entity';
-import { Banned } from '../orm/banned.entity';
-import { Muted } from '../orm/muted.entity';
+import { UserDTO } from 'src/user/orm/user.dto';
+import { User } from 'src/user/orm/user.entity';
 
 @Injectable()
 export class ChannelService {
   constructor(
     @InjectRepository(Channel)
-    private channelRepository: Repository<Channel>,
+    private channelRepository: Repository<Channel>
   ) {}
 
   getAll(): Promise<Channel[]> {
@@ -69,6 +70,26 @@ export class ChannelService {
         'mutedUsers', 'mutedUsers.user'
       ]
     });
+  }
+
+  async addUser(channelId: number, user: UserDTO) {
+    try {
+      const newUser = await this.channelRepository.createQueryBuilder()
+        .relation(Channel, 'users')
+        .of({ id: channelId })
+        .add(user);
+      return {
+        message: `User ${user.id} added to channel ${channelId}`,
+        data: newUser,
+        added: true,
+      };
+    } catch (err) {
+      return {
+        message: `User ${user.id} don't added to channel ${channelId}`,
+        data: undefined,
+        added: false,
+      };
+    }
   }
 
   async create(data: ChannelDTO) {

@@ -54,12 +54,14 @@ export class MessageService {
         .execute();
       return {
         message: 'Message created',
+        channel: data.channel.id,
         data: await this.getOne(data.channel.id, newMessage.generatedMaps[0].id),
         created: true,
       };
     } catch (___) {
       return {
         message: 'Message don\'t created',
+        channel: data.channel.id,
         data: undefined,
         created: false,
       };
@@ -75,6 +77,7 @@ export class MessageService {
         .execute();
       return {
         message: 'Message updated',
+        channel: data.channel.id,
         data: await this.getOne(data.channel.id, data.id),
         timestamp: Date,
         updated: true,
@@ -83,6 +86,7 @@ export class MessageService {
     {
       return {
         message: 'Message don\'t updated',
+        channel: data.channel.id,
         data: undefined,
         timestamp: Date,
         updated: false
@@ -124,6 +128,7 @@ export class MessageService {
       
       return {
         message: 'Message deleted',
+        channel: data.channel.id,
         id: data.id,
         timestamp: Date,
         deleted: true,
@@ -132,6 +137,7 @@ export class MessageService {
     {
       return {
         message: 'Message don\'t deleted',
+        channel: data.channel.id,
         id: data.id,
         timestamp: Date,
         deleted: false,

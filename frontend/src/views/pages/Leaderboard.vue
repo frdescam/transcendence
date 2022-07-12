@@ -9,6 +9,7 @@
 			:loading="loading"
 			:filter="filter"
 			@request="onRequest"
+			@row-click="onRowClick"
 			binary-state-sort
 		>
 			<template v-slot:top-right>
@@ -18,12 +19,20 @@
 					</template>
 				</q-input>
 			</template>
+			<template #body-cell-avatar="props">
+				<q-td :props="props">
+					<q-avatar :props="props">
+						<img :src=props.value>
+					</q-avatar>
+				</q-td>
+		</template>
 		</q-table>
 	</div>
 </template>
 
 <script>
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { api } from 'boot/axios';
 
 const columns = [
@@ -32,7 +41,16 @@ const columns = [
 		label: 'RANK',
 		field: 'rank',
 		required: true,
-		align: 'left'
+		align: 'left',
+		style: 'width: 5%'
+	},
+	{
+		name: 'avatar',
+		label: '',
+		field: 'avatar',
+		reqired: true,
+		align: 'right',
+		style: 'width: 10%'
 	},
 	{
 		name: 'user',
@@ -46,7 +64,8 @@ const columns = [
 		label: 'RATIO',
 		field: 'ratio',
 		required: true,
-		align: 'left'
+		align: 'left',
+		style: 'width: 10%'
 	}
 ];
 
@@ -54,6 +73,7 @@ export default {
 	name: 'LeaderboardPage',
 	setup ()
 	{
+		const router = useRouter();
 		const rows = ref([]);
 		const filter = ref('');
 		const loading = ref(false);
@@ -118,6 +138,11 @@ export default {
 			});
 		});
 
+		async function onRowClick (evt, row)
+		{
+			router.push('/profile/' + row.user);
+		}
+
 		return {
 			filter,
 			loading,
@@ -126,7 +151,8 @@ export default {
 			rows,
 			pagesNumber: computed(() => Math.ceil(rows.value.length / pagination.value.rowsPerPage)),
 
-			onRequest
+			onRequest,
+			onRowClick
 		};
 	}
 };

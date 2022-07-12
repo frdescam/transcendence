@@ -107,7 +107,14 @@ export class MainGateway implements NestGateway
     this.logger.log(`Client ${client.id} is disconnected`);
     this.server.emit('clientDisconnect', client.id);
   }
-  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  returnData(sender: Socket, data: any) {
+    return {
+      socketId: sender.id,
+      data
+    };
+  }
+
   //#region Muted
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('muted::set')
@@ -119,7 +126,7 @@ export class MainGateway implements NestGateway
       user: await this.userService.getOne(muted.userId),
       until: new Date(muted.until)
     };
-    this.server.emit('muted::receive::set', await this.mutedService.set(__newMuted));
+    this.server.emit('muted::receive::set', this.returnData(sender, await this.mutedService.set(__newMuted)));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -132,7 +139,7 @@ export class MainGateway implements NestGateway
       user: undefined,
       until: undefined
     };
-    this.server.emit('muted::receive::delete', await this.mutedService.delete(__newMuted));
+    this.server.emit('muted::receive::delete', this.returnData(sender, await this.mutedService.delete(__newMuted)));
   }
   //#endregion
 
@@ -147,7 +154,7 @@ export class MainGateway implements NestGateway
       user: await this.userService.getOne(banned.userId),
       until: new Date(banned.until)
     };
-    this.server.emit('banned::receive::set', await this.bannedService.set(__newBanned));
+    this.server.emit('banned::receive::set', this.returnData(sender, await this.bannedService.set(__newBanned)));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -160,7 +167,7 @@ export class MainGateway implements NestGateway
       user: undefined,
       until: undefined
     };
-    this.server.emit('banned::receive::delete', await this.bannedService.delete(__newBanned));
+    this.server.emit('banned::receive::delete', this.returnData(sender, await this.bannedService.delete(__newBanned)));
   }
   //#endregion
 
@@ -169,14 +176,14 @@ export class MainGateway implements NestGateway
   @SubscribeMessage('users::getAll')
   async getEveryUsers(sender: Socket) {
     this.logger.log(`Client ${sender.id} get every user(s) at ${new Date().toDateString()}`);
-    this.server.emit('users::receive::getAll', await this.userService.getAll());
+    this.server.emit('users::receive::getAll', this.returnData(sender, await this.userService.getAll()));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('users::get')
   async getUser(id: number, sender: Socket) {
     this.logger.log(`Client ${sender.id} get user ${id} at ${new Date().toDateString()}`);
-    this.server.emit('users::receive::get', await this.userService.getOne(id));
+    this.server.emit('users::receive::get', this.returnData(sender, await this.userService.getOne(id)));
   }
   //#endregion
 
@@ -185,14 +192,14 @@ export class MainGateway implements NestGateway
   @SubscribeMessage('channel::gets')
   async getChannels(sender: Socket) {
     this.logger.log(`Client ${sender.id} get channel(s) at ${new Date().toDateString()}`);
-    this.server.emit('channel::receive::gets', await this.channelService.getAllNoMessages());
+    this.server.emit('channel::receive::gets', this.returnData(sender, await this.channelService.getAllNoMessages()));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('channel::get')
   async getChannel(channelId: number, sender: Socket) {
     this.logger.log(`Client ${sender.id} get channel ${channelId} at ${new Date().toDateString()}`);
-    this.server.emit('channel::receive::get', await this.channelService.getOneNoMessages(channelId));
+    this.server.emit('channel::receive::get', this.returnData(sender, await this.channelService.getOneNoMessages(channelId)));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -213,11 +220,13 @@ export class MainGateway implements NestGateway
       admins: [ __owner ],
       users: [ __owner ]
     };
-    const ret = await this.channelService.create(__newChannel);
-    if (ret.created === false)
-      throw new Error(ret.message);
-    else
-      this.server.emit('channel::receive::add', ret);
+    const retChannel = await this.channelService.create(__newChannel);
+    const retUser = await this.channelService.addUser(retChannel.data.id, __owner);
+    this.server.emit('channel::receive::add', {
+      socketId: sender.id,
+      channel: retChannel,
+      user: retUser
+    });
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -237,10 +246,7 @@ export class MainGateway implements NestGateway
       admins: [],
       users: []
     });
-    if (ret.updated === false)
-      throw new Error(ret.message);
-    else
-      this.server.emit('channel::receive::update', ret);
+    this.server.emit('channel::receive::update', this.returnData(sender, ret));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -261,10 +267,7 @@ export class MainGateway implements NestGateway
       admins: [],
       users: []
     });
-    if (ret.deleted === false)
-      throw new Error(ret.message);
-    else
-      this.server.emit('channel::receive::delete', ret);
+    this.server.emit('channel::receive::delete', this.returnData(sender, ret));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -273,9 +276,74 @@ export class MainGateway implements NestGateway
     this.logger.log(`Client ${sender.id} add user ${user.userId} to channel ${user.channelId} at ${new Date().toDateString()}`);
     const getUser = await this.userService.getOne(user.userId);
     if (!getUser)
-      this.server.emit('channel::user::receive::add', getUser, undefined);
+      this.server.emit('channel::user::receive::add', {
+        socketId: sender.id,
+        channel: undefined,
+        user: getUser
+      });
     else
-      this.server.emit('channel::user::receive::add', getUser, await this.channelService.addUser(user.channelId, getUser));
+      this.server.emit('channel::user::receive::add', {
+        socketId: sender.id,
+        channel: await this.channelService.addUser(user.channelId, getUser),
+        user: getUser
+      });
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('channel::user::remove')
+  async removeUserToChannel(user: channelUser, sender: Socket) {
+    this.logger.log(`Client ${sender.id} remove user ${user.userId} to channel ${user.channelId} at ${new Date().toDateString()}`);
+    const getUser = await this.userService.getOne(user.userId);
+    if (!getUser)
+      this.server.emit('channel::user::receive::remove', {
+        socketId: sender.id,
+        channel: undefined,
+        user: getUser
+      });
+    else
+      this.server.emit('channel::user::receive::remove', {
+        socketId: sender.id,
+        channel: await this.channelService.removeUser(user.channelId, getUser),
+        user: getUser
+      });
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('channel::admin::add')
+  async addAdminToChannel(user: channelUser, sender: Socket) {
+    this.logger.log(`Client ${sender.id} add admin ${user.userId} to channel ${user.channelId} at ${new Date().toDateString()}`);
+    const getUser = await this.userService.getOne(user.userId);
+    if (!getUser)
+      this.server.emit('channel::admin::receive::add', {
+        socketId: sender.id,
+        channel: undefined,
+        user: getUser
+      });
+    else
+      this.server.emit('channel::admin::receive::add', getUser, {
+        socketId: sender.id,
+        channel: await this.channelService.addAdmin(user.channelId, getUser),
+        user: getUser
+      });
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('channel::admin::remove')
+  async removeAminToChannel(user: channelUser, sender: Socket) {
+    this.logger.log(`Client ${sender.id} remove admin ${user.userId} to channel ${user.channelId} at ${new Date().toDateString()}`);
+    const getUser = await this.userService.getOne(user.userId);
+    if (!getUser)
+      this.server.emit('channel::admin::receive::remove', {
+        socketId: sender.id,
+        channel: undefined,
+        user: getUser
+      });
+    else
+      this.server.emit('channel::admin::receive::remove', getUser, {
+        socketId: sender.id,
+        channel: await this.channelService.removeAdmin(user.channelId, getUser),
+        user: getUser
+      });
   }
   // #endregion
 
@@ -296,7 +364,7 @@ export class MainGateway implements NestGateway
       timestamp: message.timestamp,
       modified: undefined
     };
-    this.server.emit('message::receive::add', await this.messageService.create(newMessage));
+    this.server.emit('message::receive::add', this.returnData(sender, await this.messageService.create(newMessage)));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -315,7 +383,7 @@ export class MainGateway implements NestGateway
       timestamp: undefined,
       modified: message.timestamp
     };
-    this.server.emit('message::receive::update', await this.messageService.update(newMessage));
+    this.server.emit('message::receive::update', this.returnData(sender, await this.messageService.update(newMessage)));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
@@ -334,7 +402,7 @@ export class MainGateway implements NestGateway
       timestamp: undefined,
       modified: message.timestamp
     };
-    this.server.emit('message::receive::delete', await this.messageService.remove(newMessage));
+    this.server.emit('message::receive::delete', this.returnData(sender, await this.messageService.remove(newMessage)));
   }
   // #endregion
 }

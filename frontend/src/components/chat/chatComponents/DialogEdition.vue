@@ -16,7 +16,7 @@
 				<q-tab v-if="isCreator(Number(userId))" name="general" icon="settings" :label="$t('chat.channel.menu.edit.tabs.general.title')" />
 				<q-tab name="users" icon="groups" :label="$t('chat.channel.menu.edit.tabs.user.title')" />
 			</q-tabs>
-			<q-card-section style="max-height: 50vh" class="scroll">
+			<q-card-section style="max-height: 50vh; padding: 0" class="scroll">
 				<q-tab-panels
 					v-model="selectedTab"
 					animated
@@ -129,32 +129,32 @@
 							</div>
 						</q-form>
 					</q-tab-panel>
-					<q-tab-panel name="users">
-						<q-input bottom-slots v-model="searchUser" :label="$t('chat.channel.menu.edit.tabs.user.tooltip.search')">
-							<template v-slot:append>
-								<q-icon v-if="searchUser" name="close" @click="searchUser = ''" class="cursor-pointer" />
-								<q-icon name="search" />
-							</template>
-						</q-input>
-						<q-list>
-							<q-item v-if="isCreator(Number(userId))">
-								<q-item-section class="create-channel">
-									<q-btn
-										round
-										flat
-										icon="add_circle_outline"
-										size="1.3em"
-										@click="dialogEditionAddUserShow = true"
+					<q-tab-panel name="users" class="user-list">
+						<div class="user-list-search">
+							<q-input bottom-slots v-model="searchUser" :label="$t('chat.channel.menu.edit.tabs.user.tooltip.search')">
+								<template v-slot:append>
+									<q-icon v-if="searchUser" name="close" @click="searchUser = ''" class="cursor-pointer" />
+									<q-icon name="search" />
+								</template>
+							</q-input>
+							<div class="row justify-center">
+								<q-btn v-if="isCreator(Number(userId))"
+									round
+									flat
+									icon="add_circle_outline"
+									size="1.3em"
+									@click="dialogEditionAddUserShow = true"
+								>
+									<q-tooltip
+										anchor="top middle"
+										:offset="[0, 35]"
 									>
-										<q-tooltip
-											anchor="top middle"
-											:offset="[0, 35]"
-										>
-											{{ $t('chat.channel.menu.edit.tabs.user.tooltip.addUser') }}
-										</q-tooltip>
-									</q-btn>
-								</q-item-section>
-							</q-item>
+										{{ $t('chat.channel.menu.edit.tabs.user.tooltip.addUser') }}
+									</q-tooltip>
+								</q-btn>
+							</div>
+						</div>
+						<q-list class="user-list-users" v-if="loading === false">
 							<template v-for="user in channel.users" v-bind:key="user.id">
 								<DialogEditionUserListVue
 									v-if="(searchUser && search(user.pseudo)) || !searchUser"
@@ -426,6 +426,7 @@ export default defineComponent({
 			});
 		};
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const addUserOption = (users: any) =>
 		{
 			const banned = isBanned(users.id);
@@ -441,13 +442,13 @@ export default defineComponent({
 			});
 		};
 
-		const getChannel = async () =>
+		const getChannel = () =>
 		{
-			console.log('toto');
+			loading.value = true;
 			socket.emit('channel::get', props.channelId);
 		};
 
-		socket.on('channel::receive::get', (ret) =>
+		socket.on('channel::receive::get', async (ret) =>
 		{
 			if (!ret)
 				loading.value = false;
@@ -455,6 +456,7 @@ export default defineComponent({
 			{
 				loading.value = false;
 				channel.value = ret;
+				usersOptions.length = 0;
 				for (const i in channel.value.users)
 					addUserOption(channel.value.users[i]);
 			}
@@ -512,6 +514,11 @@ export default defineComponent({
 		socket.on('channel::user::receive::add', (user, add) =>
 		{
 			if (add.added === true)
+			{
+				getChannel();
+				dialogEditionAddUserShow.value = false;
+			}
+			else
 				dialogEditionAddUserError.value = true;
 		});
 
@@ -591,26 +598,43 @@ export default defineComponent({
 			});
 		};
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const switchVal = (type: string, val: boolean, ret: any) =>
+		{
+			if (ret.channel !== props.channelId)
+				return;
+			for (const i in usersOptions)
+			{
+				if (usersOptions[i].id === ret.user)
+				{
+					if (type === 'banned')
+						usersOptions[i].isBanned = val;
+					else
+						usersOptions[i].isMuted = val;
+					return;
+				}
+			}
+		};
 		socket.on('banned::receive::set', (ret) =>
 		{
-			if (ret && ret.set === true)
-				getChannel();
+			console.log(ret, props.channelId);
+			if (ret.set === true && ret.channel === props.channelId)
+				switchVal('banned', true, ret);
 		});
 		socket.on('banned::receive::delete', (ret) =>
 		{
-			if (ret && ret.deleted === true)
-				getChannel();
+			if (ret.deleted === true && ret.channel === props.channelId)
+				switchVal('banned', false, ret);
 		});
-
 		socket.on('muted::receive::set', (ret) =>
 		{
-			if (ret && ret.set === true)
-				getChannel();
+			if (ret.set === true && ret.channel === props.channelId)
+				switchVal('muted', true, ret);
 		});
 		socket.on('muted::receive::delete', (ret) =>
 		{
-			if (ret && ret.deleted === true)
-				getChannel();
+			if (ret.deleted === true && ret.channel === props.channelId)
+				switchVal('muted', false, ret);
 		});
 		// #endregion
 
@@ -622,11 +646,11 @@ export default defineComponent({
 			dialog.value?.hide();
 		};
 
-		watch(() => props.dialogEditionShow, (after, before) =>
+		watch(() => props.dialogEditionShow, (after) =>
 		{
-			if (before === false && after === true)
+			getChannel();
+			if (after === true)
 			{
-				getChannel();
 				selectedTab.value = isCreator(Number(props.userId)) ? 'general' : 'users';
 				generalName.value = props.channelName;
 				generalType.value = props.channelType;
@@ -718,5 +742,22 @@ export default defineComponent({
 }
 .toggle-section > span {
 	text-align: center;
+}
+
+.user-list-tab {
+	height:46vh; padding: 1em
+}
+.user-list {
+	height: 46vh !important;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+.user-list-search {
+	padding: 1em 1em 0 1em;
+}
+.user-list-users {
+	overflow: auto;
+	padding: 0 1em;;
 }
 </style>

@@ -118,7 +118,6 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AxiosInstance } from 'axios';
 import { QMenu } from 'quasar';
 import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, watch } from 'vue';
@@ -157,7 +156,6 @@ export default defineComponent({
 	setup (props, { emit })
 	{
 		const socket: Socket = inject('socketChat') as Socket;
-		const api: AxiosInstance = inject('api') as AxiosInstance;
 
 		const loading = ref(true);
 		const noError = ref(true);
@@ -175,6 +173,7 @@ export default defineComponent({
 		const selectedChannelError = ref<boolean>(false);
 		const selectedChannelPassword = ref();
 		const selectedChannelId = ref(0);
+		const selectedChannelType = ref();
 		const selectedChannelPasswordValue = ref();
 		const selectedChannelName = ref();
 
@@ -182,32 +181,39 @@ export default defineComponent({
 		{
 			emit('channel-is-selected', {
 				id: channelId,
+				socketId: socket.id,
 				isDeleted
 			});
 		};
 
+		let socketComingFromChannelVue = false;
 		const channelIsSelected = (channelId: number, channelType: string) =>
 		{
+			socketComingFromChannelVue = true;
+			selectedChannelType.value = channelType;
 			const __saveId = props.selectedChannel.id;
 			if (!__saveId || (__saveId && __saveId !== channelId))
 			{
 				if (channelType !== 'protected')
-					sendEvent(channelId);
-				else
 				{
-					api.get<any>(`/chat/channel/get/no-messages/${channelId}`)
-						.then((res) =>
-						{
-							selectedChannelPasswordValue.value = res.data.channel.password;
-							selectedChannelName.value = res.data.channel.name;
-							selectedChannelId.value = res.data.channel.id;
-							openDialogPassword();
-						})
-						.catch((err) => console.log(err));
+					sendEvent(channelId);
+					return;
 				}
+				socket.emit('channel::get', channelId);
 			}
-			return channelId;
 		};
+		socket.on('channel::receive::get', (ret) =>
+		{
+			if (socketComingFromChannelVue === false ||
+				ret.socketId !== socket.id ||
+				selectedChannelType.value !== 'protected')
+				return;
+			selectedChannelPasswordValue.value = ret.data.password;
+			selectedChannelName.value = ret.data.name;
+			selectedChannelId.value = ret.data.id;
+			socketComingFromChannelVue = false;
+			openDialogPassword();
+		});
 
 		const openContextualMenu = (e: Event) =>
 		{
@@ -267,8 +273,6 @@ export default defineComponent({
 			dialogEditionShow.value = true;
 		};
 
-		onMounted(() => socket.emit('channel::gets'));
-
 		// #region Socket
 		const generateData = (channel: any) =>
 		{
@@ -292,9 +296,12 @@ export default defineComponent({
 			return ret;
 		};
 
-		socket.on('channel::receive::gets', (data) =>
+		onMounted(() => socket.emit('channel::gets'));
+		socket.on('channel::receive::gets', (ret) =>
 		{
-			if (!data)
+			if (ret.socketId !== socket.id)
+				return;
+			if (!ret.data)
 			{
 				loading.value = false;
 				noError.value = false;
@@ -303,17 +310,18 @@ export default defineComponent({
 			loading.value = false;
 			noError.value = true;
 			channels.value.length = 0;
-			for (const el in data)
+
+			for (const el in ret.data)
 			{
-				if (data[el].type === 'public' || data[el].type === 'protected')
-					channels.value.push(generateData(data[el]));
+				if (ret.data[el].type === 'public' || ret.data[el].type === 'protected')
+					channels.value.push(generateData(ret.data[el]));
 				else
 				{
-					for (const user of data[el].users)
+					for (const user of ret.data[el].users)
 					{
 						if (user.id === props.userId)
 						{
-							channels.value.push(generateData(data[el]));
+							channels.value.push(generateData(ret.data[el]));
 							break;
 						}
 					}
@@ -323,17 +331,17 @@ export default defineComponent({
 
 		socket.on('channel::receive::add', (ret) =>
 		{
-			if (ret && ret.created)
+			if (ret.channel && ret.channel.created)
 			{
-				if (ret.data.type === 'public' || ret.data.type === 'protected')
-					channels.value.push(generateData(ret.data));
-				else if (ret.data.type === 'direct')
+				if (ret.channel.data.type === 'public' || ret.channel.data.type === 'protected')
+					channels.value.push(generateData(ret.channel.data));
+				else if (ret.channel.data.type === 'direct')
 				{
-					for (const user of ret.data.users)
+					for (const user of ret.channel.data.users)
 					{
 						if (user.id === props.userId)
 						{
-							channels.value.push(generateData(ret.data));
+							channels.value.push(generateData(ret.channel.data));
 							return;
 						}
 					}
@@ -345,12 +353,12 @@ export default defineComponent({
 		{
 			for (const i in channels.value)
 			{
-				if (channels.value[i].id === ret.data.id)
+				if (channels.value[i].id === ret.data.data.id)
 				{
-					channels.value[i].name = ret.data.name;
-					channels.value[i].type = ret.data.type;
-					channels.value[i].owner = ret.data.owner.id;
-					channels.value[i].password = ret.data.password;
+					channels.value[i].name = ret.data.data.name;
+					channels.value[i].type = ret.data.data.type;
+					channels.value[i].owner = ret.data.data.owner.id;
+					channels.value[i].password = ret.data.data.password;
 					return;
 				}
 			}
@@ -360,7 +368,7 @@ export default defineComponent({
 		{
 			for (const i in channels.value)
 			{
-				if (channels.value[i].id === ret.id)
+				if (channels.value[i].id === ret.data.id)
 				{
 					channels.value.splice(Number(i), 1);
 					sendEvent(-1, true);

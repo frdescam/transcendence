@@ -1,4 +1,5 @@
 <template>
+  {{ $socketChat.id }}
 	<div>
 		<q-radio v-model="user" :val="Number(1)">Clément user</q-radio>
 		<q-radio v-model="user" :val="Number(2)">John user</q-radio>
@@ -8,8 +9,8 @@
 		<div class="col-3 channel">
 			<channelChannel
 				:userId="user"
-        :selected-channel="selectedChannel"
-				@channel-is-selected="(data) => selectedChannel = data"
+				:selected-channel="selectedChannel"
+				@channel-is-selected="channelChanged"
 			></channelChannel>
 		</div>
 		<div class="col-6 chat">
@@ -35,6 +36,7 @@ import { defineComponent, ref } from 'vue';
 
 interface channelInterface {
 	id: number,
+	socketId: string,
 	isDeleted: boolean
 }
 
@@ -49,10 +51,18 @@ export default defineComponent({
 	{
 		const selectedChannel = ref<channelInterface>({
 			id: 0,
+			socketId: '',
 			isDeleted: false
 		});
 		const user = ref(1);
+
+		const channelChanged = (ret: channelInterface) =>
+		{
+			selectedChannel.value = ret;
+		};
+
 		return {
+			channelChanged,
 			selectedChannel,
 			user
 		};

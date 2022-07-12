@@ -56,7 +56,6 @@
 				</q-list>
 			</q-card-section>
 		</q-card>
-		{{ presentUser }}
 	</q-dialog>
 </template>
 
@@ -139,10 +138,12 @@ export default defineComponent({
 
 		onMounted(() => getUsers());
 
-		watch(() => props.dialogEditionAddUserShow, (after, before) =>
+		watch(() => props.dialogEditionAddUserShow, (after) =>
 		{
-			if (before === false && after === true)
+			if (after === true)
 				dialog.value?.show();
+			else
+				dialog.value?.hide();
 		});
 
 		return {

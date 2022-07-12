@@ -92,6 +92,66 @@ export class ChannelService {
     }
   }
 
+  async removeUser(channelId: number, user: UserDTO) {
+    try {
+      const newUser = await this.channelRepository.createQueryBuilder()
+        .relation(Channel, 'users')
+        .of({ id: channelId })
+        .remove(user);
+      return {
+        message: `User ${user.id} added to channel ${channelId}`,
+        data: newUser,
+        added: true,
+      };
+    } catch (err) {
+      return {
+        message: `User ${user.id} don't added to channel ${channelId}`,
+        data: undefined,
+        added: false,
+      };
+    }
+  }
+
+  async addAdmin(channelId: number, user: UserDTO) {
+    try {
+      const newUser = await this.channelRepository.createQueryBuilder()
+        .relation(Channel, 'admins')
+        .of({ id: channelId })
+        .add(user);
+      return {
+        message: `User ${user.id} added to admin channel ${channelId}`,
+        data: newUser,
+        added: true,
+      };
+    } catch (err) {
+      return {
+        message: `User ${user.id} don't added to admin channel ${channelId}`,
+        data: undefined,
+        added: false,
+      };
+    }
+  }
+
+  async removeAdmin(channelId: number, user: UserDTO) {
+    try {
+      const newUser = await this.channelRepository.createQueryBuilder()
+        .relation(Channel, 'admins')
+        .of({ id: channelId })
+        .remove(user);
+      return {
+        message: `User ${user.id} added to admin channel ${channelId}`,
+        data: newUser,
+        added: true,
+      };
+    } catch (err) {
+      return {
+        message: `User ${user.id} don't added to admin channel ${channelId}`,
+        data: undefined,
+        added: false,
+      };
+    }
+  }
+
   async create(data: ChannelDTO) {
     try {
       const val = {

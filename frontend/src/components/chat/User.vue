@@ -34,8 +34,7 @@
 </template>
 
 <script lang="ts">
-import { AxiosInstance } from 'axios';
-import { TypeOfObject } from 'src/boot/libs';
+import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, watch } from 'vue';
 
 export default defineComponent({
@@ -46,8 +45,7 @@ export default defineComponent({
 	],
 	setup (props)
 	{
-		const api: AxiosInstance = inject('api') as AxiosInstance;
-		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
+		const socket: Socket = inject('socketChat') as Socket;
 
 		const loading = ref(true);
 		const noError = ref(true);
@@ -60,33 +58,38 @@ export default defineComponent({
 				target.src = 'imgs/chat/default.webp';
 		};
 
-		const getData = (id: number) =>
+		let socketComingFromUserVue = false;
+		const getData = () =>
 		{
-			api.get(`/chat/channel/get/no-messages/${id}`)
-				.then(async (res) =>
-				{
-					if (typeofObject(res.data) !== 'object')
-						throw new Error();
-					loading.value = false;
-					users.value = res.data.channel.users;
-				})
-				.catch(() =>
-				{
-					loading.value = false;
-					noError.value = false;
-				});
+			socketComingFromUserVue = true;
+			socket.emit('channel::get', props.selectedChannel.id);
 		};
+
+		socket.on('channel::receive::get', async (ret) =>
+		{
+			if (!socketComingFromUserVue)
+				return;
+			if (ret.socketId !== socket.id)
+			{
+				loading.value = false;
+				noError.value = false;
+				return;
+			}
+			socketComingFromUserVue = false;
+			loading.value = false;
+			users.value = ret.data.users;
+		});
 
 		onMounted(() =>
 		{
 			watch(() => props.selectedChannel, () =>
 			{
 				if (!props.selectedChannel.isDeleted)
-					getData(props.selectedChannel.id);
+					getData();
 			});
 
 			if (props.selectedChannel.id > 0)
-				getData(props.selectedChannel.id);
+				getData();
 		});
 
 		return {

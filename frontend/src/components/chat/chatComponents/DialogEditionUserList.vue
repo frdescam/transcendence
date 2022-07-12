@@ -50,7 +50,7 @@
 				<span>{{ capitalize($t('chat.channel.menu.edit.tabs.user.badge.muted')) }}</span>
 				<q-toggle
 					v-model="data.isMuted"
-					checked-icon="dangerous"
+					checked-icon="volume_mute"
 					color="green"
 					size="lg"
 					:disable="data.isCreator || !connectedUser.isAdmin"
@@ -111,24 +111,39 @@ export default defineComponent({
 
 		watch(() => data.isAdmin, () =>
 		{
-			emit('dialog-edition-users-admin', data.id, data.isAdmin);
+			emit(
+				'dialog-edition-users-admin',
+				data.id,
+				data.isAdmin
+			);
 		});
 
 		watch(() => data.isBanned, () =>
 		{
-			emit('dialog-edition-users-timepicker', data.id, data.bannedId, data.isBanned, 'banned');
+			emit(
+				'dialog-edition-users-timepicker',
+				data.id,
+				data.bannedId,
+				data.isBanned,
+				'banned'
+			);
 		});
 
 		watch(() => data.isMuted, () =>
 		{
-			emit('dialog-edition-users-timepicker', data.id, data.mutedId, data.isMuted, 'muted');
+			emit(
+				'dialog-edition-users-timepicker',
+				data.id,
+				data.mutedId,
+				data.isMuted,
+				'muted'
+			);
 		});
 
 		watch(() => props.errorOccur, () =>
 		{
 			if (props.errorOccur.id === data.id)
 			{
-				console.log('user list', props.info);
 				if (props.errorOccur.type === 'banned')
 					data.isBanned = props.info.isBanned;
 				else

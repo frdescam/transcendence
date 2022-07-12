@@ -57,16 +57,17 @@ export class MutedService {
     try {
       if (await this.getOne(data.channel.id, data.user.id) !== undefined)
       {
-        const setUser = await this.update(data);
+        await this.update(data);
         return {
           message: 'Muted user success',
-          data: setUser.data,
+          user: data.user.id,
+          channel: data.channel.id,
           set: true
         };
       }
       else
       {
-        const setUser = this.mutedRepository.createQueryBuilder()
+        this.mutedRepository.createQueryBuilder()
           .insert()
           .into(Muted)
           .values([
@@ -79,7 +80,8 @@ export class MutedService {
           .execute();
         return {
           message: 'Muted user success',
-          data: setUser,
+          user: data.user.id,
+          channel: data.channel.id,
           set: true
         };
       }
@@ -87,7 +89,8 @@ export class MutedService {
     } catch (___) {
       return {
         message: 'Muted user failed',
-        data: undefined,
+        user: -1,
+        channel: -1,
         set: false
       };
     }
@@ -96,7 +99,7 @@ export class MutedService {
   async update(data: MutedDTO)
   {
     try {
-      const updateUser = await this.mutedRepository.createQueryBuilder('muted')
+      await this.mutedRepository.createQueryBuilder('muted')
         .update()
         .set({
           until: data.until
@@ -106,13 +109,15 @@ export class MutedService {
         .execute();
       return {
         message: 'Muted user update success',
-        data: updateUser,
+        user: data.user.id,
+        channel: data.channel.id,
         update: true
       };
     } catch (___) {
       return {
         message: 'Muted user update failed',
-        data: undefined,
+        user: -1,
+        channel: -1,
         update: false
       };
     }
@@ -129,6 +134,8 @@ export class MutedService {
       return {
         message: 'Muted user deleted',
         id: data.id,
+        user: data.user.id,
+        channel: data.channel.id,
         timestamp: Date,
         deleted: true,
       };
@@ -136,6 +143,8 @@ export class MutedService {
       return {
         message: 'Muted user don\'t deleted',
         id: data.id,
+        user: data.user.id,
+        channel: data.channel.id,
         timestamp: Date,
         deleted: false,
       };

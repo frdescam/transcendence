@@ -54,16 +54,17 @@ export class BannedService {
     try {
       if (await this.getOne(data.channel.id, data.user.id) !== undefined)
       {
-        const setUser = await this.update(data);
+        await this.update(data);
         return {
           message: 'Muted user success',
-          data: setUser.data,
+          user: data.user.id,
+          channel: data.channel.id,
           set: true
         };
       }
       else
       {
-        const setUser = this.bannedRepository.createQueryBuilder()
+        await this.bannedRepository.createQueryBuilder()
           .insert()
           .into(Banned)
           .values([
@@ -76,7 +77,8 @@ export class BannedService {
           .execute();
         return {
           message: 'Banned user success',
-          data: setUser,
+          user: data.user.id,
+          channel: data.channel.id,
           set: true
         };
       }
@@ -84,7 +86,8 @@ export class BannedService {
     } catch (___) {
       return {
         message: 'Banned user failed',
-        data: undefined,
+        user: -1,
+        channel: -1,
         set: false
       };
     }
@@ -93,7 +96,7 @@ export class BannedService {
   async update(data: BannedDTO)
   {
     try {
-      const updateUser = await this.bannedRepository.createQueryBuilder('muted')
+      await this.bannedRepository.createQueryBuilder('muted')
         .update()
         .set({
           until: data.until
@@ -103,13 +106,15 @@ export class BannedService {
         .execute();
       return {
         message: 'Banned user update success',
-        data: updateUser,
+        user: data.user.id,
+        channel: data.channel.id,
         update: true
       };
     } catch (___) {
       return {
         message: 'Banned user update failed',
-        data: undefined,
+        user: -1,
+        channel: -1,
         update: false
       };
     }
@@ -126,6 +131,8 @@ export class BannedService {
       return {
         message: 'Banned user deleted',
         id: data.id,
+        user: data.user.id,
+        channel: data.channel.id,
         timestamp: Date,
         deleted: true,
       };
@@ -133,6 +140,8 @@ export class BannedService {
       return {
         message: 'Banned user don\'t deleted',
         id: data.id,
+        user: data.user.id,
+        channel: data.channel.id,
         timestamp: Date,
         deleted: false,
       };

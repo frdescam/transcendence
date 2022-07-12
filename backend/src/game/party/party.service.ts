@@ -78,78 +78,101 @@ export class PartyService
         await this.matchRepo.save(match);
     }
 
-    private async onFinish(party: Party, winnerSlot: 1 | 0, looserSlot: 1 | 0)
+    private async onFinish(party: Party, winnerSlot?: 1 | 0, looserSlot?: 1 | 0)
     {
         party.status = partyStatus.Finish;
-        this.patchState(
-            party,
-            {
-                text: '',
-                textSize: 0.5,
-                textColor: 0x0000ff,
-                ball: true,
-                offside: false,
-                lobby: true,
-                paused: true,
-                ballX: 0.5,
-                ballY: 0.5,
-                ballSpeedX: 0,
-                ballSpeedY: 1,
-                finish: true
-            }
-        );
-
-        this.setState(
-            party,
-            {
-                text: 'Saving...',
-                textSize: 0.8,
-                textColor: 0x0000ff,
-            }
-        )
-
         try
         {
-            await this.saveScore(
-                party.map,
-                party.playersId[0],
-                party.playersId[1],
-                party.playersId[winnerSlot],
-                party.state.scores[0],
-                party.state.scores[1]
-            );
-
-            this.setState(
-                party,
-                {
-                    text: 'Player ' + (winnerSlot + 1) + ' won !',
-                    textSize: 0.9,
-                    textColor: 0x0000ff,
-                }
-            )
-    
-            if (party.playersSocket[winnerSlot])
+            if (typeof winnerSlot != 'undefined' && typeof looserSlot != 'undefined')
             {
-                this.sendSocketState(
-                    party.playersSocket[winnerSlot],
+                this.patchState(
+                    party,
                     {
-                        text: 'You won !',
-                        textSize: 1,
-                        textColor: 0x00ff00,
-                    },
-                    undefined
+                        text: '',
+                        textSize: 0.5,
+                        textColor: 0x0000ff,
+                        ball: true,
+                        offside: false,
+                        lobby: true,
+                        paused: true,
+                        ballX: 0.5,
+                        ballY: 0.5,
+                        ballSpeedX: 0,
+                        ballSpeedY: 1,
+                        finish: true
+                    }
                 );
-            }
-            if (party.playersSocket[looserSlot])
-            {
-                this.sendSocketState(
-                    party.playersSocket[looserSlot],
+        
+                this.setState(
+                    party,
                     {
-                        text: 'You lost !',
-                        textSize: 1,
-                        textColor: 0xff0000,
+                        text: 'Saving...',
+                        textSize: 0.8,
+                        textColor: 0x0000ff,
+                    }
+                )
+
+                await this.saveScore(
+                    party.map,
+                    party.playersId[0],
+                    party.playersId[1],
+                    party.playersId[winnerSlot],
+                    party.state.scores[0],
+                    party.state.scores[1]
+                );
+
+                this.setState(
+                    party,
+                    {
+                        text: 'Player ' + (winnerSlot + 1) + ' won !',
+                        textSize: 0.9,
+                        textColor: 0x0000ff,
+                    }
+                )
+        
+                if (party.playersSocket[winnerSlot])
+                {
+                    this.sendSocketState(
+                        party.playersSocket[winnerSlot],
+                        {
+                            text: 'You won !',
+                            textSize: 1,
+                            textColor: 0x00ff00,
+                        },
+                        undefined
+                    );
+                }
+                if (party.playersSocket[looserSlot])
+                {
+                    this.sendSocketState(
+                        party.playersSocket[looserSlot],
+                        {
+                            text: 'You lost !',
+                            textSize: 1,
+                            textColor: 0xff0000,
+                        },
+                        undefined
+                    );
+                }   
+            }
+            else
+            {
+                this.patchState(
+                    party,
+                    {
+                        text: 'Party canceled',
+                        textSize: 0.5,
+                        textColor: 0xff8030,
+                        ball: false,
+                        offside: false,
+                        lobby: true,
+                        paused: true,
+                        ballSpeedX: 0,
+                        ballSpeedY: 0,
+                        finish: true
                     },
-                    undefined
+                    true,
+                    true
                 );
             }
 
@@ -315,10 +338,11 @@ export class PartyService
         let message;
   
         if (e && typeof e === 'object' && 'message' in e)
-            message = e.message;
+            message = e.message + '';
         else
             message = e + '';
   
+        client.emit('party::error', message);
         this.sendSocketState(client, {
             ballSpeedX: 0,
             ballSpeedY: 0,
@@ -616,27 +640,9 @@ export class PartyService
         if (party.status == partyStatus.Finish)
             return ;
         
-        if (party.statusData.previousStatus == partyStatus.AwaitingPlayer && party.status == partyStatus.Paused)
-        {
-            party.status = partyStatus.Finish;
-            this.patchState(
-                party,
-                {
-                    text: 'Party canceled',
-                    textSize: 0.5,
-                    textColor: 0xff8030,
-                    finish: true,
-                    ball: false,
-                    offside: false,
-                    lobby: true,
-                    paused: true,
-                    ballSpeedX: 0,
-                    ballSpeedY: 0
-                },
-                true,
-                true
-            );
-        }
+        if (party.status == partyStatus.AwaitingPlayer
+            || (party.statusData.previousStatus == partyStatus.AwaitingPlayer && party.status == partyStatus.Paused))
+            this.onFinish(party, undefined, undefined);
         else
             this.onFinish(party, slot == 0 ? 1 : 0, slot);
     }
@@ -673,6 +679,7 @@ export class PartyService
 
     public joinParty (party: Party, client: Socket): Party
     {
+        // @TODO: Get user from JWT
         const userId: userId = 2;
 
         this.leaveAll(client);
@@ -737,6 +744,7 @@ export class PartyService
     {
         party.spectators.push(client);
         this.partiesBySocket[client.id] = party;
+        client.emit("party::mapinfo", party.map);
         this.sendSocketState(client, party.state, undefined);
 
         return (party);
@@ -749,7 +757,8 @@ export class PartyService
 
         if (!room)
             room = nanoid();
-        // @TODO: Validate the map existence
+        if (!(map in maps))
+            throw new HttpException("Unknown map", HttpStatus.NOT_FOUND);
         
         if (room == "mine")
             throw new HttpException("This party name is special and cannot be used", HttpStatus.CONFLICT);
@@ -788,7 +797,7 @@ export class PartyService
                 playersId: userIds,
                 playersReady: [false, false],
                 state: {
-                    date: new Date(0),
+                    date: new Date(),
                     positions: [0.5, 0.5],
                     scores: [0, 0],
                     ball: true,

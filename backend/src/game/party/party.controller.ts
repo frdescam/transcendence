@@ -51,6 +51,7 @@ export class PartyController
     @UsePipes(new ValidationPipe({ transform: true, transformOptions: {enableImplicitConversion: true} }))
     create(@Body() {room = null, map = "classic", adversary = null}: CreatePartyDto): string
     {
+        // @TODO: get user from socket
         const himself: userId = 1;
 
         // @TODO: check adversary ID existence

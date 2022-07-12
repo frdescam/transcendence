@@ -46,6 +46,7 @@ export class GameGateway
   {
     try
     {
+      // @TODO: get user from socket
       const himself: userId = 1;
       this.partyService.createParty(
         room,

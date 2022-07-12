@@ -4,13 +4,16 @@ import { AppFullscreen, Dialog } from 'quasar';
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
 import { gameSocket } from 'src/boot/socketio';
 import Scene, { mapConfig, options } from './canvas/scene';
-import config from './maps/synthwave';
+import maps from './maps';
 
 import type { state as commonState, Ping, Pong } from 'src/common/game/logic/common';
 
 export interface interfaceState {
-	accessibility: boolean,
+	error: string | null,
+	connected: boolean,
+	gamestate: boolean,
 	loaded: boolean,
+	accessibility: boolean,
 	graphics: 0|1|2|3|4|5,
 	can_join: boolean,
 	spectator: boolean,
@@ -20,7 +23,18 @@ export interface interfaceState {
 
 const props = defineProps<{ party: string }>();
 
-const state = reactive<interfaceState>({ loaded: false, graphics: 2, can_join: false, spectator: true, paused: true, finish: false });
+const state = reactive<interfaceState>({
+	error: null,
+	connected: false,
+	gamestate: false,
+	loaded: false,
+	accessibility: false,
+	graphics: 2,
+	can_join: false,
+	spectator: true,
+	paused: true,
+	finish: false
+});
 
 let scene: null | Scene = null;
 const canvas = ref<Ref | null>(null);
@@ -31,12 +45,12 @@ let lastState: Partial<commonState> = {};
 
 function animate ()
 {
-	(scene as Scene).render();
+	scene?.render();
 }
 
 function resize ()
 {
-	(scene as Scene).setSize(canvas.value.offsetWidth, canvas.value.offsetHeight);
+	scene?.setSize(canvas.value.offsetWidth, canvas.value.offsetHeight);
 }
 
 function quantile (arr: number[], q: number): number
@@ -53,7 +67,13 @@ function quantile (arr: number[], q: number): number
 
 function refreshLatency ()
 {
+	scene?.setDateTheta(thetaMean);
 	onState(lastState);
+}
+
+function onError (error: string)
+{
+	state.error = error;
 }
 
 function onPong ({ cdate, sdate }: Pong)
@@ -68,7 +88,7 @@ function onPong ({ cdate, sdate }: Pong)
 	if (thetaTimes.length > 15)
 		thetaTimes.shift();
 
-	if (thetaTimes.length > 8)
+	if (thetaTimes.length > 12 || thetaTimes.length === 1)
 	{
 		const q25 = quantile(thetaTimes, 0.25);
 		const q75 = quantile(thetaTimes, 0.75);
@@ -77,6 +97,13 @@ function onPong ({ cdate, sdate }: Pong)
 		thetaMean = Math.round(viableThetaMean * 100) / 100;
 		refreshLatency();
 	}
+}
+
+function onMapInfo (map: string)
+{
+	state.gamestate = true;
+	if (!scene)
+		mountScene((map in maps) ? maps[map] : maps.classic);
 }
 
 function onState (state: Partial<commonState>)
@@ -94,6 +121,7 @@ function onState (state: Partial<commonState>)
 
 function onDisconnect ()
 {
+	state.connected = false;
 	scene?.setState({
 		lobby: true,
 		text: 'Connection lost',
@@ -117,14 +145,46 @@ function onMove (value: number)
 	);
 }
 
+function mountScene (config: mapConfig)
+{
+	scene = new Scene(
+		config,
+		{
+			targetElem: canvas.value,
+			qualityLevel: state.graphics,
+			width: canvas.value.offsetWidth,
+			height: canvas.value.offsetHeight,
+			onReady: () =>
+			{
+				state.loaded = true;
+				(scene as Scene).setAnimationLoop(animate);
+			}
+		} as options
+	);
+
+	window.addEventListener('resize', resize);
+
+	canvas.value.onclick = onClick;
+	scene.setOnMove(onMove);
+	scene.setOnStateChange(onStateChange);
+}
+
+function umountScene ()
+{
+	scene?.setAnimationLoop(null);
+	window.removeEventListener('resize', resize);
+
+	scene?.dispose();
+	scene = null;
+}
+
 function onConnected ()
 {
-	// Should be 'join' event, as create will be done on a dedicated page. That's for dev only.
+	state.connected = true;
 	gameSocket.emit(
-		'party::create',
+		'party::spectate',
 		{
-			room: props.party,
-			map: 'synthwave'
+			room: props.party
 		}
 	);
 
@@ -150,28 +210,9 @@ function onStateChange (gameState: commonState)
 
 onMounted(() =>
 {
-	scene = new Scene(
-		config as mapConfig,
-		{
-			targetElem: canvas.value,
-			qualityLevel: state.graphics,
-			width: canvas.value.offsetWidth,
-			height: canvas.value.offsetHeight,
-			onReady: () =>
-			{
-				state.loaded = true;
-				(scene as Scene).setAnimationLoop(animate);
-			}
-		} as options
-	);
-
-	window.addEventListener('resize', resize);
-
-	canvas.value.onclick = onClick;
-	scene.setOnMove(onMove);
-	scene.setOnStateChange(onStateChange);
-
+	gameSocket.on('party::error', onError);
 	gameSocket.on('party::pong', onPong);
+	gameSocket.on('party::mapinfo', onMapInfo);
 	gameSocket.on('party::state', onState);
 	gameSocket.on('disconnect', onDisconnect);
 	gameSocket.on('connect', onConnected);
@@ -182,17 +223,26 @@ onMounted(() =>
 
 onBeforeUnmount(() =>
 {
+	gameSocket.off('party::error', onError);
 	gameSocket.off('party::pong', onPong);
+	gameSocket.off('party::mapinfo', onMapInfo);
 	gameSocket.off('party::state', onState);
 	gameSocket.off('disconnect', onDisconnect);
 	gameSocket.off('connect', onConnected);
 	gameSocket.emit('party::leaveAll');
-	scene?.setAnimationLoop(null);
-	window.removeEventListener('resize', resize);
 
-	scene?.dispose();
-	scene = null;
+	umountScene();
 });
+
+function join ()
+{
+	gameSocket.emit(
+		'party::join',
+		{
+			room: props.party
+		}
+	);
+}
 
 function admitDefeat ()
 {
@@ -220,8 +270,20 @@ function setQuality (val: number)
 	scene?.setQuality(val);
 }
 
+function getStateText ()
+{
+	if (state.error)
+		return state.error;
+	if (!state.connected)
+		return 'Connecting...';
+	if (!state.gamestate)
+		return 'Awaiting gamestate...';
+	return 'Loading map...';
+}
+
 defineExpose({
 	onClick,
+	join,
 	admitDefeat,
 	toggleAccessibility,
 	setQuality,
@@ -241,7 +303,18 @@ defineExpose({
 		<canvas class="game-container" ref="canvas"></canvas>
 
 		<div class="game-container full-width row justify-center content-center progress" v-if="!state.loaded">
-			<q-linear-progress indeterminate rounded track-color="brown-3" color="green-9" class="self-center"/>
+			<p class="text-h2">
+				{{getStateText()}}
+			</p>
+			<q-linear-progress
+				track-color="brown-3"
+				color="green-9"
+				class="self-center"
+				rounded
+				v-if="!state.error"
+				:indeterminate="state.gamestate"
+				:query="!state.connected || !state.gamestate"
+			/>
 		</div>
 
 	</div>

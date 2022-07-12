@@ -42,6 +42,7 @@ class PongScene
 {
 	protected config: mapConfig;
 	protected options: options;
+	protected dateTheta: number;
 	protected state: state;
 	protected disposed: boolean;
 	protected clock: Clock;
@@ -114,12 +115,13 @@ class PongScene
 			onMove: null,
 			onStateChange: null
 		}, options);
+		this.dateTheta = 0;
 		this.state = {
 			team: -1,
 			spectator: true,
 			can_join: false,
 			finish: false,
-			date: new Date(0),
+			date: new Date(),
 			positions: [0.5, 0.5],
 			scores: [0, 0],
 			ball: true,
@@ -293,6 +295,7 @@ class PongScene
 							this.mixer.clipAction(clip).play();
 						}
 					);
+					this._refreshAnimation();
 					this._refreshQuality();
 				}
 			);
@@ -505,6 +508,11 @@ class PongScene
 				}
 			}
 		);
+	}
+
+	_refreshAnimation ()
+	{
+		this.mixer.setTime(((new Date()).getTime() + this.dateTheta) / 1000);
 	}
 
 	_refreshQuality ()
@@ -986,6 +994,12 @@ class PongScene
 			this.options.onStateChange(this.state);
 	}
 
+	setDateTheta (theta: number)
+	{
+		this.dateTheta = theta;
+		this._refreshAnimation();
+	}
+
 	setSize (width: number, height: number)
 	{
 		this.options.width = width;
@@ -997,7 +1011,10 @@ class PongScene
 	{
 		this.options.accessibility = accessibility;
 		this._refreshQuality();
-		this.mixer.setTime(0);
+		if (accessibility)
+			this.mixer.setTime(0);
+		else
+			this._refreshAnimation();
 		this.mixer.update(0);
 	}
 

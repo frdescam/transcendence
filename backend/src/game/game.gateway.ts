@@ -1,9 +1,11 @@
+import { UseGuards, Request } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { map } from './party/interfaces/party.interface';
 import { PartyService } from './party/party.service';
 import type { Socket, Server } from 'socket.io';
 import type { userId, Pong } from 'src/common/game/logic/common';
 import { getPartyDto } from 'src/common/game/logic/getParty.dto';
+import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
 
 @WebSocketGateway({
   namespace: 'game',
@@ -37,22 +39,26 @@ export class GameGateway
     client.volatile.emit('party::pong', {cdate, sdate: (new Date()).toISOString()} as Pong);
   }
 
+  @UseGuards(SocketMockupAuthGuard)
   @SubscribeMessage('party::create')
   create(
     @MessageBody('room') room: string,
     @MessageBody('map') map: map,
     @ConnectedSocket() client: Socket,
+    @Request() req,
   ): void
   {
+    const user: any = req.user;
+    this.partyService.checkUserObject(user);
     try
     {
-      // @TODO: get user from socket
-      const himself: userId = 1;
+      const userId: userId = user.id;
       this.partyService.createParty(
         room,
         map,
-        [himself, null],
-        client
+        [userId, null],
+        client,
+        user
       );
     }
     catch (error)
@@ -66,30 +72,36 @@ export class GameGateway
     }
   }
 
+  @UseGuards(SocketMockupAuthGuard)
   @SubscribeMessage('party::join')
   join(
     @MessageBody('room') room: string,
     @ConnectedSocket() client: Socket,
+    @Request() req,
   ): void
   {
     const party = this.partyService.findParty(room);
+    const user: any = req.user;
 
     if (party)
-      this.partyService.joinParty(party, client);
+      this.partyService.joinParty(party, client, user);
     else
       this.partyService.sendError("Party not found", client);
   }
 
+  @UseGuards(SocketMockupAuthGuard)
   @SubscribeMessage('party::spectate')
   spectate(
     @MessageBody('room') room: string,
     @ConnectedSocket() client: Socket,
+    @Request() req,
   ): void
   {
     const party = this.partyService.findParty(room);
+    const user: any = req.user;
 
     if (party)
-      this.partyService.spectateParty(party, client);
+      this.partyService.spectateParty(party, client, user);
     else
       this.partyService.sendError("Party not found", client);
   }

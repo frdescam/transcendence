@@ -1,8 +1,9 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Put, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Request, Controller, Get, Param, Post, Put, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
 import { PartyService } from './party.service';
 import { userId } from 'src/common/game/logic/common';
 import { getPartyDto } from 'src/common/game/logic/getParty.dto';
 import { CreatePartyDto } from './createParty.dto';
+import { HTTPMockupAuthGuard } from 'src/usermockup/auth.guard';
 
 @Controller('party')
 export class PartyController
@@ -17,26 +18,36 @@ export class PartyController
     }
 
     @Get('mine')
-    findMine(@Param() params): string | null
+    findMine(
+        @Request() req,
+    ): string | null
     {
-        const himself: userId = 1;
+        const user: any = req.user;
+        this.partyService.checkUserObject(user);
+        const himself: userId = user.id;
         const party = this.partyService.findPartyWithUser(himself);
 
         return (party ? party.room : null);        
     }
 
+    @UseGuards(HTTPMockupAuthGuard)
     @Put('giveup')
-    giveup()
+    giveup(
+        @Request() req,
+    )
     {
-        const himself: userId = 1;
+        const user: any = req.user;
+        this.partyService.checkUserObject(user);
+        const himself: userId = user.id;
         const party = this.partyService.findPartyWithUser(himself);
         if (!party)
-            return null;
+            return ({leaved: false});
         const slot = this.partyService.getSlotFromUser(party, himself);
         if (slot == -1)
-            return ;
+            throw "Unexpected state";
 
         this.partyService.admitDefeat(party, slot);
+        return ({leaved: true});
     }
 
     @Get(':room')
@@ -46,13 +57,18 @@ export class PartyController
 
         return (partyArr.length ? this.partyService.partyToPublicJson(partyArr[0]) : null);
     }
-
+    
+    @UseGuards(HTTPMockupAuthGuard)
     @Post()
     @UsePipes(new ValidationPipe({ transform: true, transformOptions: {enableImplicitConversion: true} }))
-    create(@Body() {room = null, map = "classic", adversary = null}: CreatePartyDto): string
+    create(
+        @Body() {room = null, map = "classic", adversary = null}: CreatePartyDto,
+        @Request() req
+    ): string
     {
-        // @TODO: get user from socket
-        const himself: userId = 1;
+        const user: any = req.user;
+        this.partyService.checkUserObject(user);
+        const himself: userId = user.id;
 
         // @TODO: check adversary ID existence
         const party = this.partyService.createParty(

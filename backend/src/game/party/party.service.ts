@@ -31,6 +31,12 @@ export class PartyService
     )
     {}
 
+    public checkUserObject(user: any)
+    {
+        if (!user || typeof user.id != 'number')
+            throw "Authentification is required for that function";
+    }
+
     private getNumberInRange(min, max) { 
         return Math.random() * (max - min) + min;
     }
@@ -343,13 +349,6 @@ export class PartyService
             message = e + '';
   
         client.emit('party::error', message);
-        this.sendSocketState(client, {
-            ballSpeedX: 0,
-            ballSpeedY: 0,
-            text: message,
-            textSize: 0.35,
-            textColor: 0xff0000
-        }, 0);
     }
 
     private sendSocketState (client: Socket | null, state: Partial<serverState>, team: team | undefined)
@@ -677,12 +676,10 @@ export class PartyService
         }
     }
 
-    public joinParty (party: Party, client: Socket): Party
+    public joinParty (party: Party, client: Socket, user: any): Party
     {
-        // @TODO: Get user from JWT
-        const userId: userId = 2;
-
-        this.leaveAll(client);
+        this.checkUserObject(user);
+        const userId: userId = user.id;
 
         let slot;
         if (party.playersId[0] && party.playersId[0] != userId)
@@ -697,6 +694,15 @@ export class PartyService
         }
         else
             slot = 0;
+        
+        if (party.playersSocket[slot])
+        {
+            this.sendError("You are already playing in another window", client);
+            return;
+        }
+
+        this.leaveAll(client);
+
 
         party.playersId[slot] = userId;
         party.playersSocket[slot] = client;
@@ -740,17 +746,33 @@ export class PartyService
         return (party);
     }
 
-    public spectateParty (party: Party, client: Socket): Party
+    public spectateParty (party: Party, client: Socket, user: any): Party
     {
-        party.spectators.push(client);
-        this.partiesBySocket[client.id] = party;
         client.emit("party::mapinfo", party.map);
         this.sendSocketState(client, party.state, undefined);
+        if (user)
+        {
+            this.checkUserObject(user);
+            const userId: userId = user.id;
+
+            let slot;
+            if ((slot = this.getSlotFromUser(party, userId)) != -1)
+            {
+                if (!party.playersSocket[slot])
+                {
+                    this.joinParty(party, client, user);
+                    return (party);
+                }
+            }
+        }
+        
+        party.spectators.push(client);
+        this.partiesBySocket[client.id] = party;
 
         return (party);
     }
     
-    public createParty (room: string | null, map: map | null = "classic", userIds: [userId, userId | null], client?: Socket): Party
+    public createParty (room: string | null, map: map | null = "classic", userIds: [userId, userId | null], client?: Socket, user?: any): Party
     {
         let party = room && this.findParty(room);
         let involvedParty = this.findPartyWithUser(userIds[0])
@@ -768,7 +790,7 @@ export class PartyService
                 throw new HttpException("Party exists with a different map", HttpStatus.CONFLICT);
             if (party.playersSocket[0] && party.playersSocket[1] && !party.playersSocket.includes(client))
                 throw new HttpException("Party exists but is already full", HttpStatus.CONFLICT);
-            return client ? this.joinParty(party, client) : party;
+            return (client && user) ? this.joinParty(party, client, user) : party;
         }
         else if (involvedParty)
         {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import clsx from 'clsx';
-import { AppFullscreen, Dialog } from 'quasar';
+import { AppFullscreen, Dialog, Notify } from 'quasar';
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref } from 'vue';
 import { gameSocket } from 'src/boot/socketio';
 import Scene, { mapConfig, options } from './canvas/scene';
@@ -74,6 +74,24 @@ function refreshLatency ()
 function onError (error: string)
 {
 	state.error = error;
+	if (state.gamestate)
+	{
+		Notify.create({
+			position: 'top',
+			progress: true,
+			timeout: 15000,
+			icon: 'error',
+			message: error,
+			color: 'negative',
+			multiLine: true,
+			actions: [
+				{
+					label: 'Dismiss',
+					color: 'white'
+				}
+			]
+		});
+	}
 }
 
 function onPong ({ cdate, sdate }: Pong)

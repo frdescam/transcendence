@@ -178,6 +178,18 @@ function umountScene ()
 	scene = null;
 }
 
+function refreshError ()
+{
+	state.error = null;
+	state.gamestate = false;
+	gameSocket.emit(
+		'party::spectate',
+		{
+			room: props.party
+		}
+	);
+}
+
 function onConnected ()
 {
 	state.connected = true;
@@ -272,13 +284,11 @@ function setQuality (val: number)
 
 function getStateText ()
 {
-	if (state.error)
-		return state.error;
 	if (!state.connected)
-		return 'Connecting...';
+		return 'Connecting';
 	if (!state.gamestate)
-		return 'Awaiting gamestate...';
-	return 'Loading map...';
+		return 'Awaiting gamestate';
+	return 'Loading map';
 }
 
 defineExpose({
@@ -303,8 +313,19 @@ defineExpose({
 		<canvas class="game-container" ref="canvas"></canvas>
 
 		<div class="game-container full-width row justify-center content-center progress" v-if="!state.loaded">
-			<p class="text-h2">
-				{{getStateText()}}
+			<div class="text-center" v-if="state.error">
+				<p class="text-h2 text-negative">
+					{{state.error}}
+				</p>
+				<q-btn
+					color="primary"
+					icon="refresh"
+					label="Refresh"
+					@click="refreshError"
+				/>
+			</div>
+			<p class="text-h2" v-if="!state.error">
+				{{getStateText()}}...
 			</p>
 			<q-linear-progress
 				track-color="brown-3"

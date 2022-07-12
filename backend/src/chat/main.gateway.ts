@@ -349,6 +349,20 @@ export class MainGateway implements NestGateway
 
   // #region Message
   @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('messages::get')
+  async getMessages(channelId: number, sender: Socket) {
+    this.logger.log(`Client ${sender.id} get messages of channel ${channelId} at ${new Date().toDateString()}`);
+    this.server.emit('messages::receive::get', this.returnData(sender, await this.messageService.getAll(channelId)));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('message::get')
+  async getMessage(message: receiveMessage, sender: Socket) {
+    this.logger.log(`Client ${sender.id} get messages of channel ${message.channel} at ${new Date().toDateString()}`);
+    this.server.emit('message::receive::get', this.returnData(sender, await this.messageService.getOne(message.channel, message.id)));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('message::add')
   async newMessage(message: receiveMessage, sender: Socket) {
     const hash = crypto.createHash('sha256').update(message.message).digest('hex');

@@ -4,20 +4,24 @@
 		autocapitalize="off"
 		autocomplete="off"
 		spellcheck="true"
+		@keydown.enter="handleCtrlEnter"
 	>
+		<!--
+			Une erreur apparait dans :definitions pour typescript même en suivant la doc officiel de quasar
+		-->
 		<q-editor
 			:placeholder="$t('chat.editor.placeholder')"
 			ref="editorRef"
 			max-height="15em"
 			:definitions="{
 				image: {
-					icon: 'image',
 					tip: $t('chat.editor.image'),
+					icon: 'image',
 					handler: insertImage
 				},
 				send: {
-					icon: 'send',
 					tip: $t('chat.editor.send'),
+					icon: 'send',
 					handler: sendMessage
 				}
 			}"
@@ -107,8 +111,7 @@
 </template>
 
 <script lang="ts">
-import { AxiosInstance } from 'axios';
-import { TypeOfObject, Timestamp, TimestampFunction } from 'src/boot/libs';
+import { Timestamp, TimestampFunction } from 'src/boot/libs';
 import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, nextTick, watch } from 'vue';
 import { QMenu } from 'quasar';
@@ -138,8 +141,6 @@ export default defineComponent({
 	setup (props)
 	{
 		const socket: Socket = inject('socketChat') as Socket;
-		const api: AxiosInstance = inject('api') as AxiosInstance;
-		const typeofObject: TypeOfObject = inject('typeofObject') as TypeOfObject;
 		const timestamp: TimestampFunction = inject('timestamp') as TimestampFunction;
 
 		const contextmenu = ref<QMenu | null>(null);
@@ -206,53 +207,63 @@ export default defineComponent({
 
 		const getMessages = (channelId: string) =>
 		{
-			api.get(`/chat/message/get/${channelId}`)
-				.then((res) =>
+			loading.value = true;
+			noError.value = true;
+			socket.emit('messages::get', channelId);
+		};
+
+		socket.on('messages::receive::get', (res) =>
+		{
+			if (res.socketId !== socket.id)
+				return;
+			if (!res.data)
+			{
+				loading.value = false;
+				noError.value = false;
+				return;
+			}
+			loading.value = false;
+			const temp: messageInterface = {
+				user: {
+					id: 0,
+					pseudo: '',
+					avatar: '',
+					connected: false
+				},
+				messages: []
+			};
+			let currentUser = 0;
+			messages.value.length = 0;
+			for (const message of res.data)
+			{
+				if (!currentUser ||
+					(currentUser && currentUser !== message.creator.id))
 				{
-					if (typeofObject(res.data) !== 'object')
-						throw new Error();
-					loading.value = false;
-					const temp: messageInterface = {
-						user: {
-							id: 0,
-							pseudo: '',
-							avatar: '',
-							connected: false
-						},
-						messages: []
-					};
-					let currentUser = 0;
-					messages.value.length = 0;
-					for (const message of res.data.messages)
-					{
-						if (!currentUser ||
-							(currentUser && currentUser !== message.creator.id))
-						{
-							if (temp.messages.length > 0)
-								messages.value.push(JSON.parse(JSON.stringify(temp)));
-							currentUser = Number(message.creator.id);
-							temp.user.avatar = String(message.creator.avatar);
-							temp.user.connected = Boolean(message.creator.connected);
-							temp.user.id = Number(message.creator.id);
-							temp.user.pseudo = String(message.creator.pseudo);
-							temp.messages.length = 0;
-						}
-						temp.messages.push({
-							id: Number(message.id),
-							content: String(message.content),
-							timestamp: message.timestamp,
-							modified: message.modified
-						});
-					}
 					if (temp.messages.length > 0)
 						messages.value.push(JSON.parse(JSON.stringify(temp)));
-					getBottomOfChat();
-				})
-				.catch(() =>
-				{
-					loading.value = false;
-					noError.value = false;
+					currentUser = Number(message.creator.id);
+					temp.user.avatar = String(message.creator.avatar);
+					temp.user.connected = Boolean(message.creator.connected);
+					temp.user.id = Number(message.creator.id);
+					temp.user.pseudo = String(message.creator.pseudo);
+					temp.messages.length = 0;
+				}
+				temp.messages.push({
+					id: Number(message.id),
+					content: String(message.content),
+					timestamp: message.timestamp,
+					modified: message.modified
 				});
+			}
+			if (temp.messages.length > 0)
+				messages.value.push(JSON.parse(JSON.stringify(temp)));
+			getBottomOfChat();
+		});
+
+		const handleCtrlEnter = (event: KeyboardEvent) =>
+		{
+			if (event.ctrlKey)
+				sendMessage();
 		};
 
 		const sendMessage = async () =>
@@ -288,49 +299,140 @@ export default defineComponent({
 			messageEditId.value = -1;
 		};
 
+		// #region Incoming message
+		socket.on('message::receive::add', (ret) =>
+		{
+			if (ret.data.channel !== props.selectedChannel.id)
+				return;
+
+			const newMessages: messageInterface = {
+				user: {
+					id: ret.data.data.creator.id,
+					pseudo: ret.data.data.creator.pseudo,
+					avatar: ret.data.data.creator.avatar,
+					connected: ret.data.data.creator.connected
+				},
+				messages: []
+			};
+			[...ret.data.data.content.split(/<\/?div>/)].filter((el) => el.length > 0).map((el) => el.trim()).forEach((mes) =>
+			{
+				newMessages.messages.push({
+					id: ret.data.data.id,
+					content: String(mes),
+					timestamp: ret.data.data.timestamp,
+					modified: ret.data.data.modified
+				});
+			});
+			if (messages.value.length > 0 &&
+					messages.value[messages.value.length - 1].user.id === ret.data.data.creator.id)
+			{
+				messages.value[messages.value.length - 1].messages = [
+					...messages.value[messages.value.length - 1].messages,
+					...newMessages.messages
+				];
+			}
+			else
+				messages.value.push(JSON.parse(JSON.stringify(newMessages)));
+			getBottomOfChat();
+		});
+		// #endregion Incoming message
+
+		// #region Edit message
 		const editMessage = () =>
 		{
-			const channelId = String(props.selectedChannel.id);
-			api.get(`/chat/message/get/${channelId}/${messageEditId.value}`)
-				.then((res) =>
-				{
-					if (typeofObject(res.data) !== 'object')
-						throw new Error();
-					editor.value = res.data.messages.content;
-					contextmenu.value?.hide();
-				})
-				.catch((err) =>
-				{
-					console.error('error', err);
-				});
+			socket.emit('message::get', {
+				id: messageEditId.value,
+				channel: props.selectedChannel.id
+			});
 		};
 
-		const deleteMessage = () =>
+		socket.on('message::receive::get', (ret) =>
 		{
-			const channelId = String(props.selectedChannel.id);
-			api.get(`/chat/message/get/${channelId}/${messageEditId.value}`)
-				.then(async (res) =>
+			if (ret.socketId === socket.id)
+			{
+				editor.value = ret.data.content;
+				contextmenu.value?.hide();
+			}
+		});
+		// #endregion Edit message
+
+		// #region Update message
+		socket.on('message::receive::update', (ret) =>
+		{
+			if (ret.data.channel !== props.selectedChannel.id)
+				return;
+
+			if (!ret.data.data.content.length)
+			{
+				deleteLocalMessage(ret.data.data.id);
+				return;
+			}
+			for (const block of messages.value)
+			{
+				for (const i in block.messages)
 				{
-					if (typeofObject(res.data) !== 'object')
-						throw new Error();
-					contextmenu.value?.hide();
-					socket.emit('message::delete',
-						{
-							id: props.userId,
-							channel: props.selectedChannel.id,
-							messageId: messageEditId.value,
-							message: editor.value,
-							length: editor.value.length,
-							timestamp: Date.now(),
-							hash: await calcHash(editor.value)
-						});
-					messageEditId.value = -1;
-				})
-				.catch((err) =>
-				{
-					console.error('error', err);
-				});
+					if (block.messages[i].id === ret.data.data.id)
+					{
+						block.messages[i].content = ret.data.data.content;
+						return;
+					}
+				}
+			}
+		});
+		// #endregion Update message
+
+		// #region Delete message(s)
+		const deleteMessage = async () =>
+		{
+			socket.emit('message::delete', {
+				id: props.userId,
+				channel: props.selectedChannel.id,
+				messageId: messageEditId.value,
+				message: editor.value,
+				length: editor.value.length,
+				timestamp: Date.now(),
+				hash: await calcHash(editor.value)
+			});
+			contextmenu.value?.hide();
+			messageEditId.value = -1;
 		};
+
+		const deleteLocalMessage = (messageId: number) =>
+		{
+			for (const x in messages.value)
+			{
+				for (const y in messages.value[x].messages)
+				{
+					if (messages.value[x].messages[y].id === Number(messageId))
+					{
+						if (messages.value[x].messages.length === 1)
+							messages.value.splice(Number(x), 1);
+						else
+							messages.value[x].messages.splice(Number(y), 1);
+						return;
+					}
+				}
+			}
+		};
+
+		socket.on('message::receive::delete', (ret) =>
+		{
+			if (ret.data.channel === props.selectedChannel.id)
+				deleteLocalMessage(ret.data.id);
+		});
+		// #endregion Delete message(s)
+
+		// #region Delete current channel
+		socket.on('channel::receive::delete', (ret) =>
+		{
+			if (ret && ret.deleted === true && ret.id === props.selectedChannel.id)
+			{
+				messages.value.length = 0;
+				loading.value = false;
+				noError.value = true;
+			}
+		});
+		// #endregion Delete current channel
 
 		const openContextualMenu = (e: Event) =>
 		{
@@ -381,7 +483,6 @@ export default defineComponent({
 
 		onMounted(() =>
 		{
-			// #region Detect channel changed
 			watch(() => props.selectedChannel, () =>
 			{
 				if (!props.selectedChannel.isDeleted)
@@ -397,106 +498,6 @@ export default defineComponent({
 				noError.value = true;
 				getMessages(props.selectedChannel.id);
 			}
-			// #endregion
-
-			// #region New message
-			socket.on('message::receive::add', (res) =>
-			{
-				if (res.channel !== props.selectedChannel.id)
-					return;
-
-				const newMessages: messageInterface = {
-					user: {
-						id: res.data.creator.id,
-						pseudo: res.data.creator.pseudo,
-						avatar: res.data.creator.avatar,
-						connected: res.data.creator.connected
-					},
-					messages: []
-				};
-				[...res.data.content.split(/<\/?div>/)].filter((el) => el.length > 0).map((el) => el.trim()).forEach((mes) =>
-				{
-					newMessages.messages.push({
-						id: res.data.id,
-						content: String(mes),
-						timestamp: res.data.timestamp,
-						modified: res.data.modified
-					});
-				});
-				if (messages.value.length > 0 &&
-					messages.value[messages.value.length - 1].user.id === res.data.creator.id)
-				{
-					messages.value[messages.value.length - 1].messages = [
-						...messages.value[messages.value.length - 1].messages,
-						...newMessages.messages
-					];
-				}
-				else
-					messages.value.push(JSON.parse(JSON.stringify(newMessages)));
-				getBottomOfChat();
-			});
-			// #endregion
-
-			// #region Update message
-			socket.on('message::receive::update', (res) =>
-			{
-				if (res.channel !== props.selectedChannel.id)
-					return;
-
-				if (!res.data.content.length)
-				{
-					_deleteMessage(res);
-					return;
-				}
-				for (const block of messages.value)
-				{
-					if (block.user.id === props.userId)
-					{
-						for (const i in block.messages)
-						{
-							if (block.messages[i].id === res.data.id)
-							{
-								block.messages[i].content = res.data.content;
-								return;
-							}
-						}
-					}
-				}
-			});
-			// #endregion
-
-			// #region Delete message
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const _deleteMessage = (res: any) =>
-			{
-				for (const x in messages.value)
-				{
-					for (const y in messages.value[x].messages)
-					{
-						if (messages.value[x].messages[y].id === Number(res.id))
-						{
-							if (messages.value[x].messages.length === 1)
-								messages.value.splice(Number(x), 1);
-							else
-								messages.value[x].messages.splice(Number(y), 1);
-							return;
-						}
-					}
-				}
-			};
-
-			socket.on('message::receive::delete', (res) => _deleteMessage(res));
-
-			socket.on('channel::receive::delete', (ret) =>
-			{
-				if (ret && ret.deleted === true && ret.id === props.selectedChannel.id)
-				{
-					messages.value.length = 0;
-					loading.value = false;
-					noError.value = true;
-				}
-			});
-			// #endregion
 		});
 
 		return {
@@ -509,6 +510,7 @@ export default defineComponent({
 			openContextualMenu,
 			imageError,
 			insertImage,
+			handleCtrlEnter,
 			sendMessage,
 			generateTimestamp,
 			editMessage,

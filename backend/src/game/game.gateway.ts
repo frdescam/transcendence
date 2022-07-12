@@ -142,16 +142,17 @@ export class GameGateway
   @SubscribeMessage('party::admitdefeat')
   admitDefeat(
     @ConnectedSocket() client: Socket,
-  ): void
+  )
   {
     const party = this.partyService.findPartyFromSocket(client);
     if (!party)
-        return null;
+      return ({left: false});
     const slot = this.partyService.getSlotFromSocket(party, client);
     if (slot == -1)
-        return ;
+      return ({left: false});
 
     this.partyService.admitDefeat(party, slot);
+    return ({left: true});
   }
 
   @SubscribeMessage('game::query::find')

@@ -41,13 +41,13 @@ export class PartyController
         const himself: userId = user.id;
         const party = this.partyService.findPartyWithUser(himself);
         if (!party)
-            return ({leaved: false});
+            return ({left: false});
         const slot = this.partyService.getSlotFromUser(party, himself);
         if (slot == -1)
             throw "Unexpected state";
 
         this.partyService.admitDefeat(party, slot);
-        return ({leaved: true});
+        return ({left: true});
     }
 
     @Get(':room')

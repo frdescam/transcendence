@@ -106,7 +106,7 @@ function onPong ({ cdate, sdate }: Pong)
 	if (thetaTimes.length > 15)
 		thetaTimes.shift();
 
-	if (thetaTimes.length > 12 || thetaTimes.length === 1)
+	if (thetaTimes.length > 16 || thetaTimes.length === 1)
 	{
 		const q25 = quantile(thetaTimes, 0.25);
 		const q75 = quantile(thetaTimes, 0.75);
@@ -218,7 +218,7 @@ function onConnected ()
 		}
 	);
 
-	for (let i = 1; i <= 20; i++)
+	for (let i = 1; i <= 40; i++)
 	{
 		setTimeout(
 			function ()

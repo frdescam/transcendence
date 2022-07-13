@@ -24,7 +24,7 @@ const config: Partial<mapConfig> = {
 	gameScale: 0.175,
 	baseSize: [65, 53],
 	playerSize: [1, 3.75],
-	moveSteps: 70,
+	moveSteps: 60,
 	scoreFontHeight: 1,
 	scorePositions: [
 		new Vector3(-(32.5 - 8), 4, -(53 / 2 + 4)),

@@ -48,12 +48,16 @@ class PongScene
 	protected clock: Clock;
 	protected deviceOrientationCallback: null | ((e: DeviceOrientationEvent) => void);
 	protected scrollMovementCallback: null | ((e: WheelEvent) => void);
+	protected keydownMouvementCallback: null | ((e: KeyboardEvent) => void);
+	protected keyupMouvementCallback: null | ((e: KeyboardEvent) => void);
+	protected blurCallback: null | (() => void);
 
 	protected playerMoveDistance: number;
 	protected ballMoveDistanceX: number;
 	protected ballMoveDistanceY: number;
 	protected moveDelta: number;
 	protected normalizedWheelEvent: [number | null, number | null, number | null];
+	protected keys: {up: boolean, down: boolean};
 
 	protected loadingManager: LoadingManager;
 	protected gltfLoader: GLTFLoader;
@@ -141,6 +145,9 @@ class PongScene
 
 		this.deviceOrientationCallback = null;
 		this.scrollMovementCallback = null;
+		this.keydownMouvementCallback = null;
+		this.keyupMouvementCallback = null;
+		this.blurCallback = null;
 		this.envTexture = null;
 		this.floorMirror = null;
 		this.envLight = null;
@@ -176,6 +183,10 @@ class PongScene
 			null,
 			null
 		];
+		this.keys = {
+			up: false,
+			down: false
+		};
 
 		this.loadingManager = new LoadingManager();
 		this.gltfLoader = new GLTFLoader(this.loadingManager);
@@ -473,7 +484,7 @@ class PongScene
 			break;
 
 		default:
-			console.warn("Map config provide unrecognized effect");
+			console.warn('Map config provide unrecognized effect');
 			break;
 		}
 	}
@@ -714,7 +725,52 @@ class PongScene
 
 					this._addPosition(this.moveDelta * (e.deltaY / normalizedDelta));
 				};
+			this.keydownMouvementCallback =
+				(e: KeyboardEvent) =>
+				{
+					switch (e.code)
+					{
+					case 'ArrowUp':
+					case 'KeyW':
+						this.keys.up = true;
+						break;
+					case 'ArrowDown':
+					case 'KeyS':
+						this.keys.down = true;
+						break;
+					default:
+						return;
+					}
+					e.preventDefault();
+				};
+			this.keyupMouvementCallback =
+				(e: KeyboardEvent) =>
+				{
+					switch (e.code)
+					{
+					case 'ArrowUp':
+					case 'KeyW':
+						this.keys.up = false;
+						break;
+					case 'ArrowDown':
+					case 'KeyS':
+						this.keys.down = false;
+						break;
+					default:
+						return;
+					}
+					e.preventDefault();
+				};
+			this.blurCallback =
+				() =>
+				{
+					this.keys.up = false;
+					this.keys.down = false;
+				};
 			this.renderer.domElement.addEventListener('wheel', this.scrollMovementCallback);
+			window.addEventListener('keydown', this.keydownMouvementCallback);
+			window.addEventListener('keyup', this.keyupMouvementCallback);
+			window.addEventListener('blur', this.blurCallback);
 		}
 	}
 
@@ -734,8 +790,19 @@ class PongScene
 		{
 			if (this.scrollMovementCallback)
 				this.renderer.domElement.removeEventListener('wheel', this.scrollMovementCallback);
+			if (this.keydownMouvementCallback)
+				window.removeEventListener('keydown', this.keydownMouvementCallback);
+			if (this.keyupMouvementCallback)
+				window.removeEventListener('keyup', this.keyupMouvementCallback);
+			if (this.blurCallback)
+				window.removeEventListener('blur', this.blurCallback);
 		}
+		this.deviceOrientationCallback = null;
 		this.scrollMovementCallback = null;
+		this.keydownMouvementCallback = null;
+		this.keyupMouvementCallback = null;
+		this.blurCallback = null;
+		this.keys.up = this.keys.down = false;
 	}
 
 	_refreshScore ()
@@ -879,6 +946,12 @@ class PongScene
 			return;
 
 		const delta = this.clock.getDelta();
+
+		if ((this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
+		{
+			const sign = (this.keys.up ? -1 : 0) + (this.keys.down ? 1 : 0);
+			this._addPosition(sign * 1.4 * delta);
+		}
 
 		clientLogic(this.state, this.config, delta);
 

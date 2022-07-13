@@ -571,6 +571,12 @@ export class PartyService
         let newState = { positions: newPlayerPosition };
         this.setState(party, newState);
         this.sendSocketState(party.playersSocket[slot == 0 ? 1 : 0], newState, undefined);
+        party.spectators.forEach(
+            (spectator) =>
+            {
+                this.sendSocketState(spectator, newState, undefined);
+            }
+        );
     }
 
     public click (client: Socket)

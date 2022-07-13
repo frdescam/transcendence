@@ -28,6 +28,9 @@ export class User extends BaseEntity {
     @Column({type: "varchar", length: 50, unique: true}) // change to unique cos must be unique!
     pseudo: string;
 
+    @Column({type: "varchar", nullable: true}) // nullable, optional?
+    refresh_token?: string;
+
     @Column({type: "varchar", length: 50}) // is email even useful here? could erase mosty likely
     email: string;
 

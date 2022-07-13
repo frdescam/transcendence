@@ -15,6 +15,7 @@ export class UsersService {
     async findOne(user_dto: AuthDto): Promise<User> {
         // print this when testing multiple pseudos
         //console.log(await this.getUniquePseudo(user_dto.pseudo));
+		//console.log(user_dto, await this.users_repo.findOne({where: user_dto}));
 		return this.users_repo.findOne({where: user_dto});
 		// return this.users_repo.findOne({
         //     where: {
@@ -56,4 +57,17 @@ export class UsersService {
         //console.log(user);
 		return this.users_repo.save(user);
     }
+
+    async setRefreshToken(user: User, token: string): Promise<void> {
+		if (!token) {
+			this.users_repo.update(user.id, {
+				refresh_token: token,
+				//add status of user as disconnected is needed to know if they r logged in or out?
+			});
+		} else {
+			this.users_repo.update(user.id, {
+				refresh_token: token,
+			});
+		}
+	}
 }

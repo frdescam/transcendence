@@ -6,6 +6,7 @@ import { AuthDto } from '../dto';
 
 // add jwt later
 // dont forget log out
+    // if i add jwt refresh in our db only!
 
 @Injectable({})
 export class AuthService {
@@ -24,13 +25,11 @@ export class AuthService {
 		// if (data.password && !(await this.hashVerify(data.password, user.password)))
 		// 	return undefined;
 
-        // add jwt heres!
+        // add jwt with refresh here!
 
-		// if (
-		// 	data.refresh_token &&
-		// 	!(await this.hashVerify(data.refresh_token, user.refresh_token))
-		// )
-		// 	return undefined;
+		 if (user_dto.refresh_token && !(user_dto.refresh_token === user.refresh_token)) // hash refresh_token!
+		 	//!(await this.hashVerify(data.refresh_token, user.refresh_token))
+		 	    return undefined;
 
 		return user;
     }
@@ -38,4 +37,13 @@ export class AuthService {
     async signup(user_dto: AuthDto): Promise<User> {
         return this.users_svc.signup(user_dto);
     }
+
+    async refresh(user: User, token: string)//: Promise<void> {
+    {
+		await this.users_svc.setRefreshToken(user, token); // has token!
+	}
+
+    async logout(user: User): Promise<void> {
+		return this.users_svc.setRefreshToken(user, null);
+	}
 }

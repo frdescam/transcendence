@@ -6,11 +6,6 @@ import { User } from "../../users/entities/user.entity";
 // TODO here add types to payloads
 // create dtos
 
-// create its own dto?
-import { AuthDto } from '../dto';
-
-// is refresh even needed?
-
 export enum CookieType {
 	AUTHENTICATION = 'Authentication',
 	REFRESH = 'Refresh',
@@ -25,10 +20,10 @@ export class CookiesService {
 	): { token: string; cookie: string } {
 		const secret = this.config.get('JWT_AUTH_SECRET');
 		const lifetime = this.config.get('JWT_AUTH_LIFETIME')
-		const payload: any = { user_id: user.id }; // any for now, create dto for this?
+		const payload: any = { sub: user.id }; // any for now, create dto for this?
 
 		const token = this.getJwtToken(payload, secret, lifetime);
-		const cookie = this.getJwtCookie(CookieType.AUTHENTICATION, token, lifetime);
+		const cookie = this.getJwtCookie(CookieType.AUTHENTICATION, token, lifetime);  // if using poc of cookie this not needed
         //console.log(cookie);
 
 		return { token: token, cookie: cookie };
@@ -36,13 +31,13 @@ export class CookiesService {
 
     getRefreshJwtTokenCookie(
 		user: User,
-	): { token: string; cookie: string } {
+	): { token: string; cookie: string } { // this will return only the token
 		const secret = this.config.get('JWT_REFRESH_SECRET');
 		const lifetime = this.config.get('JWT_REFRESH_LIFETIME')
-		const payload: any = { user_id: user.id }; // any for now, create dto for this? // user_id or id?
+		const payload: any = { sub: user.id }; // any for now, create dto for this? // user_id or id?
 
 		const token = this.getJwtToken(payload, secret, lifetime);
-		const cookie = this.getJwtCookie(CookieType.REFRESH, token, lifetime);
+		const cookie = this.getJwtCookie(CookieType.REFRESH, token, lifetime); // if using poc of cookie this not needed
 
 		return { token: token, cookie: cookie };
 	}

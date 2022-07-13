@@ -2,7 +2,7 @@
 - Could you push the entity update on the db branch? To avoid too much different versions … our git is a mess theres multiple versions of everything in different branches
 - merge with franco db after update!
 - when changing pseudo remeber to check if it doesnt exist yet and add number (e.g ltouret -> ltouret1)
-- change route into async and other funcs
+- change route into async and other funcs & post?
 - check & add missing dtos
 - erase useless imports
 

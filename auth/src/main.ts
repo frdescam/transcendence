@@ -7,7 +7,6 @@ import * as cookieParser from 'cookie-parser';
 
 // put this into its own file LULz
 // for 404!
-
 @Catch(NotFoundException)
 export class NotFoundExceptionFilter implements ExceptionFilter {
     catch(exception: NotFoundException, host: ArgumentsHost) {

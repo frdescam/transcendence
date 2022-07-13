@@ -14,7 +14,7 @@ import { AuthService } from '../services/auth.service'; // update later
     // into its own file
 export interface TokenPayload {
 	user_id: number;
-	isSecondFactorAuthenticated?: boolean;
+	isSecondFactorAuthenticated?: boolean; // most likely not needed
 }
 
 @Injectable()

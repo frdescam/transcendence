@@ -67,6 +67,14 @@ const columns = [
 		required: true,
 		align: 'left',
 		style: 'width: 10%'
+	},
+	{
+		name: 'level',
+		label: 'LEVEL',
+		field: 'level',
+		required: true,
+		align: 'left',
+		style: 'width: 10%'
 	}
 ];
 

@@ -30,7 +30,8 @@ export class LeaderboardService {
                 rank: index + 1,
                 avatar: "https://cdn.quasar.dev/img/boy-avatar.png",
                 pseudo: entity.username,
-                ratio: 0
+                ratio: 0,
+                level: 0.1
             }
             return dto;
         });

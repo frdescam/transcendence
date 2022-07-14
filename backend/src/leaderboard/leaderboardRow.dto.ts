@@ -3,4 +3,5 @@ export interface leaderboardRowDto {
     avatar: string;
     pseudo: string;
     ratio: number;
+    level: number;
 }

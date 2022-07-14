@@ -42,6 +42,7 @@ const columns = [
 		field: 'rank',
 		required: true,
 		align: 'left',
+		format: (val) => `#${val}`,
 		style: 'width: 5%'
 	},
 	{
@@ -53,8 +54,8 @@ const columns = [
 		style: 'width: 10%'
 	},
 	{
-		name: 'user',
-		field: 'user',
+		name: 'pseudo',
+		field: 'pseudo',
 		required: true,
 		label: 'PLAYER',
 		align: 'left'
@@ -82,28 +83,18 @@ export default {
 			descending: false,
 			page: 1,
 			rowsPerPage: 4,
-			rowsNumber: getRowsNumberCount()
+			rowsNumber: 0
 		});
 
 		async function fetchFromServer (startRow, count, filter, sortBy, descending)
 		{
-			const res = await api.get('/test-user/getData', {
+			const res = await api.get('/leaderboard/getRows', {
 				params: {
 					startRow,
 					count,
 					filter,
 					sortBy,
 					descending
-				}
-			});
-			return res.data;
-		}
-
-		async function getRowsNumberCount (filter)
-		{
-			const res = await api.get('/test-user/getRowsNumberCount', {
-				params: {
-					filter
 				}
 			});
 			return res.data;
@@ -116,11 +107,11 @@ export default {
 
 			loading.value = true;
 
-			pagination.value.rowsNumber = await getRowsNumberCount(filter);
-			const fetchCount = rowsPerPage === 0 ? pagination.value.rowsNumber : rowsPerPage;
+			const fetchCount = rowsPerPage;
 			const startRow = (page - 1) * rowsPerPage;
 			const returnedData = await fetchFromServer(startRow, fetchCount, filter, sortBy, descending);
-			rows.value.splice(0, rows.value.length, ...returnedData);
+			pagination.value.rowsNumber = returnedData.totalRowsNumber;
+			rows.value.splice(0, rows.value.length, ...returnedData.rows);
 
 			pagination.value.page = page;
 			pagination.value.rowsPerPage = rowsPerPage;
@@ -140,7 +131,7 @@ export default {
 
 		async function onRowClick (evt, row)
 		{
-			router.push('/profile/' + row.user);
+			router.push('/profile/' + row.pseudo);
 		}
 
 		return {

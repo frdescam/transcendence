@@ -5,9 +5,9 @@ import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 
 export const db_config: TypeOrmModuleOptions = {
     type: 'postgres',
-    host: "localhost",
+    host: "postgres",
     //host: "db", // change to do when this is ready? cos when inside the docker container the app will communicate with the db with the dns of docker
-    port: 5434,
+    port: 5432,
     username: "user",
     password: "password",
     database: "my_db",

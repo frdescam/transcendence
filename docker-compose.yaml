@@ -12,8 +12,8 @@ services:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
-    ports:
-      - 5434:5432 # change to .env
+    #ports:
+    #  - 5432:5432 # change to .env # not needed as containers communicate by network
     volumes:
       - ./data/db:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro

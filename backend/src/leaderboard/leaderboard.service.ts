@@ -39,13 +39,15 @@ export class LeaderboardService {
         if (filter)
             allUsersAsDto = allUsersAsDto.filter(row => row.pseudo.toLowerCase().includes(filter.toLowerCase()))
 
+        const totalRowsNumber = allUsersAsDto.length;
+
         if (count == 0) {
             allUsersAsDto = allUsersAsDto.slice(startRow, allUsersAsDto.length);
         } else {
             allUsersAsDto = allUsersAsDto.slice(startRow, parseInt(startRow) + parseInt(count));
         }
         return {
-            totalRowsNumber: allUsersAsEntity.length,
+            totalRowsNumber,
             rows: allUsersAsDto
         }
     }

@@ -52,6 +52,12 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
+		path: '/profile2',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/Profile2.vue') }]
+	},
+
+	{
 		path: '/profile',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', component: () => import('src/views/pages/ProfilePage.vue') }]

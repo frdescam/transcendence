@@ -42,7 +42,7 @@
 			</q-item>
 		</div>
 		<div class="row justify-evenly q-pa-md">
-			<q-list class="col-12 col-md-6 shadow-2 rounded-borders">
+			<q-list class="col-12 col-md-6 q-mb-md shadow-2 rounded-borders">
 				<q-toolbar>
 					<q-toolbar-title>Matches</q-toolbar-title>
 					<div>
@@ -73,7 +73,7 @@
 					</q-card>
 				</q-item>
 			</q-list>
-			<q-list class="col-12 col-md-6 rounded-borders shadow-2">
+			<q-list class="col-12 col-md-6 q-mb-md rounded-borders shadow-2">
 				<q-toolbar>
 					<q-toolbar-title>Achievements</q-toolbar-title>
 						<div>

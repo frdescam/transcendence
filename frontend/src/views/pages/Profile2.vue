@@ -1,15 +1,16 @@
 <template>
 	<div class="q-pa-none">
+		<!-- HEADER -->
 		<div class="column" style="background-image: url(user_profile_background.png); background-position: center; background-size: cover; background-repeat: no-repeat;">
 			<div class="q-pa-md full-width row items-center">
-				<div class="q-my-lg row full-height items-center justify-around col-md-3 col-12">
+				<div class="q-my-lg q-pr-md row full-height items-center justify-around col-md-2 col-12">
 					<q-avatar class="q-my-auto" size=150px>
 						<img src='https://cdn.quasar.dev/img/boy-avatar.png'>
 						<q-badge class="absolute-bottom-right" style="width: 30px; height: 30px" color="light-green-14" rounded></q-badge>
 						<q-tooltip>Online</q-tooltip>
 					</q-avatar>
 				</div>
-				<div class="col-md-9 col-12">
+				<div class="col-md-10 col-12">
 					<div class="fit column q-pa-sm" style="background: rgba(0, 0, 0, 0.4); border-radius: 10px">
 						<div class="row col-8 items-center">
 							<!-- Yes I know this is awful but it's the cleanest way to do ... quasar stinks -->
@@ -41,8 +42,10 @@
 				<q-btn style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="block user"/>
 			</q-item>
 		</div>
+		<!-- END HEADER -->
 		<div class="row justify-evenly q-pa-md">
-			<q-list class="col-12 col-md-6 q-mb-md shadow-2 rounded-borders">
+			<!-- MATCHES -->
+			<q-list class="col-12 col-md-6 q-mb-md q-pb-sm shadow-2 rounded-borders">
 				<q-toolbar>
 					<q-toolbar-title>Matches</q-toolbar-title>
 					<div>
@@ -73,7 +76,9 @@
 					</q-card>
 				</q-item>
 			</q-list>
-			<q-list class="col-12 col-md-6 q-mb-md rounded-borders shadow-2">
+			<!-- MATCHES END -->
+			<!-- ACHIEVEMENTS -->
+			<q-list class="col-12 col-md-6 q-mb-md q-pb-sm rounded-borders shadow-2">
 				<q-toolbar>
 					<q-toolbar-title>Achievements</q-toolbar-title>
 						<div>
@@ -97,6 +102,7 @@
 					</q-card>
 				</q-item>
 			</q-list>
+			<!-- ACHIEVEMENTS END -->
 		</div>
 	</div>
 </template>

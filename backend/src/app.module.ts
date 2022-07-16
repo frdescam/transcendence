@@ -3,6 +3,7 @@ import * as path from 'path';
 
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { DatabaseModule } from './database.module';
 import { ChatModule } from './chat/main.module';
@@ -18,6 +19,7 @@ import { UserModule } from './user/main.module';
           path.join(__dirname, '..', 'static_dev')
       )
     }),
+    ScheduleModule.forRoot(),
     DatabaseModule,
     MatchModule,
     UserModule,

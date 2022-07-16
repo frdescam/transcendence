@@ -92,6 +92,15 @@
 			</template>
 		</q-list>
 	</div>
+	<dialog-alert
+		:userId="userId"
+		:channelName="selectedChannelName"
+		:dialogShow="dialogAlertShow"
+		:dialogUser="dialogAlertUser"
+		:dialogType="dialogAlertType"
+		:dialogToggle="dialogAlertToggle"
+		@dialog-alert-accept="dialogAlertShow = false"
+	/>
 	<dialog-creation
 		:userId="userId"
 		:dialogCreationShow="dialogCreationShow"
@@ -112,6 +121,8 @@
 		:channelType="contextMenuSelectType"
 		:channelPassword="contextMenuSelectPassword"
 		:channelOwner="contextMenuSelectOwner"
+		@dialog-edition-alert="openDialogAlert"
+		@dialog-edition-update-user="updateUser"
 		@dialog-edition-hide="dialogEditionShow = false"
 	/>
 </template>
@@ -122,6 +133,7 @@ import { QMenu } from 'quasar';
 import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, watch } from 'vue';
 
+import dialogAlert from './chatComponents/DialogAlert.vue';
 import dialogCreation from './chatComponents/DialogCreation.vue';
 import dialogDeletion from './chatComponents/DialogDeletion.vue';
 import dialogEdition from './chatComponents/DialogEdition.vue';
@@ -140,14 +152,23 @@ interface channelInterface {
 	banned: number[]
 }
 
+interface updateUserInterface {
+	userId: number,
+	admin: boolean,
+	muted: boolean,
+	banned: boolean,
+	deleted: boolean
+}
+
 export default defineComponent({
 	name: 'chat_channel',
-	props: [
-		'selectedChannel',
-		'userId'
+	props: ['userId'],
+	emits: [
+		'channel-is-selected',
+		'channel-user-update'
 	],
-	emits: ['channel-is-selected'],
 	components: {
+		dialogAlert,
 		dialogCreation,
 		dialogDeletion,
 		dialogEdition,
@@ -186,33 +207,38 @@ export default defineComponent({
 			});
 		};
 
-		let socketComingFromChannelVue = false;
 		const channelIsSelected = (channelId: number, channelType: string) =>
 		{
-			socketComingFromChannelVue = true;
-			selectedChannelType.value = channelType;
-			const __saveId = props.selectedChannel.id;
-			if (!__saveId || (__saveId && __saveId !== channelId))
+			if (!selectedChannelId.value ||
+				(selectedChannelId.value && selectedChannelId.value !== channelId))
 			{
-				if (channelType !== 'protected')
-				{
-					sendEvent(channelId);
-					return;
-				}
+				selectedChannelId.value = channelId;
+				selectedChannelType.value = channelType;
 				socket.emit('channel::get', channelId);
 			}
 		};
 		socket.on('channel::receive::get', (ret) =>
 		{
-			if (socketComingFromChannelVue === false ||
-				ret.socketId !== socket.id ||
-				selectedChannelType.value !== 'protected')
+			if (ret.socketId !== socket.id)
 				return;
-			selectedChannelPasswordValue.value = ret.data.password;
+
 			selectedChannelName.value = ret.data.name;
-			selectedChannelId.value = ret.data.id;
-			socketComingFromChannelVue = false;
-			openDialogPassword();
+			for (const banned of ret.data.bannedUsers)
+			{
+				if (banned.user.id === props.userId)
+				{
+					selectedChannelId.value = -1;
+					openDialogAlert(ret.data.id, props.userId, 'banned', true, true);
+					return;
+				}
+			}
+			if (selectedChannelType.value !== 'protected')
+				sendEvent(ret.data.id);
+			else
+			{
+				selectedChannelPasswordValue.value = ret.data.password;
+				openDialogPassword();
+			}
 		});
 
 		const openContextualMenu = (e: Event) =>
@@ -229,17 +255,25 @@ export default defineComponent({
 					contextMenuSelectId.value = Number(target.getAttribute('data-id'));
 					for (const channel of channels.value)
 					{
-						if (channel.id === contextMenuSelectId.value &&
-							(channel.owner === props.userId || channel.admins.includes(Number(props.userId)))
-						)
+						if (channel.id === contextMenuSelectId.value)
 						{
-							if (channel.owner === props.userId)
-								contextMenuIsCreator.value = true;
-							contextMenuSelectId.value = channel.id;
-							contextMenuSelectName.value = channel.name;
-							contextMenuSelectType.value = channel.type;
-							contextMenuSelectPassword.value = channel.password;
-							contextMenuSelectOwner.value = channel.owner;
+							if (!channel.banned.includes(Number(props.userId)) &&
+								(
+									channel.owner === props.userId ||
+									channel.admins.includes(Number(props.userId))
+								)
+							)
+							{
+								if (channel.owner === props.userId)
+									contextMenuIsCreator.value = true;
+								contextMenuSelectId.value = channel.id;
+								contextMenuSelectName.value = channel.name;
+								contextMenuSelectType.value = channel.type;
+								contextMenuSelectPassword.value = channel.password;
+								contextMenuSelectOwner.value = channel.owner;
+								return;
+							}
+							contextmenu.value?.hide();
 							return;
 						}
 					}
@@ -248,6 +282,67 @@ export default defineComponent({
 			contextmenu.value?.hide();
 		};
 
+		// #region Update user of channel
+		const updateUser = (channelId: number, user: updateUserInterface) =>
+		{
+			const setVal = (type: string, compare: boolean, arr: number[], hideEdition = false, hideOnInsert = true) =>
+			{
+				const x = arr.indexOf(user.userId);
+				if (x !== -1)
+					arr.splice(x, 1);
+				if (compare)
+				{
+					arr.push(user.userId);
+					if (hideEdition && hideOnInsert && user.userId === props.userId)
+						dialogEditionShow.value = false;
+				}
+				else
+				{
+					if (hideEdition && !hideOnInsert && user.userId === props.userId)
+						dialogEditionShow.value = false;
+				}
+				emit('channel-user-update', {
+					type,
+					user: user.userId,
+					value: compare
+				});
+			};
+
+			for (const _i in channels.value)
+			{
+				const i = Number(_i);
+				if (channels.value[i].id !== channelId)
+					continue;
+				if (user.deleted)
+				{
+					channels.value.splice(i, 1);
+					return;
+				}
+				setVal('admin', user.admin, channels.value[i].admins, true, false);
+				setVal('banned', user.banned, channels.value[i].banned, true);
+				setVal('muted', user.muted, channels.value[i].muted);
+			}
+		};
+		// #endregion Update user of channel
+
+		// #region Alert
+		const dialogAlertShow = ref(false);
+		const dialogAlertUser = ref<number>();
+		const dialogAlertType = ref<string>();
+		const dialogAlertToggle = ref<boolean>();
+		const openDialogAlert = (channelId: number, user: number, type: string, toggle: boolean, bypass = false) =>
+		{
+			if (bypass === false && selectedChannelId.value !== channelId)
+				return;
+			console.log('print alert');
+			dialogAlertUser.value = user;
+			dialogAlertType.value = type;
+			dialogAlertToggle.value = toggle;
+			dialogAlertShow.value = true;
+		};
+		// #endregion Alert
+
+		// #region Dialog
 		const dialogCreationShow = ref(false);
 		const openDialogCreation = () =>
 		{
@@ -272,6 +367,7 @@ export default defineComponent({
 		{
 			dialogEditionShow.value = true;
 		};
+		// #endregion Dialog
 
 		// #region Socket
 		const generateData = (channel: any) =>
@@ -290,8 +386,8 @@ export default defineComponent({
 				password: channel.password,
 				creationDate: channel.creationDate,
 				admins: channel.admins.map((el: any) => el.id),
-				muted: channel.mutedUsers.map((el: any) => el.id),
-				banned: channel.bannedUsers.map((el: any) => el.id)
+				muted: channel.mutedUsers.map((el: any) => el.user.id),
+				banned: channel.bannedUsers.map((el: any) => el.user.id)
 			};
 			return ret;
 		};
@@ -405,10 +501,18 @@ export default defineComponent({
 			selectedChannelPasswordValue,
 			selectedChannelName,
 
-			// ====== Dialogs ====== //
 			sendEvent,
 			channelIsSelected,
 			openContextualMenu,
+			updateUser,
+
+			// ====== Dialogs ====== //
+
+			dialogAlertShow,
+			dialogAlertUser,
+			dialogAlertType,
+			dialogAlertToggle,
+			openDialogAlert,
 
 			dialogCreationShow,
 			openDialogCreation,

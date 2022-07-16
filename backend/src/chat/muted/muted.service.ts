@@ -67,7 +67,7 @@ export class MutedService {
       }
       else
       {
-        this.mutedRepository.createQueryBuilder()
+        const create = await this.mutedRepository.createQueryBuilder()
           .insert()
           .into(Muted)
           .values([
@@ -80,6 +80,7 @@ export class MutedService {
           .execute();
         return {
           message: 'Muted user success',
+          id: create.generatedMaps[0].id,
           user: data.user.id,
           channel: data.channel.id,
           set: true
@@ -89,6 +90,7 @@ export class MutedService {
     } catch (___) {
       return {
         message: 'Muted user failed',
+        id: -1,
         user: -1,
         channel: -1,
         set: false
@@ -99,7 +101,7 @@ export class MutedService {
   async update(data: MutedDTO)
   {
     try {
-      await this.mutedRepository.createQueryBuilder('muted')
+      const update = await this.mutedRepository.createQueryBuilder('muted')
         .update()
         .set({
           until: data.until
@@ -109,6 +111,7 @@ export class MutedService {
         .execute();
       return {
         message: 'Muted user update success',
+        id: update.generatedMaps[0].id,
         user: data.user.id,
         channel: data.channel.id,
         update: true
@@ -116,6 +119,7 @@ export class MutedService {
     } catch (___) {
       return {
         message: 'Muted user update failed',
+        id: -1,
         user: -1,
         channel: -1,
         update: false

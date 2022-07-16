@@ -4,8 +4,10 @@ import { BannedModule } from './banned/banned.module';
 import { ChannelModule } from './channel/channel.module';
 import { MessageModule } from './message/message.module';
 import { MutedModule } from './muted/muted.module';
-import { MainGateway } from './main.gateway';
 import { UserModule } from 'src/user/main.module';
+
+import { MainGateway } from './main.gateway';
+import { ChatCron } from './cron/cron.service';
 
 @Module({
   imports: [
@@ -15,6 +17,9 @@ import { UserModule } from 'src/user/main.module';
     MessageModule,
     MutedModule,
   ],
-  providers: [MainGateway]
+  providers: [
+    MainGateway,
+    ChatCron
+  ]
 })
 export class ChatModule {}

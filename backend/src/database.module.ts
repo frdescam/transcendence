@@ -2,6 +2,7 @@ import * as process from 'process';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeormLogger } from './typeorm.logger';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         database: configService.get<string>('DB_NAME'),
         entities: ['dist/**/*.entity{.ts,.js}'],
         synchronize: !(process.env.NODE_ENV === 'production'),
-        logging: true,
+        logging: new TypeormLogger()
       }),
     }),
   ],

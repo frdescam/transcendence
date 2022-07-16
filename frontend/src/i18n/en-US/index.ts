@@ -31,7 +31,8 @@ export default {
 								banned: 'banned',
 								creator: 'creator',
 								muted: 'muted',
-								user: 'user'
+								user: 'user',
+								delete: 'delete'
 							},
 							tooltip: {
 								addUser: 'Add new user',
@@ -43,6 +44,7 @@ export default {
 							},
 							error: {
 								creator: 'The channel creator must be an administrator, and cannot be mute or banned',
+								admin: 'You cannot change your options yourself',
 								add: 'An error has occurred. The user still exists ?'
 							},
 							apply: 'Apply',
@@ -60,6 +62,21 @@ export default {
 					error: 'The channel name does not match',
 					cancel: 'Cancel',
 					delete: 'Delete'
+				},
+				alert: {
+					close: 'Close',
+					admin: {
+						on: 'You have become an administrator of channel {channel}',
+						off: 'You are no longer an administrator of channel {channel}'
+					},
+					banned: {
+						on: 'You are banned of channel {channel} until {date}',
+						off: 'You are no longer banned of channel {channel}'
+					},
+					muted: {
+						on: 'You are muted of channel {channel} until {date}',
+						off: 'You are no longer muted of channel {channel}'
+					}
 				},
 				quit: 'Quit channel'
 			},

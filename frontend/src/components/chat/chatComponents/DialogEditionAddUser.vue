@@ -97,7 +97,7 @@ export default defineComponent({
 
 		socket.on('users::receive::getAll', (ret) =>
 		{
-			users.value = ret;
+			users.value = ret.data;
 		});
 
 		const avatarError = (e: Event) =>

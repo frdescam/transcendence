@@ -29,23 +29,28 @@ export class BannedService {
       .getMany();
   }
 
-  async isBanned(channelId: number, userId: number): Promise<unknown> {
+  async isBanned(channelId: number, userId: number) {
     const banned = await this.getOne(channelId, userId);
     if (!banned)
       return {
-        isBanned: false
+        user: undefined,
+        isBanned: false,
+        isDeleted: false
       };
     const untilDate = new Date(banned.until);
     const currentDate = new Date();
     if (untilDate.getTime() <= currentDate.getTime()) {
       return {
-        isDeleted: await this.delete(banned),
-        isBanned: false
+        user: await this.delete(banned),
+        isBanned: false,
+        isDeleted: true,
       };
     }
     return {
+      user: banned,
+      until: untilDate.getTime(),
       isBanned: true,
-      until: untilDate.getTime()
+      isDeleted: false
     };
   }
 
@@ -64,7 +69,7 @@ export class BannedService {
       }
       else
       {
-        await this.bannedRepository.createQueryBuilder()
+        const create = await this.bannedRepository.createQueryBuilder()
           .insert()
           .into(Banned)
           .values([
@@ -77,6 +82,7 @@ export class BannedService {
           .execute();
         return {
           message: 'Banned user success',
+          id: create.generatedMaps[0].id,
           user: data.user.id,
           channel: data.channel.id,
           set: true
@@ -86,6 +92,7 @@ export class BannedService {
     } catch (___) {
       return {
         message: 'Banned user failed',
+        id: -1,
         user: -1,
         channel: -1,
         set: false
@@ -96,7 +103,7 @@ export class BannedService {
   async update(data: BannedDTO)
   {
     try {
-      await this.bannedRepository.createQueryBuilder('muted')
+      const update = await this.bannedRepository.createQueryBuilder('banned')
         .update()
         .set({
           until: data.until
@@ -106,6 +113,7 @@ export class BannedService {
         .execute();
       return {
         message: 'Banned user update success',
+        id: update.generatedMaps[0].id,
         user: data.user.id,
         channel: data.channel.id,
         update: true
@@ -113,6 +121,7 @@ export class BannedService {
     } catch (___) {
       return {
         message: 'Banned user update failed',
+        id: -1,
         user: -1,
         channel: -1,
         update: false
@@ -123,10 +132,10 @@ export class BannedService {
   async delete(data: BannedDTO)
   {
     try {
-      await this.bannedRepository.createQueryBuilder()
+      await this.bannedRepository.createQueryBuilder('banned')
         .delete()
         .from(Banned)
-        .where('id = :id', { id: data.id })
+        .where('banned.id = :id', { id: data.id })
         .execute();
       return {
         message: 'Banned user deleted',

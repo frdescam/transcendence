@@ -11,8 +11,9 @@
 		-->
 		<q-editor
 			:placeholder="$t('chat.editor.placeholder')"
+			:disable="disableForm"
 			ref="editorRef"
-			max-height="15em"
+			class="editor"
 			:definitions="{
 				image: {
 					tip: $t('chat.editor.image'),
@@ -136,6 +137,7 @@ export default defineComponent({
 	name: 'chat_channel',
 	props: [
 		'selectedChannel',
+		'userUpdate',
 		'userId'
 	],
 	setup (props)
@@ -145,6 +147,7 @@ export default defineComponent({
 
 		const contextmenu = ref<QMenu | null>(null);
 		const chat = ref<HTMLDivElement | null>(null);
+		const disableForm = ref<boolean>(false);
 		const loading = ref(false);
 		const noError = ref(true);
 		const editor = ref('');
@@ -170,6 +173,8 @@ export default defineComponent({
 
 		const insertImage = () =>
 		{
+			if (disableForm.value === true)
+				return;
 			const input = document.createElement('input');
 			input.type = 'file';
 			input.accept = '.png, .jpg';
@@ -268,7 +273,7 @@ export default defineComponent({
 
 		const sendMessage = async () =>
 		{
-			if (editor.value.length <= 0)
+			if (disableForm.value === true || editor.value.length <= 0)
 				return;
 			if (messageEditId.value === -1)
 			{
@@ -299,6 +304,24 @@ export default defineComponent({
 			messageEditId.value = -1;
 		};
 
+		// #region User data change
+		watch(() => props.userUpdate, () =>
+		{
+			console.log('un utilisateur a été mis à jour');
+			if (props.userUpdate.user === props.userId)
+			{
+				if (props.userUpdate.type === 'banned')
+				{
+					messages.value.length = 0;
+					loading.value = false;
+					noError.value = true;
+				}
+				else if (props.userUpdate.type === 'muted')
+					disableForm.value = props.userUpdate.value;
+			}
+		}, { deep: true });
+		// #endregion
+
 		// #region Incoming message
 		socket.on('message::receive::add', (ret) =>
 		{
@@ -312,19 +335,14 @@ export default defineComponent({
 					avatar: ret.data.data.creator.avatar,
 					connected: ret.data.data.creator.connected
 				},
-				messages: []
-			};
-			[...ret.data.data.content.split(/<\/?div>/)].filter((el) => el.length > 0).map((el) => el.trim()).forEach((mes) =>
-			{
-				newMessages.messages.push({
+				messages: [{
 					id: ret.data.data.id,
-					content: String(mes),
+					content: String(ret.data.data.content),
 					timestamp: ret.data.data.timestamp,
 					modified: ret.data.data.modified
-				});
-			});
-			if (messages.value.length > 0 &&
-					messages.value[messages.value.length - 1].user.id === ret.data.data.creator.id)
+				}]
+			};
+			if (messages.value[messages.value.length - 1].user.id === ret.data.data.creator.id)
 			{
 				messages.value[messages.value.length - 1].messages = [
 					...messages.value[messages.value.length - 1].messages,
@@ -485,24 +503,29 @@ export default defineComponent({
 		{
 			watch(() => props.selectedChannel, () =>
 			{
+				/*
 				if (!props.selectedChannel.isDeleted)
 				{
 					loading.value = true;
 					noError.value = true;
 					getMessages(props.selectedChannel.id);
 				}
+				*/
 			});
+			/*
 			if (props.selectedChannel.id > 0)
 			{
 				loading.value = true;
 				noError.value = true;
 				getMessages(props.selectedChannel.id);
 			}
+			*/
 		});
 
 		return {
 			contextmenu,
 			chat,
+			disableForm,
 			loading,
 			noError,
 			editor,
@@ -547,5 +570,17 @@ export default defineComponent({
 		vertical-align: middle;
 		height: .75em;
 		width: .75em;
+	}
+	.editor {
+		min-height: 10rem;
+		max-height: 15em;
+		position: relative;
+		outline: currentColor none medium;
+		overflow-wrap: break-word;
+	}
+	.q-editor__content {
+		min-height: calc(10rem - 32px) !important;
+		max-height: calc(15em - 32px) !important;
+		overflow-x: auto !important;
 	}
 </style>

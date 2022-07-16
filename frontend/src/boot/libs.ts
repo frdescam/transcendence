@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { boot } from 'quasar/wrappers';
+import sanitizeHtml from 'sanitize-html';
 
 export interface TypeOfObject {
 	(object: any): any;
@@ -23,11 +24,16 @@ export interface ObjDiff {
 	(obj1: any, obj2: any): any
 }
 
+export interface SanitizeMessage {
+	(message: string): string[];
+}
+
 declare module '@vue/runtime-core' {
 	interface ComponentCustomProperties {
 		$typeofObject: TypeOfObject;
 		$timestamp: TimestampFunction;
-		$objDiff: ObjDiff
+		$objDiff: ObjDiff,
+		$sanitizeMessage: SanitizeMessage
 	}
 }
 
@@ -106,6 +112,53 @@ const objDiff = (obj1: any, obj2: any): any =>
 	return result;
 };
 
+/**
+ * Sanitize, split and clean user message coming from textbox
+ * @param message user message
+ * @returns array of messages
+ */
+const sanitizeUserMessage = (message: string) =>
+{
+	message = sanitizeHtml(message, {
+		allowedTags: ['b', 'i', 'u', 'strike', 'hr', 'div', 'br'],
+		disallowedTagsMode: 'discard',
+		selfClosing: ['br', 'hr']
+	});
+	if (!message.startsWith('<div>', 0))
+	{
+		if (message === '<br />')
+			return '';
+		return message;
+	}
+	const newMessages = message.split('<div>').map((str) => str.replaceAll('</div>', ''));
+	const __continue = {
+		start: true,
+		end: true
+	};
+	while (__continue.start || __continue.end)
+	{
+		if (__continue.start &&
+			newMessages[0].replaceAll('<br />', '').length <= 0)
+			newMessages.splice(0, 1);
+		else
+			__continue.start = false;
+		if (__continue.end &&
+			newMessages[newMessages.length - 1].replaceAll('<br />', '').length <= 0)
+			newMessages.splice(newMessages.length - 1, 1);
+		else
+			__continue.end = false;
+	}
+	let ret = '<div>';
+	for (let i = 0; i <= newMessages.length - 1; i++)
+	{
+		ret += newMessages[i];
+		if (!/<br \/>$/gm.test(newMessages[i]))
+			ret += '<br />';
+	}
+	ret += '</div>';
+	return ret;
+};
+
 export default boot(({ app }) =>
 {
 	app.config.globalProperties.$typeofObject = typeofObject;
@@ -114,4 +167,6 @@ export default boot(({ app }) =>
 	app.provide('timestamp', app.config.globalProperties.$timestamp);
 	app.config.globalProperties.$objDiff = objDiff;
 	app.provide('objDiff', app.config.globalProperties.$objDiff);
+	app.config.globalProperties.$sanitizeMessage = sanitizeUserMessage;
+	app.provide('sanitizeMessage', app.config.globalProperties.$sanitizeMessage);
 });

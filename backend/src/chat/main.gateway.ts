@@ -18,50 +18,14 @@ import { MutedService } from './muted/muted.service';
 import { BannedService } from './banned/banned.service';
 
 import * as crypto from 'crypto';
+import * as sanitizeHtml from 'sanitize-html';
 
 import { ChannelDTO } from './orm/channel.dto';
 import { channelTypesDTO } from './orm/channelTypes.dto';
 import { MutedDTO } from './orm/muted.dto';
 import { BannedDTO } from './orm/banned.dto';
 
-interface interfaceBanMut {
-  id: number,
-  userId: number,
-  channelId: number,
-  until: Date
-}
-
-interface receiveChannel {
-  id: number,
-  creator: number,
-  name: string,
-  type: string,
-  password: string
-}
-
-interface receiveMessage {
-  id: number,
-  channel: number,
-  message: string,
-  length: number,
-  timestamp: Date,
-  hash: string
-}
-
-interface updateMessage {
-  id: number,
-  channel: number,
-  messageId: number,
-  message: string,
-  length: number,
-  timestamp: Date,
-  hash: string
-}
-
-interface channelUser {
-  userId: number,
-  channelId: number,
-}
+import { admBanMut, receiveChannel, receiveMessage, updateMessage, channelUser } from './interface';
 
 const getType = (type: string) => {
   switch (type) {
@@ -115,14 +79,32 @@ export class MainGateway implements NestGateway
     };
   }
 
+  //#region Admin
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('admin::set')
+  async setAdmin(admin: admBanMut, sender: Socket) {
+    this.logger.log(`Client ${sender.id} set user ${admin.userId} admin of channel ${admin.channelId}`);
+    const __newUser = await this.userService.getOne(admin.userId);
+    this.server.emit('admin::receive::set', this.returnData(sender, await this.channelService.addAdmin(admin.channelId, __newUser)));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('admin::delete')
+  async deleteAdmin(admin: admBanMut, sender: Socket) {
+    this.logger.log(`Client ${sender.id} unset user ${admin.userId} admin of channel ${admin.channelId}`);
+    const __newUser = await this.userService.getOne(admin.userId);
+    this.server.emit('admin::receive::delete', this.returnData(sender, await this.channelService.removeAdmin(admin.channelId, __newUser)));
+  }
+  //#endregion
+
   //#region Muted
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('muted::set')
-  async setMuted(muted: interfaceBanMut, sender: Socket) {
+  async setMuted(muted: admBanMut, sender: Socket) {
     this.logger.log(`Client ${sender.id} mute user ${muted.userId} until ${muted.until}`);
     const __newMuted: MutedDTO = {
       id: undefined,
-      channel: await this.channelService.getOne(muted.channelId),
+      channel: await this.channelService.getOneNoMessages(muted.channelId),
       user: await this.userService.getOne(muted.userId),
       until: new Date(muted.until)
     };
@@ -131,12 +113,12 @@ export class MainGateway implements NestGateway
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('muted::delete')
-  async deleteMuted(muted: interfaceBanMut, sender: Socket) {
+  async deleteMuted(muted: admBanMut, sender: Socket) {
     this.logger.log(`Client ${sender.id} unmute user ${muted.userId}`);
     const __newMuted: MutedDTO = {
       id: muted.id,
-      channel: undefined,
-      user: undefined,
+      channel: await this.channelService.getOneNoMessages(muted.channelId),
+      user: await this.userService.getOne(muted.userId),
       until: undefined
     };
     this.server.emit('muted::receive::delete', this.returnData(sender, await this.mutedService.delete(__newMuted)));
@@ -146,11 +128,11 @@ export class MainGateway implements NestGateway
   //#region Banned
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('banned::set')
-  async setBanned(banned: interfaceBanMut, sender: Socket) {
-    this.logger.log(`Client ${sender.id} mute user ${banned.userId} until ${banned.until}`);
+  async setBanned(banned: admBanMut, sender: Socket) {
+    this.logger.log(`Client ${sender.id} ban user ${banned.userId} until ${banned.until}`);
     const __newBanned: BannedDTO = {
       id: undefined,
-      channel: await this.channelService.getOne(banned.channelId),
+      channel: await this.channelService.getOneNoMessages(banned.channelId),
       user: await this.userService.getOne(banned.userId),
       until: new Date(banned.until)
     };
@@ -159,12 +141,12 @@ export class MainGateway implements NestGateway
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('banned::delete')
-  async deleteBanned(banned: interfaceBanMut, sender: Socket) {
-    this.logger.log(`Client ${sender.id} unmute user ${banned.userId}`);
+  async deleteBanned(banned: admBanMut, sender: Socket) {
+    this.logger.log(`Client ${sender.id} unban user ${banned.userId}`);
     const __newBanned: BannedDTO = {
       id: banned.id,
-      channel: undefined,
-      user: undefined,
+      channel: await this.channelService.getOneNoMessages(banned.channelId),
+      user: await this.userService.getOne(banned.userId),
       until: undefined
     };
     this.server.emit('banned::receive::delete', this.returnData(sender, await this.bannedService.delete(__newBanned)));
@@ -348,6 +330,47 @@ export class MainGateway implements NestGateway
   // #endregion
 
   // #region Message
+  sanitizeMessage(message: string) {
+    message = sanitizeHtml(message, {
+      allowedTags: ['b', 'i', 'u', 'strike', 'hr', 'div', 'br'],
+      disallowedTagsMode: 'discard',
+      selfClosing: ['br', 'hr']
+    });
+    if (!message.startsWith('<div>', 0))
+    {
+      if (message === '<br />')
+        return '';
+      return message;
+    }
+    const newMessages = message.split('<div>').map((str) => str.replaceAll('</div>', ''));
+    const __continue = {
+      start: true,
+      end: true
+    };
+    while (__continue.start || __continue.end)
+    {
+      if (__continue.start &&
+        newMessages[0].replaceAll('<br />', '').length <= 0)
+        newMessages.splice(0, 1);
+      else
+        __continue.start = false;
+      if (__continue.end &&
+        newMessages[newMessages.length - 1].replaceAll('<br />', '').length <= 0)
+        newMessages.splice(newMessages.length - 1, 1);
+      else
+        __continue.end = false;
+    }
+    let ret = '<div>';
+    for (let i = 0; i <= newMessages.length - 1; i++)
+    {
+      ret += newMessages[i];
+      if (!/<br \/>$/gm.test(newMessages[i]))
+        ret += '<br />';
+    }
+    ret += '</div>';
+    return ret;
+  }
+
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('messages::get')
   async getMessages(channelId: number, sender: Socket) {
@@ -369,12 +392,12 @@ export class MainGateway implements NestGateway
     if (hash !== message.hash)
       return;
     const messDate = new Date(message.timestamp);
-    this.logger.log(`Client ${sender.id} send a message at ${messDate.toDateString()}`);
+    this.logger.log(`Client ${sender.id} send a message to channel ${message.channel} at ${messDate.toDateString()}`);
     const newMessage: MessageDTO = {
       id: undefined,
       create: await this.userService.getOne(message.id),
       channel: await this.channelService.getOneNoMessages(message.channel),
-      content: message.message,
+      content: this.sanitizeMessage(message.message),
       timestamp: message.timestamp,
       modified: undefined
     };
@@ -393,7 +416,7 @@ export class MainGateway implements NestGateway
       id: message.messageId,
       create: await this.userService.getOne(message.id),
       channel: await this.channelService.getOneNoMessages(message.channel),
-      content: message.message,
+      content: this.sanitizeMessage(message.message),
       timestamp: undefined,
       modified: message.timestamp
     };

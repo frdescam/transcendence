@@ -31,7 +31,8 @@ export default {
 								banned: 'banni',
 								creator: 'créateur',
 								muted: 'muet',
-								user: 'utilisateur'
+								user: 'utilisateur',
+								delete: 'supprimer'
 							},
 							tooltip: {
 								addUser: 'Ajouter un utilisateur',
@@ -43,6 +44,7 @@ export default {
 							},
 							error: {
 								creator: 'Le créateur du canal est obligatoirement un administrateur, et ne peut être ni muet ou banni',
+								admin: 'Vous ne pouvez pas modifier vous-même vos options',
 								add: 'Une erreur s\'est produite. L\'utilisateur existe t-il toujours ?'
 							},
 							apply: 'Appliquer',
@@ -60,6 +62,21 @@ export default {
 					error: 'Le nom du canal ne correspond pas',
 					cancel: 'Annuler',
 					delete: 'Supprimer'
+				},
+				alert: {
+					close: 'Fermer',
+					admin: {
+						on: 'Vous êtes devenu un administrateur du canal {channel}',
+						off: 'Vous n\'êtes plus un administrateur du canal {channel}'
+					},
+					banned: {
+						on: 'Vous êtes banni du canal {channel} jusqu\'au {date}',
+						off: 'Vous n\'êtes plus banni du canal {channel}'
+					},
+					muted: {
+						on: 'Vous êtes muet sur le canal {channel} jusqu\'au {date}',
+						off: 'Vous n\'êtes plus muet sur le canal {channel}'
+					}
 				},
 				quit: 'Quitter le canal'
 			},

@@ -7,7 +7,6 @@ import { Repository } from 'typeorm';
 import { ChannelDTO } from '../orm/channel.dto';
 import { Channel } from '../orm/channel.entity';
 import { UserDTO } from 'src/user/orm/user.dto';
-import { User } from 'src/user/orm/user.entity';
 
 @Injectable()
 export class ChannelService {
@@ -72,6 +71,15 @@ export class ChannelService {
     });
   }
 
+  getCron(): Promise<Channel[]> {
+    return this.channelRepository.find({
+      relations: [
+        'bannedUsers', 'bannedUsers.user',
+        'mutedUsers', 'mutedUsers.user'
+      ]
+    });
+  }
+
   async addUser(channelId: number, user: UserDTO) {
     try {
       const newUser = await this.channelRepository.createQueryBuilder()
@@ -120,12 +128,16 @@ export class ChannelService {
         .add(user);
       return {
         message: `User ${user.id} added to admin channel ${channelId}`,
+        channel: channelId,
+        user: user.id,
         data: newUser,
         added: true,
       };
     } catch (err) {
       return {
         message: `User ${user.id} don't added to admin channel ${channelId}`,
+        channel: channelId,
+        user: user.id,
         data: undefined,
         added: false,
       };
@@ -139,15 +151,19 @@ export class ChannelService {
         .of({ id: channelId })
         .remove(user);
       return {
-        message: `User ${user.id} added to admin channel ${channelId}`,
+        message: `User ${user.id} remove to admin channel ${channelId}`,
+        channel: channelId,
+        user: user.id,
         data: newUser,
-        added: true,
+        deleted: true,
       };
     } catch (err) {
       return {
-        message: `User ${user.id} don't added to admin channel ${channelId}`,
+        message: `User ${user.id} don't remove to admin channel ${channelId}`,
+        channel: channelId,
+        user: user.id,
         data: undefined,
-        added: false,
+        deleted: false,
       };
     }
   }

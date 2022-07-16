@@ -231,8 +231,10 @@ interface usersOptionsInterface {
 	id: number,
 	isCreator: boolean,
 	isAdmin: boolean,
+	bannedKey: number,
 	bannedId: number,
 	isBanned: boolean,
+	mutedKey: number,
 	mutedId: number,
 	isMuted: boolean
 }
@@ -257,7 +259,11 @@ export default defineComponent({
 		channelOwner: Number,
 		userId: Number
 	},
-	emits: ['dialog-edition-hide'],
+	emits: [
+		'dialog-edition-alert',
+		'dialog-edition-update-user',
+		'dialog-edition-hide'
+	],
 	setup (props, { emit })
 	{
 		const socket: Socket = inject('socketChat') as Socket;
@@ -396,13 +402,15 @@ export default defineComponent({
 				if (muted.user.id === id)
 				{
 					return ({
-						id: muted.id,
+						key: muted.id,
+						id,
 						compare: (compareDate(currentDate, timestamp(muted.until)) !== 0)
 					});
 				}
 			}
 			return ({
-				id: -1,
+				key: -1,
+				id,
 				compare: false
 			});
 		};
@@ -415,13 +423,15 @@ export default defineComponent({
 				if (banned.user.id === id)
 				{
 					return ({
-						id: banned.id,
+						key: banned.id,
+						id,
 						compare: compareDate(currentDate, timestamp(banned.until)) !== 0
 					});
 				}
 			}
 			return ({
-				id: -1,
+				key: -1,
+				id,
 				compare: false
 			});
 		};
@@ -435,8 +445,10 @@ export default defineComponent({
 				id: users.id,
 				isCreator: isCreator(users.id),
 				isAdmin: isAdministrator(users.id),
+				bannedKey: banned.key,
 				bannedId: banned.id,
 				isBanned: banned.compare,
+				mutedKey: muted.key,
 				mutedId: muted.id,
 				isMuted: muted.compare
 			});
@@ -448,14 +460,14 @@ export default defineComponent({
 			socket.emit('channel::get', props.channelId);
 		};
 
-		socket.on('channel::receive::get', async (ret) =>
+		socket.on('channel::receive::get', (ret) =>
 		{
 			if (!ret)
 				loading.value = false;
 			else
 			{
 				loading.value = false;
-				channel.value = ret;
+				channel.value = ret.data;
 				usersOptions.length = 0;
 				for (const i in channel.value.users)
 					addUserOption(channel.value.users[i]);
@@ -464,30 +476,66 @@ export default defineComponent({
 
 		const getUser = (id: number) =>
 		{
-			const ret: usersOptionsInterface = {
+			for (const i in usersOptions)
+			{
+				if (usersOptions[i].id === id)
+					return usersOptions[i];
+			}
+			return {
 				id: -1,
 				isCreator: false,
 				isAdmin: false,
+				bannedKey: -1,
 				bannedId: -1,
 				isBanned: false,
+				mutedKey: -1,
 				mutedId: -1,
 				isMuted: false
 			};
-			usersOptions.forEach((el) =>
+		};
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const switchVal = (type: string, val: boolean, ret: any) =>
+		{
+			const __ret = (option: usersOptionsInterface, _type: string, _val: boolean) =>
 			{
-				if (el.id === id)
+				console.log('toto');
+				emit('dialog-edition-alert', props.channelId, option.id, _type, _val);
+				emit('dialog-edition-update-user', props.channelId, {
+					userId: option.id,
+					admin: option.isAdmin,
+					muted: option.isMuted,
+					banned: option.isBanned,
+					deleted: (_type === 'deleted')
+				});
+			};
+
+			if (ret.channel !== props.channelId)
+				return;
+			for (const i in usersOptions)
+			{
+				if (usersOptions[i].id === ret.user)
 				{
-					ret.id = el.id;
-					ret.isAdmin = el.isAdmin;
-					ret.bannedId = el.bannedId;
-					ret.isBanned = el.isBanned;
-					ret.isCreator = el.isCreator;
-					ret.mutedId = el.mutedId;
-					ret.isMuted = el.isMuted;
-					return el;
+					if (type === 'banned')
+					{
+						usersOptions[i].bannedKey = ret.id;
+						usersOptions[i].isBanned = val;
+						__ret(usersOptions[i], 'banned', val);
+					}
+					else if (type === 'muted')
+					{
+						usersOptions[i].mutedKey = ret.id;
+						usersOptions[i].isMuted = val;
+						__ret(usersOptions[i], 'muted', val);
+					}
+					else if (type === 'admin')
+					{
+						usersOptions[i].isAdmin = val;
+						__ret(usersOptions[i], 'admin', val);
+					}
+					return;
 				}
-			});
-			return ret;
+			}
 		};
 		// #endregion
 
@@ -531,15 +579,38 @@ export default defineComponent({
 		// #region Admin
 		const toggleAdmin = (userId: number, value: boolean) =>
 		{
-			console.log('toto', userId, value);
+			if (value === true)
+			{
+				socket.emit('admin::set', {
+					channelId: props.channelId,
+					userId
+				});
+			}
+			else
+			{
+				socket.emit('admin::delete', {
+					channelId: props.channelId,
+					userId
+				});
+			}
 		};
+		socket.on('admin::receive::set', (ret) =>
+		{
+			if (ret.data.added === true)
+				switchVal('admin', true, ret.data);
+		});
+		socket.on('admin::receive::delete', (ret) =>
+		{
+			if (ret.data.deleted === true)
+				switchVal('admin', false, ret.data);
+		});
 		// #endregion
 
 		// #region Timepicker
 		const dialogEditionListError = ref<userListError>();
 		const timepicker = ref<QDialog | null>(null);
 		const timepickerDate = ref<string>();
-		const timepickerIdEl = ref<number>();
+		const timepickerKey = ref<number>();
 		const timepickerId = ref<number>();
 		const timepickerType = ref<string>();
 
@@ -550,20 +621,25 @@ export default defineComponent({
 			timepickerDate.value = `${time.year}-${addPadding(time.month)}-${addPadding(time.day)} ${addPadding(time.hour)}:${addPadding(time.minute)}`;
 		};
 
-		const toggleChangeState = (id: number, idEl: number, value: boolean, type: string) =>
+		const toggleChangeState = (
+			key: number,
+			userId: number,
+			value: boolean,
+			type: string
+		) =>
 		{
 			if (value === true)
 			{
 				defineTimepickerValue();
-				timepickerIdEl.value = idEl;
-				timepickerId.value = id;
+				timepickerKey.value = key;
+				timepickerId.value = userId;
 				timepickerType.value = type;
 				timepicker.value?.show();
 				return;
 			}
 			socket.emit(`${type}::delete`, {
-				id: idEl,
-				userId: id,
+				id: key,
+				userId,
 				channelId: props.channelId,
 				until: undefined
 			});
@@ -591,50 +667,32 @@ export default defineComponent({
 				return;
 			const date = new Date(`${dateParse.groups.year}-${dateParse.groups.month}-${dateParse.groups.day}T${dateParse.groups.hour}:${dateParse.groups.minute}:00.000Z`);
 			socket.emit(`${timepickerType.value}::set`, {
-				id: timepickerIdEl.value,
+				id: undefined,
 				userId: timepickerId.value,
 				channelId: props.channelId,
 				until: date
 			});
 		};
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const switchVal = (type: string, val: boolean, ret: any) =>
-		{
-			if (ret.channel !== props.channelId)
-				return;
-			for (const i in usersOptions)
-			{
-				if (usersOptions[i].id === ret.user)
-				{
-					if (type === 'banned')
-						usersOptions[i].isBanned = val;
-					else
-						usersOptions[i].isMuted = val;
-					return;
-				}
-			}
-		};
 		socket.on('banned::receive::set', (ret) =>
 		{
-			console.log(ret, props.channelId);
-			if (ret.set === true && ret.channel === props.channelId)
-				switchVal('banned', true, ret);
+			if (ret.data.set === true)
+				switchVal('banned', true, ret.data);
 		});
 		socket.on('banned::receive::delete', (ret) =>
 		{
-			if (ret.deleted === true && ret.channel === props.channelId)
-				switchVal('banned', false, ret);
+			if (ret.data.deleted === true)
+				switchVal('banned', false, ret.data);
 		});
 		socket.on('muted::receive::set', (ret) =>
 		{
-			if (ret.set === true && ret.channel === props.channelId)
-				switchVal('muted', true, ret);
+			if (ret.data.set === true)
+				switchVal('muted', true, ret.data);
 		});
 		socket.on('muted::receive::delete', (ret) =>
 		{
-			if (ret.deleted === true && ret.channel === props.channelId)
-				switchVal('muted', false, ret);
+			if (ret.data.deleted === true)
+				switchVal('muted', false, ret.data);
 		});
 		// #endregion
 
@@ -648,14 +706,16 @@ export default defineComponent({
 
 		watch(() => props.dialogEditionShow, (after) =>
 		{
-			getChannel();
 			if (after === true)
 			{
+				getChannel();
 				selectedTab.value = isCreator(Number(props.userId)) ? 'general' : 'users';
 				generalName.value = props.channelName;
 				generalType.value = props.channelType;
 				dialog.value?.show();
 			}
+			else
+				dialog.value?.hide();
 		});
 
 		return {

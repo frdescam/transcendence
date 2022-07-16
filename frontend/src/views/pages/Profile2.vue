@@ -1,6 +1,6 @@
 <template>
 	<div class="q-pa-none">
-		<div class="column" style="background-image: url(user_profile_background.png); background-position: center">
+		<div class="column" style="background-image: url(user_profile_background.png); background-position: center; background-size: cover; background-repeat: no-repeat;">
 			<div class="q-pa-md full-width row items-center">
 				<div class="q-my-lg row full-height items-center justify-around col-md-3 col-12">
 					<q-avatar class="q-my-auto" size=150px>
@@ -14,12 +14,12 @@
 						<div class="row col-8 items-center">
 							<!-- Yes I know this is awful but it's the cleanest way to do ... quasar stinks -->
 							<div class="gt-sm row col-12 col-md-5">
-								<p style="font-size: 3em; color: #eee; width: 200px">Frdescam</p>
-								<p class="text-weight-bold" style="font-size: 3em; color: #eee; width: 75px">#42</p>
+								<p style="font-size: 3em; color: #eee;">Frdescam</p>
+								<p class="text-weight-bold q-ml-sm" style="font-size: 3em; color: #eee;">#101</p>
 							</div>
 							<div class="lt-md justify-center row col-12 col-md-5">
-								<p style="font-size: 3em; color: #eee; width: 200px">Frdescam</p>
-								<p class="text-weight-bold" style="font-size: 3em; color: #eee; width: 75px">#42</p>
+								<p style="font-size: 3em; color: #eee;">Frdescam</p>
+								<p class="text-weight-bold q-ml-sm" style="font-size: 3em; color: #eee;">#101</p>
 							</div>
 							<q-badge class="q-mx-auto self-end q-mb-md q-pa-md" style="font-size: 3em; color: #eee; height: 50px; background: rgba(0, 0, 0, 0.4); border-radius: 15px">Level 42</q-badge>
 							<div class="col-12 col-md-2 gt-sm text-right" style="font-size: 1.5em; color: #eee;">Ratio : 42%</div>
@@ -41,16 +41,183 @@
 				<q-btn style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="block user"/>
 			</q-item>
 		</div>
-		<div style="height: 5000px">
+		<div class="row justify-evenly q-pa-md">
+			<q-list class="col-12 col-md-6 shadow-2 rounded-borders">
+				<q-toolbar>
+					<q-toolbar-title>Matches</q-toolbar-title>
+					<div>
+						<q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
+							<template v-slot:append>
+								<q-icon name="search"/>
+							</template>
+						</q-input>
+					</div>
+				</q-toolbar>
+				<q-item v-for="match in matches" :key="match.id">
+					<q-card class="fit q-pa-md" v-bind:style="{ 'background-color': (match.winner == 1) ? 'lightblue' : 'red' }">
+						<p>{{ match.timestamp }}</p>
+						<div class="row justify-center">
+							<q-avatar>
+								<img src='https://cdn.quasar.dev/img/boy-avatar.png'>
+							</q-avatar>
+							<p class="q-px-sm q-my-auto">User1</p>
+							<p class="q-px-sm q-my-auto">{{ match.userHomeScore }}</p>
+							<p class="q-px-sm q-my-auto">-</p>
+							<p class="q-px-sm q-my-auto">{{ match.userForeignScore }}</p>
+							<p class="q-px-sm q-my-auto">User2</p>
+							<q-avatar>
+								<img src='https://cdn.quasar.dev/img/boy-avatar.png'>
+							</q-avatar>
+						</div>
+						<p class="text-center q-mb-none">map : {{ match.map }}</p>
+					</q-card>
+				</q-item>
+			</q-list>
+			<q-list class="col-12 col-md-6 rounded-borders shadow-2">
+				<q-toolbar>
+					<q-toolbar-title>Achievements</q-toolbar-title>
+						<div>
+						<q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
+							<template v-slot:append>
+								<q-icon name="search"/>
+							</template>
+						</q-input>
+					</div>
+				</q-toolbar>
+				<q-item v-for="achievement in achievements" :key="achievement.id">
+					<q-card class="fit row justify-between q-pa-md">
+						<div class="column">
+							<p>{{ achievement.timestamp }}</p>
+							<p class="q-mb-sm">{{ achievement.achievementName }}</p>
+							<q-item-label caption>{{ achievement.achievementDescription }}</q-item-label>
+						</div>
+						<q-avatar size="75px">
+							<img :src='achievement.achievementIcon'>
+						</q-avatar>
+					</q-card>
+				</q-item>
+			</q-list>
 		</div>
 	</div>
 </template>
 <script>
+
+const matches = [
+	{
+		id: 1,
+		map: 'standard',
+		userHome: 1,
+		userForeign: 2,
+		winner: 1,
+		userHomeScore: 5,
+		userForeignScore: 3,
+		timestamp: '03/05/2021'
+	},
+	{
+		id: 1,
+		map: 'forest',
+		userHome: 1,
+		userForeign: 2,
+		winner: 2,
+		userHomeScore: 4,
+		userForeignScore: 5,
+		timestamp: '03/06/2021'
+	},
+	{
+		id: 1,
+		map: 'standard',
+		userHome: 1,
+		userForeign: 2,
+		winner: 1,
+		userHomeScore: 2000,
+		userForeignScore: 3,
+		timestamp: '03/07/2021'
+	},
+	{
+		id: 1,
+		map: 'standard',
+		userHome: 1,
+		userForeign: 2,
+		winner: 1,
+		userHomeScore: 5,
+		userForeignScore: 3,
+		timestamp: '03/08/2021'
+	},
+	{
+		id: 1,
+		map: 'standard',
+		userHome: 1,
+		userForeign: 2,
+		winner: 1,
+		userHomeScore: 5,
+		userForeignScore: 3,
+		timestamp: '03/09/2021'
+	},
+	{
+		id: 1,
+		map: 'standard',
+		userHome: 1,
+		userForeign: 2,
+		winner: 1,
+		userHomeScore: 5,
+		userForeignScore: 3,
+		timestamp: '03/10/2021'
+	}
+];
+
+const achievements = [
+	{
+		id: 1,
+		timestamp: '03/01/2022',
+		achievementName: 'Rigorous Basterd',
+		achievementDescription: 'Win 10 matches in a row',
+		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
+	},
+	{
+		id: 1,
+		timestamp: '03/02/2022',
+		achievementName: 'Rigorous Basterd',
+		achievementDescription: 'Win 10 matches in a row',
+		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
+	},
+	{
+		id: 1,
+		timestamp: '03/03/2022',
+		achievementName: 'Rigorous Basterd',
+		achievementDescription: 'Win 10 matches in a row',
+		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
+	},
+	{
+		id: 1,
+		timestamp: '03/04/2022',
+		achievementName: 'Rigorous Basterd',
+		achievementDescription: 'Win 10 matches in a row',
+		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
+	},
+	{
+		id: 1,
+		timestamp: '03/05/2022',
+		achievementName: 'Rigorous Basterd',
+		achievementDescription: 'Win 10 matches in a row',
+		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
+	},
+	{
+		id: 1,
+		timestamp: '03/06/2022',
+		achievementName: 'Rigorous Basterd',
+		achievementDescription: 'Win 10 matches in a row',
+		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
+	}
+];
+
 export default {
 	name: 'LeaderboardPage',
 	setup ()
 	{
-		return 3;
+		return {
+			matches,
+			achievements
+		};
 	}
 };
 </script>

@@ -8,7 +8,9 @@ import { AuthDto } from '../dto';
 export class AuthService {
     constructor(private jwt_svc: JwtService, private readonly users_svc: UsersService) {}
 
+    // could have used jwt_svc.verify instead of keeping refresh_token in db, how?
     async login(user_dto: AuthDto): Promise<User> {
+        //this.jwt_svc.verify(token);
         const user: User = await this.users_svc.findOne(user_dto);
 
         //console.log(user);
@@ -20,8 +22,6 @@ export class AuthService {
 
 		// if (data.password && !(await this.hashVerify(data.password, user.password)))
 		// 	return undefined;
-
-        // add jwt with refresh here!
 
 		 if (user_dto.refresh_token && !(user_dto.refresh_token === user.refresh_token)) // hash refresh_token!
 		 	//!(await this.hashVerify(data.refresh_token, user.refresh_token))

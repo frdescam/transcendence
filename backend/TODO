@@ -1,9 +1,17 @@
 - move every service, module, dto, entity, controller, into its own folder.
-- Could you push the entity update on the db branch? To avoid too much different versions … our git is a mess theres multiple versions of everything in different branches
-- merge with franco db after update!
 - when changing pseudo remeber to check if it doesnt exist yet and add number (e.g ltouret -> ltouret1)
 - change route into async and other funcs & post?
 - check & add missing dtos
 - erase useless imports
-
+- erase auth folder
+- unistall nestjs + nodejs + yarn + npm from my pc?
+- add friends (online, offline, in a game, and so forth), add status in ram
+- delete friends
+- match history
+- stats (such as: wins and losses, ladder level, achievements, and so forth)
+- change backend port in docker + trans backend app + auth.controller to 8080 + main.ts
+- you should merge db branch and take care your code still works
+- merge with franco db after update!
+- Could you push the entity update on the db branch? To avoid too much different versions
 - add jwt in websockets
+- add 2FA

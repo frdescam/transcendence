@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { AuthDto } from '../dto'; // not needed for now
 import { User } from 'src/users/entities/user.entity';
 import { AuthService } from '../services/auth.service'; // update later
-//import { TokenPayload } from '../dto/token-payload.interface'; // update later
 
 // Create token dto! 
     // into its own file
@@ -26,6 +25,8 @@ export class JwtRefreshStrategy extends PassportStrategy(
 		super({
 			jwtFromRequest: ExtractJwt.fromExtractors([
 				(request: Request) => {
+					if (!request || !request.cookies)
+						return null;
 					return request.cookies?.Refresh;
 				},
 			]),
@@ -34,7 +35,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
 		});
 	}
 
-	async validate(request: Request, payload: TokenPayload): Promise<User> { // if refresh token not needed then request here not needed!
+	async validate(request: Request, payload: TokenPayload): Promise<User> {
 		return this.auth_svc.login({
 			id: payload.user_id,
 			refresh_token: request.cookies?.Refresh, // if we add this, then has to be added to user.entity.ts too!

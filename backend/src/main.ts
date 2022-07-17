@@ -26,7 +26,8 @@ async function bootstrap() {
   // for cookies
   app.use(cookieParser());
   // maybe not needed now? global filters
+  // app.setGlobalPrefix('api');
   app.useGlobalFilters(new NotFoundExceptionFilter());
-  await app.listen(3000);
+  await app.listen(8080);
 }
 bootstrap();

@@ -11,6 +11,10 @@ export class UsersService {
     constructor(@InjectRepository(User)
     private readonly users_repo: Repository<User>,) {}
 
+	async getAll(): Promise<User[]> {
+		return this.users_repo.find();
+	}
+
     async findOne(user_dto: AuthDto): Promise<User> {
         // print this when testing multiple pseudos
         //console.log(await this.getUniquePseudo(user_dto.pseudo));

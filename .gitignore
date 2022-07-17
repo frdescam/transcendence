@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 #compiled output
+=======
+# env
+.auth.env
+
+# Compiled output
+>>>>>>> leo
 dist
 node_modules
 src_old
@@ -30,6 +37,11 @@ lerna-debug.log*
 .*.swp
 .*.swo
 *.vim
+<<<<<<< HEAD
+=======
+.eslintrc.js
+.prettierrc
+>>>>>>> leo
 
 # IDE - VSCode
 .vscode/*

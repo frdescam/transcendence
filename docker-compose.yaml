@@ -1,5 +1,7 @@
 version: '3.3'
 
+# TODO use .env
+
 services:
   ################ Postgresql ################
   postgres:
@@ -7,39 +9,36 @@ services:
     restart: unless-stopped
     image: postgres:14
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_INITDB_ARGS: --encoding=UTF-8
-      PG_DATA: /var/lib/postgresql/data
-    ports:
-      - ${DB_PORT}:${DB_PORT}
-    env_file:
-      - .env
+      - POSTGRES_DB=my_db # change to .env
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
     networks:
       - webnet
-  ################## Website #################
-  website:
-    container_name: website
+
+  ################# Backend #################
+  backend:
+    container_name: backend
     restart: unless-stopped
     depends_on:
       - postgres
     ports:
-      - ${BACK_PORT}:${BACK_PORT}
+      - 8080:8080
     build:
       context: .
-      dockerfile: ./docker/production.Dockerfile
+      dockerfile: ./docker/back.Dockerfile
       args:
-        NODE_ENV: production
-    env_file:
-      - .env
+        NODE_ENV: developpement
+    command: yarn start:dev
+    volumes:
+      - './backend/:/usr/src/app'
     networks:
       - webnet
+
 
 networks:
   webnet:
     driver: bridge
-  
-volumes:
-  pgdata:
-    driver: local

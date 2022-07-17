@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from './database.module';
-import { UserModule } from './user/user.module';
+import { UsersModule } from './users/users.module'
+import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import { GameModule } from './game/game.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -17,11 +18,13 @@ import * as path from 'path';
         path.join(__dirname, '..', 'static_dev')
       )
     }),
+    ConfigModule.forRoot({ envFilePath: ['./src/auth/.auth.env'], isGlobal: true, }), 
     ScheduleModule.forRoot(),
     DatabaseModule,
-    UserModule,
+    UsersModule,
+    AuthModule,
     ChatModule,
     GameModule
   ],
 })
-export class AppModule {}
+export class AppModule { }

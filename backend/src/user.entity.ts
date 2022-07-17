@@ -13,15 +13,27 @@ export enum TypesOf2FA {
     AUTH_APP = "auth_app" // TODO: check what 2FA types we implement
 }
 
+// Add status : online | offline? (use refresh token)
+// add isTwoFactorAuthenticationEnabled boolean?
+
 @Entity()
 export class User extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({type: "varchar", length: 50})
+    @Column({type: "int4", nullable: true, unique: true}) // if we dont do passwords then this shouldnt be null!
+    public fortytwo_id: number; // marvin id to look for ppl;
+
+    @Column({type: "varchar", length: 50, unique: true}) // change to unique cos must be unique!
     pseudo: string;
 
-    @Column({type: "varchar", length: 60})
+    @Column({type: "varchar", nullable: true}) // nullable
+    refresh_token: string;
+
+    @Column({type: "varchar", length: 50}) // is email even useful here? could erase mosty likely
+    email: string;
+
+    @Column({type: "varchar", length: 60, nullable: true}) // nullable, optional?
     password: string;
 
     @Column({type: "varchar", length: 50, nullable: true})
@@ -36,7 +48,7 @@ export class User extends BaseEntity {
     @Column({type: "float4", default: 0.0})
     xp: number;
 
-    @Column()
+    @Column({type: "int4", default: 0})
     ratio: number;
 
     @ManyToMany(() => User, (user) => user.friends)

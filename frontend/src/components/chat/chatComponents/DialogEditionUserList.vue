@@ -89,6 +89,7 @@
 						color="deep-orange"
 						icon="person_remove"
 						:disable="data.isCreator || !connectedUser.isCreator || connectedUser.id === data.id"
+						@click="deleteUser"
 					/>
 				</div>
 			</div>
@@ -128,8 +129,17 @@ interface usersOptionsInterface {
 
 export default defineComponent({
 	name: 'chat_dialog_edit_user_list',
-	props: ['user', 'info', 'connectedUser', 'errorOccur'],
-	emits: ['dialog-edition-users-timepicker', 'dialog-edition-users-admin'],
+	props: [
+		'user',
+		'info',
+		'connectedUser',
+		'errorOccur'
+	],
+	emits: [
+		'dialog-edition-users-timepicker',
+		'dialog-edition-users-admin',
+		'dialog-edition-users-delete'
+	],
 	setup (props, { emit })
 	{
 		const data: usersOptionsInterface = reactive({
@@ -153,6 +163,8 @@ export default defineComponent({
 		};
 
 		const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);
+
+		const deleteUser = () => emit('dialog-edition-users-delete', props.user.id);
 
 		watch(() => props.info, () =>
 		{
@@ -222,7 +234,8 @@ export default defineComponent({
 			data,
 			isMe,
 			capitalize,
-			avatarError
+			avatarError,
+			deleteUser
 		};
 	}
 });

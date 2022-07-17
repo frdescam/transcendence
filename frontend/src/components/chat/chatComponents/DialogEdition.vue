@@ -162,8 +162,9 @@
 									:errorOccur="dialogEditionListError"
 									:info="getUser(Number(user.id))"
 									:connectedUser="getUser(Number(userId))"
-									@dialog-edition-users-timepicker="toggleChangeState"
 									@dialog-edition-users-admin="toggleAdmin"
+									@dialog-edition-users-delete="deleteUser"
+									@dialog-edition-users-timepicker="toggleChangeState"
 								/>
 							</template>
 							<q-dialog
@@ -178,6 +179,9 @@
 										<div class="text-h6 text-center">
 											{{ $t(`chat.channel.menu.edit.tabs.user.timepicker.${timepickerType}`) }}
 										</div>
+										<q-banner v-if="timepickerError" inline-actions class="text-white bg-red">
+											{{ $t('chat.channel.menu.edit.tabs.user.error.time') }}
+										</q-banner>
 									</q-card-section>
 									<q-card-section class="row no-wrap justify-evenly">
 										<q-date v-model="timepickerDate" mask="YYYY-MM-DD HH:mm" />
@@ -198,7 +202,6 @@
 										<q-btn flat
 											:label="$t('chat.channel.menu.edit.tabs.user.apply')"
 											@click="submitTimepicker"
-											v-close-popup
 										/>
 									</q-card-actions>
 								</q-card>
@@ -437,14 +440,14 @@ export default defineComponent({
 		};
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const addUserOption = (users: any) =>
+		const addUserOption = (user: any) =>
 		{
-			const banned = isBanned(users.id);
-			const muted = isMuted(users.id);
+			const banned = isBanned(user.id);
+			const muted = isMuted(user.id);
 			usersOptions.push({
-				id: users.id,
-				isCreator: isCreator(users.id),
-				isAdmin: isAdministrator(users.id),
+				id: user.id,
+				isCreator: isCreator(user.id),
+				isAdmin: isAdministrator(user.id),
 				bannedKey: banned.key,
 				bannedId: banned.id,
 				isBanned: banned.compare,
@@ -464,7 +467,7 @@ export default defineComponent({
 		{
 			if (!ret)
 				loading.value = false;
-			else
+			else if (ret.socketId === socket.id)
 			{
 				loading.value = false;
 				channel.value = ret.data;
@@ -499,7 +502,6 @@ export default defineComponent({
 		{
 			const __ret = (option: usersOptionsInterface, _type: string, _val: boolean) =>
 			{
-				console.log('toto');
 				emit('dialog-edition-alert', props.channelId, option.id, _type, _val);
 				emit('dialog-edition-update-user', props.channelId, {
 					userId: option.id,
@@ -537,6 +539,73 @@ export default defineComponent({
 				}
 			}
 		};
+
+		const addUserToChannel = (userId: number) =>
+		{
+			socket.emit('channel::user::add', {
+				channelId: props.channelId,
+				userId
+			});
+		};
+		socket.on('channel::user::receive::add', (ret) =>
+		{
+			if (ret.data.channel !== props.channelId)
+				return;
+			if (ret.data.added === true)
+			{
+				getChannel();
+				dialogEditionAddUserShow.value = false;
+			}
+			else
+				dialogEditionAddUserError.value = true;
+		});
+		// #endregion
+
+		// #region Delete user
+		const deleteUser = (id: number) =>
+		{
+			socket.emit('channel::user::remove', {
+				userId: id,
+				channelId: props.channelId
+			});
+		};
+		socket.on('channel::user::receive::remove', (ret) =>
+		{
+			if (ret.data.channel !== props.channelId)
+				return;
+			for (const i in channel.value.users)
+			{
+				if (channel.value.users[i].id === ret.data.id)
+				{
+					channel.value.users[i].splice(i, 1);
+					return;
+				}
+			}
+			for (const i in channel.value.admins)
+			{
+				if (channel.value.admins[i].id === ret.data.id)
+				{
+					channel.value.admins[i].splice(i, 1);
+					return;
+				}
+			}
+			for (const i in channel.value.mutedUsers)
+			{
+				if (channel.value.mutedUsers[i].user.id === ret.data.id)
+				{
+					channel.value.mutedUsers[i].splice(i, 1);
+					return;
+				}
+			}
+			for (const i in channel.value.bannedUsers)
+			{
+				if (channel.value.bannedUsers[i].user.id === ret.data.id)
+				{
+					channel.value.bannedUsers[i].splice(i, 1);
+					return;
+				}
+			}
+		});
 		// #endregion
 
 		// #region Search user
@@ -550,30 +619,6 @@ export default defineComponent({
 				return true;
 			return false;
 		};
-
-		const addUserToChannel = (userId: number) =>
-		{
-			socket.emit('channel::user::add', {
-				channelId: props.channelId,
-				userId
-			});
-		};
-
-		socket.on('channel::user::receive::add', (user, add) =>
-		{
-			if (add.added === true)
-			{
-				getChannel();
-				dialogEditionAddUserShow.value = false;
-			}
-			else
-				dialogEditionAddUserError.value = true;
-		});
-
-		socket.on('users::receive::get', (ret) =>
-		{
-			console.log('user receive', ret);
-		});
 		// #endregion
 
 		// #region Admin
@@ -609,6 +654,7 @@ export default defineComponent({
 		// #region Timepicker
 		const dialogEditionListError = ref<userListError>();
 		const timepicker = ref<QDialog | null>(null);
+		const timepickerError = ref<boolean>(false);
 		const timepickerDate = ref<string>();
 		const timepickerKey = ref<number>();
 		const timepickerId = ref<number>();
@@ -666,12 +712,19 @@ export default defineComponent({
 			if (!dateParse || !dateParse.groups)
 				return;
 			const date = new Date(`${dateParse.groups.year}-${dateParse.groups.month}-${dateParse.groups.day}T${dateParse.groups.hour}:${dateParse.groups.minute}:00.000Z`);
+			const curDate = new Date();
+			if (curDate.getTime() >= date.getTime())
+			{
+				timepickerError.value = true;
+				return;
+			}
 			socket.emit(`${timepickerType.value}::set`, {
 				id: undefined,
 				userId: timepickerId.value,
 				channelId: props.channelId,
 				until: date
 			});
+			timepicker.value?.hide();
 		};
 
 		socket.on('banned::receive::set', (ret) =>
@@ -746,6 +799,10 @@ export default defineComponent({
 			addUserToChannel,
 			// #endregion
 
+			// #region Delete user
+			deleteUser,
+			// #endregion
+
 			// #region User tab
 			dialogEditionListError,
 			isCreator,
@@ -758,6 +815,7 @@ export default defineComponent({
 
 			// #region Timepicker
 			timepicker,
+			timepickerError,
 			timepickerDate,
 			timepickerType,
 			defineTimepickerValue,

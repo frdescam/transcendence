@@ -43,6 +43,7 @@ export default {
 								muted: 'Choose the date and time when the user will no longer be muted'
 							},
 							error: {
+								time: 'The time you entered is less than the current date and time',
 								creator: 'The channel creator must be an administrator, and cannot be mute or banned',
 								admin: 'You cannot change your options yourself',
 								add: 'An error has occurred. The user still exists ?'

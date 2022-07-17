@@ -8,24 +8,21 @@ import {
 import { NestGateway } from '@nestjs/websockets/interfaces/nest-gateway.interface';
 import { Bind, Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
-
-import { MessageService } from './message/message.service';
-import { MessageDTO } from './orm/message.dto';
-
-import { UserService } from 'src/user/user/user.service';
-import { ChannelService } from './channel/channel.service';
-import { MutedService } from './muted/muted.service';
-import { BannedService } from './banned/banned.service';
-
 import * as crypto from 'crypto';
 import * as sanitizeHtml from 'sanitize-html';
+import { admBanMut, receiveChannel, receiveMessage, updateMessage, channelUser } from './interface';
 
+import { BannedService } from './banned/banned.service';
+import { ChannelService } from './channel/channel.service';
+import { MessageService } from './message/message.service';
+import { MutedService } from './muted/muted.service';
+import { UserService } from 'src/user/user/user.service';
+
+import { BannedDTO } from './orm/banned.dto';
 import { ChannelDTO } from './orm/channel.dto';
 import { channelTypesDTO } from './orm/channelTypes.dto';
+import { MessageDTO } from './orm/message.dto';
 import { MutedDTO } from './orm/muted.dto';
-import { BannedDTO } from './orm/banned.dto';
-
-import { admBanMut, receiveChannel, receiveMessage, updateMessage, channelUser } from './interface';
 
 const getType = (type: string) => {
   switch (type) {
@@ -257,75 +254,22 @@ export class MainGateway implements NestGateway
   async addUserToChannel(user: channelUser, sender: Socket) {
     this.logger.log(`Client ${sender.id} add user ${user.userId} to channel ${user.channelId} at ${new Date().toDateString()}`);
     const getUser = await this.userService.getOne(user.userId);
-    if (!getUser)
-      this.server.emit('channel::user::receive::add', {
-        socketId: sender.id,
-        channel: undefined,
-        user: getUser
-      });
-    else
-      this.server.emit('channel::user::receive::add', {
-        socketId: sender.id,
-        channel: await this.channelService.addUser(user.channelId, getUser),
-        user: getUser
-      });
+    this.server.emit('channel::user::receive::add', this.returnData(sender, await this.channelService.addUser(user.channelId, getUser)));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('channel::user::remove')
   async removeUserToChannel(user: channelUser, sender: Socket) {
     this.logger.log(`Client ${sender.id} remove user ${user.userId} to channel ${user.channelId} at ${new Date().toDateString()}`);
+    const getBanned = await this.bannedService.getOne(user.channelId, user.userId);
+    const getMuted = await this.mutedService.getOne(user.channelId, user.userId);
     const getUser = await this.userService.getOne(user.userId);
-    if (!getUser)
-      this.server.emit('channel::user::receive::remove', {
-        socketId: sender.id,
-        channel: undefined,
-        user: getUser
-      });
-    else
-      this.server.emit('channel::user::receive::remove', {
-        socketId: sender.id,
-        channel: await this.channelService.removeUser(user.channelId, getUser),
-        user: getUser
-      });
-  }
-
-  @Bind(MessageBody(), ConnectedSocket())
-  @SubscribeMessage('channel::admin::add')
-  async addAdminToChannel(user: channelUser, sender: Socket) {
-    this.logger.log(`Client ${sender.id} add admin ${user.userId} to channel ${user.channelId} at ${new Date().toDateString()}`);
-    const getUser = await this.userService.getOne(user.userId);
-    if (!getUser)
-      this.server.emit('channel::admin::receive::add', {
-        socketId: sender.id,
-        channel: undefined,
-        user: getUser
-      });
-    else
-      this.server.emit('channel::admin::receive::add', getUser, {
-        socketId: sender.id,
-        channel: await this.channelService.addAdmin(user.channelId, getUser),
-        user: getUser
-      });
-  }
-
-  @Bind(MessageBody(), ConnectedSocket())
-  @SubscribeMessage('channel::admin::remove')
-  async removeAminToChannel(user: channelUser, sender: Socket) {
-    this.logger.log(`Client ${sender.id} remove admin ${user.userId} to channel ${user.channelId} at ${new Date().toDateString()}`);
-    const getUser = await this.userService.getOne(user.userId);
-    if (!getUser)
-      this.server.emit('channel::admin::receive::remove', {
-        socketId: sender.id,
-        channel: undefined,
-        user: getUser
-      });
-    else
-      this.server.emit('channel::admin::receive::remove', getUser, {
-        socketId: sender.id,
-        channel: await this.channelService.removeAdmin(user.channelId, getUser),
-        user: getUser
-      });
+    await this.channelService.removeAdmin(user.channelId, getUser);
+    if (getBanned)
+      await this.bannedService.delete(getBanned);
+    if (getMuted)
+      await this.mutedService.delete(getMuted);
+    this.server.emit('channel::user::receive::remove', this.returnData(sender, await this.channelService.removeUser(user.channelId, getUser)));
   }
   // #endregion
 

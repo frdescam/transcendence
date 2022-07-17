@@ -29,7 +29,7 @@
 					<q-item clickable v-ripple
 						v-for="channel in channels"
 						v-bind:key="channel.id"
-						:class="(channel.id === selectedChannel?.id) ? 'selected-channel' : ''"
+						:class="(channel.id === selectedChannelId) ? 'selected-channel' : ''"
 						@click="channelIsSelected(channel.id, channel.type)"
 						:data-id="channel.id"
 					>
@@ -207,11 +207,13 @@ export default defineComponent({
 			});
 		};
 
+		let emitFromChannel = false;
 		const channelIsSelected = (channelId: number, channelType: string) =>
 		{
 			if (!selectedChannelId.value ||
 				(selectedChannelId.value && selectedChannelId.value !== channelId))
 			{
+				emitFromChannel = true;
 				selectedChannelId.value = channelId;
 				selectedChannelType.value = channelType;
 				socket.emit('channel::get', channelId);
@@ -219,7 +221,7 @@ export default defineComponent({
 		};
 		socket.on('channel::receive::get', (ret) =>
 		{
-			if (ret.socketId !== socket.id)
+			if (!emitFromChannel || ret.socketId !== socket.id)
 				return;
 
 			selectedChannelName.value = ret.data.name;
@@ -232,13 +234,15 @@ export default defineComponent({
 					return;
 				}
 			}
+
 			if (selectedChannelType.value !== 'protected')
-				sendEvent(ret.data.id);
+				sendEvent(selectedChannelId.value);
 			else
 			{
 				selectedChannelPasswordValue.value = ret.data.password;
 				openDialogPassword();
 			}
+			emitFromChannel = false;
 		});
 
 		const openContextualMenu = (e: Event) =>
@@ -301,11 +305,6 @@ export default defineComponent({
 					if (hideEdition && !hideOnInsert && user.userId === props.userId)
 						dialogEditionShow.value = false;
 				}
-				emit('channel-user-update', {
-					type,
-					user: user.userId,
-					value: compare
-				});
 			};
 
 			for (const _i in channels.value)
@@ -321,6 +320,12 @@ export default defineComponent({
 				setVal('admin', user.admin, channels.value[i].admins, true, false);
 				setVal('banned', user.banned, channels.value[i].banned, true);
 				setVal('muted', user.muted, channels.value[i].muted);
+				emit('channel-user-update', {
+					user: user.userId,
+					admin: user.admin,
+					banned: user.banned,
+					muted: user.muted
+				});
 			}
 		};
 		// #endregion Update user of channel

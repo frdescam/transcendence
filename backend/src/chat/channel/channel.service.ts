@@ -82,19 +82,21 @@ export class ChannelService {
 
   async addUser(channelId: number, user: UserDTO) {
     try {
-      const newUser = await this.channelRepository.createQueryBuilder()
+      await this.channelRepository.createQueryBuilder()
         .relation(Channel, 'users')
         .of({ id: channelId })
         .add(user);
       return {
         message: `User ${user.id} added to channel ${channelId}`,
-        data: newUser,
+        channel: channelId,
+        data: user,
         added: true,
       };
     } catch (err) {
       return {
         message: `User ${user.id} don't added to channel ${channelId}`,
-        data: undefined,
+        channel: channelId,
+        data: user,
         added: false,
       };
     }
@@ -102,19 +104,21 @@ export class ChannelService {
 
   async removeUser(channelId: number, user: UserDTO) {
     try {
-      const newUser = await this.channelRepository.createQueryBuilder()
+      await this.channelRepository.createQueryBuilder()
         .relation(Channel, 'users')
         .of({ id: channelId })
         .remove(user);
       return {
-        message: `User ${user.id} added to channel ${channelId}`,
-        data: newUser,
+        message: `User ${user.id} removed to channel ${channelId}`,
+        channel: channelId,
+        data: user,
         added: true,
       };
     } catch (err) {
       return {
-        message: `User ${user.id} don't added to channel ${channelId}`,
-        data: undefined,
+        message: `User ${user.id} don't removed to channel ${channelId}`,
+        channel: channelId,
+        data: user,
         added: false,
       };
     }

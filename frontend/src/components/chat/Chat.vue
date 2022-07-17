@@ -227,6 +227,7 @@ export default defineComponent({
 				noError.value = false;
 				return;
 			}
+			disableForm.value = false;
 			loading.value = false;
 			const temp: messageInterface = {
 				user: {
@@ -307,17 +308,15 @@ export default defineComponent({
 		// #region User data change
 		watch(() => props.userUpdate, () =>
 		{
-			console.log('un utilisateur a été mis à jour');
-			if (props.userUpdate.user === props.userId)
+			if (props.userUpdate.user !== props.userId)
+				return;
+			disableForm.value = props.userUpdate.value;
+			if (props.userUpdate.banned)
 			{
-				if (props.userUpdate.type === 'banned')
-				{
-					messages.value.length = 0;
-					loading.value = false;
-					noError.value = true;
-				}
-				else if (props.userUpdate.type === 'muted')
-					disableForm.value = props.userUpdate.value;
+				disableForm.value = true;
+				messages.value.length = 0;
+				loading.value = false;
+				noError.value = true;
 			}
 		}, { deep: true });
 		// #endregion
@@ -503,23 +502,19 @@ export default defineComponent({
 		{
 			watch(() => props.selectedChannel, () =>
 			{
-				/*
 				if (!props.selectedChannel.isDeleted)
 				{
 					loading.value = true;
 					noError.value = true;
 					getMessages(props.selectedChannel.id);
 				}
-				*/
 			});
-			/*
 			if (props.selectedChannel.id > 0)
 			{
 				loading.value = true;
 				noError.value = true;
 				getMessages(props.selectedChannel.id);
 			}
-			*/
 		});
 
 		return {

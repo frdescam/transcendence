@@ -43,6 +43,7 @@ export default {
 								muted: 'Choisissez la date et l\'heure à laquelle l\'utilisateur ne sera plus muet'
 							},
 							error: {
+								time: 'L\'heure que vous avez saisie est inférieure à la date et à l\'heure actuelles',
 								creator: 'Le créateur du canal est obligatoirement un administrateur, et ne peut être ni muet ou banni',
 								admin: 'Vous ne pouvez pas modifier vous-même vos options',
 								add: 'Une erreur s\'est produite. L\'utilisateur existe t-il toujours ?'

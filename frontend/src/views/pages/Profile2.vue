@@ -3,7 +3,7 @@
 		<!-- HEADER -->
 		<div class="column" style="background-image: url(user_profile_background.png); background-position: center; background-size: cover; background-repeat: no-repeat;">
 			<div class="q-pa-md full-width row items-center">
-				<div class="q-my-lg q-pr-md row full-height items-center justify-around col-md-2 col-12">
+				<div v-bind:class="{ 'q-pr-md': $q.screen.gt.sm }" class="q-my-lg row full-height items-center justify-around col-md-2 col-12">
 					<q-avatar class="q-my-auto" size=150px>
 						<img src='https://cdn.quasar.dev/img/boy-avatar.png'>
 						<q-badge class="absolute-bottom-right" style="width: 30px; height: 30px" color="light-green-14" rounded></q-badge>
@@ -12,23 +12,17 @@
 				</div>
 				<div class="col-md-10 col-12">
 					<div class="fit column q-pa-sm" style="background: rgba(0, 0, 0, 0.4); border-radius: 10px">
-						<div class="row col-8 items-center">
-							<!-- Yes I know this is awful but it's the cleanest way to do ... quasar stinks -->
-							<div class="gt-sm row col-12 col-md-5">
-								<p style="font-size: 3em; color: #eee;">Frdescam</p>
-								<p class="text-weight-bold q-ml-sm" style="font-size: 3em; color: #eee;">#101</p>
+						<div class="q-pa-sm row col-3 items-center">
+							<div v-bind:class="{ 'justify-center': $q.screen.lt.md }" class="col-12 col-md-6 row" style="height: 4em">
+								<div style="font-size: 3em; color: #eee;">Frdescam</div>
+								<div class="text-weight-bold q-ml-sm" style="font-size: 3em; color: #eee;">#101</div>
 							</div>
-							<div class="lt-md justify-center row col-12 col-md-5">
-								<p style="font-size: 3em; color: #eee;">Frdescam</p>
-								<p class="text-weight-bold q-ml-sm" style="font-size: 3em; color: #eee;">#101</p>
-							</div>
-							<q-badge class="q-mx-auto self-end q-mb-md q-pa-md" style="font-size: 3em; color: #eee; height: 50px; background: rgba(0, 0, 0, 0.4); border-radius: 15px">Level 42</q-badge>
-							<div class="col-12 col-md-2 gt-sm text-right" style="font-size: 1.5em; color: #eee;">Ratio : 42%</div>
-							<div class="col-12 col-md-2 lt-md text-center" style="font-size: 1.5em; color: #eee;">Ratio : 42%</div>
+							<div v-bind:class=" $q.screen.lt.md ? 'text-center' : 'text-right' " class="col-12 col-md-6" style="font-size: 1.5em; color: #eee;">Ratio : 42%</div>
 						</div>
+						<q-badge class="col-5 q-mx-auto" style="font-size: 3em; color: #eee; height: 75px; background: rgba(0, 0, 0, 0.4); border-radius: 15px">Level 42</q-badge>
 						<div class="row justify-between col-2 items-end">
-							<p style="color: #eee;" class="q-mb-none">Next level :</p>
-							<p style="color: #eee;" class="q-mb-none">42 / 100 XP</p>
+							<div style="color: #eee;" class="q-mb-none">Next level :</div>
+							<div style="color: #eee;" class="q-mb-none">42 / 100 XP</div>
 						</div>
 						<div class="col-2">
 							<q-linear-progress stripe rounded class="q-mt-sm" size="20px" value="0.42" color="blue"/>

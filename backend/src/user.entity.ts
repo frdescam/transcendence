@@ -36,6 +36,9 @@ export class User extends BaseEntity {
     @Column({type: "float4", default: 0.0})
     xp: number;
 
+    @Column()
+    ratio: number;
+
     @ManyToMany(() => User, (user) => user.friends)
     friends: User[];
 

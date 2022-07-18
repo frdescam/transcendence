@@ -17,7 +17,7 @@ export class CookiesService {
 
 	getAuthJwtTokenCookie(
 		user: User,
-	): { token: string; cookie: string } {
+	): { token: string; cookie: string } { // create dtos
 		const secret = this.config.get('JWT_AUTH_SECRET');
 		const lifetime = this.config.get('JWT_AUTH_LIFETIME')
 		const payload: any = { sub: user.id }; // any for now, create dto for this?
@@ -31,9 +31,9 @@ export class CookiesService {
 
     getRefreshJwtTokenCookie(
 		user: User,
-	): { token: string; cookie: string } { // this will return only the token
+	): { token: string; cookie: string } { // this will return only the token, // create dtos
 		const secret = this.config.get('JWT_REFRESH_SECRET');
-		const lifetime = this.config.get('JWT_REFRESH_LIFETIME')
+		const lifetime = this.config.get('JWT_REFRESH_LIFETIME');
 		const payload: any = { sub: user.id }; // any for now, create dto for this? // user_id or id?
 
 		const token = this.getJwtToken(payload, secret, lifetime);

@@ -17,7 +17,7 @@ import { Socket } from 'socket.io';
 // Create token dto! 
     // into its own file
 export interface TokenPayload {
-    user_id: number;
+    sub: number;
     isSecondFactorAuthenticated?: boolean; // most likely not needed
 }
 
@@ -40,7 +40,7 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {
 			jwtFromRequest: ExtractJwt.fromExtractors([
 				(request: any) => { // request here is a socket
 					const cookies: any = tokenizeCookies( // returns object with cookies make interface
-						request.handshake.headers.cookie,
+						request.handshake.headers.cookie, // to test with requests change handshake here, req.headers.cookie shoudl exist and can then test if validate func works!
 					);
 					return cookies.Authentication;
 				},
@@ -52,6 +52,7 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {
 	}
 
 	async validate(request: Socket, payload: TokenPayload): Promise<User> { // request is socket
+		console.log(request);
 		if (request['user']) {
 			const cookies: any = tokenizeCookies(request.handshake.headers.cookie);
 			return this.auth_svc.login({
@@ -61,7 +62,7 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {
 		}
 
 		return this.auth_svc.login({
-			id: payload.user_id,
+			id: payload.sub,
 		});
 	}
 }

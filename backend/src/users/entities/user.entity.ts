@@ -39,11 +39,11 @@ export class User extends BaseEntity {
     @Column({type: "varchar", length: 50, nullable: true})
     avatar: string;
 
-    @Column({type: "enum", enum: TypesOf2FA, default: TypesOf2FA.NONE})
-    typeOf2FA: TypesOf2FA;
+    @Column({type: "boolean", default: false})
+    is2FActive: boolean;
 
     @Column({type: "varchar", length: 60, nullable: true})
-    valueOf2FA: string; // TODO: check what we need to store here
+    secretOf2FA: string; // TODO: check what we need to store here
 
     @Column({type: "float4", default: 0.0})
     xp: number;

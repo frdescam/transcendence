@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { CookiesService } from './services/cookies.service';
+import { TwoFactorAuthService } from './services/twoFactorAuth.service';
 import { HttpModule } from '@nestjs/axios';
 import { JwtModule } from "@nestjs/jwt";
 import { UsersModule } from "src/users/users.module";
@@ -15,6 +16,6 @@ import { WsJwtStrategy } from './strategies/ws-jwt.strategy';
 @Module({
     imports: [HttpModule, JwtModule.register({}), UsersModule, ],
     controllers: [AuthController,],
-    providers: [AuthService, CookiesService, FortyTwoStrategy, JwtAuthStrategy, JwtRefreshStrategy, WsJwtStrategy], // erase WS strategy not needed here
+    providers: [AuthService, CookiesService, TwoFactorAuthService, FortyTwoStrategy, JwtAuthStrategy, JwtRefreshStrategy, WsJwtStrategy], // erase WS strategy not needed here
 })
 export class AuthModule { }

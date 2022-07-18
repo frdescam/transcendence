@@ -1,5 +1,5 @@
-import { Controller, Get, Req, UseGuards } from "@nestjs/common";
-import { Request } from 'express';
+import { Controller, Get, Post, Req, Res, UseGuards } from "@nestjs/common"; // post will be needed later, erase RES
+import { Request, Response } from 'express';
 import { ConfigService } from "@nestjs/config";
 
 import { WsJwtGuard } from "../guards/ws-jwt.guard"; // erase WS strategy not needed here
@@ -10,19 +10,29 @@ import { AuthService } from "../services/auth.service";
 import { CookiesService } from '../services/cookies.service';
 import { AuthUser } from "../decorators/auth-user.decorator";
 import { User } from "src/users/entities/user.entity";
+import { TwoFactorAuthService } from '../services/twoFactorAuth.service';
+
 
 // cant have mutiple ppl with same pseudo nick, nickname
 // add async to route and stuff
 
-@Controller() // for now its in the index if not logged // change to auth someday
+@Controller() //api heres // for now its in the index if not logged // change to auth someday
 export class AuthController {
-        constructor(private auth_svc: AuthService, private config: ConfigService, private readonly cookies_svc: CookiesService,) { }
+        constructor(private auth_svc: AuthService, private auth2fa_svc: TwoFactorAuthService, private config: ConfigService, private readonly cookies_svc: CookiesService,) { }
 
     // if already logged re send to logged?
     //@UseGuards(WsJwtGuard)
     @Get("")
     index() {
         return "<a href='http://127.0.0.1:8080/test'><button>Log in!</button></a>"; // change to 8080
+    }
+
+    @UseGuards(JwtAuthGuard) // beta works for now, end 2morrow.
+    @Get('generate')
+    async register(@Res() response: Response, @Req() request: Request, @AuthUser() user: User) {
+      const { otpauthUrl } = await this.auth2fa_svc.generateTwoFactorAuthenticationSecret(user);
+   
+      return this.auth2fa_svc.pipeQrCodeStream(response, otpauthUrl);
     }
     
     // change to route and func to login
@@ -38,12 +48,8 @@ export class AuthController {
 			user,
 		);
 
-        // this most likely shouldnt be here, cos of suer is not yet logged in in case of 2FA activated!
-        // here call function that will update the status in our db to online, and update the refresh_token for the token
-		this.auth_svc.refresh(user, refresh.token);
-
         // if 2FA activated return obj to frontend to display 2FA to user, else set cookies with jwt (if logged in) and return to frontend obj two_factor_enabled: false.
-        if (user.typeOf2FA !== "none") // use boolean in db instead of string?
+        if (user.is2FActive === true) // use boolean in db instead of string?
         {
             return {
 				user_id: user.id,
@@ -51,21 +57,20 @@ export class AuthController {
 			};
         }
 
+        // here call function that will update the status in our db to online, and update the refresh_token for the token
+		this.auth_svc.refresh(user, refresh.token);
+
         // Add cookies here if not 2FA
         request.res.set('Set-Cookie', [auth.cookie, refresh.cookie]); // erase dis, use poc
-        //request.res.setHeader("Authorization", "1");
-        //request.res.header("LOCOS", "1");
-        //request.res.set({ 'x-access-token': 1 });
-        //console.log(auth.cookie, this.tokenizeCookies(auth.cookie));
-
 
         // poc of other way to add cookies, could erase funcs of cookies.service with this
-        request.res.cookie("HAHA", auth.token, {maxAge: 86400 * 1000, // in ms
+        request.res.cookie("HAHA", auth.token, {maxAge: 86400 * 1000, // in ms // use env for maxAge
             sameSite: 'strict',
             httpOnly: true,
             path: '/',
         });
 
+        console.log(user);
         // return if 2FA or if logged to front end here! with a json obj
         return {
 			two_factor_enabled: false,
@@ -79,7 +84,7 @@ export class AuthController {
     {
         //request.res.header("authorization", "1");
         //request.res.set({ 'x-access-token': 1 });
-        console.log(request.headers, request.headers.cookie);
+        //console.log(request.headers, request.headers.cookie);
 
         // how to clear cookie poc
         request.res.clearCookie("HAHA", {maxAge: 0,

@@ -11,6 +11,12 @@ export class UsersService {
     constructor(@InjectRepository(User)
     private readonly users_repo: Repository<User>,) {}
 
+	async setTwoFactorAuthenticationSecret(secret: string, userId: number) {
+		return this.users_repo.update(userId, {
+			secretOf2FA: secret,
+		});
+	  }
+
 	async getAll(): Promise<User[]> {
 		return this.users_repo.find();
 	}
@@ -19,7 +25,7 @@ export class UsersService {
         // print this when testing multiple pseudos
         //console.log(await this.getUniquePseudo(user_dto.pseudo));
 		//console.log(user_dto, await this.users_repo.findOne({where: user_dto}));
-		return this.users_repo.findOne({where: user_dto});
+		return this.users_repo.findOne({where: user_dto}); // if multiple pseudos r the same, does this work?
 		// return this.users_repo.findOne({
         //     where: {
         //         fortytwo_id: user_dto.fortytwo_id,

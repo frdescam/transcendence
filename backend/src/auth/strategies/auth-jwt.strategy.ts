@@ -12,7 +12,7 @@ import { AuthService } from '../services/auth.service'; // update later
 // Create token dto! 
     // into its own file
 export interface TokenPayload {
-	user_id: number;
+	sub: number;
 	isSecondFactorAuthenticated?: boolean; // most likely not needed
 }
 
@@ -32,8 +32,9 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'auth-jwt') {
 	}
 
 	async validate(payload: TokenPayload): Promise<User> {
+		//console.log(payload);
 		return this.auth_svc.login({
-			id: payload.user_id,
+			id: payload.sub,
 		});
 	}
 }

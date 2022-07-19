@@ -12,7 +12,11 @@ const manager = new Manager('http://' + document.location.hostname + ':8080', {
 	autoConnect: true
 });
 const chat = manager.socket('/chat::');
-const game = manager.socket('/game');
+const game = manager.socket('/game', {
+	auth: {
+		user: window.localStorage.getItem('USER')
+	}
+});
 
 export default boot(({ app }) =>
 {

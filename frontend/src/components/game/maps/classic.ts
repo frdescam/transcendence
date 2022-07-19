@@ -22,7 +22,10 @@ const config: mapConfig = {
 	scoreMaterial: new MeshBasicMaterial({
 		color: 0xaaaaaa
 	}),
-	textFont: font
+	textFont: font,
+	textMaterial: new MeshBasicMaterial({
+		color: 0xaaaaaa
+	})
 };
 
 export default config;

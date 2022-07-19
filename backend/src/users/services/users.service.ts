@@ -11,7 +11,26 @@ export class UsersService {
     constructor(@InjectRepository(User)
     private readonly users_repo: Repository<User>,) {}
 
-	async setTwoFactorAuthenticationSecret(secret: string, userId: number) {
+	// add return type!!!
+
+	async turnOn2FA(userId: number)//: Promise<void> {
+		{
+			// change return here
+		return this.users_repo.update(userId, {
+			is2FActive: true,
+		});
+	  }
+
+	  async turnOff2FA(userId: number) {
+			// change return here
+		return this.users_repo.update(userId, {
+			is2FActive: false,
+			secretOf2FA: null,
+		});
+	  }
+
+	async set2FASecret(secret: string, userId: number) {
+			// change return here
 		return this.users_repo.update(userId, {
 			secretOf2FA: secret,
 		});

@@ -1,4 +1,4 @@
-import { User } from 'src/user.entity';
+import { User } from 'src/users/entities/user.entity';
 
 export class MatchRegistrationDto {
     map: string;

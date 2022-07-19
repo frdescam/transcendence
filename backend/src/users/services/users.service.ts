@@ -23,6 +23,10 @@ export class UsersService {
         // });
     }
 
+    async findAll() {
+        return this.users_repo.find();
+    }
+
     // need to test more!
     // and use this when changing pseudo too not just register
     // cant have mutiple ppl with same pseudo nick, nickname

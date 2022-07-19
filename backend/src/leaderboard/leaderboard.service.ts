@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
+import { UsersService } from 'src/users/services/users.service';
 import { leaderboardRowDto } from './leaderboardRow.dto';
 
 @Injectable()
 export class LeaderboardService {
     constructor(
-        private userService: UserService,
+        private userService: UsersService,
     ) {}
 
     async getRows(startRow, count, filter, sortBy, descending) {
-        let allUsersAsEntity = await this.userService.getAll();
-
+        let allUsersAsEntity = await this.userService.findAll();
         if (sortBy)
         {
             const sortFn = sortBy === 'desc'
@@ -28,10 +27,10 @@ export class LeaderboardService {
         let allUsersAsDto = allUsersAsEntity.map((entity, index) => {
             let dto: leaderboardRowDto = {
                 rank: index + 1,
-                avatar: "https://cdn.quasar.dev/img/boy-avatar.png",
-                pseudo: entity.username,
-                ratio: 0,
-                level: 0.1
+                avatar: entity.avatar,
+                pseudo: entity.pseudo,
+                ratio: entity.ratio,
+                level: entity.xp
             }
             return dto;
         });

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { UserModule } from 'src/user/user.module';
+import { UsersModule } from 'src/users/users.module';
 import { LeaderboardController } from './leaderboard.controller';
 import { LeaderboardService } from './leaderboard.service';
 
 @Module({
-  imports: [UserModule],
+  imports: [UsersModule],
   controllers: [LeaderboardController],
   providers: [LeaderboardService]
 })

@@ -13,7 +13,7 @@ import { AuthService } from '../services/auth.service'; // update later
 // Create token dto! 
     // into its own file
 export interface TokenPayload {
-	user_id: number;
+	sub: number;
 	isSecondFactorAuthenticated?: boolean; // most likely not needed
 }
 
@@ -36,7 +36,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
 
 	async validate(request: Request, payload: TokenPayload): Promise<User> { // if refresh token not needed then request here not needed!
 		return this.auth_svc.login({
-			id: payload.user_id,
+			id: payload.sub,
 			refresh_token: request.cookies?.Refresh, // if we add this, then has to be added to user.entity.ts too!
 		});
 	}

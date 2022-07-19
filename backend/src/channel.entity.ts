@@ -3,7 +3,7 @@ import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, One
 import { BannedUser } from "./bannedUser.entity";
 import { Message } from "./message.entity";
 import { MutedUser } from "./mutedUser.entity";
-import { User } from "./user.entity";
+import { User } from "./users/entities/user.entity";
 
 export enum channelTypes {
     PUBLIC = "public",

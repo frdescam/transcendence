@@ -23,6 +23,7 @@ async function bootstrap() {
  // app.useGlobalPipes(new ValidationPipe({
   //  whitelist: true,
   //}))
+  app.enableCors();
   // for cookies
   app.use(cookieParser());
   // maybe not needed now? global filters

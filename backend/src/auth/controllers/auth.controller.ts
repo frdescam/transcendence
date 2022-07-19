@@ -20,7 +20,7 @@ export class AuthController {
     // if already logged re send to logged?
     @Get("")
     index() {
-        return "<a href='http://127.0.0.1:3000/test'><button>Log in!</button></a>";
+        return "<a href='http://127.0.0.1:8080/test'><button>Log in!</button></a>";
     }
 
     // change to route and func to login

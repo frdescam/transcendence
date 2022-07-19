@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import clsx from 'clsx';
 import { AppFullscreen, Dialog, Notify } from 'quasar';
-import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref, inject} from 'vue';
+import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref, inject } from 'vue';
 import { Socket } from 'socket.io-client';
 import Scene, { mapConfig, options } from './canvas/scene';
 import maps from './maps';
@@ -21,7 +21,7 @@ export interface interfaceState {
 	finish: boolean
 }
 
-const gameSocket: Socket = inject('socketGame') as Socket
+const gameSocket: Socket = inject('socketGame') as Socket;
 
 const props = defineProps<{ party: string }>();
 

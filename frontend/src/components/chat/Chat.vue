@@ -112,7 +112,7 @@
 </template>
 
 <script lang="ts">
-import { Timestamp, TimestampFunction } from 'src/boot/libs';
+import { Timestamp, TimestampFunction, SanitizeMessage } from 'src/boot/libs';
 import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, nextTick, watch } from 'vue';
 import { QMenu } from 'quasar';
@@ -144,6 +144,7 @@ export default defineComponent({
 	{
 		const socket: Socket = inject('socketChat') as Socket;
 		const timestamp: TimestampFunction = inject('timestamp') as TimestampFunction;
+		const sanitize: SanitizeMessage = inject('sanitizeMessage') as SanitizeMessage;
 
 		const contextmenu = ref<QMenu | null>(null);
 		const chat = ref<HTMLDivElement | null>(null);
@@ -327,6 +328,8 @@ export default defineComponent({
 			if (ret.data.channel !== props.selectedChannel.id)
 				return;
 
+			console.log(ret);
+
 			const newMessages: messageInterface = {
 				user: {
 					id: ret.data.data.creator.id,
@@ -341,7 +344,8 @@ export default defineComponent({
 					modified: ret.data.data.modified
 				}]
 			};
-			if (messages.value[messages.value.length - 1].user.id === ret.data.data.creator.id)
+			if (messages.value.length > 0 &&
+				messages.value[messages.value.length - 1].user.id === ret.data.data.creator.id)
 			{
 				messages.value[messages.value.length - 1].messages = [
 					...messages.value[messages.value.length - 1].messages,

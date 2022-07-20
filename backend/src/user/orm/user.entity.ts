@@ -15,10 +15,10 @@ export class User extends BaseEntity {
     @PrimaryGeneratedColumn()
       id: number;
 
-    @Column({type: 'varchar', length: 50})
+    @Column({type: 'varchar', length: 50, default: 'John Doe'})
       pseudo: string;
 
-    @Column({type: 'varchar', length: 60})
+    @Column({type: 'varchar', length: 60, nullable: true})
       password: string;
 
     @Column({type: 'varchar', length: 50, nullable: true})

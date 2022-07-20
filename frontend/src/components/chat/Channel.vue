@@ -110,7 +110,7 @@
 		:dialogPasswordShow="dialogPasswordShow"
 		:channelName="selectedChannelName"
 		:channelPassword="selectedChannelPasswordValue"
-		@dialog-password-hide="dialogPasswordShow = false"
+		@dialog-password-hide="hideDialogPassword"
 		@dialog-password-ok="openDialogPasswordOk"
 	/>
 	<dialog-edition
@@ -200,6 +200,7 @@ export default defineComponent({
 
 		const sendEvent = (channelId: number, isDeleted = false) =>
 		{
+			selectedChannelId.value = channelId;
 			emit('channel-is-selected', {
 				id: channelId,
 				socketId: socket.id,
@@ -208,13 +209,14 @@ export default defineComponent({
 		};
 
 		let emitFromChannel = false;
+		let saveEmitChannelId = -1;
 		const channelIsSelected = (channelId: number, channelType: string) =>
 		{
 			if (!selectedChannelId.value ||
 				(selectedChannelId.value && selectedChannelId.value !== channelId))
 			{
 				emitFromChannel = true;
-				selectedChannelId.value = channelId;
+				saveEmitChannelId = channelId;
 				selectedChannelType.value = channelType;
 				socket.emit('channel::get', channelId);
 			}
@@ -229,14 +231,14 @@ export default defineComponent({
 			{
 				if (banned.user.id === props.userId)
 				{
-					selectedChannelId.value = -1;
+					saveEmitChannelId = -1;
 					openDialogAlert(ret.data.id, props.userId, 'banned', true, true);
 					return;
 				}
 			}
 
 			if (selectedChannelType.value !== 'protected')
-				sendEvent(selectedChannelId.value);
+				sendEvent(saveEmitChannelId);
 			else
 			{
 				selectedChannelPasswordValue.value = ret.data.password;
@@ -365,7 +367,18 @@ export default defineComponent({
 		{
 			dialogPasswordShow.value = true;
 		};
-		const openDialogPasswordOk = () => sendEvent(selectedChannelId.value);
+		const hideDialogPassword = (isSet: boolean) =>
+		{
+			dialogPasswordShow.value = false;
+			if (isSet === false)
+				saveEmitChannelId = -1;
+		};
+		const openDialogPasswordOk = (isSet: boolean) =>
+		{
+			sendEvent(saveEmitChannelId);
+			if (isSet === false)
+				saveEmitChannelId = -1;
+		};
 
 		const dialogEditionShow = ref(false);
 		const openDialogEdition = () =>
@@ -527,6 +540,7 @@ export default defineComponent({
 
 			dialogPasswordShow,
 			openDialogPassword,
+			hideDialogPassword,
 			openDialogPasswordOk,
 
 			dialogEditionShow,

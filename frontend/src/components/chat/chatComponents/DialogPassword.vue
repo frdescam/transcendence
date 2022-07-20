@@ -59,12 +59,13 @@ export default defineComponent({
 		const dialog = ref<QDialog | null>(null);
 		const error = ref<boolean>();
 		const password = ref();
+		const isSet = ref(false);
 
 		const reset = () =>
 		{
 			password.value = null;
 			error.value = false;
-			emit('dialog-password-hide');
+			emit('dialog-password-hide', isSet.value);
 		};
 
 		const verify = () =>
@@ -73,8 +74,10 @@ export default defineComponent({
 				error.value = true;
 			else
 			{
-				emit('dialog-password-ok');
+				isSet.value = true;
+				emit('dialog-password-ok', isSet.value);
 				dialog.value?.hide();
+				isSet.value = false;
 			}
 		};
 
@@ -91,6 +94,7 @@ export default defineComponent({
 			dialog,
 			error,
 			password,
+			isSet,
 			reset,
 			verify
 		};

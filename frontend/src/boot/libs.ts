@@ -119,43 +119,52 @@ const objDiff = (obj1: any, obj2: any): any =>
  */
 const sanitizeUserMessage = (message: string) =>
 {
+	const BR = '<br />';
+	const DIV = '<div>';
+	const _DIV = '</div>';
+
 	message = sanitizeHtml(message, {
 		allowedTags: ['b', 'i', 'u', 'strike', 'hr', 'div', 'br'],
 		disallowedTagsMode: 'discard',
 		selfClosing: ['br', 'hr']
 	});
-	if (!message.startsWith('<div>', 0))
+	if (!message.startsWith(DIV, 0))
 	{
-		if (message === '<br />')
+		if (message === BR)
 			return '';
 		return message;
 	}
-	const newMessages = message.split('<div>').map((str) => str.replaceAll('</div>', ''));
-	const __continue = {
-		start: true,
-		end: true
-	};
-	while (__continue.start || __continue.end)
+
+	const newMessages: Array<string> = message.split(DIV).map((str) => str.replaceAll(_DIV, '')).filter((el) => el.length);
+	for (let i = 0; i < newMessages.length; i++)
 	{
-		if (__continue.start &&
-			newMessages[0].replaceAll('<br />', '').length <= 0)
-			newMessages.splice(0, 1);
-		else
-			__continue.start = false;
-		if (__continue.end &&
-			newMessages[newMessages.length - 1].replaceAll('<br />', '').length <= 0)
-			newMessages.splice(newMessages.length - 1, 1);
-		else
-			__continue.end = false;
+		if (/.<br \/>/.test(newMessages[i]))
+		{
+			const temp = newMessages[i].slice(0, newMessages[i].length - 6);
+			newMessages.splice(Number(i), 1, temp);
+			newMessages.splice(Number(i++), 0, BR);
+		}
 	}
-	let ret = '<div>';
+	let index = 0;
+	while (index !== -1)
+	{
+		index = newMessages.indexOf(BR, index + 1);
+		if (newMessages[index] === BR)
+			newMessages.splice(index--, 1);
+	}
+	if (newMessages[0] === BR)
+		newMessages.shift();
+	if (newMessages[newMessages.length - 1] === BR)
+		newMessages.pop();
+
+	let ret = DIV;
 	for (let i = 0; i <= newMessages.length - 1; i++)
 	{
 		ret += newMessages[i];
-		if (!/<br \/>$/gm.test(newMessages[i]))
-			ret += '<br />';
+		if (i < newMessages.length - 1)
+			ret += BR;
 	}
-	ret += '</div>';
+	ret += _DIV;
 	return ret;
 };
 

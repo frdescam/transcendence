@@ -9,9 +9,6 @@ import { MutedService } from '../muted/muted.service';
 import { Server } from 'socket.io';
 import { Channel } from '../orm/channel.entity';
 
-import { timestamp } from '../interface';
-
-
 @WebSocketGateway({
   namespace: 'chat::',
   cors: {

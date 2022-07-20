@@ -45,11 +45,6 @@ const thetaTimes: number[] = [];
 let thetaMean = 0;
 let lastState: Partial<commonState> = {};
 
-function animate ()
-{
-	scene?.render();
-}
-
 function resize ()
 {
 	scene?.setSize(canvas.value.offsetWidth, canvas.value.offsetHeight);
@@ -177,7 +172,6 @@ function mountScene (config: mapConfig)
 			onReady: () =>
 			{
 				state.loaded = true;
-				(scene as Scene).setAnimationLoop(animate);
 			}
 		} as options
 	);

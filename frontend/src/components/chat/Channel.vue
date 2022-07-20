@@ -449,7 +449,7 @@ export default defineComponent({
 			{
 				if (ret.channel.data.type === 'public' || ret.channel.data.type === 'protected')
 					channels.value.push(generateData(ret.channel.data));
-				else if (ret.channel.data.type === 'direct')
+				else if (ret.channel.data.type === 'private' || ret.channel.data.type === 'direct')
 				{
 					for (const user of ret.channel.data.users)
 					{

@@ -12,8 +12,8 @@
 		<q-editor
 			:placeholder="$t('chat.editor.placeholder')"
 			:disable="disableForm"
+      square
 			ref="editorRef"
-			class="editor"
 			:definitions="{
 				image: {
 					tip: $t('chat.editor.image'),
@@ -555,6 +555,7 @@ export default defineComponent({
 	.chat .message-list {
 		padding: .5em;
 		overflow-x: auto;
+    z-index: 2;
 	}
 	.chat form img {
 		width: 100%;
@@ -576,6 +577,7 @@ export default defineComponent({
 		position: relative;
 		outline: currentColor none medium;
 		overflow-wrap: break-word;
+    border: none;
 	}
 	.q-editor__content {
 		min-height: calc(10rem - 32px) !important;

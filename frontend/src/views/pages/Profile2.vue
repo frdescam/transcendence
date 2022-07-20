@@ -39,7 +39,7 @@
 		<!-- END HEADER -->
 		<div class="row justify-evenly">
 			<!-- MATCHES -->
-            <div class="col-12 col-md-6 q-py-md q-pl-md q-pr-sm">
+            <div class="col-12 col-md-6 q-py-md q-pl-md" v-bind:class=" $q.screen.lt.md ? 'q-pr-md' : 'q-pr-sm'">
 				<q-list class="q-mb-md q-pb-sm shadow-2 rounded-borders">
 					<q-toolbar>
 						<q-toolbar-title>Matches</q-toolbar-title>
@@ -74,7 +74,7 @@
 			</div>
 			<!-- MATCHES END -->
 			<!-- ACHIEVEMENTS -->
-            <div class="col-12 col-md-6  q-py-md q-pr-md q-pl-sm">
+            <div class="col-12 col-md-6  q-py-md q-pr-md" v-bind:class=" $q.screen.lt.md ? 'q-pl-md' : 'q-pl-sm'">
 				<q-list class="q-mb-md q-pb-sm rounded-borders shadow-2">
 					<q-toolbar>
 						<q-toolbar-title>Achievements</q-toolbar-title>

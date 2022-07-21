@@ -61,7 +61,8 @@ class PongScene
 	protected normalizedWheelEvent: [number | null, number | null, number | null];
 	protected keys: {up: boolean, down: boolean};
 	protected mouse: Vector2;
-	protected mouseControlAdjustment: number;
+	protected mouseControlAdjustmentFactor: number;
+	protected mouseControlAdjustmentConst: number;
 
 	protected loadingManager: LoadingManager;
 	protected gltfLoader: GLTFLoader;
@@ -240,7 +241,8 @@ class PongScene
 			down: false
 		};
 		this.mouse = new Vector2();
-		this.mouseControlAdjustment = (baseSize[1] / (baseSize[1] - playerSize[1])) - ((playerSize[1] * 1) / baseSize[1]);
+		this.mouseControlAdjustmentFactor = baseSize[1] / (baseSize[1] - playerSize[1]);
+		this.mouseControlAdjustmentConst = -(playerSize[1] * 0.5) / baseSize[1];
 
 		this.loadingManager = new LoadingManager();
 		this.gltfLoader = new GLTFLoader(this.loadingManager);
@@ -1019,7 +1021,7 @@ class PongScene
 				if (intersects.length >= 1 && intersects[0].uv?.y)
 				{
 					const y = intersects[0].uv?.y;
-					this._setPosition((1 - y) * this.mouseControlAdjustment);
+					this._setPosition((1 - y) * this.mouseControlAdjustmentFactor + this.mouseControlAdjustmentConst);
 				}
 			}
 		}

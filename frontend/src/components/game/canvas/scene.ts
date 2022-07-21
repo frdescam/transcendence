@@ -1,6 +1,6 @@
 'use strict';
 import { Notify } from 'quasar';
-import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Material, Texture, PlaneBufferGeometry, BoxBufferGeometry, ShadowMapType, LinearMipmapNearestFilter, BufferGeometry, Light, Object3D, SpotLight, PointLight, WebGLRenderTarget, AnimationMixer, Vector2 } from 'three';
+import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Material, Texture, PlaneBufferGeometry, BoxBufferGeometry, ShadowMapType, LinearMipmapNearestFilter, BufferGeometry, Light, Object3D, SpotLight, PointLight, WebGLRenderTarget, AnimationMixer, Vector2, MeshBasicMaterial, Raycaster } from 'three';
 import { EffectComposer, Pass } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -46,10 +46,12 @@ class PongScene
 	protected state: state;
 	protected disposed: boolean;
 	protected clock: Clock;
+	protected raycaster: Raycaster;
 	protected deviceOrientationCallback: null | ((e: DeviceOrientationEvent) => void);
 	protected scrollMovementCallback: null | ((e: WheelEvent) => void);
 	protected keydownMouvementCallback: null | ((e: KeyboardEvent) => void);
 	protected keyupMouvementCallback: null | ((e: KeyboardEvent) => void);
+	protected mouseMoveMouvementCallback: null | ((e: MouseEvent) => void);
 	protected blurCallback: null | (() => void);
 
 	protected playerMoveDistance: number;
@@ -58,6 +60,8 @@ class PongScene
 	protected moveDelta: number;
 	protected normalizedWheelEvent: [number | null, number | null, number | null];
 	protected keys: {up: boolean, down: boolean};
+	protected mouse: Vector2;
+	protected mouseControlAdjustment: number;
 
 	protected loadingManager: LoadingManager;
 	protected gltfLoader: GLTFLoader;
@@ -78,6 +82,7 @@ class PongScene
 	protected camera: PerspectiveCamera;
 	protected floorMirror: Reflector | null;
 	protected floor: Mesh;
+	protected mouseCatcher: Mesh;
 	protected envLight: AmbientLight | null;
 	protected ball: Mesh;
 	protected player1: Mesh;
@@ -142,12 +147,59 @@ class PongScene
 			avatars: [null, null],
 			presences: [false, false]
 		};
+		this.raycaster = new Raycaster();
 
 		this.deviceOrientationCallback = null;
 		this.scrollMovementCallback = null;
-		this.keydownMouvementCallback = null;
-		this.keyupMouvementCallback = null;
-		this.blurCallback = null;
+		this.keydownMouvementCallback =
+			(e: KeyboardEvent) =>
+			{
+				switch (e.code)
+				{
+				case 'ArrowUp':
+				case 'KeyW':
+					this.keys.up = true;
+					break;
+				case 'ArrowDown':
+				case 'KeyS':
+					this.keys.down = true;
+					break;
+				default:
+					return;
+				}
+				e.preventDefault();
+			};
+		this.keyupMouvementCallback =
+			(e: KeyboardEvent) =>
+			{
+				switch (e.code)
+				{
+				case 'ArrowUp':
+				case 'KeyW':
+					this.keys.up = false;
+					break;
+				case 'ArrowDown':
+				case 'KeyS':
+					this.keys.down = false;
+					break;
+				default:
+					return;
+				}
+				e.preventDefault();
+			};
+		this.mouseMoveMouvementCallback =
+			(e: MouseEvent) =>
+			{
+				e.preventDefault();
+				this.mouse.x = (e.offsetX / this.renderer.domElement.clientWidth) * 2 - 1;
+				this.mouse.y = -(e.offsetY / this.renderer.domElement.clientHeight) * 2 + 1;
+			};
+		this.blurCallback =
+			() =>
+			{
+				this.keys.up = false;
+				this.keys.down = false;
+			};
 		this.envTexture = null;
 		this.floorMirror = null;
 		this.envLight = null;
@@ -187,6 +239,8 @@ class PongScene
 			up: false,
 			down: false
 		};
+		this.mouse = new Vector2();
+		this.mouseControlAdjustment = (baseSize[1] / (baseSize[1] - playerSize[1])) - ((playerSize[1] * 1) / baseSize[1]);
 
 		this.loadingManager = new LoadingManager();
 		this.gltfLoader = new GLTFLoader(this.loadingManager);
@@ -250,6 +304,21 @@ class PongScene
 		this.floor.matrixAutoUpdate = false;
 		this.floor.updateMatrix();
 		this.scene.add(this.floor);
+
+		const mouseCatcherGeomerty = new PlaneBufferGeometry(
+			baseSize[0] * gameScale * 3,
+			baseSize[1] * gameScale
+		);
+		this.track(mouseCatcherGeomerty);
+
+		this.mouseCatcher = new Mesh(mouseCatcherGeomerty, new MeshBasicMaterial({ color: 0xff0000 }));
+		this.mouseCatcher.rotation.x = -Math.PI / 2;
+		this.mouseCatcher.position.y = -gameScale + 0.01 + gameScale / 2;
+		this.mouseCatcher.renderOrder = 4;
+		this.mouseCatcher.visible = false;
+		this.mouseCatcher.matrixAutoUpdate = false;
+		this.mouseCatcher.updateMatrix();
+		this.scene.add(this.mouseCatcher);
 
 		const playersGeometry = new BoxBufferGeometry(playerSize[0] * gameScale, gameScale, playerSize[1] * gameScale);
 		this.track(playersGeometry);
@@ -360,9 +429,14 @@ class PongScene
 			this.loadingManager.onProgress = onProgress;
 		if (onError)
 			this.loadingManager.onError = onError;
+
+		window.addEventListener('keydown', this.keydownMouvementCallback);
+		window.addEventListener('keyup', this.keyupMouvementCallback);
+		this.renderer.domElement.addEventListener('mousemove', this.mouseMoveMouvementCallback);
+		window.addEventListener('blur', this.blurCallback);
 	}
 
-	_getFontGeometry (font: Font, text: string, sizeRatio = 1, fontHeight)
+	_getFontGeometry (font: Font, text: string, sizeRatio = 1, fontHeight: number)
 	{
 		const { gameScale } = this.config;
 
@@ -725,52 +799,7 @@ class PongScene
 
 					this._addPosition(this.moveDelta * (e.deltaY / normalizedDelta));
 				};
-			this.keydownMouvementCallback =
-				(e: KeyboardEvent) =>
-				{
-					switch (e.code)
-					{
-					case 'ArrowUp':
-					case 'KeyW':
-						this.keys.up = true;
-						break;
-					case 'ArrowDown':
-					case 'KeyS':
-						this.keys.down = true;
-						break;
-					default:
-						return;
-					}
-					e.preventDefault();
-				};
-			this.keyupMouvementCallback =
-				(e: KeyboardEvent) =>
-				{
-					switch (e.code)
-					{
-					case 'ArrowUp':
-					case 'KeyW':
-						this.keys.up = false;
-						break;
-					case 'ArrowDown':
-					case 'KeyS':
-						this.keys.down = false;
-						break;
-					default:
-						return;
-					}
-					e.preventDefault();
-				};
-			this.blurCallback =
-				() =>
-				{
-					this.keys.up = false;
-					this.keys.down = false;
-				};
 			this.renderer.domElement.addEventListener('wheel', this.scrollMovementCallback);
-			window.addEventListener('keydown', this.keydownMouvementCallback);
-			window.addEventListener('keyup', this.keyupMouvementCallback);
-			window.addEventListener('blur', this.blurCallback);
 		}
 	}
 
@@ -790,19 +819,9 @@ class PongScene
 		{
 			if (this.scrollMovementCallback)
 				this.renderer.domElement.removeEventListener('wheel', this.scrollMovementCallback);
-			if (this.keydownMouvementCallback)
-				window.removeEventListener('keydown', this.keydownMouvementCallback);
-			if (this.keyupMouvementCallback)
-				window.removeEventListener('keyup', this.keyupMouvementCallback);
-			if (this.blurCallback)
-				window.removeEventListener('blur', this.blurCallback);
 		}
 		this.deviceOrientationCallback = null;
 		this.scrollMovementCallback = null;
-		this.keydownMouvementCallback = null;
-		this.keyupMouvementCallback = null;
-		this.blurCallback = null;
-		this.keys.up = this.keys.down = false;
 	}
 
 	_refreshScore ()
@@ -945,16 +964,6 @@ class PongScene
 		if (this.disposed)
 			return;
 
-		const delta = this.clock.getDelta();
-
-		if ((this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
-		{
-			const sign = (this.keys.up ? -1 : 0) + (this.keys.down ? 1 : 0);
-			this._addPosition(sign * 1.4 * delta);
-		}
-
-		clientLogic(this.state, this.config, delta);
-
 		const {
 			positions, ballX, ballY, lobby, ball,
 			offside, ballSpeedX, ballSpeedY,
@@ -967,11 +976,7 @@ class PongScene
 			offsideOpacityMultiplier
 		} = this.config;
 
-		this.player1.position.z = (positions[0] - 0.5) * this.playerMoveDistance;
-		this.player2.position.z = (positions[1] - 0.5) * this.playerMoveDistance;
-		this.ball.position.x = (ballX - 0.5) * this.ballMoveDistanceX;
-		this.ball.position.z = (ballY - 0.5) * this.ballMoveDistanceY;
-
+		const delta = this.clock.getDelta();
 		const lerpValue = Math.min(1, delta * transitionSpeed);
 
 		if (lobby)
@@ -996,6 +1001,34 @@ class PongScene
 				this._basicRotationLerp(this.text.rotation, textPlayRotation, lerpValue);
 			}
 		}
+
+		if (!this.state.paused && !this.state.lobby)
+		{
+			if ((this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
+			{
+				const sign = (this.keys.up ? -1 : 0) + (this.keys.down ? 1 : 0);
+				this._addPosition(sign * 1.4 * delta);
+			}
+
+			if (this.mouse.x !== 0 || this.mouse.y !== 0)
+			{
+				this.raycaster.setFromCamera(this.mouse, this.camera);
+				const intersects = this.raycaster.intersectObject(this.mouseCatcher);
+
+				if (intersects.length >= 1 && intersects[0].uv?.y)
+				{
+					const y = intersects[0].uv?.y;
+					this._setPosition((1 - y) * this.mouseControlAdjustment);
+				}
+			}
+		}
+
+		clientLogic(this.state, this.config, delta);
+
+		this.player1.position.z = (positions[0] - 0.5) * this.playerMoveDistance;
+		this.player2.position.z = (positions[1] - 0.5) * this.playerMoveDistance;
+		this.ball.position.x = (ballX - 0.5) * this.ballMoveDistanceX;
+		this.ball.position.z = (ballY - 0.5) * this.ballMoveDistanceY;
 
 		if (offside)
 		{
@@ -1043,7 +1076,7 @@ class PongScene
 			else
 				this._play();
 		}
-		else if (!newState.paused && state.players && oldState.team !== -1 && newState.team !== -1)
+		else if (!newState.paused && !newState.lobby && state.players && oldState.team !== -1 && newState.team !== -1)
 			state.positions[newState.team] = oldState.positions[oldState.team];
 
 		this.state = Object.assign(this.state, state);
@@ -1114,6 +1147,19 @@ class PongScene
 	{
 		this.disposed = true;
 		this._pause();
+
+		if (this.keydownMouvementCallback)
+			window.removeEventListener('keydown', this.keydownMouvementCallback);
+		if (this.keyupMouvementCallback)
+			window.removeEventListener('keyup', this.keyupMouvementCallback);
+		if (this.mouseMoveMouvementCallback)
+			window.removeEventListener('mousemove', this.mouseMoveMouvementCallback);
+		if (this.blurCallback)
+			window.removeEventListener('blur', this.blurCallback);
+		this.keydownMouvementCallback = null;
+		this.keyupMouvementCallback = null;
+		this.mouseMoveMouvementCallback = null;
+		this.blurCallback = null;
 
 		if (this.floorMirror)
 		{

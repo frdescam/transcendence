@@ -13,7 +13,7 @@ const ballMaterial = itemsMaterial.clone();
 const config: mapConfig = {
 	...headlessConfig,
 	floorMaterial: new MeshBasicMaterial({
-		color: 0x121212
+		color: 0x202020
 	}),
 	ballMaterial,
 	player1Material: itemsMaterial,

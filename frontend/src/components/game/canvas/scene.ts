@@ -54,6 +54,7 @@ class PongScene
 	protected mouseMoveMouvementCallback: null | ((e: MouseEvent) => void);
 	protected blurCallback: null | (() => void);
 
+	protected controls: {wheel: boolean, keyboard: boolean, mouse: boolean};
 	protected playerMoveDistance: number;
 	protected ballMoveDistanceX: number;
 	protected ballMoveDistanceY: number;
@@ -61,6 +62,7 @@ class PongScene
 	protected normalizedWheelEvent: [number | null, number | null, number | null];
 	protected keys: {up: boolean, down: boolean};
 	protected mouse: Vector2;
+	protected mouseChanged: boolean;
 	protected mouseControlAdjustmentFactor: number;
 	protected mouseControlAdjustmentConst: number;
 
@@ -194,6 +196,7 @@ class PongScene
 				e.preventDefault();
 				this.mouse.x = (e.offsetX / this.renderer.domElement.clientWidth) * 2 - 1;
 				this.mouse.y = -(e.offsetY / this.renderer.domElement.clientHeight) * 2 + 1;
+				this.mouseChanged = true;
 			};
 		this.blurCallback =
 			() =>
@@ -209,6 +212,7 @@ class PongScene
 		this.text = null;
 
 		const {
+			controls,
 			cameraClip, sceneFile,
 			gameScale, pauseCameraPosition, pauseCameraRotation,
 			ballMaterial, baseSize,
@@ -227,6 +231,11 @@ class PongScene
 		this.clock = new Clock();
 		this.disposed = false;
 
+		this.controls = {
+			wheel: controls.includes('wheel'),
+			keyboard: controls.includes('keyboard'),
+			mouse: controls.includes('mouse')
+		};
 		this.playerMoveDistance = (baseSize[1] - playerSize[1]) * gameScale;
 		this.ballMoveDistanceX = (baseSize[0] - 3) * gameScale;
 		this.ballMoveDistanceY = (baseSize[1] - 1) * gameScale;
@@ -241,6 +250,7 @@ class PongScene
 			down: false
 		};
 		this.mouse = new Vector2();
+		this.mouseChanged = false;
 		this.mouseControlAdjustmentFactor = baseSize[1] / (baseSize[1] - playerSize[1]);
 		this.mouseControlAdjustmentConst = -(playerSize[1] * 0.5) / baseSize[1];
 
@@ -789,6 +799,8 @@ class PongScene
 				(e) =>
 				{
 					e.preventDefault();
+					if (!this.controls.wheel)
+						return;
 
 					let normalizedDelta;
 					if (supportedDeltaModes.includes(e.deltaMode))
@@ -1007,13 +1019,13 @@ class PongScene
 
 		if (!this.state.paused && !this.state.lobby)
 		{
-			if ((this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
+			if (this.controls.keyboard && (this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
 			{
 				const sign = (this.keys.up ? -1 : 0) + (this.keys.down ? 1 : 0);
 				this._addPosition(sign * 1.4 * delta);
 			}
 
-			if (this.mouse.x !== 0 || this.mouse.y !== 0)
+			if (this.controls.mouse && this.mouseChanged)
 			{
 				this.raycaster.setFromCamera(this.mouse, this.camera);
 				const intersects = this.raycaster.intersectObject(this.mouseCatcher);
@@ -1023,6 +1035,7 @@ class PongScene
 					const y = intersects[0].uv?.y;
 					this._setPosition((1 - y) * this.mouseControlAdjustmentFactor + this.mouseControlAdjustmentConst);
 				}
+				this.mouseChanged = false;
 			}
 		}
 

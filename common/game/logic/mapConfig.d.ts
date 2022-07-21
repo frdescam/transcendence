@@ -7,6 +7,7 @@ export type mapConfig = {
 	fov: number,
 	forceRotationRatio: number,
 	effects: string[],
+	controls: string[]
 	sceneFile?: string,
 	additionnalLight?: string[],
 	skybox?: [

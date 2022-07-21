@@ -7,6 +7,7 @@ const config: Partial<mapConfig> = {
 	fov: 56,
 	forceRotationRatio: 1.3,
 	effects: ['bloom', 'film'],
+	controls: ['keyboard', 'mouse'],
 	additionnalLight: [],
 	skyboxAsEnvironment: false,
 	EnvironmentColor: 0x000000,

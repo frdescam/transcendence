@@ -260,7 +260,7 @@ class PongScene
 		this.camera.rotation.copy(pauseCameraRotation);
 
 		this.renderer = new WebGLRenderer({
-			antialias: true,
+			antialias: false,
 			powerPreference: 'high-performance',
 			canvas: targetElem
 		});
@@ -417,6 +417,7 @@ class PongScene
 				if (onReady)
 				{
 					this.render();
+					this.setAnimationLoop(this.render.bind(this));
 					onReady();
 					console.log('Scene polycount:', this.renderer.info.render.triangles);
 					console.log('Active Drawcalls:', this.renderer.info.render.calls);

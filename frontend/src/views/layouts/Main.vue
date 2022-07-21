@@ -34,7 +34,7 @@
 		<q-footer class="mobile-only row justify-evenly">
 			<q-btn flat rounded :to="{ path: '/play' }" icon="sports_esports" />
 			<q-btn flat rounded :to="{ path: '/chat' }" icon="chat" />
-			<q-btn flat rounded :to="{ path: '/leaderboards' }" icon="leaderboards" />
+			<q-btn flat rounded :to="{ path: '/leaderboard' }" icon="leaderboards" />
 		</q-footer>
 	</q-layout>
 </template>

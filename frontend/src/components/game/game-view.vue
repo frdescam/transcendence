@@ -6,7 +6,7 @@ import { Socket } from 'socket.io-client';
 import Scene, { mapConfig, options } from './canvas/scene';
 import maps from './maps';
 
-import type { state as commonState, Ping, Pong } from 'src/common/game/logic/common';
+import type { state as commonState, Ping, Pong, controlsMode } from 'src/common/game/logic/common';
 
 export interface interfaceState {
 	error: string | null,
@@ -18,7 +18,17 @@ export interface interfaceState {
 	can_join: boolean,
 	spectator: boolean,
 	paused: boolean,
-	finish: boolean
+	finish: boolean,
+	available_controls: {
+		wheel: boolean,
+		keyboard: boolean,
+		mouse: boolean
+	},
+	controls: {
+		wheel: boolean,
+		keyboard: boolean,
+		mouse: boolean
+	}
 }
 
 const gameSocket: Socket = inject('socketGame') as Socket;
@@ -35,7 +45,17 @@ const state = reactive<interfaceState>({
 	can_join: false,
 	spectator: true,
 	paused: true,
-	finish: false
+	finish: false,
+	available_controls: {
+		wheel: true,
+		keyboard: true,
+		mouse: true
+	},
+	controls: {
+		wheel: true,
+		keyboard: true,
+		mouse: true
+	}
 });
 
 let scene: null | Scene = null;
@@ -117,8 +137,21 @@ function onPong ({ cdate, sdate }: Pong)
 function onMapInfo (map: string)
 {
 	state.gamestate = true;
+	const usedMap = (map in maps) ? maps[map] : maps.classic;
 	if (!scene)
-		mountScene((map in maps) ? maps[map] : maps.classic);
+	{
+		mountScene(usedMap);
+		state.available_controls = {
+			wheel: usedMap.controls.includes('wheel'),
+			keyboard: usedMap.controls.includes('keyboard'),
+			mouse: usedMap.controls.includes('mouse')
+		};
+		state.controls = {
+			wheel: state.available_controls.wheel && state.controls.wheel,
+			keyboard: state.available_controls.keyboard && state.controls.keyboard,
+			mouse: state.available_controls.mouse && state.controls.mouse
+		};
+	}
 }
 
 function onState (state: Partial<commonState>)
@@ -296,6 +329,15 @@ function setQuality (val: number)
 	scene?.setQuality(val);
 }
 
+function toggleControl (control: controlsMode)
+{
+	if (control in state.available_controls && state.available_controls[control])
+	{
+		state.controls[control] = !state.controls[control];
+		scene?.setControl(control, state.controls[control]);
+	}
+}
+
 function getStateText ()
 {
 	if (!state.connected)
@@ -311,6 +353,7 @@ defineExpose({
 	admitDefeat,
 	toggleAccessibility,
 	setQuality,
+	toggleControl,
 	resize,
 	state: readonly(state)
 });

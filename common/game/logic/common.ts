@@ -49,6 +49,8 @@ interface Pong extends Ping{
 type missedCallback = (state: serverState, remainingDelta: number) => void;
 type bouncedCallback = (state: serverState) => void;
 
+type controlsMode = 'wheel' | 'keyboard' | 'mouse';
+
 function didPlayerMissBall ({ ballY, positions }: serverState, { baseSize, playerSize }: mapConfig, player: team)
 {
 	const eqPlayerPos = (positions[player] - 0.5) * ((baseSize[1] - playerSize[1]) / (baseSize[1] - 1)) + 0.5;
@@ -166,5 +168,5 @@ function bounceBall (state: serverState, config: mapConfig, delta: number, playe
 	}
 }
 
-export type { userId, team, teamNone, avatar, serverState, state, partyQuery, Ping, Pong, missedCallback };
+export type { userId, team, teamNone, avatar, serverState, state, partyQuery, Ping, Pong, missedCallback, controlsMode };
 export { bounceBall, forward, teamNoneVal };

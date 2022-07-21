@@ -14,6 +14,7 @@ import { quality, qualities } from './qualities';
 import clientLogic from '../logic/client';
 import { state } from 'src/common/game/logic/common';
 
+import type { controlsMode } from 'src/common/game/logic/common';
 import type { mapConfig } from 'src/common/game/logic/mapConfig';
 import type { Material as ThreeMaterial } from 'three';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
@@ -55,6 +56,7 @@ class PongScene
 	protected blurCallback: null | (() => void);
 
 	protected controls: {wheel: boolean, keyboard: boolean, mouse: boolean};
+	protected activeControls: {wheel: boolean, keyboard: boolean, mouse: boolean};
 	protected playerMoveDistance: number;
 	protected ballMoveDistanceX: number;
 	protected ballMoveDistanceY: number;
@@ -236,6 +238,7 @@ class PongScene
 			keyboard: controls.includes('keyboard'),
 			mouse: controls.includes('mouse')
 		};
+		this.activeControls = this.controls;
 		this.playerMoveDistance = (baseSize[1] - playerSize[1]) * gameScale;
 		this.ballMoveDistanceX = (baseSize[0] - 3) * gameScale;
 		this.ballMoveDistanceY = (baseSize[1] - 1) * gameScale;
@@ -799,7 +802,7 @@ class PongScene
 				(e) =>
 				{
 					e.preventDefault();
-					if (!this.controls.wheel)
+					if (!this.controls.wheel || !this.activeControls.wheel)
 						return;
 
 					let normalizedDelta;
@@ -1019,13 +1022,13 @@ class PongScene
 
 		if (!this.state.paused && !this.state.lobby)
 		{
-			if (this.controls.keyboard && (this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
+			if (this.controls.keyboard && this.activeControls.keyboard && (this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
 			{
 				const sign = (this.keys.up ? -1 : 0) + (this.keys.down ? 1 : 0);
 				this._addPosition(sign * 1.4 * delta);
 			}
 
-			if (this.controls.mouse && this.mouseChanged)
+			if (this.controls.mouse && this.activeControls.mouse && this.mouseChanged)
 			{
 				this.raycaster.setFromCamera(this.mouse, this.camera);
 				const intersects = this.raycaster.intersectObject(this.mouseCatcher);
@@ -1147,6 +1150,12 @@ class PongScene
 
 		this.options.qualityLevel = quality;
 		this._refreshQuality();
+	}
+
+	setControl (control: controlsMode, enable: boolean)
+	{
+		if (control in this.activeControls)
+			this.activeControls[control] = enable;
 	}
 
 	setOnMove (callback: onMoveCallback)

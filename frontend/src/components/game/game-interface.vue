@@ -105,6 +105,35 @@ function teamActionText (state: interfaceState): string
 					</q-list>
 				</q-btn-dropdown>
 
+				<q-btn-dropdown color="yellow-10" icon="input" label="Controls">
+					<q-list>
+						<q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.wheel" :active="pong.state.controls.wheel" @click="pong.toggleControl('wheel')">
+							<q-item-section side class="inherit_color">
+								<q-icon name="mdi-mouse-move-down" />
+							</q-item-section>
+							<q-item-section>
+								<q-item-label>Mouse Wheel</q-item-label>
+							</q-item-section>
+						</q-item>
+						<q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.keyboard" :active="pong.state.controls.keyboard" @click="pong.toggleControl('keyboard')">
+							<q-item-section side class="inherit_color">
+								<q-icon name="keyboard" />
+							</q-item-section>
+							<q-item-section>
+								<q-item-label>Keyboard</q-item-label>
+							</q-item-section>
+						</q-item>
+						<q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.mouse" :active="pong.state.controls.mouse" @click="pong.toggleControl('mouse')">
+							<q-item-section side class="inherit_color">
+								<q-icon name="mdi-cursor-default" />
+							</q-item-section>
+							<q-item-section>
+								<q-item-label>Cursor</q-item-label>
+							</q-item-section>
+						</q-item>
+					</q-list>
+				</q-btn-dropdown>
+
 				<q-btn
 					color="blue-7"
 					:icon="AppFullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
@@ -127,6 +156,7 @@ function teamActionText (state: interfaceState): string
 					:disable="pong && (!pong.state.can_join || pong.state.finish)"
 					@click="pong.join()"
 				/>
+
 				<q-space />
 
 				<q-btn
@@ -155,5 +185,9 @@ function teamActionText (state: interfaceState): string
 .fill_screen
 {
 	height: 100%;
+}
+.inherit_color
+{
+	color: inherit;
 }
 </style>

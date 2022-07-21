@@ -105,7 +105,7 @@ function teamActionText (state: interfaceState): string
 					</q-list>
 				</q-btn-dropdown>
 
-				<q-btn-dropdown color="yellow-10" icon="input" label="Controls">
+				<q-btn-dropdown color="blue-grey-8" icon="input" label="Controls">
 					<q-list>
 						<q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.wheel" :active="pong.state.controls.wheel" @click="pong.toggleControl('wheel')">
 							<q-item-section side class="inherit_color">

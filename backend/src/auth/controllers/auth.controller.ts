@@ -24,7 +24,7 @@ export interface twoFAPayload {
 
 @Controller() //api heres // for now its in the index if not logged // change to auth someday
 export class AuthController {
-        constructor(private auth_svc: AuthService, private auth2fa_svc: TwoFactorAuthService, private config: ConfigService, private readonly cookies_svc: CookiesService,) { } // config useless
+        constructor(private auth_svc: AuthService, private auth2fa_svc: TwoFactorAuthService, private readonly cookies_svc: CookiesService,) { }
 
     //@UseGuards(WsJwtGuard)
     @Get("")
@@ -32,7 +32,7 @@ export class AuthController {
         // if already logged re send to logged?
         // could check cookies and see if already logged just send to index directly.
         // if cookies are already there verify if they are valid and dont log in, just return object to frontend
-        return "<a href='http://127.0.0.1:8080/test'><button>Log in!</button></a>"; // change to 8080
+        return "<a href='http://127.0.0.1:8080/login'><button>Log in!</button></a>";
     }
 
     // call deactivate + generate.
@@ -43,8 +43,7 @@ export class AuthController {
         return await this.generate(response, user);
 	}
 
-    // all of 2fa needs its own controller most likely.
-    // this shoudlnt return null? cant fail so could be.
+    // this shoudlnt return null? cant fail so could be, but frontend wont knwo if dis worked
     @UseGuards(JwtAuthGuard)
 	@Get('2FA/deactivate')
 	async deactivate2FA(@AuthUser() user: User): Promise<void> {
@@ -53,15 +52,17 @@ export class AuthController {
 		);
 	}
 
-    // user clicks on activate 2fa gets here.
-    // after calling generate we could add a confirmation asking to add the 2FA code and checking if it worked, if it did update 2faActive = true in db, else throw error('Wrong authentication code') and make the user try again
-    // if 2FA already active maybe ignore?
+    // if 2FA already active, ignore generate
+    // using response is bad
     @UseGuards(JwtAuthGuard)
     @Get('2FA/generate')
     async generate(@Res() response: Response, @AuthUser() user: User) {
-      const otpauthUrl = await this.auth2fa_svc.generate2FASecret(user);
-      //console.log(otpauthUrl, "\n", user);
-      return this.auth2fa_svc.pipeQrCodeStream(response, otpauthUrl);
+        if (user.is2FActive === true) {
+            response.send({error: "2FA already active, on this account."});
+            return ;
+        }
+        const otpauthUrl = await this.auth2fa_svc.generate2FASecret(user);
+        return this.auth2fa_svc.pipeQrCodeStream(response, otpauthUrl);
     }
 
     // receive 2FA code first time to check if its correct, if it is correct updates user db (activates 2FA). if fails return error.
@@ -76,8 +77,8 @@ export class AuthController {
     console.log(user.is2FActive, user.secretOf2FA);
 
     // if secret is in db & turn on is in db then this shouldnt work, just at the start
-        //if (user.is2FActive === false)
-        //    return {two_factor_enabled: false};
+    if (user.is2FActive === true)
+        return {two_factor_enabled: false};
 
       const isCodeValid = this.auth2fa_svc.is2FACodeValid(
         twoFactorAuthenticationCode,
@@ -87,7 +88,7 @@ export class AuthController {
     console.log(isCodeValid);
       // if code sent failed 
       if (!isCodeValid)
-        return {two_factor_enabled: false};
+        return {error: "2FA already active, on this account."};
         //throw new UnauthorizedException('Wrong authentication code');
       
       await this.auth2fa_svc.turnOn2FA(user.id);
@@ -235,7 +236,7 @@ export class AuthController {
     }
 
     // change return type & add async
-    //if i logout here but have cookies stored they will work still, what to do about it? check with session of evaluators copyng same cookie after log out
+    //if i logout here but have cookies stored they will work still, what to do about it? check with session of evaluators copyng same cookie after log out, for they it works too... weird.
     @UseGuards(JwtAuthGuard)
     @Get("logout")
     logout(@AuthUser() user: User, @Req() request: Request)//: Promise<any> {

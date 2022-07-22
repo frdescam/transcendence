@@ -6,8 +6,7 @@ import { authenticator } from 'otplib';
 import { toFileStream } from 'qrcode';
 import { Response } from 'express';
 
-// TODO here add types to payloads, adn to returns
-// create dtos
+// TODO here add types to payloads, add returns
 
 @Injectable({})
 export class TwoFactorAuthService {
@@ -17,6 +16,7 @@ export class TwoFactorAuthService {
         const secret : string = authenticator.generateSecret();
         const otpauthUrl : string = authenticator.keyuri(user.email, this.config.get('TWO_FACTOR_AUTHENTICATION_APP_NAME'), secret);
         await this.users_svc.set2FASecret(secret, user.id);
+        console.log(secret);
         return otpauthUrl;
     }
 

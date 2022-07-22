@@ -17,28 +17,24 @@ export interface TokenPayload {
 }
 
 @Injectable()
-export class JwtRefreshStrategy extends PassportStrategy(
-	Strategy,
-	'auth-jwt-refresh',
-) {
+export class JwtAuth2FAStrategy extends PassportStrategy(Strategy, 'auth-jwt-2fa') {
 	constructor(config: ConfigService, private readonly auth_svc: AuthService) {
 		super({
 			jwtFromRequest: ExtractJwt.fromExtractors([
 				(request: Request) => {
 					if (!request || !request.cookies)
 						return null;
-					return request.cookies?.Refresh;
+					return request.cookies?.isSecondFactorAuthenticated; // change to 2falogin cookie
 				},
 			]),
-			secretOrKey: config.get('JWT_REFRESH_SECRET'),
-			passReqToCallback: true,
+			secretOrKey: config.get('JWT_AUTH_2FA_SECRET'),
 		});
 	}
 
-	async validate(request: Request, payload: TokenPayload): Promise<User> {
+	async validate(payload: TokenPayload): Promise<User> {
+		//console.log(payload);
 		return this.auth_svc.login({
 			id: payload.sub,
-			refresh_token: request.cookies?.Refresh, // if we add this, then has to be added to user.entity.ts too!
 		});
 	}
 }

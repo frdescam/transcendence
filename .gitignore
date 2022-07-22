@@ -38,7 +38,6 @@ lerna-debug.log*
 
 # IDE - VSCode
 .vscode/*
-.eslintrc.js
 .prettierrc
 
 # IDE - VSCode

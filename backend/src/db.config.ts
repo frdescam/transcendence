@@ -8,9 +8,9 @@ export const db_config: TypeOrmModuleOptions = {
     host: "postgres",
     //host: "db", // change to do when this is ready? cos when inside the docker container the app will communicate with the db with the dns of docker
     port: 5432,
-    username: "user",
+    username: "transcendence",
     password: "password",
-    database: "my_db",
+    database: "transcendence",
     synchronize: true,
     autoLoadEntities: true,
     //entities: ["./usdeded.ts"], // is dis useful?

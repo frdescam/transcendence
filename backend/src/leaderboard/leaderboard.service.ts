@@ -8,7 +8,8 @@ export class LeaderboardService {
         private userService: UsersService,
     ) {}
 
-    async getRows(startRow, count, filter, sortBy, descending) {
+    async getRows(userId: number, friendsOnly: boolean, startRow: number, count: number, filter: string, sortBy: string, descending: boolean) {
+        // TODO : handle friends only case
         let allUsersAsEntity = await this.userService.findAll();
         if (sortBy)
         {
@@ -43,7 +44,7 @@ export class LeaderboardService {
         if (count == 0) {
             allUsersAsDto = allUsersAsDto.slice(startRow, allUsersAsDto.length);
         } else {
-            allUsersAsDto = allUsersAsDto.slice(startRow, parseInt(startRow) + parseInt(count));
+            allUsersAsDto = allUsersAsDto.slice(startRow, startRow + count);
         }
         return {
             totalRowsNumber,

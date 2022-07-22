@@ -7,7 +7,7 @@ export class OAuthGuard extends AuthGuard('auth') { // change name of guard here
 		if (error || !user)
         {
          console.log("error: ", error, user);
-         throw new UnauthorizedException('OAuth guard failed.');
+         throw new UnauthorizedException('OAuth guard failed.'); // return object so that frontend can show bootiful msg to user?
             // send to index or to error page?
             //response.redirect('/');
         }

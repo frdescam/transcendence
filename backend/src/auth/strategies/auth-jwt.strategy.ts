@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { AuthDto } from '../dto'; // not needed for now
 import { User } from 'src/users/entities/user.entity';
 import { AuthService } from '../services/auth.service'; // update later
-//import { TokenPayload } from '../dto/token-payload.interface'; // update later
 
 // Create token dto! 
     // into its own file
@@ -23,6 +22,8 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'auth-jwt') {
 		super({
 			jwtFromRequest: ExtractJwt.fromExtractors([
 				(request: Request) => {
+					if (!request || !request.cookies)
+						return null;
 					return request.cookies?.Authentication;
 				},
 			]),
@@ -31,6 +32,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'auth-jwt') {
 	}
 
 	async validate(payload: TokenPayload): Promise<User> {
+		//console.log(payload);
 		return this.auth_svc.login({
 			id: payload.sub,
 		});

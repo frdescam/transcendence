@@ -28,7 +28,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - 8080:8080
+      - 8080:8080 # env
     build:
       context: .
       dockerfile: ./docker/back.Dockerfile

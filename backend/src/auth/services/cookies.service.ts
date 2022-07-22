@@ -9,6 +9,7 @@ import { User } from "../../users/entities/user.entity";
 export enum CookieType {
 	AUTHENTICATION = 'Authentication',
 	REFRESH = 'Refresh',
+	sup = 'isSecondFactorAuthenticated',
 }
 
 @Injectable({})
@@ -38,6 +39,19 @@ export class CookiesService {
 
 		const token = this.getJwtToken(payload, secret, lifetime);
 		const cookie = this.getJwtCookie(CookieType.REFRESH, token, lifetime); // if using poc of cookie this not needed
+
+		return { token: token, cookie: cookie };
+	}
+
+	get2FAJwtTokenCookie(
+		user: User,
+	): { token: string; cookie: string } { // this will return only the token, // create dtos
+		const secret = this.config.get('JWT_AUTH_2FA_SECRET');
+		const lifetime = this.config.get('JWT_AUTH_2FA_LIFETIME'); //change to 5 mins
+		const payload: any = { sub: user.id, isSecondFactorAuthenticated: "true"}; // any for now, create dto for this? // user_id or id?
+
+		const token = this.getJwtToken(payload, secret, lifetime);
+		const cookie = this.getJwtCookie(CookieType.sup, token, lifetime); // if using poc of cookie this not needed
 
 		return { token: token, cookie: cookie };
 	}

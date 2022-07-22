@@ -6,15 +6,7 @@ import { BannedUser } from "./bannedUser.entity";
 import { MutedUser } from "./mutedUser.entity";
 import { PendingInvitation } from "./pendingInvitation.entity";
 
-export enum TypesOf2FA {
-    NONE = "none",
-    SMS = "sms",
-    MAIL = "mail",
-    AUTH_APP = "auth_app" // TODO: check what 2FA types we implement
-}
-
 // Add status : online | offline? (use refresh token)
-// add isTwoFactorAuthenticationEnabled boolean?
 
 @Entity()
 export class User extends BaseEntity {
@@ -22,7 +14,7 @@ export class User extends BaseEntity {
     id: number;
 
     @Column({type: "int4", nullable: true, unique: true}) // if we dont do passwords then this shouldnt be null!
-    public fortytwo_id: number; // marvin id to look for ppl;
+    fortytwo_id: number; // marvin id to look for ppl;
 
     @Column({type: "varchar", length: 50, unique: true}) // change to unique cos must be unique!
     pseudo: string;

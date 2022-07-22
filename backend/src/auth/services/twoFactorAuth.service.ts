@@ -15,9 +15,7 @@ export class TwoFactorAuthService {
 
     async generate2FASecret(user: User) {
         const secret = authenticator.generateSecret();
-     
         const otpauthUrl = authenticator.keyuri(user.email, this.config.get('TWO_FACTOR_AUTHENTICATION_APP_NAME'), secret);
-     
         await this.users_svc.set2FASecret(secret, user.id);
         
         // why return secret here?
@@ -35,7 +33,10 @@ export class TwoFactorAuthService {
         return toFileStream(stream, otpauthUrl);
       }
 
+      // if user.secretOf2FA is null then this return error 500. care
       public is2FACodeValid(twoFACode: string, user: User) {
+        if (user.secretOf2FA === null)
+                return false;
         return authenticator.verify({
           token: twoFACode,
           secret: user.secretOf2FA,

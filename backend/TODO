@@ -8,7 +8,6 @@
 - delete friends
 - match history
 - stats (such as: wins and losses, ladder level, achievements, and so forth)
-- ADD SUB TO FUCKING STRATEGY FFS fuckign js black magic
 - add jwt in websockets
 - add 2FA
 - use same dockefile as rest with .env

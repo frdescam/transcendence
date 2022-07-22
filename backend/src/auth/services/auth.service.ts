@@ -13,7 +13,7 @@ export class AuthService {
         //this.jwt_svc.verify(token);
         const user: User = await this.users_svc.findOne(user_dto);
 
-        //console.log(user);
+        //console.log(user, user_dto);
 
 		if (!user)
             return undefined;

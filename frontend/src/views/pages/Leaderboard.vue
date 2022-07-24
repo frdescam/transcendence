@@ -71,6 +71,7 @@ const columns = [
 		label: 'RATIO',
 		field: 'ratio',
 		required: true,
+		sortable: true,
 		align: 'left',
 		style: 'width: 10%'
 	},
@@ -79,6 +80,7 @@ const columns = [
 		label: 'LEVEL',
 		field: 'level',
 		required: true,
+		sortable: true,
 		align: 'left',
 		style: 'width: 10%'
 	}
@@ -94,7 +96,7 @@ export default {
 		const filter = ref('');
 		const loading = ref(false);
 		const pagination = ref({
-			sortBy: 'rank',
+			sortBy: 'level',
 			descending: false,
 			page: 1,
 			rowsPerPage: 4,

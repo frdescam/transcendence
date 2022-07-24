@@ -2,14 +2,6 @@
 	<q-layout view="hHh lpR fFf">
 		<q-header elevated>
 			<q-toolbar id="header-contents">
-				<q-btn
-					flat
-					dense
-					round
-					icon="menu"
-					aria-label="Menu"
-					@click="toggleLeftDrawer"
-				/>
 				<q-toolbar-title>
 					<q-icon
 						class="q-mr-sm"
@@ -59,7 +51,7 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
+import { defineComponent, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import options from 'src/i18n/options';
 import { useQuasar } from 'quasar';
@@ -99,7 +91,6 @@ export default defineComponent({
 	setup ()
 	{
 		const $q = useQuasar();
-		const leftDrawerOpen = ref(false);
 		const { locale } = useI18n({ useScope: 'global' });
 
 		watch(locale, (val) =>
@@ -117,13 +108,8 @@ export default defineComponent({
 		});
 
 		return {
-			leftDrawerOpen,
 			locale,
-			localeOptions: options,
-			toggleLeftDrawer ()
-			{
-				leftDrawerOpen.value = !leftDrawerOpen.value;
-			}
+			localeOptions: options
 		};
 	}
 });

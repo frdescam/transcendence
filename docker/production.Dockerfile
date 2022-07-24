@@ -13,6 +13,6 @@ COPY    common/. frontend/src/common
 RUN     (cd frontend && yarn install && yarn build)
 
 ARG     NODE_ENV
-ENV 	NODE_ENV=${NODE_ENV}
+ENV     NODE_ENV=${NODE_ENV}
 
 CMD ["node", "dist/main"]

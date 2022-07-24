@@ -16,8 +16,6 @@
 				<q-toggle class="q-mr-lg"
 					label="Only friends"
 					color="blue"
-					:true-value="false"
-					:false-value="true"
 					@update:model-value="onFriendsOnlyChanged"
 					v-model="friendsOnly"
 				/>
@@ -119,7 +117,7 @@ export default {
 			return res.data;
 		}
 
-		async function refreshData (props)
+		async function refreshData (props, localFriendsOnly = friendsOnly.value)
 		{
 			const { page, rowsPerPage, sortBy, descending } = props.pagination;
 			const filter = props.filter;
@@ -130,7 +128,7 @@ export default {
 
 			const fetchCount = rowsPerPage;
 			const startRow = (page - 1) * rowsPerPage;
-			const returnedData = await fetchFromServer(userId, friendsOnly.value, startRow, fetchCount, filter, sortBy, descending);
+			const returnedData = await fetchFromServer(userId, localFriendsOnly, startRow, fetchCount, filter, sortBy, descending);
 			pagination.value.rowsNumber = returnedData.totalRowsNumber;
 			rows.value.splice(0, rows.value.length, ...returnedData.rows);
 
@@ -150,12 +148,15 @@ export default {
 			});
 		});
 
-		async function onFriendsOnlyChanged (value, evt)
+		async function onFriendsOnlyChanged (value)
 		{
-			refreshData({
-				pagination: pagination.value,
-				filter: filter.value
-			});
+			refreshData(
+				{
+					pagination: pagination.value,
+					filter: filter.value
+				},
+				value
+			);
 		}
 
 		async function onRowClick (evt, row)

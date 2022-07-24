@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { LeaderboardService } from './leaderboard.service';
 
-@Controller('api/leaderboard')
+@Controller('leaderboard')
 export class LeaderboardController {
     constructor (private leaderboardService: LeaderboardService) {}
     @Get('getRows')

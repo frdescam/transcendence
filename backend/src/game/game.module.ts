@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { User } from 'src/user.entity';
-import { Match } from 'src/match.entity';
+import { User } from 'src/user/orm/user.entity';
+import { Match } from 'src/match/orm/match.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PartyService } from './party/party.service';
 import { PartyController } from './party/party.controller';

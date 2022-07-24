@@ -8,8 +8,8 @@ import { Clock } from 'three';  // @TODO : should find a lighter technologie
 import { bounceBall, serverState, team, teamNoneVal, partyQuery, userId } from 'src/common/game/logic/common';
 import maps from 'src/common/game/maps/headless';
 import type { Socket } from 'socket.io';
-import { Match } from 'src/match.entity';
-import { User } from 'src/user.entity';
+import { Match } from 'src/match/orm/match.entity';
+import { User } from 'src/user/orm/user.entity';
 import { nanoid } from 'nanoid';
 
 export type listChangeCallback = (partyJson: getPartyDto) => void;

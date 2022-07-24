@@ -51,6 +51,9 @@ export class User extends BaseEntity {
     @OneToMany(() => Match, (match) => match.userForeign)
       matchesForeign: Match[];
 
+    @OneToMany(() => Match, (match) => match.winner)
+      matchesWon: Match[];
+  
     @OneToMany(() => Channel, (channel) => channel.owner)
       ownedChannels: Channel[];
 

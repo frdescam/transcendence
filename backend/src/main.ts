@@ -29,6 +29,7 @@ async function bootstrap() {
   // maybe not needed now? global filters
   // app.setGlobalPrefix('api');
   app.useGlobalFilters(new NotFoundExceptionFilter());
+  app.setGlobalPrefix('api');
   await app.listen(8080);
 }
 bootstrap();

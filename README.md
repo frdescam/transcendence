@@ -3,10 +3,9 @@
 - [Features](#features)
 - [Architecture](#architecture)
 - [Database](#database)
-- [Command](#command)
-  - [Clean docker instance](#command_clean)
-  - [Development mode](#command_dev)
-  - [Production mode](#command_prod)
+- [Command](#commands)
+  - [Clean](#command_clean)
+  - [Start app](#command_prod)
 
 ---
 
@@ -26,23 +25,15 @@ Feel free to read the subject for more information
 ## <a id="database">Database</a>
 ![database](.git-assets/database.png)
 
-## <a id="command">Command</a>
+## <a id="commands">Commands</a>
 
-### <a id="command_clean">Clean docker instance</a>
+### <a id="command_clean">Clean</a>
 > This script allows you to fully clean docker (volume, data, etc...), but also the node_modules and yarn cache
 ```shell
-chmod +x dockerPrune.sh
-./dockerPrune.sh
+sh clean.sh
 ```
 
-### <a id="command_dev">Development mode</a>
-> This mode allows that all the modifications either front or back side are taken into account without reloading docker-compose
-```shell
-chmod +x dev.sh
-./dev.sh
-```
-
-### <a id="command_prod">Production mode</a>
+### <a id="command_prod">Start app</a>
 > This mode allows you to create a fully functional website
 ```shell
 docker-compose up --build

@@ -12,7 +12,6 @@ export class UsersService {
     private readonly users_repo: Repository<User>,) {}
 
 	// add return type!!!
-
 	async turnOn2FA(userId: number)//: Promise<void> {
 		{
 			// change return here
@@ -21,6 +20,7 @@ export class UsersService {
 		});
 	  }
 
+	// add return type!!!
 	  async turnOff2FA(userId: number) {
 			// change return here
 		return this.users_repo.update(userId, {
@@ -29,6 +29,7 @@ export class UsersService {
 		});
 	  }
 
+	// add return type!!!
 	async set2FASecret(secret: string, userId: number) {
 			// change return here
 		return this.users_repo.update(userId, {
@@ -36,15 +37,18 @@ export class UsersService {
 		});
 	  }
 
-	async getAll(): Promise<User[]> {
-		return this.users_repo.find();
+	// check if works
+	async getFriends(userId : number) {
+		let user: User = await this.users_repo.findOne({id: userId});
+		console.log(user, user.friends);
+		return user.friends;
 	}
-
+	
     async findOne(user_dto: AuthDto): Promise<User> {
         // print this when testing multiple pseudos
         //console.log(await this.getUniquePseudo(user_dto.pseudo));
 		//console.log(user_dto, await this.users_repo.findOne({where: user_dto}));
-		return this.users_repo.findOne({where: user_dto}); // if multiple pseudos r the same, does this work?
+		return this.users_repo.findOne({where: user_dto}); // if multiple pseudos r the same, does this work? // use this id: user_dto.id?
 		// return this.users_repo.findOne({
         //     where: {
         //         fortytwo_id: user_dto.fortytwo_id,
@@ -52,7 +56,7 @@ export class UsersService {
         // });
     }
 
-    async findAll() {
+    async findAll(): Promise<User[]> {
         return this.users_repo.find();
     }
 
@@ -81,25 +85,17 @@ export class UsersService {
 
     async signup(user_dto: AuthDto): Promise<User> {
         user_dto.pseudo = await this.getUniquePseudo(user_dto.pseudo);
-        console.log(user_dto);
+        console.log("new user: " ,user_dto);
         const user: User = this.users_repo.create({
 			...user_dto,
 		});
-
         //console.log(user);
 		return this.users_repo.save(user);
     }
 
     async setRefreshToken(user: User, token: string): Promise<void> {
-		if (!token) {
-			this.users_repo.update(user.id, {
+		this.users_repo.update(user.id, {
 				refresh_token: token,
-				//add status of user as disconnected is needed to know if they r logged in or out?
-			});
-		} else {
-			this.users_repo.update(user.id, {
-				refresh_token: token,
-			});
-		}
+		});
 	}
 }

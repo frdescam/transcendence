@@ -19,24 +19,27 @@ export class AuthService {
             return undefined;
 
         // this in case of password if we use dat shit
-
 		// if (data.password && !(await this.hashVerify(data.password, user.password)))
 		// 	return undefined;
 
-		 if (user_dto.refresh_token && !(user_dto.refresh_token === user.refresh_token)) // hash refresh_token!
+		 if (user_dto.refresh_token && !(user_dto.refresh_token === user.refresh_token)) // hash refresh_token?
 		 	//!(await this.hashVerify(data.refresh_token, user.refresh_token))
 		 	    return undefined;
 
 		return user;
     }
 
+    // erase later
+    async test_users(user_dto: AuthDto) {
+        this.users_svc.getFriends(user_dto.id);
+    }
+
     async signup(user_dto: AuthDto): Promise<User> {
         return this.users_svc.signup(user_dto);
     }
 
-    async refresh(user: User, token: string)//: Promise<void> {
-    {
-		await this.users_svc.setRefreshToken(user, token); // has token!
+    async refresh(user: User, token: string): Promise<void> {
+		await this.users_svc.setRefreshToken(user, token);
 	}
 
     async logout(user: User): Promise<void> {

@@ -6,8 +6,10 @@
 				<div v-bind:class="{ 'q-pr-md': $q.screen.gt.sm }" class="q-my-lg row full-height items-center justify-around col-md-2 col-12">
 					<q-avatar class="q-my-auto" size=150px>
 						<img src='https://cdn.quasar.dev/img/boy-avatar.png'>
-						<q-badge class="absolute-bottom-right" style="width: 30px; height: 30px" color="light-green-14" rounded></q-badge>
-						<q-tooltip>Online</q-tooltip>
+							<q-badge v-if="online" class="absolute-bottom-right" style="width: 30px; height: 30px" color="light-green-14" rounded></q-badge>
+							<q-badge v-else class="absolute-bottom-right" style="width: 30px; height: 30px" color="red" rounded></q-badge>
+							<q-tooltip v-if="online">Online</q-tooltip>
+							<q-tooltip v-else>Offline</q-tooltip>
 					</q-avatar>
 				</div>
 				<div class="col-md-10 col-12">
@@ -219,6 +221,7 @@ export default {
 	setup ()
 	{
 		return {
+			online: true,
 			matches,
 			achievements
 		};

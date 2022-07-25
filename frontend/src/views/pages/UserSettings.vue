@@ -7,10 +7,6 @@
 			>
 				<q-card-section>
 					<div class="text-h6">
-						<span class="q-mr-sm">
-							<q-badge v-if="online" rounded color="green" />
-							<q-badge v-else rounded color="red" />
-						</span>
 						<span id="username-display">{{ currentUsername }}</span>
 						<span id="username-edit" style="display:none;">
 							<q-input v-model="newUsername" label="Change username" />
@@ -28,27 +24,6 @@
 					<q-btn type="submit" class="q-mt-md" label='Update' />
 				</q-card-section>
 			</q-form>
-		</q-card>
-
-		<q-card bordered style='width: 300px;' class="q-ma-md">
-			<q-card-section>
-				<div class="text-h6">Avatar</div>
-			</q-card-section>
-			<q-separator inset />
-			<q-card-section>
-				<q-separator inset class="q-my-sm"/>
-				<q-form
-					method="post"
-					@submit="profilePictureSubmit"
-				>
-					<q-file v-model="newProfilePicture" label="Change your picture">
-						<template v-slot:prepend>
-							<q-icon name="attach_file" />
-						</template>
-					</q-file>
-					<q-btn type="submit" class="q-mt-md" label='Update' />
-				</q-form>
-			</q-card-section>
 		</q-card>
 
 		<q-card bordered style='width: 300px;' class="q-ma-md">
@@ -124,6 +99,25 @@
 				</q-form>
 			</q-card-section>
 		</q-card>
+
+		<q-card bordered style='width: 300px;' class="my-card q-ma-md">
+			<q-card-section>
+				<div class="text-h6">Game options</div>
+			</q-card-section>
+
+			<q-separator inset />
+
+			<q-card-section>
+				<q-form
+					method="post"
+					@submit="GameOptionsSubmit"
+				>
+					<q-select v-model="paddleSelected" :options="paddleOptions" label="Paddle Color" />
+					<q-btn type="submit" class="q-mt-md" label='Update' />
+				</q-form>
+			</q-card-section>
+		</q-card>
+
 		<q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section>
 				<div class="text-h6">Danger zone!</div>
@@ -148,46 +142,11 @@
 				</q-form>
 			</q-card-section>
 		</q-card>
-
-		<q-card bordered class="my-card q-ma-md">
-			<q-card-section>
-				<div class="text-h6">Game options</div>
-			</q-card-section>
-
-			<q-separator />
-
-			<q-card-section>
-				<q-form
-					method="post"
-					@submit="GameOptionsSubmit"
-				>
-					<q-select v-model="paddleSelected" :options="paddleOptions" label="Paddle Color" />
-					<q-btn type="submit" class="q-mt-md" label='Update' />
-				</q-form>
-			</q-card-section>
-		</q-card>
-
-		<q-card bordered class="my-card q-ma-md">
-			<q-card-section>
-				<div class="text-h6">Score</div>
-			</q-card-section>
-
-			<q-separator />
-
-			<q-card-section>
-				<div class="text-p">Wins: {{ wins }} / Losses: {{ losses }}</div>
-				<div class="text-p">Ratio: {{ Math.round(wins / losses * 10) / 10 }}</div>
-			</q-card-section>
-		</q-card>
 	</q-page>
 </template>
 
 <script lang="ts">
-// import { useRoute } from 'vue-router';
 import { ref } from 'vue';
-
-// const route = useRoute();
-// const { user } = route.params;
 
 function toggleInlineDisplay (id: string)
 {
@@ -253,12 +212,9 @@ export default ({
 			{
 				console.log('User deleted their account');
 			},
-			online: ref(true),
 			paddleOptions: [
 				'Normal', 'Fire', 'Air', 'Water', 'Earth'
-			],
-			wins: ref(7),
-			losses: ref(4)
+			]
 		};
 	}
 });

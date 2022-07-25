@@ -58,9 +58,9 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
-		path: '/profile',
+		path: '/settings',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/ProfilePage.vue') }]
+		children: [{ path: '', component: () => import('src/views/pages/UserSettings.vue') }]
 	},
 
 	// Always leave this as last one,

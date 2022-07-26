@@ -21,7 +21,7 @@ import { AuthModule } from './auth/auth.module';
     DatabaseModule,
     UsersModule,
     AuthModule,
-    ServeStaticModule.forRoot({  // @TODO: Remove me for prod
+    ServeStaticModule.forRoot({
       rootPath: (
         (process.env.NODE_ENV === 'production') ?
           path.join(__dirname, '..', 'frontend', 'dist') :

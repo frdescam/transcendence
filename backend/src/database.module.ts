@@ -11,11 +11,11 @@ import { TypeormLogger } from './typeorm.logger';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: 'localhost',
-        port: 5432,
-        username: 'transcendence',
-        password: 'password',
-        database: 'transcendence',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
         entities: ['dist/**/*.entity{.ts,.js}'],
         synchronize: !(process.env.NODE_ENV === 'production'),
         logging: new TypeormLogger()

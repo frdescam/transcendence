@@ -3,14 +3,17 @@ WORKDIR /usr/src/app/
 
 # Build backend
 COPY    backend/. .
+COPY    .env .
 COPY    common/. ./src/common
+
 RUN     yarn install
 RUN     yarn build
 
 # Build frontend
 COPY    frontend/. frontend
 COPY    common/. frontend/src/common
-RUN     (cd frontend && yarn install && yarn build)
+RUN     yarn --cwd frontend install
+RUN     yarn --cwd frontend build
 
 ARG     NODE_ENV
 ENV     NODE_ENV=${NODE_ENV}

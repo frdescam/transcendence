@@ -1,19 +1,23 @@
 version: '3.3'
 
+# TODO use .env
+
 services:
   ################ Postgresql ################
   postgres:
-    container_name: ${DB_HOST}
+    container_name: postgres
     restart: unless-stopped
     image: postgres:14
     environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USERNAME}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=transcendence
+      - POSTGRES_USER=transcendence
+      - POSTGRES_PASSWORD=password
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
     volumes:
-      - /etc/localtime:/etc/localtime:ro
       - ./data/db:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - webnet
 
   ################# Transcendence #################
   transcendence:
@@ -22,10 +26,10 @@ services:
     depends_on:
       - postgres
     ports:
-      - ${BACK_PORT}:${BACK_PORT}
+      - 8080:8080 # env
     build:
       context: .
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./docker/back.Dockerfile
       args:
         NODE_ENV: production
     volumes:

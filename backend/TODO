@@ -14,3 +14,4 @@
 - if an user is already logged with valid jwt we could check for them b4 trying to log in with 42 api, and let them through?
 - erase test_users in auth_svc
 - create TokenPayload dto for strategies auth & ws.
+- stop using response in 2fa service & controller, and fix turnon off await and return types

@@ -2,6 +2,9 @@
 # env
 .auth.env
 
+#upload
+upload/
+
 # Compiled output
 dist
 node_modules

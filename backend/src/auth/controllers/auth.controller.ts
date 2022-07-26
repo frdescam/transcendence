@@ -24,7 +24,6 @@ export interface twoFAPayload { // could just use { code } its easier...
 export class AuthController {
         constructor(private auth_svc: AuthService, private auth2fa_svc: TwoFactorAuthService, private readonly cookies_svc: CookiesService,) { }
 
-    //@UseGuards(WsJwtGuard)
     @Get("")
     async index() {
         // if already logged re send to logged?

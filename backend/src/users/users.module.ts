@@ -9,10 +9,13 @@ import { Message } from './entities/message.entity';
 import { Channel } from './entities/channel.entity';
 import { UsersService } from './services/users.service';
 
+import { UsersController } from './controllers/users.controller';
+
 // Typeorm ForFeature is good??????
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Match, PendingInvitation, MutedUser, BannedUser, Message, Channel]),],
+  controllers: [UsersController,],
   providers: [
 		UsersService,
 	],

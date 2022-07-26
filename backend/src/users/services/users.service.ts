@@ -15,7 +15,7 @@ export class UsersService {
 	async turnOn2FA(userId: number)//: Promise<void> {
 		{
 			// change return here
-		return this.users_repo.update(userId, {
+		return await this.users_repo.update(userId, {
 			is2FActive: true,
 		});
 	  }
@@ -23,7 +23,7 @@ export class UsersService {
 	// add return type!!!
 	  async turnOff2FA(userId: number) {
 			// change return here
-		return this.users_repo.update(userId, {
+		return await this.users_repo.update(userId, {
 			is2FActive: false,
 			secretOf2FA: null,
 		});
@@ -32,15 +32,39 @@ export class UsersService {
 	// add return type!!!
 	async set2FASecret(secret: string, userId: number) {
 			// change return here
-		return this.users_repo.update(userId, {
+		return await this.users_repo.update(userId, {
 			secretOf2FA: secret,
 		});
 	  }
 
-	// check if works
+	async setAvatar(filename: string, userId: number) {
+		// change return here
+	// return await this.users_repo.update(userId, {
+	// 	avatar: filename,
+	// });
+
+	const result = await this.users_repo.createQueryBuilder()
+    .update({
+		avatar: filename,
+    })
+    .where({
+        id: userId,
+    })
+    .returning('*')
+    .execute()
+
+	return result.raw[0];
+	//  return await this.users_repo.save({
+	// 	id: userId,
+	//  	avatar: filename,
+	//  });
+  }
+
+
+	// doenst work wait for franco too update relations.
 	async getFriends(userId : number) {
 		let user: User = await this.users_repo.findOne({id: userId});
-		console.log(user, user.friends);
+		//console.log(user, user.friends);
 		return user.friends;
 	}
 	

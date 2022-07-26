@@ -9,7 +9,7 @@ import { onBeforeUnmount, onMounted, ref, computed, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Socket } from 'socket.io-client';
 
-import type { partyQuery as query } from 'src/components/game/common/logic/common'; // @TODO: Move common folder anywhere else
+import type { partyQuery as query } from 'src/common/game/interfaces';
 
 enum State
 {

@@ -4,7 +4,8 @@ import sceneFile from './synthwave.glb?url';
 import scoreFont from 'three/examples/fonts/droid/droid_sans_bold.typeface.json?url'; // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 import textFont from '../ressources/text_me_one/Text Me One_Regular.json?url'; // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 
-import type { mapConfig, Material } from 'src/common/game/logic/mapConfig';
+import type { mapConfig } from 'src/common/game/interfaces';
+import type { Material } from 'src/common/game/types';
 
 const itemsMaterial: Material = new MeshLambertMaterial({
 	color: 0xffffff,

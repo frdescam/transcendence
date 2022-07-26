@@ -6,7 +6,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { DatabaseModule } from './database.module';
-import { GameModule } from './game/game.module';
+import { GameModule } from './game/main.module';
 import { ChatModule } from './chat/main.module';
 import { MatchModule } from './match/main.module';
 import { UserModule } from './user/main.module';

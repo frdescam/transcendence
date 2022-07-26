@@ -1,10 +1,11 @@
 import { UseGuards, Request } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { map } from './party/interfaces/party.interface';
+import { map } from './interface';
 import { PartyService } from './party/party.service';
 import type { Socket, Server } from 'socket.io';
-import type { userId, Pong } from 'src/common/game/logic/common';
-import { getPartyDto } from 'src/common/game/logic/getParty.dto';
+import type { userId } from 'src/common/game/types';
+import type { Pong } from 'src/common/game/interfaces';
+import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
 
 @WebSocketGateway({
@@ -13,7 +14,7 @@ import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
     origin: '*',
   },
 })
-export class GameGateway
+export class MainGateway
   implements OnGatewayDisconnect
 {
   constructor(private partyService: PartyService)

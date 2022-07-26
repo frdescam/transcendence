@@ -1,16 +1,18 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Interval } from '@nestjs/schedule';
-import { Party, partyStatus, pauseReason, map, Query } from './interfaces/party.interface';
-import { getPartyDto } from 'src/common/game/logic/getParty.dto';
-import { Clock } from 'three';  // @TODO : should find a lighter technologie
-import { bounceBall, serverState, team, teamNoneVal, partyQuery, userId } from 'src/common/game/logic/common';
-import maps from 'src/common/game/maps/headless';
-import type { Socket } from 'socket.io';
-import { Match } from 'src/match/orm/match.entity';
-import { User } from 'src/user/orm/user.entity';
 import { nanoid } from 'nanoid';
+import { Clock } from 'three';  // @TODO : should find a lighter technologie
+import { MatchService } from 'src/match/match/match.service';
+import { UserService } from 'src/user/user/user.service';
+import { getPartyDto } from 'src/common/game/orm/getParty.dto';
+import { bounceBall } from 'src/common/game/logic';
+import { teamEnum } from 'src/common/game/types';
+import maps from 'src/common/game/maps';
+import { Party, partyStatus, pauseReason, map, Query } from '../interface';
+import type { serverState, partyQuery } from 'src/common/game/interfaces';
+import type { team, userId } from 'src/common/game/types';
+import type { Socket } from 'socket.io';
+import type { MatchRegistrationDto } from 'src/match/orm/registration.dto';
 
 export type listChangeCallback = (partyJson: getPartyDto) => void;
 
@@ -23,11 +25,8 @@ export class PartyService
     private onListChange: listChangeCallback | null = null;
 
     constructor (
-        @InjectRepository(User)
-        private userRepo: Repository<User>,
-
-        @InjectRepository(Match)
-        private matchRepo: Repository<Match>,
+      private readonly userService: UserService,
+      private readonly matchService: MatchService,
     )
     {}
 
@@ -68,20 +67,19 @@ export class PartyService
 
     private async saveScore(map: string, userHomeId: userId, userForeignId: userId, winnerId: userId, userHomeScore: number, userForeignScore: number)
     {
-        const userHome = await this.userRepo.findOne(userHomeId);
-        const userForeign = await this.userRepo.findOne(userForeignId);
-        const winner = await this.userRepo.findOne(winnerId);
+        const userHome = await this.userService.getOne(userHomeId);
+        const userForeign = await this.userService.getOne(userForeignId);
+        const winner = await this.userService.getOne(winnerId);
         
-        const matchData = {
-            map,
-            userHome,
-            userForeign,
-            winner,
-            userHomeScore,
-            userForeignScore
-        }
-        const match = this.matchRepo.create(matchData);
-        await this.matchRepo.save(match);
+        const matchData: MatchRegistrationDto = {
+          map,
+          userHome,
+          userForeign,
+          winner,
+          userHomeScore,
+          userForeignScore
+        };
+        await this.matchService.create(matchData);
     }
 
     private async onFinish(party: Party, winnerSlot?: 1 | 0, looserSlot?: 1 | 0)
@@ -819,7 +817,7 @@ export class PartyService
                     counter: 0,
                     previousStatus: partyStatus.IntroducingSleeve
                 },
-                wonSleeve: teamNoneVal,
+                wonSleeve: teamEnum.None,
                 spectators: [],
                 playersSocket: [client || null, null],
                 playersId: userIds,

@@ -6,7 +6,8 @@ import { Socket } from 'socket.io-client';
 import Scene, { mapConfig, options } from './canvas/scene';
 import maps from './maps';
 
-import type { state as commonState, Ping, Pong, controlsMode } from 'src/common/game/logic/common';
+import type { state as commonState, Ping, Pong } from 'src/common/game/interfaces';
+import type { controlsMode } from 'src/common/game/types';
 
 export interface interfaceState {
 	error: string | null,

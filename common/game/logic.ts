@@ -1,55 +1,5 @@
-import type { Color } from 'three';
-import type { mapConfig } from './mapConfig';
-
-type userId = number;
-type team = 0 | 1;
-const teamNoneVal = -1;
-type teamNone = typeof teamNoneVal;
-type avatar = string | null;
-
-interface serverState {
-	date: Date | string,
-	positions: [number, number],
-	scores: [number, number],
-	ball: boolean,
-	ballX: number,
-	ballY: number,
-	ballSpeedX: number,
-	ballSpeedY: number,
-	offside: boolean,
-	lobby: boolean,
-	paused: boolean,
-	text: string,
-	textSize: number,
-	textColor: Color | number,
-	avatars: [avatar, avatar],
-	presences: [boolean, boolean],
-	finish: boolean
-}
-
-interface state extends serverState {
-	team: team,
-	spectator: boolean,
-	can_join: boolean
-}
-
-// @TODO: also save adversary criteria
-interface partyQuery {
-	map?: string
-}
-
-interface Ping {
-	cdate: string
-}
-
-interface Pong extends Ping{
-	sdate: string
-}
-
-type missedCallback = (state: serverState, remainingDelta: number) => void;
-type bouncedCallback = (state: serverState) => void;
-
-type controlsMode = 'wheel' | 'keyboard' | 'mouse';
+import type { mapConfig, serverState } from './interfaces';
+import type { team, missedCallback, bouncedCallback } from './types';
 
 function didPlayerMissBall ({ ballY, positions }: serverState, { baseSize, playerSize }: mapConfig, player: team)
 {
@@ -168,5 +118,4 @@ function bounceBall (state: serverState, config: mapConfig, delta: number, playe
 	}
 }
 
-export type { userId, team, teamNone, avatar, serverState, state, partyQuery, Ping, Pong, missedCallback, controlsMode };
-export { bounceBall, forward, teamNoneVal };
+export { bounceBall, forward };

@@ -1,8 +1,8 @@
 import { Body, Request, Controller, Get, Param, Post, Put, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
 import { PartyService } from './party.service';
-import { userId } from 'src/common/game/logic/common';
-import { getPartyDto } from 'src/common/game/logic/getParty.dto';
-import { CreatePartyDto } from './createParty.dto';
+import { userId } from 'src/common/game/types';
+import { getPartyDto } from 'src/common/game/orm/getParty.dto';
+import { CreatePartyDto } from '../orm/createParty.dto';
 import { HTTPMockupAuthGuard } from 'src/usermockup/auth.guard';
 
 @Controller('party')

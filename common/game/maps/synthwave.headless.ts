@@ -1,6 +1,6 @@
 import { Vector3, Euler } from 'three';
 
-import type { mapConfig } from '../logic/mapConfig';
+import type { mapConfig } from '../interfaces';
 
 const config: Partial<mapConfig> = {
 	cameraClip: [1, 400],

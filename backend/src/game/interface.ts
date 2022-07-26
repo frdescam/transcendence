@@ -1,6 +1,7 @@
 import type { Clock } from 'three';
 import type { Socket } from 'socket.io';
-import type { serverState, userId, team, teamNone, partyQuery } from 'src/common/game/logic/common';
+import type { userId, inclusiveTeam } from 'src/common/game/types';
+import type { serverState, partyQuery } from 'src/common/game/interfaces';
 
 export type map = string;
 
@@ -33,7 +34,7 @@ export interface Party
         counter: number,
         previousStatus: partyStatus
     },
-    wonSleeve: team | teamNone,
+    wonSleeve: inclusiveTeam,
     spectators: Socket[],
     playersSocket: [Socket | null, Socket | null],
     playersId: [userId | null, userId | null],  // Also used to reserve the place

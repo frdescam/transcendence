@@ -2,7 +2,7 @@ import classic from './classic.headless';
 import forest from './forest.headless';
 import synthwave from './synthwave.headless';
 
-import type { mapConfig } from '../logic/mapConfig';
+import type { mapConfig } from '../interfaces';
 
 const maps = {
     classic: classic as mapConfig,

@@ -1,8 +1,7 @@
-import type { Euler, Color, Vector3, MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshStandardMaterial } from 'three';
+import type { Euler, Color, Vector3 } from 'three';
+import type { Material, avatar, team } from './types';
 
-export type Material = MeshBasicMaterial | MeshLambertMaterial | MeshPhongMaterial | MeshStandardMaterial | MeshPhongMaterial;
-
-export type mapConfig = {
+interface mapConfig {
 	cameraClip: [number, number],
 	fov: number,
 	forceRotationRatio: number,
@@ -53,4 +52,45 @@ export type mapConfig = {
 	textPauseRotation: Euler,
 	textPlayPosition: Vector3,
 	textPlayRotation: Euler,
-};
+}
+
+interface serverState {
+	date: Date | string,
+	positions: [number, number],
+	scores: [number, number],
+	ball: boolean,
+	ballX: number,
+	ballY: number,
+	ballSpeedX: number,
+	ballSpeedY: number,
+	offside: boolean,
+	lobby: boolean,
+	paused: boolean,
+	text: string,
+	textSize: number,
+	textColor: Color | number,
+	avatars: [avatar, avatar],
+	presences: [boolean, boolean],
+	finish: boolean
+}
+
+interface state extends serverState {
+	team: team,
+	spectator: boolean,
+	can_join: boolean
+}
+
+// @TODO: also save adversary criteria
+interface partyQuery {
+	map?: string
+}
+
+interface Ping {
+	cdate: string
+}
+
+interface Pong extends Ping{
+	sdate: string
+}
+
+export type { mapConfig, serverState, state, partyQuery, Ping, Pong };

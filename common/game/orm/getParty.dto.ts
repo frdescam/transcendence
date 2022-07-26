@@ -1,4 +1,4 @@
-import type { userId, avatar } from './common';
+import type { userId, avatar } from '../types';
 
 export class getPartyDto
 {

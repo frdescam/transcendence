@@ -12,10 +12,9 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { quality, qualities } from './qualities';
 import clientLogic from '../logic/client';
-import { state } from 'src/common/game/logic/common';
 
-import type { controlsMode } from 'src/common/game/logic/common';
-import type { mapConfig } from 'src/common/game/logic/mapConfig';
+import type { mapConfig, state } from 'src/common/game/interfaces';
+import type { controlsMode } from 'src/common/game/types';
 import type { Material as ThreeMaterial } from 'three';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 

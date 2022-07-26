@@ -1,21 +1,28 @@
 'use strict';
-import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Material, Texture, PlaneBufferGeometry, BoxBufferGeometry, ShadowMapType, LinearMipmapNearestFilter, BufferGeometry, Light, Object3D, SpotLight, PointLight, WebGLRenderTarget } from 'three';
+import { Notify } from 'quasar';
+import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Material, Texture, PlaneBufferGeometry, BoxBufferGeometry, ShadowMapType, LinearMipmapNearestFilter, BufferGeometry, Light, Object3D, SpotLight, PointLight, WebGLRenderTarget, AnimationMixer, Vector2, MeshBasicMaterial, Raycaster } from 'three';
+import { EffectComposer, Pass } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { quality, qualities } from './qualities';
 import clientLogic from '../logic/client';
-import { state } from 'src/common/game/logic/common';
 
-import { Notify } from 'quasar';
-
-import type { mapConfig } from 'src/common/game/logic/mapConfig';
+import type { mapConfig, state } from 'src/common/game/interfaces';
+import type { controlsMode } from 'src/common/game/types';
 import type { Material as ThreeMaterial } from 'three';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 
 type onMoveCallback = ((position: number) => void) | null;
+type onStateChangeCallback = ((state: state) => void) | null;
 
 type options = {
+	accessibility: boolean,
 	qualityLevel: number,
 	width: number,
 	height: number,
@@ -24,9 +31,10 @@ type options = {
 	onProgress: ((itemUrl: string, itemsLoaded: number, itemsTotal: number) => void) | null,
 	onError: ((itemUrl: string) => void) | null,
 	onMove: onMoveCallback,
+	onStateChange: onStateChangeCallback,
 };
 
-type disposable = ThreeMaterial | BufferGeometry | Texture | Light | WebGLRenderer;
+type disposable = ThreeMaterial | BufferGeometry | Texture | Light | WebGLRenderer | Pass | AnimationMixer;
 
 const supportedDeltaModes = [0, 1, 2];
 
@@ -34,17 +42,30 @@ class PongScene
 {
 	protected config: mapConfig;
 	protected options: options;
+	protected dateTheta: number;
 	protected state: state;
 	protected disposed: boolean;
 	protected clock: Clock;
+	protected raycaster: Raycaster;
 	protected deviceOrientationCallback: null | ((e: DeviceOrientationEvent) => void);
 	protected scrollMovementCallback: null | ((e: WheelEvent) => void);
+	protected keydownMouvementCallback: null | ((e: KeyboardEvent) => void);
+	protected keyupMouvementCallback: null | ((e: KeyboardEvent) => void);
+	protected mouseMoveMouvementCallback: null | ((e: MouseEvent) => void);
+	protected blurCallback: null | (() => void);
 
+	protected controls: {wheel: boolean, keyboard: boolean, mouse: boolean};
+	protected activeControls: {wheel: boolean, keyboard: boolean, mouse: boolean};
 	protected playerMoveDistance: number;
 	protected ballMoveDistanceX: number;
 	protected ballMoveDistanceY: number;
 	protected moveDelta: number;
 	protected normalizedWheelEvent: [number | null, number | null, number | null];
+	protected keys: {up: boolean, down: boolean};
+	protected mouse: Vector2;
+	protected mouseChanged: boolean;
+	protected mouseControlAdjustmentFactor: number;
+	protected mouseControlAdjustmentConst: number;
 
 	protected loadingManager: LoadingManager;
 	protected gltfLoader: GLTFLoader;
@@ -54,10 +75,18 @@ class PongScene
 	protected disposable: disposable[];
 	protected scene: Scene;
 	protected envTexture: Texture | null;
+	protected useEffects: boolean;
 	protected renderer: WebGLRenderer;
+	protected composer: EffectComposer;
+	protected renderPass: RenderPass;
+	protected fxaaPass: ShaderPass;
+	protected bloomPass: UnrealBloomPass;
+	protected filmPass: FilmPass;
+	protected mixer: AnimationMixer;
 	protected camera: PerspectiveCamera;
 	protected floorMirror: Reflector | null;
 	protected floor: Mesh;
+	protected mouseCatcher: Mesh;
 	protected envLight: AmbientLight | null;
 	protected ball: Mesh;
 	protected player1: Mesh;
@@ -87,6 +116,7 @@ class PongScene
 	{
 		this.config = config;
 		this.options = Object.assign({}, {
+			accessibility: false,
 			qualityLevel: 1,
 			targetElem: document.body,
 			onReady: null,
@@ -95,10 +125,16 @@ class PongScene
 			{
 				console.log('Failed to fetch', ressourceUrl);
 			},
-			onMove: null
+			onMove: null,
+			onStateChange: null
 		}, options);
+		this.dateTheta = 0;
 		this.state = {
 			team: -1,
+			spectator: true,
+			can_join: false,
+			finish: false,
+			date: new Date(),
 			positions: [0.5, 0.5],
 			scores: [0, 0],
 			ball: true,
@@ -115,9 +151,60 @@ class PongScene
 			avatars: [null, null],
 			presences: [false, false]
 		};
+		this.raycaster = new Raycaster();
 
 		this.deviceOrientationCallback = null;
 		this.scrollMovementCallback = null;
+		this.keydownMouvementCallback =
+			(e: KeyboardEvent) =>
+			{
+				switch (e.code)
+				{
+				case 'ArrowUp':
+				case 'KeyW':
+					this.keys.up = true;
+					break;
+				case 'ArrowDown':
+				case 'KeyS':
+					this.keys.down = true;
+					break;
+				default:
+					return;
+				}
+				e.preventDefault();
+			};
+		this.keyupMouvementCallback =
+			(e: KeyboardEvent) =>
+			{
+				switch (e.code)
+				{
+				case 'ArrowUp':
+				case 'KeyW':
+					this.keys.up = false;
+					break;
+				case 'ArrowDown':
+				case 'KeyS':
+					this.keys.down = false;
+					break;
+				default:
+					return;
+				}
+				e.preventDefault();
+			};
+		this.mouseMoveMouvementCallback =
+			(e: MouseEvent) =>
+			{
+				e.preventDefault();
+				this.mouse.x = (e.offsetX / this.renderer.domElement.clientWidth) * 2 - 1;
+				this.mouse.y = -(e.offsetY / this.renderer.domElement.clientHeight) * 2 + 1;
+				this.mouseChanged = true;
+			};
+		this.blurCallback =
+			() =>
+			{
+				this.keys.up = false;
+				this.keys.down = false;
+			};
 		this.envTexture = null;
 		this.floorMirror = null;
 		this.envLight = null;
@@ -126,6 +213,7 @@ class PongScene
 		this.text = null;
 
 		const {
+			controls,
 			cameraClip, sceneFile,
 			gameScale, pauseCameraPosition, pauseCameraRotation,
 			ballMaterial, baseSize,
@@ -144,6 +232,12 @@ class PongScene
 		this.clock = new Clock();
 		this.disposed = false;
 
+		this.controls = {
+			wheel: controls.includes('wheel'),
+			keyboard: controls.includes('keyboard'),
+			mouse: controls.includes('mouse')
+		};
+		this.activeControls = this.controls;
 		this.playerMoveDistance = (baseSize[1] - playerSize[1]) * gameScale;
 		this.ballMoveDistanceX = (baseSize[0] - 3) * gameScale;
 		this.ballMoveDistanceY = (baseSize[1] - 1) * gameScale;
@@ -153,6 +247,14 @@ class PongScene
 			null,
 			null
 		];
+		this.keys = {
+			up: false,
+			down: false
+		};
+		this.mouse = new Vector2();
+		this.mouseChanged = false;
+		this.mouseControlAdjustmentFactor = baseSize[1] / (baseSize[1] - playerSize[1]);
+		this.mouseControlAdjustmentConst = -(playerSize[1] * 0.5) / baseSize[1];
 
 		this.loadingManager = new LoadingManager();
 		this.gltfLoader = new GLTFLoader(this.loadingManager);
@@ -172,13 +274,23 @@ class PongScene
 		this.camera.rotation.copy(pauseCameraRotation);
 
 		this.renderer = new WebGLRenderer({
-			antialias: true,
+			antialias: false,
 			powerPreference: 'high-performance',
 			canvas: targetElem
 		});
 		this.renderer.physicallyCorrectLights = true;
 		this.renderer.outputEncoding = LinearEncoding;
 		this.renderer.toneMapping = ACESFilmicToneMapping;
+
+		this.useEffects = false;
+		this.composer = new EffectComposer(this.renderer);
+
+		this.renderPass = new RenderPass(this.scene, this.camera);
+		this.fxaaPass = new ShaderPass(FXAAShader);
+		this.bloomPass = new UnrealBloomPass(new Vector2(1, 1), 0.4, 0.5, 0.1);
+		this.filmPass = new FilmPass(0.1, 0.25, 648, 0);
+
+		this.mixer = new AnimationMixer(this.scene);
 
 		const ballGeometry = new BoxBufferGeometry(gameScale, gameScale, gameScale);
 		this.track(ballGeometry);
@@ -206,6 +318,21 @@ class PongScene
 		this.floor.matrixAutoUpdate = false;
 		this.floor.updateMatrix();
 		this.scene.add(this.floor);
+
+		const mouseCatcherGeomerty = new PlaneBufferGeometry(
+			baseSize[0] * gameScale * 3,
+			baseSize[1] * gameScale
+		);
+		this.track(mouseCatcherGeomerty);
+
+		this.mouseCatcher = new Mesh(mouseCatcherGeomerty, new MeshBasicMaterial({ color: 0xff0000 }));
+		this.mouseCatcher.rotation.x = -Math.PI / 2;
+		this.mouseCatcher.position.y = -gameScale + 0.01 + gameScale / 2;
+		this.mouseCatcher.renderOrder = 4;
+		this.mouseCatcher.visible = false;
+		this.mouseCatcher.matrixAutoUpdate = false;
+		this.mouseCatcher.updateMatrix();
+		this.scene.add(this.mouseCatcher);
 
 		const playersGeometry = new BoxBufferGeometry(playerSize[0] * gameScale, gameScale, playerSize[1] * gameScale);
 		this.track(playersGeometry);
@@ -256,6 +383,13 @@ class PongScene
 							this.track(node as disposable);
 					});
 					this.scene.add(gltf.scene);
+					gltf.animations.forEach(
+						(clip) =>
+						{
+							this.mixer.clipAction(clip).play();
+						}
+					);
+					this._refreshAnimation();
 					this._refreshQuality();
 				}
 			);
@@ -289,6 +423,7 @@ class PongScene
 
 		this._refreshQuality();
 		this._refreshSize();
+		this._refreshAvatar();
 
 		this.loadingManager.onLoad =
 			() =>
@@ -296,6 +431,7 @@ class PongScene
 				if (onReady)
 				{
 					this.render();
+					this.setAnimationLoop(this.render.bind(this));
 					onReady();
 					console.log('Scene polycount:', this.renderer.info.render.triangles);
 					console.log('Active Drawcalls:', this.renderer.info.render.calls);
@@ -308,9 +444,14 @@ class PongScene
 			this.loadingManager.onProgress = onProgress;
 		if (onError)
 			this.loadingManager.onError = onError;
+
+		window.addEventListener('keydown', this.keydownMouvementCallback);
+		window.addEventListener('keyup', this.keyupMouvementCallback);
+		this.renderer.domElement.addEventListener('mousemove', this.mouseMoveMouvementCallback);
+		window.addEventListener('blur', this.blurCallback);
 	}
 
-	_getFontGeometry (font: Font, text: string, sizeRatio = 1)
+	_getFontGeometry (font: Font, text: string, sizeRatio = 1, fontHeight: number)
 	{
 		const { gameScale } = this.config;
 
@@ -320,8 +461,8 @@ class PongScene
 				{
 					font,
 					size: 8 * gameScale * sizeRatio,
-					height: 1 * gameScale * sizeRatio,
-					curveSegments: 3,
+					height: fontHeight * gameScale * sizeRatio,
+					curveSegments: 2,
 					bevelEnabled: false
 				}
 			);
@@ -419,11 +560,67 @@ class PongScene
 		this._refreshEnv(canUseSkyboxAsEnvironment);
 	}
 
+	_addEffect (effectName: string)
+	{
+		switch (effectName)
+		{
+		case 'bloom':
+			this.composer.addPass(this.bloomPass);
+			break;
+
+		case 'film':
+			this.composer.addPass(this.filmPass);
+			break;
+
+		default:
+			console.warn('Map config provide unrecognized effect');
+			break;
+		}
+	}
+
+	_refreshEffect ()
+	{
+		const {
+			effects
+		} = this.config;
+		const {
+			qualityLevel
+		} = this.options;
+		const {
+			allowedEffects,
+			critical
+		} = qualities[qualityLevel] as quality;
+
+		this.useEffects = false;
+		this.composer.passes = [];
+		this.composer.addPass(this.renderPass);
+		this.composer.addPass(this.fxaaPass);
+
+		if (critical || !allowedEffects || this.options.accessibility)
+			return;
+		effects.forEach(
+			(effectName: string) =>
+			{
+				if (allowedEffects.indexOf(effectName) !== -1)
+				{
+					this.useEffects = true;
+					this._addEffect(effectName);
+				}
+			}
+		);
+	}
+
+	_refreshAnimation ()
+	{
+		this.mixer.setTime(((new Date()).getTime() + this.dateTheta) / 1000);
+	}
+
 	_refreshQuality ()
 	{
 		const {
 			sceneFile, additionnalLight,
-			skybox, skyboxAsEnvironment, EnvironmentColor
+			skybox, skyboxAsEnvironment, EnvironmentColor,
+			hasShadow
 		} = this.config;
 		const {
 			qualityLevel
@@ -441,7 +638,7 @@ class PongScene
 		else
 			this.renderer.setPixelRatio(pixelRatio || 1);
 
-		if (useShadowmap)
+		if (useShadowmap && hasShadow)
 		{
 			this.renderer.shadowMap.enabled = true;
 			this.renderer.shadowMap.type = (shadowmap as ShadowMapType);
@@ -506,6 +703,8 @@ class PongScene
 				}
 			}
 		);
+
+		this._refreshEffect();
 	}
 
 	_refreshSize ()
@@ -519,6 +718,7 @@ class PongScene
 		} = this.config;
 
 		this.renderer.setSize(width, height);
+		this.composer.setSize(width, height);
 		this.camera.aspect = width / height;
 
 		if (width * 0.5625 < height)
@@ -538,7 +738,11 @@ class PongScene
 
 		this.camera.updateProjectionMatrix();
 		this._refreshFloorReflection();
-		// this.renderer.render(this.scene, this.camera);
+
+		const pixelRatio = this.renderer.getPixelRatio();
+
+		this.fxaaPass.material.uniforms.resolution.value.x = 1 / (width * pixelRatio);
+		this.fxaaPass.material.uniforms.resolution.value.y = 1 / (height * pixelRatio);
 	}
 
 	_setPosition (ratio: number)
@@ -597,6 +801,8 @@ class PongScene
 				(e) =>
 				{
 					e.preventDefault();
+					if (!this.controls.wheel || !this.activeControls.wheel)
+						return;
 
 					let normalizedDelta;
 					if (supportedDeltaModes.includes(e.deltaMode))
@@ -631,13 +837,14 @@ class PongScene
 			if (this.scrollMovementCallback)
 				this.renderer.domElement.removeEventListener('wheel', this.scrollMovementCallback);
 		}
+		this.deviceOrientationCallback = null;
 		this.scrollMovementCallback = null;
 	}
 
 	_refreshScore ()
 	{
 		const { scores } = this.state;
-		const { gameScale, scoreMaterial, scorePositions, scoreRotations } = this.config;
+		const { gameScale, scoreMaterial, scoreFontHeight, scorePositions, scoreRotations } = this.config;
 
 		if (!this.scoreFont)
 		{
@@ -651,7 +858,7 @@ class PongScene
 			this.leftScore.geometry.dispose();
 		}
 
-		const leftScoreGeometry = this._getFontGeometry(this.scoreFont, scores[0] + '');
+		const leftScoreGeometry = this._getFontGeometry(this.scoreFont, scores[0] + '', undefined, scoreFontHeight);
 		this.leftScore = new Mesh(leftScoreGeometry, scoreMaterial);
 		this.leftScore.receiveShadow = true;
 		this.leftScore.castShadow = true;
@@ -667,7 +874,7 @@ class PongScene
 			this.rightScore.geometry.dispose();
 		}
 
-		const rightScoreGeometry = this._getFontGeometry(this.scoreFont, scores[1] + '');
+		const rightScoreGeometry = this._getFontGeometry(this.scoreFont, scores[1] + '', undefined, scoreFontHeight);
 		this.rightScore = new Mesh(rightScoreGeometry, scoreMaterial);
 		this.rightScore.receiveShadow = true;
 		this.rightScore.castShadow = true;
@@ -735,7 +942,7 @@ class PongScene
 	_refreshText ()
 	{
 		const { text, textSize, textColor, paused } = this.state;
-		const { gameScale, textMaterial, textPausePosition, textPlayPosition, textPauseRotation, textPlayRotation } = this.config;
+		const { gameScale, textMaterial, textFontHeight, textPausePosition, textPlayPosition, textPauseRotation, textPlayRotation } = this.config;
 		let oldPos, oldRot;
 
 		if (!this.textFont)
@@ -760,7 +967,7 @@ class PongScene
 		textMaterial.color.set(textColor);
 		if ('emissive' in textMaterial)
 			textMaterial.emissive.set(textColor);
-		const textGeometry = this._getFontGeometry(this.textFont, text, textSize);
+		const textGeometry = this._getFontGeometry(this.textFont, text, textSize, textFontHeight);
 		this.text = new Mesh(textGeometry, textMaterial);
 		this.text.receiveShadow = true;
 		this.text.castShadow = true;
@@ -774,10 +981,6 @@ class PongScene
 		if (this.disposed)
 			return;
 
-		const delta = this.clock.getDelta();
-
-		clientLogic(this.state, this.config, delta);
-
 		const {
 			positions, ballX, ballY, lobby, ball,
 			offside, ballSpeedX, ballSpeedY,
@@ -790,11 +993,7 @@ class PongScene
 			offsideOpacityMultiplier
 		} = this.config;
 
-		this.player1.position.z = (positions[0] - 0.5) * this.playerMoveDistance;
-		this.player2.position.z = (positions[1] - 0.5) * this.playerMoveDistance;
-		this.ball.position.x = (ballX - 0.5) * this.ballMoveDistanceX;
-		this.ball.position.z = (ballY - 0.5) * this.ballMoveDistanceY;
-
+		const delta = this.clock.getDelta();
 		const lerpValue = Math.min(1, delta * transitionSpeed);
 
 		if (lobby)
@@ -820,6 +1019,35 @@ class PongScene
 			}
 		}
 
+		if (!this.state.paused && !this.state.lobby)
+		{
+			if (this.controls.keyboard && this.activeControls.keyboard && (this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
+			{
+				const sign = (this.keys.up ? -1 : 0) + (this.keys.down ? 1 : 0);
+				this._addPosition(sign * 1.4 * delta);
+			}
+
+			if (this.controls.mouse && this.activeControls.mouse && this.mouseChanged)
+			{
+				this.raycaster.setFromCamera(this.mouse, this.camera);
+				const intersects = this.raycaster.intersectObject(this.mouseCatcher);
+
+				if (intersects.length >= 1 && intersects[0].uv?.y)
+				{
+					const y = intersects[0].uv?.y;
+					this._setPosition((1 - y) * this.mouseControlAdjustmentFactor + this.mouseControlAdjustmentConst);
+				}
+				this.mouseChanged = false;
+			}
+		}
+
+		clientLogic(this.state, this.config, delta);
+
+		this.player1.position.z = (positions[0] - 0.5) * this.playerMoveDistance;
+		this.player2.position.z = (positions[1] - 0.5) * this.playerMoveDistance;
+		this.ball.position.x = (ballX - 0.5) * this.ballMoveDistanceX;
+		this.ball.position.z = (ballY - 0.5) * this.ballMoveDistanceY;
+
 		if (offside)
 		{
 			if (!ballSpeedX && !ballSpeedY)
@@ -840,7 +1068,13 @@ class PongScene
 		if (this.rightAvatar)
 			this.rightAvatar.material.opacity = presences[1] ? 1 : 0.65;
 
-		this.renderer.render(this.scene, this.camera);
+		if (!this.options.accessibility)
+			this.mixer.update(delta);
+
+		if (this.useEffects)
+			this.composer.render();
+		else
+			this.renderer.render(this.scene, this.camera);
 	}
 
 	setAnimationLoop (animate: (() => void) | null)
@@ -848,7 +1082,7 @@ class PongScene
 		this.renderer.setAnimationLoop(animate);
 	}
 
-	setState (state: Partial<state>, ping: number)
+	setState (state: Partial<state>, latency: number)
 	{
 		const oldState = Object.assign({}, this.state);
 		const newState = Object.assign({}, this.state, state);
@@ -860,7 +1094,7 @@ class PongScene
 			else
 				this._play();
 		}
-		else if (!newState.paused && state.players && oldState.team !== -1 && newState.team !== -1)
+		else if (!newState.paused && !newState.lobby && state.players && oldState.team !== -1 && newState.team !== -1)
 			state.positions[newState.team] = oldState.positions[oldState.team];
 
 		this.state = Object.assign(this.state, state);
@@ -874,11 +1108,20 @@ class PongScene
 		if (newState.avatars[0] !== oldState.avatars[0] || newState.avatars[1] !== oldState.avatars[1])
 			this._refreshAvatar();
 
-		if (ping)
+		if (latency)
 		{
 			this.clock.getDelta();
-			clientLogic(this.state, this.config, ping / 2);
+			clientLogic(this.state, this.config, latency / 1000);
 		}
+
+		if (this.options.onStateChange)
+			this.options.onStateChange(this.state);
+	}
+
+	setDateTheta (theta: number)
+	{
+		this.dateTheta = theta;
+		this._refreshAnimation();
 	}
 
 	setSize (width: number, height: number)
@@ -886,6 +1129,17 @@ class PongScene
 		this.options.width = width;
 		this.options.height = height;
 		this._refreshSize();
+	}
+
+	setAccessibility (accessibility: boolean)
+	{
+		this.options.accessibility = accessibility;
+		this._refreshQuality();
+		if (accessibility)
+			this.mixer.setTime(0);
+		else
+			this._refreshAnimation();
+		this.mixer.update(0);
 	}
 
 	setQuality (quality: number)
@@ -897,15 +1151,39 @@ class PongScene
 		this._refreshQuality();
 	}
 
+	setControl (control: controlsMode, enable: boolean)
+	{
+		if (control in this.activeControls)
+			this.activeControls[control] = enable;
+	}
+
 	setOnMove (callback: onMoveCallback)
 	{
 		this.options.onMove = callback;
+	}
+
+	setOnStateChange (callback: onStateChangeCallback)
+	{
+		this.options.onStateChange = callback;
 	}
 
 	dispose ()
 	{
 		this.disposed = true;
 		this._pause();
+
+		if (this.keydownMouvementCallback)
+			window.removeEventListener('keydown', this.keydownMouvementCallback);
+		if (this.keyupMouvementCallback)
+			window.removeEventListener('keyup', this.keyupMouvementCallback);
+		if (this.mouseMoveMouvementCallback)
+			window.removeEventListener('mousemove', this.mouseMoveMouvementCallback);
+		if (this.blurCallback)
+			window.removeEventListener('blur', this.blurCallback);
+		this.keydownMouvementCallback = null;
+		this.keyupMouvementCallback = null;
+		this.mouseMoveMouvementCallback = null;
+		this.blurCallback = null;
 
 		if (this.floorMirror)
 		{
@@ -937,10 +1215,14 @@ class PongScene
 			this.track(this.rightAvatar.material);
 		}
 		if (this.text)
-
 			this.track(this.text.geometry);
 
 		this.track(this.renderer);
+		this.track(this.renderPass);
+		this.track(this.fxaaPass);
+		this.track(this.bloomPass);
+		this.track(this.filmPass);
+		this.track(this.mixer);
 
 		for (let i = 0; i < this.disposable.length - 1; ++i)
 		{

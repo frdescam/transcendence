@@ -1,15 +1,18 @@
-import { Module } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
-import { DatabaseModule } from './database.module';
-import { UsersModule } from './users/users.module'
-import { AuthModule } from './auth/auth.module';
-import { ChatModule } from './chat/chat.module';
-//import { GameModule } from './game/game.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import * as process from 'process';
 import * as path from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
+
+import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { ScheduleModule } from '@nestjs/schedule';
+
+import { DatabaseModule } from './database.module';
+import { GameModule } from './game/main.module';
+import { ChatModule } from './chat/main.module';
+import { MatchModule } from './match/main.module';
+import { UsersModule } from './users/users.module'
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -18,9 +21,17 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
     DatabaseModule,
     UsersModule,
     AuthModule,
+    ServeStaticModule.forRoot({  // @TODO: Remove me for prod
+      rootPath: (
+        (process.env.NODE_ENV === 'production') ?
+          path.join(__dirname, '..', 'frontend', 'dist') :
+          path.join(__dirname, '..', 'static_dev')
+      )
+    }),
+    MatchModule,
     ChatModule,
+    GameModule,
     LeaderboardModule
-    //GameModule
   ],
 })
 export class AppModule { }

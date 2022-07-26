@@ -6,10 +6,13 @@ import messages from 'src/i18n';
 export default boot(({ app }) =>
 {
 	const i18n = createI18n({
+		legacy: false,
+		globalInjection: true,
 		locale: 'en-US',
+		fallbackLocale: 'en-US',
 		messages
 	});
-
-	// Set i18n instance on app
+	app.config.globalProperties.$i18n = i18n;
 	app.use(i18n);
+	app.provide('i18n', app.config.globalProperties.$i18n);
 });

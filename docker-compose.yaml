@@ -9,15 +9,16 @@ services:
     restart: unless-stopped
     image: postgres:14
     environment:
-      - POSTGRES_DB=transcendence
-      - POSTGRES_USER=transcendence
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8
+      PG_DATA: /var/lib/postgresql/data
     volumes:
       - ./data/db:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
-    networks:
-      - webnet
+    env_file:
+      - .env
 
   ################# Transcendence #################
   transcendence:

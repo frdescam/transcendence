@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { Match } from '../orm/match.entity';
 import { MatchDTO } from '../orm/match.dto';
+import { MatchRegistrationDto } from '../orm/registration.dto';
 
 @Injectable()
 export class MatchService {
@@ -34,12 +35,12 @@ export class MatchService {
     return ret;
   }
 
-  async create(data: MatchDTO) {
+  async create(data: MatchRegistrationDto) {
     try {
       const match = this.matchRepository.create(data);
       await this.matchRepository.save(match);
       return {
-        message: `Match ${data.id} is created`,
+        message: `Match ${match.id} is created`,
         match,
         created: true
       };

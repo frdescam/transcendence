@@ -28,7 +28,7 @@ export class User extends BaseEntity {
     @Column({type: "varchar", length: 60, nullable: true}) // nullable, optional?
     password: string;
 
-    @Column({type: "varchar", length: 50, nullable: true})
+    @Column({type: "varchar", length: 50, nullable: true}) // add default of default avatar (stormtrooper)
     avatar: string;
 
     @Column({type: "boolean", default: false})

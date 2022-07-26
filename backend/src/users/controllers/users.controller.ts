@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, HttpStatus, NotFoundException, Param, Post, Req, Res, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"; // post will be needed later, erase RES
+import { BadRequestException, Body, Controller, Get, HttpStatus, NotFoundException, Param, Patch, Post, Req, Res, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"; // post will be needed later, erase RES
 import { Express, Request, Response } from 'express';
 import { ConfigService } from "@nestjs/config";
 
@@ -26,60 +26,79 @@ export class UsersController {
 		return user;
 	}
 
-    // could save img as :id, like that we can replace img each time instead of having 1000+ of em.
-    // receive only
-    // 'image/png',
-	// 'image/jpg',
-	// 'image/jpeg'
     @Post('upload')
     @UseInterceptors(FileInterceptor('file', {
         //fieldName: 'file',
         storage: diskStorage({
             destination: './upload/avatars',
             filename: (req, file, callback) => {
-                console.log(req.user);
-                const dis = req.user['id'];
-                callback(null, (dis).toString());
+                //console.log(req.user);
+                const id: number = req.user['id'];
+                callback(null, (id).toString());
               },
           }),
         //dest: '/avatars',
         fileFilter: (request, file, callback) => {
-          if (!file.mimetype.includes('image')) {
-            return callback(new BadRequestException('Provide a valid image'), false);
+          //if (!file.mimetype.includes('image')) {
+          //  return callback(new BadRequestException('Provide a valid image'), false);
+          //}
+          const lower_originalname : string = file.originalname.toLowerCase();
+          if (!lower_originalname.match(/\.(jpg|jpeg|png)$/)) { // gifs too?
+            const err: BadRequestException = new BadRequestException(
+              'Only image files (jpg|jpeg|png) are supported',
+            )
+            return callback(err, false)
           }
           //console.log(request.user);
+          //console.log(path.parse(file.originalname).ext);
           callback(null, true);
         },
         limits: {
-          fileSize: Math.pow(1024, 2) // 1MB
+          fileSize: Math.pow(1024, 2) // 1MB more dan 1 mb?
         },
         
       }))
     async uploadFile(@AuthUser() user: User, @UploadedFile() file: Express.Multer.File) {
-        console.log(file, file.filename, file.mimetype.includes('image'), path.parse(file.originalname).name.replace(/\s/g, ''));
+        //console.log(file, file.filename, file.mimetype.includes('image'), path.parse(file.originalname).name.replace(/\s/g, ''));
         //await this.users_svc.setAvatar(file.filename, user.id);
         //console.log(user);
-        return await this.users_svc.setAvatar(file.filename, user.id);
+        return await this.users_svc.updateAvatar(file.filename, user.id);
     }
 
-    // how do i show the damn avatar
+    // for testing erase later
+    // test to show that we can send the avatar to the frontend
     @Get('show')
-    show(@AuthUser() user: User) {
-        const avatar = "<html><img src='./upload/avatars/" + user.avatar + "'></html>";
-        return avatar;
+    display(@Res() res){
+    res.sendFile('1',{ root: './upload/avatars' })
+  }
+
+  // for testing erase later
+  @Get('test')
+  test(@AuthUser() user: User,){
+    //return this.users_svc.getOne(user.id);
+  }
+
+    @Patch('updatePseudo')
+    async updatePseudo(
+      @AuthUser() user: User,
+      @Body() { update_pseudo }, // updated pseudo here, use dto?
+      //@Param('id', ParseIntPipe) id: number,
+    ): Promise<User | object> {
+      return this.users_svc.updatePseudo(update_pseudo, user.id,);
     }
 
-    @Get(':id') // add ParseIntPipe
-	async findOne(@Param('id') id: number): Promise<User> {
-		const target: User = await this.users_svc.findOne({
-			id: id,
-		});
+    @Get(':id') // add ParseIntPipe to validate id
+	  async findOne(@Param('id') id: number): Promise<User> {
+      const target: User = await this.users_svc.findOne({
+        id: id,
+      });
 
-		if (!target)
-            //throw new BadRequestException('User not found.');
-            throw new NotFoundException('User not found.');
+      if (!target)
+              throw new BadRequestException('User not found.');
+              //throw new NotFoundException('User not found.');
+              //return undefined;
 
-		return target;
-	}
+      return target;
+	  }
 
 }

@@ -3,13 +3,9 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "../../users/entities/user.entity";
 
-// TODO here add types to payloads
-// create dtos
-
-export enum CookieType {
-	AUTHENTICATION = 'Authentication',
-	REFRESH = 'Refresh',
-	TWOFA = 'isSecondFactorAuthenticated',
+interface cookiePayload {
+	sub: number,
+	isSecondFactorAuthenticated?: boolean,
 }
 
 @Injectable({})
@@ -18,23 +14,22 @@ export class CookiesService {
 
 	getAuthJwtTokenCookie(
 		user: User,
-	):  string  { // create dtos
+	):  string  {
 		const secret = this.config.get('JWT_AUTH_SECRET');
 		const lifetime = this.config.get('JWT_AUTH_LIFETIME')
-		const payload: any = { sub: user.id }; // any for now, create dto for this?
+		const payload: cookiePayload = { sub: user.id };
 
 		const token = this.getJwtToken(payload, secret, lifetime);
-        //console.log(cookie);
 
 		return token;
 	}
 
     getRefreshJwtTokenCookie(
 		user: User,
-	):  string { // this will return only the token, // create dtos
+	):  string {
 		const secret = this.config.get('JWT_REFRESH_SECRET');
 		const lifetime = this.config.get('JWT_REFRESH_LIFETIME');
-		const payload: any = { sub: user.id }; // any for now, create dto for this? // user_id or id?
+		const payload: cookiePayload = { sub: user.id };
 
 		const token = this.getJwtToken(payload, secret, lifetime);
 
@@ -43,10 +38,10 @@ export class CookiesService {
 
 	get2FAJwtTokenCookie(
 		user: User,
-	):  string { // this will return only the token, // create dtos
+	):  string {
 		const secret = this.config.get('JWT_AUTH_2FA_SECRET');
 		const lifetime = this.config.get('JWT_AUTH_2FA_LIFETIME'); //change to 5 mins
-		const payload: any = { sub: user.id, isSecondFactorAuthenticated: "true"}; // any for now, create dto for this? // user_id or id?
+		const payload: cookiePayload = { sub: user.id, isSecondFactorAuthenticated: true};
 
 		const token = this.getJwtToken(payload, secret, lifetime);
 
@@ -54,7 +49,7 @@ export class CookiesService {
 	}
 
 	private getJwtToken(
-		payload: string | object, // why object here? // should be same dto i need to create for the payload in l38 (return object of func getRefreshJwtTokenCookie), and payload l27,41
+		payload: cookiePayload,
 		secret: string,
 		lifetime: string,
 	): string {

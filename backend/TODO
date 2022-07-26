@@ -15,3 +15,7 @@
 - erase test_users in auth_svc
 - create TokenPayload dto for strategies auth & ws.
 - stop using response in 2fa service & controller, and fix turnon off await and return types
+- when signup is called avatar should not be 42 img, but the no-avatar.jpg aka the stormtrooper 
+
+- viens de voir avec François pour merge plusieurs branche sur master, et je voulais te demander s'il serait possible d'avoir un alias dans la class UsersService du membre async getOne(userId: number) vers async findOne({id: userId}) ?
+La branche en question est merge_n_users_integration qui a pour but d'être mergé sur master, mais si tu le met sur master ça nous va aussi 

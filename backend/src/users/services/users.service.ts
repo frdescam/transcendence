@@ -11,34 +11,27 @@ export class UsersService {
     constructor(@InjectRepository(User)
     private readonly users_repo: Repository<User>,) {}
 
-	// add return type!!!
-	async turnOn2FA(userId: number)//: Promise<void> {
-		{
-			// change return here
-		return await this.users_repo.update(userId, {
+	async turnOn2FA(userId: number): Promise<void> {
+		await this.users_repo.update(userId, {
 			is2FActive: true,
 		});
 	  }
 
-	// add return type!!!
-	  async turnOff2FA(userId: number) {
-			// change return here
-		return await this.users_repo.update(userId, {
+	  async turnOff2FA(userId: number): Promise<void> {
+		await this.users_repo.update(userId, {
 			is2FActive: false,
 			secretOf2FA: null,
 		});
 	  }
 
-	// add return type!!!
-	async set2FASecret(secret: string, userId: number) {
-			// change return here
-		return await this.users_repo.update(userId, {
+	async set2FASecret(secret: string, userId: number): Promise<void> {
+		await this.users_repo.update(userId, {
 			secretOf2FA: secret,
 		});
 	  }
 
-	async setAvatar(filename: string, userId: number) {
-		// change return here
+	// do we even need to return the user here?
+	async updateAvatar(filename: string, userId: number): Promise<User> {
 	// return await this.users_repo.update(userId, {
 	// 	avatar: filename,
 	// });
@@ -53,13 +46,37 @@ export class UsersService {
     .returning('*')
     .execute()
 
+	//console.log("result: ",result.raw[0]);
 	return result.raw[0];
 	//  return await this.users_repo.save({
 	// 	id: userId,
 	//  	avatar: filename,
 	//  });
-  }
+	}
+  
+	async updatePseudo(new_pseudo: string, userId: number) : Promise<User | object> {
+		// change return here
+		const user: User = await this.users_repo.findOne({pseudo : new_pseudo});
 
+		if (user)
+			return {error: "pseudo already taken!"}
+		
+		console.log("user: ", user);
+		
+		const result = await this.users_repo.createQueryBuilder()
+		.update({
+			pseudo: new_pseudo,
+		})
+		.where({
+			id: userId,
+		})
+		.returning('*')
+		.execute()
+		
+		console.log("result: ",result.raw[0]);
+		//console.log(test_user, user, result.raw[0]);
+		return result.raw[0];
+	}
 
 	// doenst work wait for franco too update relations.
 	async getFriends(userId : number) {
@@ -72,13 +89,13 @@ export class UsersService {
         // print this when testing multiple pseudos
         //console.log(await this.getUniquePseudo(user_dto.pseudo));
 		//console.log(user_dto, await this.users_repo.findOne({where: user_dto}));
-		return this.users_repo.findOne({where: user_dto}); // if multiple pseudos r the same, does this work? // use this id: user_dto.id?
-		// return this.users_repo.findOne({
-        //     where: {
-        //         fortytwo_id: user_dto.fortytwo_id,
-        //     }
-        // });
+		return this.users_repo.findOne(user_dto); // use where?
     }
+
+	async getOne(userId: number): Promise<User>
+	{
+		return this.users_repo.findOne({id: userId});
+	}
 
     async findAll(): Promise<User[]> {
         return this.users_repo.find();
@@ -88,7 +105,7 @@ export class UsersService {
     // and use this when changing pseudo too not just register
     // cant have mutiple ppl with same pseudo nick, nickname
     private async getUniquePseudo(login: string): Promise<string> {
-		const found: User = await this.users_repo.findOne({ where: {pseudo: login} });
+		const found: User = await this.users_repo.findOne({ where: {pseudo: login} }); // where not needed here
 
 		if (!found)
             return login;

@@ -3,7 +3,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, NotFoundException, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-<<<<<<< HEAD
+import * as process from 'process';
 import * as cookieParser from 'cookie-parser';
 
 // put this into its own file LULz
@@ -19,22 +19,15 @@ export class NotFoundExceptionFilter implements ExceptionFilter {
 //* put this into its own file LULz
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  // use pipe to validate 42 data?
- // app.useGlobalPipes(new ValidationPipe({
-  //  whitelist: true,
-  //}))
-=======
-import * as process from 'process';
-import * as cookieParser from 'cookie-parser';
-
-async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: (process.env.NODE_ENV === 'production')
       ? false
       : ['log', 'error', 'warn', 'debug', 'verbose'],
   });
->>>>>>> badam
+  // use pipe to validate 42 data?
+ // app.useGlobalPipes(new ValidationPipe({
+  //  whitelist: true,
+  //}))
   app.enableCors();
   // for cookies
   app.use(cookieParser());
@@ -42,11 +35,6 @@ async function bootstrap() {
   // app.setGlobalPrefix('api');
   app.useGlobalFilters(new NotFoundExceptionFilter());
   app.setGlobalPrefix('api');
-<<<<<<< HEAD
-  await app.listen(8080);
-=======
-  app.use(cookieParser());
   await app.listen(process.env.BACK_PORT);
->>>>>>> badam
 }
 bootstrap();

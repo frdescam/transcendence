@@ -47,8 +47,7 @@ function onFound (room: string)
 {
 	status.value = State.Found;
 	router.push({
-		path: `/game/${room}`,
-		// name: 'party',
+		name: 'party',
 		params: {
 			party: room
 		}

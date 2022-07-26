@@ -16,7 +16,7 @@ import { BannedService } from './banned/banned.service';
 import { ChannelService } from './channel/channel.service';
 import { MessageService } from './message/message.service';
 import { MutedService } from './muted/muted.service';
-import { UserService } from 'src/user/user/user.service';
+import { UsersService } from 'src/users/services/users.service';
 
 import { BannedDTO } from './orm/banned.dto';
 import { ChannelDTO } from './orm/channel.dto';
@@ -46,7 +46,7 @@ const getType = (type: string) => {
 export class MainGateway implements NestGateway
 {
   constructor(
-    private readonly userService: UserService,
+    private readonly userService: UsersService,
 
     private readonly bannedService: BannedService,
     private readonly channelService: ChannelService,

@@ -3,7 +3,7 @@ import { Interval } from '@nestjs/schedule';
 import { nanoid } from 'nanoid';
 import { Clock } from 'three';  // @TODO : should find a lighter technologie
 import { MatchService } from 'src/match/match/match.service';
-import { UserService } from 'src/user/user/user.service';
+import { UsersService } from 'src/users/services/users.service';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import { bounceBall } from 'src/common/game/logic';
 import { teamEnum } from 'src/common/game/types';
@@ -25,7 +25,7 @@ export class PartyService
     private onListChange: listChangeCallback | null = null;
 
     constructor (
-      private readonly userService: UserService,
+      private readonly userService: UsersService,
       private readonly matchService: MatchService,
     )
     {}

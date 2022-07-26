@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { PartyService } from './party.service';
 import { PartyController } from './party.controller';
-import { UserModule } from 'src/user/main.module';
+import { UsersModule } from 'src/users/users.module';
 import { MatchModule } from 'src/match/main.module';
 
 @Module({
   imports: [
-    UserModule,
+    UsersModule,
     MatchModule,
   ],
   controllers: [PartyController],

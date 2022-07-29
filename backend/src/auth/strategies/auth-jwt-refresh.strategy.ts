@@ -5,16 +5,9 @@ import { Strategy } from 'passport-jwt';
 import { ExtractJwt } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 
-import { AuthDto } from '../dto'; // not needed for now
 import { User } from 'src/users/entities/user.entity';
-import { AuthService } from '../services/auth.service'; // update later
-
-// Create token dto! 
-    // into its own file
-export interface TokenPayload {
-	sub: number;
-	isSecondFactorAuthenticated?: boolean; // most likely not needed
-}
+import { TokenPayload } from '../dto/tokenPayload.dto';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
@@ -38,7 +31,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
 	async validate(request: Request, payload: TokenPayload): Promise<User> {
 		return this.auth_svc.login({
 			id: payload.sub,
-			refresh_token: request.cookies?.Refresh, // if we add this, then has to be added to user.entity.ts too!
+			refresh_token: request.cookies?.Refresh,
 		});
 	}
 }

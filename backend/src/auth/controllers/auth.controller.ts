@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from "@nestjs/common"; // post will be needed later, erase RES
+import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from "@nestjs/common"; // post will be needed later, erase RES
 import { Request, Response } from 'express';
 import { ConfigService } from "@nestjs/config";
 
@@ -12,17 +12,72 @@ import { CookiesService } from '../services/cookies.service';
 import { AuthUser } from "../decorators/auth-user.decorator";
 import { User } from "src/users/entities/user.entity";
 import { TwoFactorAuthService } from '../services/twoFactorAuth.service';
+import { AuthDto } from "../dto";
 
 // cant have mutiple ppl with same pseudo nick, nickname
 // add async to route and stuff
 
-export interface twoFAPayload { // could just use { code } its easier...
+interface twoFAPayload { // could just use { code } its easier...
 	code?: string;
 }
 
 @Controller() //api heres // for now its in the index if not logged // change to auth someday
 export class AuthController {
         constructor(private auth_svc: AuthService, private auth2fa_svc: TwoFactorAuthService, private readonly cookies_svc: CookiesService,) { }
+
+    // to log in without auth42 for insomnia
+    // code to ignore 2FA too, ned to add this
+    @Post("auto_login")
+    async auto_login(@Body() {id}, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
+    {
+        const user : User = await this.auth_svc.login({id: id});
+
+        // if 2FA activated return obj to frontend to display 2FA to user, else set cookies with jwt (if logged in) and return to frontend obj two_factor_enabled: false.
+        if (user.is2FActive === true) // use boolean in db instead of string?
+        {
+            const twoFA_token = this.cookies_svc.get2FAJwtTokenCookie(user,);
+            request.res.cookie("isSecondFactorAuthenticated", twoFA_token, {maxAge: 86400 * 1000, // maxAge .env
+            sameSite: 'strict',
+            httpOnly: true,
+            path: '/',
+            });
+
+            // here add jwt cookie that tells the server that user tried to log in, make it available for 5 mins after that guard in /2fa/login will return 401.
+            return { // maybe like i add a cookie with id here its not necessary to return to the frontend the id of the user.
+				user_id: user.id,
+				two_factor_enabled: true,
+			};
+        }
+
+        const auth_token = this.cookies_svc.getAuthJwtTokenCookie(
+			user,
+		);
+		const refresh_token = this.cookies_svc.getRefreshJwtTokenCookie(
+			user,
+		);
+
+        // here call function that will update the status in our db to online, and update the refresh_token for the token
+		this.auth_svc.refresh(user, refresh_token);
+
+        // Add cookies here if not 2FA
+        request.res.cookie("Authentication", auth_token, {maxAge: 86400 * 1000, // in ms // use env for maxAge
+            sameSite: 'strict',
+            httpOnly: true,
+            path: '/',
+        });
+
+        request.res.cookie("Refresh", refresh_token, {maxAge: 86400 * 1000, // in ms // use env for maxAge
+            sameSite: 'strict',
+            httpOnly: true,
+            path: '/',
+        });
+
+        // return if 2FA or if logged to front end here! with a json obj
+        return {
+			two_factor_enabled: false,
+		};
+    }
+
 
     @Get("")
     async index() {
@@ -149,25 +204,15 @@ export class AuthController {
 		};
 	}
     
-    // change route and func to login
     @UseGuards(OAuthGuard)
     @Get("login") // login // remember to change this in .env too!
     async login(@AuthUser() user: User, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
     {
-        // add cookie type
-        // if cookies are already there verify if they are valid and dont log in, just return object to frontend
-        const auth_token = this.cookies_svc.getAuthJwtTokenCookie(
-			user,
-		);
-		const refresh_token = this.cookies_svc.getRefreshJwtTokenCookie(
-			user,
-		);
-
         // if 2FA activated return obj to frontend to display 2FA to user, else set cookies with jwt (if logged in) and return to frontend obj two_factor_enabled: false.
         if (user.is2FActive === true) // use boolean in db instead of string?
         {
             const twoFA_token = this.cookies_svc.get2FAJwtTokenCookie(user,);
-            request.res.cookie("isSecondFactorAuthenticated", twoFA_token, {maxAge: 86400 * 1000,
+            request.res.cookie("isSecondFactorAuthenticated", twoFA_token, {maxAge: 86400 * 1000, // maxAge .env
             sameSite: 'strict',
             httpOnly: true,
             path: '/',
@@ -179,6 +224,14 @@ export class AuthController {
 				two_factor_enabled: true,
 			};
         }
+
+        // if cookies are already there verify if they are valid and dont log in, just return object to frontend
+        const auth_token = this.cookies_svc.getAuthJwtTokenCookie(
+			user,
+		);
+		const refresh_token = this.cookies_svc.getRefreshJwtTokenCookie(
+			user,
+		);
 
         // here call function that will update the status in our db to online, and update the refresh_token for the token
 		this.auth_svc.refresh(user, refresh_token);

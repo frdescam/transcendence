@@ -1,21 +1,33 @@
-- move every service, module, dto, entity, controller, into its own folder.
-- when changing pseudo remember to check if it doesnt exist yet and add number (e.g ltouret -> ltouret1)
+General:
 - change route into async and other funcs & post?
 - check & add missing dtos
 - erase useless imports
 - unistall nestjs + nodejs + yarn + npm from my pc?
-- add friends (online, offline, in a game, and so forth), add status in ram
-- delete friends
-- match history
-- stats (such as: wins and losses, ladder level, achievements, and so forth)
-- add jwt in websockets
 - use same dockefile as rest with .env
-- Could you create a func getFriends(User) in the user service? check if works.
-- if an user is already logged with valid jwt we could check for them b4 trying to log in with 42 api, and let them through?
-- erase test_users in auth_svc
-- create TokenPayload dto for strategies auth & ws.
-- stop using response in 2fa service & controller, and fix turnon off await and return types
-- when signup is called avatar should not be 42 img, but the no-avatar.jpg aka the stormtrooper 
+- fix /auth/dto erase barrel import
 
-- viens de voir avec François pour merge plusieurs branche sur master, et je voulais te demander s'il serait possible d'avoir un alias dans la class UsersService du membre async getOne(userId: number) vers async findOne({id: userId}) ?
-La branche en question est merge_n_users_integration qui a pour but d'être mergé sur master, mais si tu le met sur master ça nous va aussi 
+Cookies:
+    maxAge of cookies hsould be read from .env (Auth)
+
+Auth:
+    erase auto_login in auth controller. 
+    erase test_users in auth_svc
+    when signup is called avatar should not be 42 img, but the no-avatar.jpg aka the stormtrooper
+    if an user is already logged with valid jwt we could check for them b4 trying to log in with 42 api, and let them through?
+    will we add passwords?
+    add returns to routes
+
+Jwt:
+    add jwt in websockets
+
+2FA:
+    stop using response in 2fa service & controller, and fix turn-on & off (await and return types)
+
+Users:
+    erase show in user controller
+    when changing pseudo remember to check if it doesnt exist yet and return error -> talk with paul about return object
+    add friends (online, offline, in a game, and so forth), add status in ram
+    delete friends
+    match history
+    stats (such as: wins and losses, ladder level, achievements, and so forth)
+    Could you create a func getFriends(User) in the user service? check if works -> wait for Franco

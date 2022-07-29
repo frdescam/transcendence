@@ -26,6 +26,7 @@ export class UsersController {
 		return user;
 	}
 
+    // if file is saved as :id and do we need to store the extension of teh file somewhere too? or can we just serve a file without telling the browser about it?
     @Post('upload')
     @UseInterceptors(FileInterceptor('file', {
         //fieldName: 'file',
@@ -72,18 +73,12 @@ export class UsersController {
     res.sendFile('1',{ root: './upload/avatars' })
   }
 
-  // for testing erase later
-  @Get('test')
-  test(@AuthUser() user: User,){
-    //return this.users_svc.getOne(user.id);
-  }
-
     @Patch('updatePseudo')
     async updatePseudo(
       @AuthUser() user: User,
       @Body() { update_pseudo }, // updated pseudo here, use dto?
       //@Param('id', ParseIntPipe) id: number,
-    ): Promise<User | object> {
+    ): Promise<User | object> { // this is ugly, return only one!
       return this.users_svc.updatePseudo(update_pseudo, user.id,);
     }
 
@@ -100,5 +95,4 @@ export class UsersController {
 
       return target;
 	  }
-
 }

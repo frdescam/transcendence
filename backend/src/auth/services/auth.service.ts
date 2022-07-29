@@ -33,6 +33,7 @@ export class AuthService {
     async test_users(user_dto: AuthDto) {
         this.users_svc.getFriends(user_dto.id);
     }
+    // erase later
 
     async signup(user_dto: AuthDto): Promise<User> {
         return this.users_svc.signup(user_dto);

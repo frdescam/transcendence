@@ -78,9 +78,15 @@ export class UsersService {
 		return result.raw[0];
 	}
 
+	// add relation
 	// doenst work wait for franco too update relations.
 	async getFriends(userId : number) {
-		let user: User = await this.users_repo.findOne({id: userId});
+		let user: User = await this.users_repo.findOne({
+			where: {
+				id: userId
+			},
+			//relations : [] // add relation
+		});
 		//console.log(user, user.friends);
 		return user.friends;
 	}
@@ -89,7 +95,7 @@ export class UsersService {
         // print this when testing multiple pseudos
         //console.log(await this.getUniquePseudo(user_dto.pseudo));
 		//console.log(user_dto, await this.users_repo.findOne({where: user_dto}));
-		return this.users_repo.findOne(user_dto); // use where?
+		return this.users_repo.findOne({where: user_dto}); // use where? // if auth breaks is this line
     }
 
 	async getOne(userId: number): Promise<User>

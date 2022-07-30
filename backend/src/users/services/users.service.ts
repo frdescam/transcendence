@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Length } from "class-validator";
 import { Like, Repository } from "typeorm";
 
 import { AuthDto } from '../../auth/dto';
@@ -14,7 +13,19 @@ export class UsersService {
         @InjectRepository(User)
         private readonly users_repo: Repository<User>,
         @InjectRepository(Friend)
-        private friends_repo: Repository<Friend>) {}
+        private readonly friends_repo: Repository<Friend>
+    ) {}
+
+    async getFriends(userId : number): Promise<User[]> {
+        const friendRelations = await this.friends_repo.find({
+            where: {user: userId, isPending: false}
+        })
+        let friends: User[] = [];
+        friendRelations.forEach(friendRelation => {
+            friends.push(friendRelation.followedUser);
+        });
+        return friends;
+	}
 
 	// add return type!!!
 	async turnOn2FA(userId: number)//: Promise<void> {
@@ -41,26 +52,6 @@ export class UsersService {
 			secretOf2FA: secret,
 		});
 	  }
-
-    async follow(userId: number, follwedUserId: number) {
-        this.friends_repo.create({
-            user: userId,
-            followedUser: follwedUserId,
-            isPending: false
-        })
-    }
-
-	// check if works
-	async getFriends(userId : number): Promise<User[]> {
-        const friendRelations = await this.friends_repo.find({
-            where: {user: userId, isPending: false}
-        })
-        let friends: User[] = [];
-        friendRelations.forEach(friendRelation => {
-            friends.push(friendRelation.followedUser);
-        });
-        return friends;
-	}
 
     async findOne(user_dto: AuthDto): Promise<User> {
         // print this when testing multiple pseudos

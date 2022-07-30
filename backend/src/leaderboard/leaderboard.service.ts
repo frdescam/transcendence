@@ -9,17 +9,15 @@ export class LeaderboardService {
         private userService: UsersService,
     ) {}
 
-    async getRows(userId: number, friendsOnly: boolean, startRow: number, count: number, filter: string, sortBy: string, descending: string) {
-        // TODO : handle friends only case
+    async getRows(userId: number, friendsOnly: string, startRow: number, count: number, filter: string, sortBy: string, descending: string) {
         let allUsersAsEntity: User[];
-        if (friendsOnly)
+        if (friendsOnly == 'true') {
+            allUsersAsEntity = await this.userService.getFriends(userId);
+            allUsersAsEntity.push(await this.userService.findOne({id: userId}));
+        } else {
             allUsersAsEntity = await this.userService.findAll();
-        // else {
-        //     allUsersAsEntity = await this.userService.findFriends(userId);
-        //     allUsersAsEntity.push(await this.userService.findOne({id: userId}))
-        // }
+        }
         allUsersAsEntity.sort((a: User, b: User) => {
-            console.log('descending : ', descending);
             if (sortBy === 'ratio') {
                 if (descending == 'true')
                     return a.ratio - b.ratio;

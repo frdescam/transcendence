@@ -895,11 +895,16 @@ export class PartyService
         return (this.parties);
     }
 
-    public find ({map}: partyQuery): string | null
+    public find ({map, requester}: partyQuery): string | null
     {
         const candidates = this.parties.filter(
             (party) =>
             {
+                if (party.status == partyStatus.Finish)
+                    return (false);
+                if (party.playersId[0] && party.playersId[1])
+                    if (party.playersId[0] != requester && party.playersId[1] != requester)
+                      return (false);
                 if (map && party.map != map)
                     return (false);
                 return (true);
@@ -914,7 +919,7 @@ export class PartyService
 
     private isQueryCompatible (query1: partyQuery, query2: partyQuery): boolean
     {
-        // @TODO also use socket to test "player=" criteria
+        // @TODO also use socket to test "player=" (adversary) criteria
 
         if (query1.map && query2.map)
             if (query1.map != query2.map)
@@ -935,8 +940,6 @@ export class PartyService
 
     public queryParty (client: Socket, query: partyQuery)
     {
-        // @TODO: manage error: eg: disallow if involved in other party (or auto give-up)
-
         const hasToCreateQuery = this.queries.every(
             ({client: testedClient, query: testedQuery}) =>
             {
@@ -971,12 +974,12 @@ export class PartyService
 
     public wireMatchingQuery (party: Party)
     {
-        if (party.playersId[0] && party.playersId[1]) // @TODO: Should check that's the place is not reserved to the querier
-            return ;
-
         this.queries.every(
             ({client, query}) =>
             {
+                if (party.playersId[0] && party.playersId[1])
+                    if (party.playersId[0] != query.requester && party.playersId[1] != query.requester)
+                        return (false);
                 if ((!query.map || query.map == party.map))
                 {
                     client.emit('game::query::found', party.room);

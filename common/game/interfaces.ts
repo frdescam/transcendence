@@ -1,5 +1,5 @@
 import type { Euler, Color, Vector3 } from 'three';
-import type { Material, avatar, team } from './types';
+import type { Material, avatar, team, userId } from './types';
 
 interface mapConfig {
 	cameraClip: [number, number],
@@ -82,7 +82,8 @@ interface state extends serverState {
 
 // @TODO: also save adversary criteria
 interface partyQuery {
-	map?: string
+	map?: string,
+  requester: userId
 }
 
 interface Ping {

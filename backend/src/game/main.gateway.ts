@@ -4,7 +4,7 @@ import { map } from './interface';
 import { PartyService } from './party/party.service';
 import type { Socket, Server } from 'socket.io';
 import type { userId } from 'src/common/game/types';
-import type { Pong } from 'src/common/game/interfaces';
+import type { Pong, partyQuery } from 'src/common/game/interfaces';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
 
@@ -156,20 +156,25 @@ export class MainGateway
     return ({left: true});
   }
 
+  @UseGuards(SocketMockupAuthGuard)
   @SubscribeMessage('game::query::find')
   query(
     @ConnectedSocket() client: Socket,
+    @Request() req,
     @MessageBody('map') map?: string,
   ): void
   {
-    const room = this.partyService.find({map});
+    const userId: userId = req.user.id;
+    const query: partyQuery = {map, requester: userId};
+    
+    const room = this.partyService.find(query);
 
     if (room)
       client.emit('game::query::found', room);
     else
     {
       client.emit('game::query::notFound');
-      this.partyService.queryParty(client, {map});
+      this.partyService.queryParty(client, query);
     }
   }
 

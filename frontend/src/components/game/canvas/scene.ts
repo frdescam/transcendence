@@ -195,6 +195,9 @@ class PongScene
 			(e: MouseEvent) =>
 			{
 				e.preventDefault();
+				if (this.state.paused)
+					return;
+
 				this.mouse.x = (e.offsetX / this.renderer.domElement.clientWidth) * 2 - 1;
 				this.mouse.y = -(e.offsetY / this.renderer.domElement.clientHeight) * 2 + 1;
 				this.mouseChanged = true;
@@ -1019,7 +1022,7 @@ class PongScene
 			}
 		}
 
-		if (!this.state.paused && !this.state.lobby)
+		if (!this.state.paused)
 		{
 			if (this.controls.keyboard && this.activeControls.keyboard && (this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
 			{

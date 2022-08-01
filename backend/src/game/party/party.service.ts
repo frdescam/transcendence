@@ -192,7 +192,7 @@ export class PartyService
                     textColor: 0xff0000,
                 }
             );
-            setTimeout(this.removeParty.bind(this, party), 24*60*60*1000);
+            setTimeout(this.removeParty.bind(this, party), 60*1000);
         }
 
     }
@@ -461,6 +461,15 @@ export class PartyService
         party.clock.getDelta();
     }
 
+    private shouldBeControlsFrozen(party: Party): boolean
+    {
+        const freezeControls = party.status == partyStatus.Running
+            || (party.statusData.previousStatus == partyStatus.Running);
+        console.log(freezeControls);
+
+        return (freezeControls);
+    }
+
     public play (party: Party)
     {
         party.status = partyStatus.Warmup;
@@ -470,7 +479,7 @@ export class PartyService
             party,
             {
                 lobby: false,
-                paused: false,
+                paused: this.shouldBeControlsFrozen(party),
                 text: '3',
                 textSize: 1,
                 textColor: 0x00ffff,
@@ -533,7 +542,7 @@ export class PartyService
         this.sendState(
             party,
             {
-                paused: true,
+                paused: this.shouldBeControlsFrozen(party),
                 ballSpeedX: 0,
                 ballSpeedY: 0,
                 ballX: party.state.ballX,
@@ -557,7 +566,7 @@ export class PartyService
     {
         const party = this.findPartyFromSocket(client);
 
-        if (!party || party.status == partyStatus.Paused)
+        if (!party || party.state.paused)
             return ;
         let slot = this.getSlotFromSocket(party, client);
 

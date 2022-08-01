@@ -165,14 +165,14 @@ export class MainGateway
     @MessageBody('map') adversary?: userId,
   ): void
   {
-    const userId: userId = req.user.id;
+    const user: any = req.user;
+    this.partyService.checkUserObject(user);
+    const userId: userId = user.id;
     const query: partyQuery = {map, adversary, requester: userId};
 
-    const room = this.partyService.find(query);
+    const party = this.partyService.find(query);
 
-    if (room)
-      client.emit('game::query::found', room);
-    else
+    if (party && !this.partyService.queryFoundParty(client, party, userId))
     {
       client.emit('game::query::notFound');
       this.partyService.queryParty(client, query);

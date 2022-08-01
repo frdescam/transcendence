@@ -680,18 +680,15 @@ export class PartyService
         }
     }
 
-    public joinParty (party: Party, client: Socket, user: any): Party
+    public joinParty (party: Party, client: Socket, userId: userId): Party | null
     {
-        this.checkUserObject(user);
-        const userId: userId = user.id;
-
         let slot;
         if (party.playersId[0] && party.playersId[0] != userId)
         {
             if (party.playersId[1] && party.playersId[1] != userId)
             {
                 this.sendError("Party is already full", client);
-                return;
+                return (null);
             }
             else
                 slot = 1;
@@ -702,7 +699,7 @@ export class PartyService
         if (party.playersSocket[slot])
         {
             this.sendError("You are already playing in another window", client);
-            return;
+            return (null);
         }
 
         this.leaveAll(client);
@@ -764,7 +761,7 @@ export class PartyService
             {
                 if (!party.playersSocket[slot])
                 {
-                    this.joinParty(party, client, user);
+                    this.joinParty(party, client, userId);
                     return (party);
                 }
             }
@@ -794,7 +791,13 @@ export class PartyService
                 throw new HttpException("Party exists with a different map", HttpStatus.CONFLICT);
             if (party.playersSocket[0] && party.playersSocket[1] && !party.playersSocket.includes(client))
                 throw new HttpException("Party exists but is already full", HttpStatus.CONFLICT);
-            return (client && user) ? this.joinParty(party, client, user) : party;
+            if (client)
+            {
+                this.checkUserObject(user);
+                return (this.joinParty(party, client, user));
+            }
+            else
+              return (party);
         }
         else if (involvedParty)
         {
@@ -895,6 +898,14 @@ export class PartyService
         return (this.parties);
     }
 
+    public queryFoundParty(client: Socket, party: Party, userId: userId)
+    {
+      if (!party || !this.joinParty(party, client, userId))
+          return (false);
+      client.emit('game::query::found', party.room);
+      return (true);
+    }
+
     protected isPartyCompatibleWithQuery(party: Party, query: partyQuery): boolean
     {
         if (party.status == partyStatus.Finish)
@@ -909,14 +920,14 @@ export class PartyService
         return (true);
     }
 
-    public find (query: partyQuery): string | null
+    public find (query: partyQuery): Party | null
     {
         const candidates = this.parties.filter(
             (party) => this.isPartyCompatibleWithQuery(party, query)
         );
 
         if (candidates.length)
-            return (candidates[0].room);
+            return (candidates[0]);
         else
             return (null);
     }
@@ -953,9 +964,8 @@ export class PartyService
                 {
                     const party = this.createPartyForQuery(query, testedQuery);
 
-                    client.emit('game::query::found', party.room);
-                    testedClient.emit('game::query::found', party.room);
-                    this.leaveAll(testedClient);
+                    this.queryFoundParty(client, party, query.requester);
+                    this.queryFoundParty(testedClient, party, testedQuery.requester);
                     return (false);
                 }
                 return (true);

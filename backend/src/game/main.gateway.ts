@@ -83,9 +83,10 @@ export class MainGateway
   {
     const party = this.partyService.findParty(room);
     const user: any = req.user;
+    const userId: userId = user.id;
 
     if (party)
-      this.partyService.joinParty(party, client, user);
+      this.partyService.joinParty(party, client, userId);
     else
       this.partyService.sendError("Party not found", client);
   }

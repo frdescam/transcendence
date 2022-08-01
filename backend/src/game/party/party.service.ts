@@ -107,7 +107,7 @@ export class PartyService
                     }
                 );
         
-                this.setState(
+                this.patchState(
                     party,
                     {
                         text: 'Saving...',
@@ -184,7 +184,7 @@ export class PartyService
         }
         catch (e)
         {
-            this.setState(
+            this.patchState(
                 party,
                 {
                     text: 'Failed to save the score',
@@ -803,7 +803,8 @@ export class PartyService
             if (client)
             {
                 this.checkUserObject(user);
-                return (this.joinParty(party, client, user));
+                const userId: userId = user.id;
+                return (this.joinParty(party, client, userId));
             }
             else
               return (party);

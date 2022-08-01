@@ -241,10 +241,14 @@ function refreshError ()
 function onConnected ()
 {
 	state.connected = true;
-	gameSocket.emit(
+	gameSocket.timeout(15000).emit(
 		'party::spectate',
 		{
 			room: props.party
+		},
+		(err) =>
+		{
+			state.error = err.message ? err.message : err;
 		}
 	);
 

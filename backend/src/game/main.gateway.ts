@@ -162,11 +162,12 @@ export class MainGateway
     @ConnectedSocket() client: Socket,
     @Request() req,
     @MessageBody('map') map?: string,
+    @MessageBody('map') adversary?: userId,
   ): void
   {
     const userId: userId = req.user.id;
-    const query: partyQuery = {map, requester: userId};
-    
+    const query: partyQuery = {map, adversary, requester: userId};
+
     const room = this.partyService.find(query);
 
     if (room)

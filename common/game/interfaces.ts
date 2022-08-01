@@ -83,6 +83,7 @@ interface state extends serverState {
 // @TODO: also save adversary criteria
 interface partyQuery {
 	map?: string,
+  adversary?: userId,
   requester: userId
 }
 

@@ -895,20 +895,24 @@ export class PartyService
         return (this.parties);
     }
 
-    public find ({map, requester}: partyQuery): string | null
+    protected isPartyCompatibleWithQuery(party: Party, query: partyQuery): boolean
+    {
+        if (party.status == partyStatus.Finish)
+            return (false);
+        if (party.playersId[0] && party.playersId[1])
+            if (party.playersId[0] != query.requester && party.playersId[1] != query.requester)
+              return (false);
+        if (query.adversary && party.playersId[0] != query.adversary && party.playersId[1] != query.adversary)
+            return (false);
+        if (query.map && party.map != query.map)
+            return (false);
+        return (true);
+    }
+
+    public find (query: partyQuery): string | null
     {
         const candidates = this.parties.filter(
-            (party) =>
-            {
-                if (party.status == partyStatus.Finish)
-                    return (false);
-                if (party.playersId[0] && party.playersId[1])
-                    if (party.playersId[0] != requester && party.playersId[1] != requester)
-                      return (false);
-                if (map && party.map != map)
-                    return (false);
-                return (true);
-            }
+            (party) => this.isPartyCompatibleWithQuery(party, query)
         );
 
         if (candidates.length)
@@ -919,7 +923,10 @@ export class PartyService
 
     private isQueryCompatible (query1: partyQuery, query2: partyQuery): boolean
     {
-        // @TODO also use socket to test "player=" (adversary) criteria
+        if (query1.adversary && query2.requester != query1.adversary)
+            return (false);
+        if (query2.adversary && query1.requester != query2.adversary)
+            return (false);
 
         if (query1.map && query2.map)
             if (query1.map != query2.map)
@@ -932,8 +939,7 @@ export class PartyService
     {
         const map = query1.map || query2.map || null;
 
-        // @TODO: Get userId from sockets
-        const party = this.createParty(null, map, [1, 2]);
+        const party = this.createParty(null, map, [query1.requester, query2.requester]);
 
         return (party);
     }
@@ -977,10 +983,7 @@ export class PartyService
         this.queries.every(
             ({client, query}) =>
             {
-                if (party.playersId[0] && party.playersId[1])
-                    if (party.playersId[0] != query.requester && party.playersId[1] != query.requester)
-                        return (false);
-                if ((!query.map || query.map == party.map))
+                if (this.isPartyCompatibleWithQuery(party, query))
                 {
                     client.emit('game::query::found', party.room);
                     this.leaveAll(client);

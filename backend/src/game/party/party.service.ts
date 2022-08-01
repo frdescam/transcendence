@@ -463,11 +463,11 @@ export class PartyService
 
     private shouldBeControlsFrozen(party: Party): boolean
     {
-        const freezeControls = party.status == partyStatus.Running
-            || (party.statusData.previousStatus == partyStatus.Running);
-        console.log(freezeControls);
-
-        return (freezeControls);
+        return (
+            party.status == partyStatus.Running
+            || party.statusData.previousStatus == partyStatus.Running
+            || party.status == partyStatus.Finish
+        );
     }
 
     public play (party: Party)

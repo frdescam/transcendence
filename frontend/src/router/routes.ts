@@ -13,11 +13,11 @@ const routes: RouteRecordRaw[] = [
 		children: [{ path: '', component: () => import('src/views/pages/Chat.vue') }]
 	},
 
-	// {
-	// path: '/play',
-	// component: () => import('src/views/layouts/Main.vue'),
-	// children: [{ path: '', component: () => import('src/views/pages/GameCreation.vue') }]
-	// },
+	{
+		path: '/play',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/GameCreation.vue') }]
+	},
 
 	{
 		path: '/play/matching',
@@ -26,12 +26,12 @@ const routes: RouteRecordRaw[] = [
 		children: [{ path: '', component: () => import('src/views/pages/Matching.vue') }]
 	},
 
-	// {
-	// path: '/game/:party',
-	// name: 'party',
-	// component: () => import('src/views/layouts/Main.vue'),
-	// children: [{ path: '', component: () => import('src/views/pages/Game.vue') }]
-	// },
+	{
+		path: '/game/:party',
+		name: 'party',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/Game.vue') }]
+	},
 
 	{
 		path: '/leaderboard',

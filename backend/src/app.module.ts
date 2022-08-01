@@ -6,19 +6,14 @@ import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 //import { GameModule } from './game/game.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import * as process from 'process';
+import * as path from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
-import { join } from 'path';
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-        rootPath: join(__dirname, '..', 'frontend/dist'),
-    }),
-    ConfigModule.forRoot({
-        envFilePath: ['./src/auth/.auth.env'],
-        isGlobal: true
-    }), 
+    ConfigModule.forRoot({ envFilePath: ['./src/auth/.auth.env'], isGlobal: true, }), 
     ScheduleModule.forRoot(),
     DatabaseModule,
     UsersModule,

@@ -47,12 +47,12 @@ class PongScene
 	protected disposed: boolean;
 	protected clock: Clock;
 	protected raycaster: Raycaster;
-	protected deviceOrientationCallback: null | ((e: DeviceOrientationEvent) => void);
-	protected scrollMovementCallback: null | ((e: WheelEvent) => void);
-	protected keydownMouvementCallback: null | ((e: KeyboardEvent) => void);
-	protected keyupMouvementCallback: null | ((e: KeyboardEvent) => void);
-	protected mouseMoveMouvementCallback: null | ((e: MouseEvent) => void);
-	protected blurCallback: null | (() => void);
+	protected deviceOrientationCallback: ((e: DeviceOrientationEvent) => void);
+	protected scrollMovementCallback: ((e: WheelEvent) => void);
+	protected keydownMouvementCallback: ((e: KeyboardEvent) => void);
+	protected keyupMouvementCallback: ((e: KeyboardEvent) => void);
+	protected mouseMoveMouvementCallback: ((e: MouseEvent) => void);
+	protected blurCallback: (() => void);
 
 	protected controls: {wheel: boolean, keyboard: boolean, mouse: boolean};
 	protected activeControls: {wheel: boolean, keyboard: boolean, mouse: boolean};
@@ -153,8 +153,33 @@ class PongScene
 		};
 		this.raycaster = new Raycaster();
 
-		this.deviceOrientationCallback = null;
-		this.scrollMovementCallback = null;
+		this.deviceOrientationCallback =
+			(e) =>
+			{
+				e.preventDefault();
+
+				if (e.gamma)
+					this._setPosition(((-e.gamma || 0) + 20) / 40);
+			};
+		this.scrollMovementCallback =
+			(e) =>
+			{
+				e.preventDefault();
+				if (!this.controls.wheel || !this.activeControls.wheel)
+					return;
+
+				let normalizedDelta;
+				if (supportedDeltaModes.includes(e.deltaMode))
+				{
+					if (this.normalizedWheelEvent[e.deltaMode] === null || (this.normalizedWheelEvent[e.deltaMode] as number) > Math.abs(e.deltaY))
+						this.normalizedWheelEvent[e.deltaMode] = Math.max(Math.abs(e.deltaY), 1);
+					normalizedDelta = this.normalizedWheelEvent[e.deltaMode] as number;
+				}
+				else
+					normalizedDelta = 1 / 20;
+
+				this._addPosition(this.moveDelta * (e.deltaY / normalizedDelta));
+			};
 		this.keydownMouvementCallback =
 			(e: KeyboardEvent) =>
 			{
@@ -787,40 +812,9 @@ class PongScene
 			return;
 
 		if ('ontouchstart' in window)
-		{
-			this.deviceOrientationCallback =
-				(e) =>
-				{
-					e.preventDefault();
-
-					if (e.gamma)
-						this._setPosition(((-e.gamma || 0) + 20) / 40);
-				};
 			window.addEventListener('deviceorientation', this.deviceOrientationCallback);
-		}
 		else
-		{
-			this.scrollMovementCallback =
-				(e) =>
-				{
-					e.preventDefault();
-					if (!this.controls.wheel || !this.activeControls.wheel)
-						return;
-
-					let normalizedDelta;
-					if (supportedDeltaModes.includes(e.deltaMode))
-					{
-						if (this.normalizedWheelEvent[e.deltaMode] === null || (this.normalizedWheelEvent[e.deltaMode] as number) > Math.abs(e.deltaY))
-							this.normalizedWheelEvent[e.deltaMode] = Math.max(Math.abs(e.deltaY), 1);
-						normalizedDelta = this.normalizedWheelEvent[e.deltaMode] as number;
-					}
-					else
-						normalizedDelta = 1 / 20;
-
-					this._addPosition(this.moveDelta * (e.deltaY / normalizedDelta));
-				};
 			this.renderer.domElement.addEventListener('wheel', this.scrollMovementCallback);
-		}
 	}
 
 	_pause ()
@@ -831,17 +825,9 @@ class PongScene
 			return;
 
 		if ('ontouchstart' in window)
-		{
-			if (this.deviceOrientationCallback)
-				window.removeEventListener('deviceorientation', this.deviceOrientationCallback);
-		}
+			window.removeEventListener('deviceorientation', this.deviceOrientationCallback);
 		else
-		{
-			if (this.scrollMovementCallback)
-				this.renderer.domElement.removeEventListener('wheel', this.scrollMovementCallback);
-		}
-		this.deviceOrientationCallback = null;
-		this.scrollMovementCallback = null;
+			this.renderer.domElement.removeEventListener('wheel', this.scrollMovementCallback);
 	}
 
 	_refreshScore ()
@@ -1175,18 +1161,10 @@ class PongScene
 		this.disposed = true;
 		this._pause();
 
-		if (this.keydownMouvementCallback)
-			window.removeEventListener('keydown', this.keydownMouvementCallback);
-		if (this.keyupMouvementCallback)
-			window.removeEventListener('keyup', this.keyupMouvementCallback);
-		if (this.mouseMoveMouvementCallback)
-			window.removeEventListener('mousemove', this.mouseMoveMouvementCallback);
-		if (this.blurCallback)
-			window.removeEventListener('blur', this.blurCallback);
-		this.keydownMouvementCallback = null;
-		this.keyupMouvementCallback = null;
-		this.mouseMoveMouvementCallback = null;
-		this.blurCallback = null;
+		window.removeEventListener('keydown', this.keydownMouvementCallback);
+		window.removeEventListener('keyup', this.keyupMouvementCallback);
+		window.removeEventListener('mousemove', this.mouseMoveMouvementCallback);
+		window.removeEventListener('blur', this.blurCallback);
 
 		if (this.floorMirror)
 		{

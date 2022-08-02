@@ -281,60 +281,60 @@ export class PartyService
             }
         );
     }
+
+    private runFrame(party: Party)
+    {
+        const delta = party.clock.getDelta();
+
+        switch (party.status) {
+            case partyStatus.Warmup:
+                let now = new Date();
+                let elapsedSeconds = Math.floor((now.getTime() - party.statusData.since.getTime()) / 1000);
+                if (party.statusData.counter != elapsedSeconds)
+                {
+                    switch (elapsedSeconds) {
+                        case 1:
+                            this.patchState(
+                                party,
+                                {
+                                    lobby: false,
+                                    text: '2',
+                                    textSize: 1,
+                                    textColor: 0xff00ff,
+                                }
+                            );
+                            break;
+                        case 2:
+                            this.patchState(
+                                party,
+                                {
+                                    lobby: false,
+                                    text: '1',
+                                    textSize: 1,
+                                    textColor: 0xffff00,
+                                }
+                            );
+                            break;
+                        default:
+                            this.retake(party);
+                            break;
+                    }
+                    party.statusData.counter = elapsedSeconds;
+                }
+                break;
+            case partyStatus.Running:
+                this.run(party, delta);
+                break;
+
+            default:
+                break;
+        }
+    }
     
     @Interval(1000/30)
     private handleInterval()
     {
-        // only send update on nonpredictable action like bounce along player pos at the bounce (, player move [it's already sent along event]), ... (but not ball position if it's a simple forward)
-
-        this.parties.forEach(party =>
-        {
-            const delta = party.clock.getDelta();
-
-            switch (party.status) {
-                case partyStatus.Warmup:
-                    let now = new Date();
-                    let elapsedSeconds = Math.floor((now.getTime() - party.statusData.since.getTime()) / 1000);
-                    if (party.statusData.counter != elapsedSeconds)
-                    {
-                        switch (elapsedSeconds) {
-                            case 1:
-                                this.patchState(
-                                    party,
-                                    {
-                                        lobby: false,
-                                        text: '2',
-                                        textSize: 1,
-                                        textColor: 0xff00ff,
-                                    }
-                                );
-                                break;
-                            case 2:
-                                this.patchState(
-                                    party,
-                                    {
-                                        lobby: false,
-                                        text: '1',
-                                        textSize: 1,
-                                        textColor: 0xffff00,
-                                    }
-                                );
-                                break;
-                            default:
-                                this.retake(party);
-                                break;
-                        }
-                        party.statusData.counter = elapsedSeconds;
-                    }
-                    break;
-                case partyStatus.Running:
-                    this.run(party, delta);
-                    break;
-            
-                default:
-                    break;
-            }
-        });
+        this.parties.forEach(this.runFrame.bind(this));
     }
 
     public sendError(e, client: Socket)
@@ -491,10 +491,7 @@ export class PartyService
     public pause (party: Party, reason: pauseReason)
     {
         if (party.status == partyStatus.Running)
-        {
-            let delta = party.clock.getDelta();
-            this.run(party, delta);
-        }
+            this.runFrame(party);
 
         if (party.status != partyStatus.Warmup
                 && party.status != partyStatus.Running
@@ -572,6 +569,8 @@ export class PartyService
 
         if (slot == -1)
             return ;
+        
+        this.runFrame(party);
         
         let newPlayerPosition = party.state.positions.slice() as [number, number];
         newPlayerPosition[slot] = position;

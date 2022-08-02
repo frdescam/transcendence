@@ -135,22 +135,22 @@ function teamActionText (state: interfaceState): string
                   </q-item>
                   <q-item clickable @click="pong.setQuality(1)" dense>
                     <q-item-section>
-                      <q-item-label>Bas</q-item-label>
+                      <q-item-label>Low</q-item-label>
                     </q-item-section>
                   </q-item>
                   <q-item clickable @click="pong.setQuality(2)" dense>
                     <q-item-section>
-                      <q-item-label>Moyen</q-item-label>
+                      <q-item-label>Average</q-item-label>
                     </q-item-section>
                   </q-item>
                   <q-item clickable @click="pong.setQuality(3)" dense>
                     <q-item-section>
-                      <q-item-label>Bon</q-item-label>
+                      <q-item-label>Good</q-item-label>
                     </q-item-section>
                   </q-item>
                   <q-item clickable @click="pong.setQuality(4)" dense>
                     <q-item-section>
-                      <q-item-label>Haut</q-item-label>
+                      <q-item-label>High</q-item-label>
                     </q-item-section>
                   </q-item>
                   <q-item clickable @click="pong.setQuality(5)" dense>

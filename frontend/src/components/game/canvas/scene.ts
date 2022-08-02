@@ -836,10 +836,7 @@ class PongScene
 		const { gameScale, scoreMaterial, scoreFontHeight, scorePositions, scoreRotations } = this.config;
 
 		if (!this.scoreFont)
-		{
-			console.log('Trying to set score when not ready');
 			return;
-		}
 
 		if (this.leftScore)
 		{
@@ -935,10 +932,7 @@ class PongScene
 		let oldPos, oldRot;
 
 		if (!this.textFont)
-		{
-			console.log('Trying to set text when not ready');
 			return;
-		}
 
 		if (this.text)
 		{
@@ -1209,8 +1203,6 @@ class PongScene
 		{
 			if ('dispose' in this.disposable[i])
 				this.disposable[i].dispose();
-			else
-				console.log('Not disposable', this.disposable[i]);
 		}
 		this.disposable = [];
 		this.renderer.renderLists.dispose();

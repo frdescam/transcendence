@@ -206,7 +206,8 @@ function mountScene (config: mapConfig)
 			onReady: () =>
 			{
 				state.loaded = true;
-			}
+			},
+			onError
 		} as options
 	);
 

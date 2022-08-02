@@ -29,7 +29,7 @@ type options = {
 	targetElem: HTMLElement,
 	onReady: (() => void) | null,
 	onProgress: ((itemUrl: string, itemsLoaded: number, itemsTotal: number) => void) | null,
-	onError: ((itemUrl: string) => void) | null,
+	onError: ((message: string) => void) | null,
 	onMove: onMoveCallback,
 	onStateChange: onStateChangeCallback,
 };
@@ -121,9 +121,9 @@ class PongScene
 			targetElem: document.body,
 			onReady: null,
 			onProgress: undefined,
-			onError: (ressourceUrl: string) =>
+			onError: (message: string) =>
 			{
-				console.log('Failed to fetch', ressourceUrl);
+				console.log(message);
 			},
 			onMove: null,
 			onStateChange: null
@@ -471,7 +471,12 @@ class PongScene
 		if (onProgress)
 			this.loadingManager.onProgress = onProgress;
 		if (onError)
-			this.loadingManager.onError = onError;
+		{
+			this.loadingManager.onError = (ressourceUrl: string) =>
+			{
+				onError("Can't fetch " + ressourceUrl + ". Please verify your network and refresh.");
+			};
+		}
 
 		window.addEventListener('keydown', this.keydownMouvementCallback);
 		window.addEventListener('keyup', this.keyupMouvementCallback);

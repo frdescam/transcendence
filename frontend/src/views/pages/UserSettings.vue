@@ -1,31 +1,9 @@
 <template>
 	<q-page class="row items-start">
-		<q-card bordered style='width: 300px;' class="q-ma-md">
-			<q-form
-				method="post"
-				@submit="editUsernameAndOrProfilePicture"
-			>
-				<q-card-section>
-					<div class="text-h6">
-						<span id="username-display">{{ currentUsername }}</span>
-						<span id="username-edit" style="display:none;">
-							<q-input v-model="newUsername" label="Change username" />
-						</span>
-						<q-btn @click="toggleNameEdit" flat round icon="edit" />
-					</div>
-				</q-card-section>
-				<q-separator inset />
-				<q-card-section>
-					<q-img :src="oldProfilePicture" class="profile-picture">
-						<div class="absolute-full text-subtitle2 flex flex-center profile-picture-edit">
-							<q-file outlined bg-color="white" v-model="newProfilePicture" label="Change your picture"/>
-						</div>
-					</q-img>
-					<q-btn type="submit" class="q-mt-md" label='Update' />
-				</q-card-section>
-			</q-form>
-		</q-card>
-
+		<pictureAndPseudoEditing
+			:username='username'
+			:picture='profilePicture'
+		></pictureAndPseudoEditing>
 		<q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section>
 				<div class="text-h6">Password</div>
@@ -147,55 +125,31 @@
 
 <script lang="ts">
 import { ref } from 'vue';
-
-function toggleInlineDisplay (id: string)
-{
-	const element = document.getElementById(id);
-
-	if (element)
-	{
-		if (element.style.display === 'none')
-			element.style.display = 'inline-block';
-		else
-			element.style.display = 'none';
-	}
-}
+import pictureAndPseudoEditing from 'src/components/userSettings/pictureAndPseudoEditing.vue';
 
 export default ({
 	name: 'IndexPage',
+	components: {
+		pictureAndPseudoEditing
+	},
 	setup ()
 	{
-		const oldProfilePicture = ref('https://placeimg.com/500/300/nature');
-		const newProfilePicture = ref(null);
-		const currentUsername = ref('pohl');
-		const newUsername = ref('');
+		const username = ref('pohl');
+		const profilePicture = ref('https://placeimg.com/500/300/nature');
 		const newPassword = ref('');
 		const oldPassword = ref('');
 		const use2FA = ref(false);
 		const paddleSelected = ref('Normal');
 
 		return {
-			oldProfilePicture,
-			currentUsername,
+			username,
+			profilePicture,
 			oldPassword,
 			newPassword,
 			isOldPswd: ref(true),
 			isNewPswd: ref(true),
-			newUsername,
 			paddleSelected,
 			use2FA,
-			newProfilePicture,
-			toggleNameEdit ()
-			{
-				const usernameInput = document.getElementById('username-edit')?.getElementsByTagName('input')[0];
-				toggleInlineDisplay('username-display');
-				toggleInlineDisplay('username-edit');
-				usernameInput?.focus();
-			},
-			editUsernameAndOrProfilePicture ()
-			{
-				console.log(newUsername.value, newProfilePicture.value);
-			},
 			GameOptionsSubmit ()
 			{
 				console.log(paddleSelected.value);
@@ -219,17 +173,3 @@ export default ({
 	}
 });
 </script>
-
-<style lang="scss">
-.profile-picture .profile-picture-edit {
-  visibility: hidden;
-  opacity: 0;
-  transition: .5s;
-}
-
-.profile-picture:hover .profile-picture-edit {
-  visibility: visible;
-  opacity: 1;
-  transition: .5s;
-}
-</style>

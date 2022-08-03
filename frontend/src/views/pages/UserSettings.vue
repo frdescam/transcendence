@@ -1,9 +1,18 @@
 <template>
 	<q-page class="row items-start">
-		<pictureAndPseudoEditing
-			:username='username'
-			:picture='profilePicture'
-		></pictureAndPseudoEditing>
+		<q-card bordered style='width: 300px;' class="q-ma-md">
+			<q-card-section>
+				<pseudoEditing
+					:username='username'
+				></pseudoEditing>
+			</q-card-section>
+			<q-separator inset />
+			<q-card-section>
+				<pictureEditing
+					:picture='profilePicture'
+				></pictureEditing>
+			</q-card-section>
+		</q-card>
 		<q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section>
 				<div class="text-h6">Password</div>
@@ -125,12 +134,14 @@
 
 <script lang="ts">
 import { ref } from 'vue';
-import pictureAndPseudoEditing from 'src/components/userSettings/pictureAndPseudoEditing.vue';
+import pictureEditing from 'src/components/userSettings/pictureEditing.vue';
+import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
 
 export default ({
 	name: 'IndexPage',
 	components: {
-		pictureAndPseudoEditing
+		pictureEditing,
+		pseudoEditing
 	},
 	setup ()
 	{

@@ -9,27 +9,34 @@
 					</template>
 				</q-input>
 			</q-toolbar>
-			<q-item v-for="friend in filteredFriends" :key="friend.id" clickable v-ripple @click="onFriendClick(friend.pseudo)" class="column items-center q-ma-md q-pa-none rounded-borders shadow-2" style="width: 300px">
+			<q-item v-for="friend in filteredFriends" :key="friend.id" clickable v-ripple @click="onFriendClick(friend.pseudo)" class="column q-ma-md q-pa-none rounded-borders shadow-2" style="width: 300px">
 				<q-responsive :ratio="1" class="full-width">
 					<q-avatar rounded class="full-width full-height">
 						<img :src='friend.avatar'>
 					</q-avatar>
 				</q-responsive>
-				<div class="row q-pt-md" style="font-size: 2em;">
-					<q-badge v-if="friend.status == 'online'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="light-green-14" rounded>
-						<q-tooltip>{{ friend.status }}</q-tooltip>
-					</q-badge>
-					<q-badge v-if="friend.status == 'offline'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="red" rounded>
-						<q-tooltip>{{ friend.status }}</q-tooltip>
-					</q-badge>
-					<q-badge v-if="friend.status == 'playing'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="orange" rounded>
-						<q-tooltip>{{ friend.status }}</q-tooltip>
-					</q-badge>
-						<div>{{ friend.pseudo }}</div>
-					<div class="q-ml-sm text-weight-bold">#{{ friend.rank }}</div>
+				<div class="column items-center q-pt-xl">
+					<div class="absolute full-width row justify-evenly" style="top: 300px; transform: translateY(-50%);">
+						<q-btn round fab icon="mail" color="primary" :href="'chat/' + friend.pseudo" v-on:click.stop/>
+						<q-btn round fab icon="delete" color="primary" @click="onDeleteFriend(friend.id)" v-on:click.stop/>
+						<q-btn v-if="friend.status == 'playing'" fab icon="watch" color="primary" :href="'game/' + friend.pseudo" v-on:click.stop/>
+					</div>
+					<div class="row" style="font-size: 2em;">
+						<q-badge v-if="friend.status == 'online'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="light-green-14" rounded>
+							<q-tooltip>{{ friend.status }}</q-tooltip>
+						</q-badge>
+						<q-badge v-if="friend.status == 'offline'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="red" rounded>
+							<q-tooltip>{{ friend.status }}</q-tooltip>
+						</q-badge>
+						<q-badge v-if="friend.status == 'playing'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="orange" rounded>
+							<q-tooltip>{{ friend.status }}</q-tooltip>
+						</q-badge>
+							<div>{{ friend.pseudo }}</div>
+						<div class="q-ml-sm text-weight-bold">#{{ friend.rank }}</div>
+					</div>
+					<div style="font-size: 1.5em;">Level : {{ friend.level }}</div>
+					<div class="q-pb-md" style="font-size: 1em;">ratio : {{ friend.ratio }}</div>
 				</div>
-				<div style="font-size: 1.5em;">Level : {{ friend.level }}</div>
-				<div class="q-pb-md" style="font-size: 1em;">ratio : {{ friend.ratio }}</div>
 			</q-item>
 		</q-list>
 	</div>
@@ -103,7 +110,13 @@ export default {
 
 		async function onFilterChange (value)
 		{
-			filteredFriends.value = friends.value.filter(friend => friend.pseudo.toLowerCase().includes(filter.value.toLowerCase()));
+			filteredFriends.value = friends.value.filter(friend => friend.pseudo.toLowerCase().includes(value.toLowerCase()));
+		}
+
+		async function onDeleteFriend (friendId)
+		{
+			// TODO : request backend to delete friendship
+			console.log(friendId);
 		}
 
 		return {
@@ -111,7 +124,8 @@ export default {
 			filter,
 
 			onFriendClick,
-			onFilterChange
+			onFilterChange,
+			onDeleteFriend
 		};
 	}
 };

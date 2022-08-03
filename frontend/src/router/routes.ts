@@ -58,6 +58,12 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
+		path: '/welcome',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/WelcomePage.vue') }]
+	},
+
+	{
 		path: '/settings',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', component: () => import('src/views/pages/UserSettings.vue') }]

@@ -1,6 +1,6 @@
 import { MeshPhongMaterial, MeshLambertMaterial } from 'three';
 import headlessConfig from 'src/common/game/maps/synthwave.headless';
-import sceneFile from './synthwave.glb?url';
+import sceneFile from './scene.glb?url';
 import scoreFont from 'three/examples/fonts/droid/droid_sans_bold.typeface.json?url'; // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 import textFont from '../ressources/text_me_one/Text Me One_Regular.json?url'; // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 

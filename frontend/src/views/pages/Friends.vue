@@ -23,7 +23,7 @@
 						<q-btn round fab icon="person_remove" color="primary" @click="onDeleteFriend(friend.id)" v-on:click.stop>
 							<q-tooltip :delay="500">delete friend</q-tooltip>
 						</q-btn>
-						<q-btn v-if="friend.status == 'playing'" fab icon="visibility" color="primary" :href="'game/' + friend.pseudo" v-on:click.stop>
+						<q-btn v-if="friend.status == 'playing'" fab icon="visibility" color="primary" :href="'game/' + friend.pseudo/* TODO : replace with party id */" v-on:click.stop>
 							<q-tooltip :delay="500">watch game</q-tooltip>
 						</q-btn>
 					</div>

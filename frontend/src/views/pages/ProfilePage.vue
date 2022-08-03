@@ -1,7 +1,7 @@
 <template>
 	<div class="q-pa-none">
 		<!-- HEADER -->
-		<div class="column" style="background-image: url(user_profile_background.png); background-position: center; background-size: cover; background-repeat: no-repeat;">
+		<div class="column" style="background-image: url(/background.png); background-position: center; background-size: cover; background-repeat: no-repeat;">
 			<div class="q-pa-md full-width row items-center">
 				<div v-bind:class="{ 'q-pr-md': $q.screen.gt.sm }" class="q-my-lg row full-height items-center justify-around col-md-2 col-12">
 					<q-avatar class="q-my-auto" size=150px>

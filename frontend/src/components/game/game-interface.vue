@@ -34,7 +34,7 @@ function toggleFullscreen ()
 function teamActionIcon (state: interfaceState): string | undefined
 {
 	if (state.can_join)
-		return 'play_arrow';
+		return 'login';
 	else if (state.spectator)
 		return 'visibility';
 	else
@@ -70,82 +70,117 @@ function teamActionText (state: interfaceState): string
 				:class="AppFullscreen.isActive && 'col col-auto'"
 			>
 
-				<q-btn-dropdown color="yellow-10" icon="tune" label="Graphics" auto-close>
-					<q-list>
-						<q-item clickable @click="pong.setQuality(0)" dense>
-							<q-item-section>
-								<q-item-label>Minimum</q-item-label>
-							</q-item-section>
-						</q-item>
-						<q-item clickable @click="pong.setQuality(1)" dense>
-							<q-item-section>
-								<q-item-label>Bas</q-item-label>
-							</q-item-section>
-						</q-item>
-						<q-item clickable @click="pong.setQuality(2)" dense>
-							<q-item-section>
-								<q-item-label>Moyen</q-item-label>
-							</q-item-section>
-						</q-item>
-						<q-item clickable @click="pong.setQuality(3)" dense>
-							<q-item-section>
-								<q-item-label>Bon</q-item-label>
-							</q-item-section>
-						</q-item>
-						<q-item clickable @click="pong.setQuality(4)" dense>
-							<q-item-section>
-								<q-item-label>Haut</q-item-label>
-							</q-item-section>
-						</q-item>
-						<q-item clickable @click="pong.setQuality(5)" dense>
-							<q-item-section>
-								<q-item-label>Ultra</q-item-label>
-							</q-item-section>
-						</q-item>
-					</q-list>
-				</q-btn-dropdown>
+				<q-btn-dropdown color="blue-grey-8" icon="settings" menu-anchor="bottom start" menu-self="top start">
 
-				<q-btn-dropdown color="blue-grey-8" icon="input" label="Controls">
 					<q-list>
-						<q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.wheel" :active="pong.state.controls.wheel" @click="pong.toggleControl('wheel')">
-							<q-item-section side class="inherit_color">
-								<q-icon name="mdi-mouse-move-down" />
+						<q-item clickable dense>
+
+							<q-item-section side>
+								<q-icon name="input" />
 							</q-item-section>
-							<q-item-section>
-								<q-item-label>Mouse Wheel</q-item-label>
+							<q-item-section>Controls</q-item-section>
+							<q-item-section side>
+								<q-icon name="keyboard_arrow_right" />
 							</q-item-section>
-						</q-item>
-						<q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.keyboard" :active="pong.state.controls.keyboard" @click="pong.toggleControl('keyboard')">
-							<q-item-section side class="inherit_color">
-								<q-icon name="keyboard" />
-							</q-item-section>
-							<q-item-section>
-								<q-item-label>Keyboard</q-item-label>
-							</q-item-section>
-						</q-item>
-						<q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.mouse" :active="pong.state.controls.mouse" @click="pong.toggleControl('mouse')">
-							<q-item-section side class="inherit_color">
-								<q-icon name="mdi-cursor-default" />
-							</q-item-section>
-							<q-item-section>
-								<q-item-label>Cursor</q-item-label>
-							</q-item-section>
+
+              <q-menu anchor="top end" self="top start">
+                <q-list>
+                  <q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.wheel" :active="pong.state.controls.wheel" @click="pong.toggleControl('wheel')">
+                    <q-item-section side class="inherit_color">
+                      <q-icon name="mdi-mouse-move-down" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>Mouse Wheel</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.keyboard" :active="pong.state.controls.keyboard" @click="pong.toggleControl('keyboard')">
+                    <q-item-section side class="inherit_color">
+                      <q-icon name="keyboard" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>Keyboard</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.mouse" :active="pong.state.controls.mouse" @click="pong.toggleControl('mouse')">
+                    <q-item-section side class="inherit_color">
+                      <q-icon name="mdi-cursor-default" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>Cursor</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+
 						</q-item>
 					</q-list>
+
+					<q-list>
+						<q-item clickable dense>
+
+							<q-item-section side>
+								<q-icon name="tune" />
+							</q-item-section>
+							<q-item-section>Graphics</q-item-section>
+							<q-item-section side>
+								<q-icon name="keyboard_arrow_right" />
+							</q-item-section>
+
+              <q-menu anchor="top end" self="top start" auto-close>
+                <q-list>
+                  <q-item clickable @click="pong.setQuality(0)" dense>
+                    <q-item-section>
+                      <q-item-label>Minimum</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item clickable @click="pong.setQuality(1)" dense>
+                    <q-item-section>
+                      <q-item-label>Low</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item clickable @click="pong.setQuality(2)" dense>
+                    <q-item-section>
+                      <q-item-label>Average</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item clickable @click="pong.setQuality(3)" dense>
+                    <q-item-section>
+                      <q-item-label>Good</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item clickable @click="pong.setQuality(4)" dense>
+                    <q-item-section>
+                      <q-item-label>High</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item clickable @click="pong.setQuality(5)" dense>
+                    <q-item-section>
+                      <q-item-label>Ultra</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+
+						</q-item>
+					</q-list>
+
 				</q-btn-dropdown>
 
 				<q-btn
 					color="blue-7"
 					:icon="AppFullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
-					:label="AppFullscreen.isActive ? 'Window' : 'Fullscreen'"
 					@click="toggleFullscreen"
-				/>
+				>
+          <q-tooltip transition-duration="150" anchor="top middle" self="bottom middle">{{AppFullscreen.isActive ? 'Window' : 'Fullscreen'}}</q-tooltip>
+        </q-btn>
 
 				<q-btn
 					icon="accessibility"
 					:color="pong && pong.state.accessibility ? 'amber-10' : 'black'"
 					@click="pong.toggleAccessibility()"
-				/>
+				>
+          <q-tooltip transition-duration="150" anchor="top middle" self="bottom middle">Accessibility</q-tooltip>
+        </q-btn>
 
 				<q-space />
 

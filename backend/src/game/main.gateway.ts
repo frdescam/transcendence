@@ -4,7 +4,7 @@ import { map } from './interface';
 import { PartyService } from './party/party.service';
 import type { Socket, Server } from 'socket.io';
 import type { userId } from 'src/common/game/types';
-import type { Pong } from 'src/common/game/interfaces';
+import type { Pong, partyQuery } from 'src/common/game/interfaces';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
 
@@ -83,9 +83,10 @@ export class MainGateway
   {
     const party = this.partyService.findParty(room);
     const user: any = req.user;
+    const userId: userId = user.id;
 
     if (party)
-      this.partyService.joinParty(party, client, user);
+      this.partyService.joinParty(party, client, userId);
     else
       this.partyService.sendError("Party not found", client);
   }
@@ -156,20 +157,26 @@ export class MainGateway
     return ({left: true});
   }
 
+  @UseGuards(SocketMockupAuthGuard)
   @SubscribeMessage('game::query::find')
   query(
     @ConnectedSocket() client: Socket,
+    @Request() req,
     @MessageBody('map') map?: string,
+    @MessageBody('map') adversary?: userId,
   ): void
   {
-    const room = this.partyService.find({map});
+    const user: any = req.user;
+    this.partyService.checkUserObject(user);
+    const userId: userId = user.id;
+    const query: partyQuery = {map, adversary, requester: userId};
 
-    if (room)
-      client.emit('game::query::found', room);
-    else
+    const party = this.partyService.find(query);
+
+    if (party && !this.partyService.queryFoundParty(client, party, userId))
     {
       client.emit('game::query::notFound');
-      this.partyService.queryParty(client, {map});
+      this.partyService.queryParty(client, query);
     }
   }
 

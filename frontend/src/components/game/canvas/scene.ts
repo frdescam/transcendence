@@ -29,7 +29,7 @@ type options = {
 	targetElem: HTMLElement,
 	onReady: (() => void) | null,
 	onProgress: ((itemUrl: string, itemsLoaded: number, itemsTotal: number) => void) | null,
-	onError: ((itemUrl: string) => void) | null,
+	onError: ((message: string) => void) | null,
 	onMove: onMoveCallback,
 	onStateChange: onStateChangeCallback,
 };
@@ -47,12 +47,12 @@ class PongScene
 	protected disposed: boolean;
 	protected clock: Clock;
 	protected raycaster: Raycaster;
-	protected deviceOrientationCallback: null | ((e: DeviceOrientationEvent) => void);
-	protected scrollMovementCallback: null | ((e: WheelEvent) => void);
-	protected keydownMouvementCallback: null | ((e: KeyboardEvent) => void);
-	protected keyupMouvementCallback: null | ((e: KeyboardEvent) => void);
-	protected mouseMoveMouvementCallback: null | ((e: MouseEvent) => void);
-	protected blurCallback: null | (() => void);
+	protected deviceOrientationCallback: ((e: DeviceOrientationEvent) => void);
+	protected scrollMovementCallback: ((e: WheelEvent) => void);
+	protected keydownMouvementCallback: ((e: KeyboardEvent) => void);
+	protected keyupMouvementCallback: ((e: KeyboardEvent) => void);
+	protected mouseMoveMouvementCallback: ((e: MouseEvent) => void);
+	protected blurCallback: (() => void);
 
 	protected controls: {wheel: boolean, keyboard: boolean, mouse: boolean};
 	protected activeControls: {wheel: boolean, keyboard: boolean, mouse: boolean};
@@ -121,9 +121,9 @@ class PongScene
 			targetElem: document.body,
 			onReady: null,
 			onProgress: undefined,
-			onError: (ressourceUrl: string) =>
+			onError: (message: string) =>
 			{
-				console.log('Failed to fetch', ressourceUrl);
+				console.log(message);
 			},
 			onMove: null,
 			onStateChange: null
@@ -153,8 +153,33 @@ class PongScene
 		};
 		this.raycaster = new Raycaster();
 
-		this.deviceOrientationCallback = null;
-		this.scrollMovementCallback = null;
+		this.deviceOrientationCallback =
+			(e) =>
+			{
+				e.preventDefault();
+
+				if (e.gamma)
+					this._setPosition(((-e.gamma || 0) + 20) / 40);
+			};
+		this.scrollMovementCallback =
+			(e) =>
+			{
+				e.preventDefault();
+				if (!this.controls.wheel || !this.activeControls.wheel)
+					return;
+
+				let normalizedDelta;
+				if (supportedDeltaModes.includes(e.deltaMode))
+				{
+					if (this.normalizedWheelEvent[e.deltaMode] === null || (this.normalizedWheelEvent[e.deltaMode] as number) > Math.abs(e.deltaY))
+						this.normalizedWheelEvent[e.deltaMode] = Math.max(Math.abs(e.deltaY), 1);
+					normalizedDelta = this.normalizedWheelEvent[e.deltaMode] as number;
+				}
+				else
+					normalizedDelta = 1 / 20;
+
+				this._addPosition(this.moveDelta * (e.deltaY / normalizedDelta));
+			};
 		this.keydownMouvementCallback =
 			(e: KeyboardEvent) =>
 			{
@@ -195,6 +220,9 @@ class PongScene
 			(e: MouseEvent) =>
 			{
 				e.preventDefault();
+				if (this.state.paused)
+					return;
+
 				this.mouse.x = (e.offsetX / this.renderer.domElement.clientWidth) * 2 - 1;
 				this.mouse.y = -(e.offsetY / this.renderer.domElement.clientHeight) * 2 + 1;
 				this.mouseChanged = true;
@@ -443,7 +471,12 @@ class PongScene
 		if (onProgress)
 			this.loadingManager.onProgress = onProgress;
 		if (onError)
-			this.loadingManager.onError = onError;
+		{
+			this.loadingManager.onError = (ressourceUrl: string) =>
+			{
+				onError("Can't fetch " + ressourceUrl + ". Please verify your network and refresh.");
+			};
+		}
 
 		window.addEventListener('keydown', this.keydownMouvementCallback);
 		window.addEventListener('keyup', this.keyupMouvementCallback);
@@ -784,40 +817,9 @@ class PongScene
 			return;
 
 		if ('ontouchstart' in window)
-		{
-			this.deviceOrientationCallback =
-				(e) =>
-				{
-					e.preventDefault();
-
-					if (e.gamma)
-						this._setPosition(((-e.gamma || 0) + 20) / 40);
-				};
 			window.addEventListener('deviceorientation', this.deviceOrientationCallback);
-		}
 		else
-		{
-			this.scrollMovementCallback =
-				(e) =>
-				{
-					e.preventDefault();
-					if (!this.controls.wheel || !this.activeControls.wheel)
-						return;
-
-					let normalizedDelta;
-					if (supportedDeltaModes.includes(e.deltaMode))
-					{
-						if (this.normalizedWheelEvent[e.deltaMode] === null || (this.normalizedWheelEvent[e.deltaMode] as number) > Math.abs(e.deltaY))
-							this.normalizedWheelEvent[e.deltaMode] = Math.max(Math.abs(e.deltaY), 1);
-						normalizedDelta = this.normalizedWheelEvent[e.deltaMode] as number;
-					}
-					else
-						normalizedDelta = 1 / 20;
-
-					this._addPosition(this.moveDelta * (e.deltaY / normalizedDelta));
-				};
 			this.renderer.domElement.addEventListener('wheel', this.scrollMovementCallback);
-		}
 	}
 
 	_pause ()
@@ -828,17 +830,9 @@ class PongScene
 			return;
 
 		if ('ontouchstart' in window)
-		{
-			if (this.deviceOrientationCallback)
-				window.removeEventListener('deviceorientation', this.deviceOrientationCallback);
-		}
+			window.removeEventListener('deviceorientation', this.deviceOrientationCallback);
 		else
-		{
-			if (this.scrollMovementCallback)
-				this.renderer.domElement.removeEventListener('wheel', this.scrollMovementCallback);
-		}
-		this.deviceOrientationCallback = null;
-		this.scrollMovementCallback = null;
+			this.renderer.domElement.removeEventListener('wheel', this.scrollMovementCallback);
 	}
 
 	_refreshScore ()
@@ -847,10 +841,7 @@ class PongScene
 		const { gameScale, scoreMaterial, scoreFontHeight, scorePositions, scoreRotations } = this.config;
 
 		if (!this.scoreFont)
-		{
-			console.log('Trying to set score when not ready');
 			return;
-		}
 
 		if (this.leftScore)
 		{
@@ -946,10 +937,7 @@ class PongScene
 		let oldPos, oldRot;
 
 		if (!this.textFont)
-		{
-			console.log('Trying to set text when not ready');
 			return;
-		}
 
 		if (this.text)
 		{
@@ -1019,7 +1007,7 @@ class PongScene
 			}
 		}
 
-		if (!this.state.paused && !this.state.lobby)
+		if (!this.state.paused)
 		{
 			if (this.controls.keyboard && this.activeControls.keyboard && (this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
 			{
@@ -1172,18 +1160,10 @@ class PongScene
 		this.disposed = true;
 		this._pause();
 
-		if (this.keydownMouvementCallback)
-			window.removeEventListener('keydown', this.keydownMouvementCallback);
-		if (this.keyupMouvementCallback)
-			window.removeEventListener('keyup', this.keyupMouvementCallback);
-		if (this.mouseMoveMouvementCallback)
-			window.removeEventListener('mousemove', this.mouseMoveMouvementCallback);
-		if (this.blurCallback)
-			window.removeEventListener('blur', this.blurCallback);
-		this.keydownMouvementCallback = null;
-		this.keyupMouvementCallback = null;
-		this.mouseMoveMouvementCallback = null;
-		this.blurCallback = null;
+		window.removeEventListener('keydown', this.keydownMouvementCallback);
+		window.removeEventListener('keyup', this.keyupMouvementCallback);
+		window.removeEventListener('mousemove', this.mouseMoveMouvementCallback);
+		window.removeEventListener('blur', this.blurCallback);
 
 		if (this.floorMirror)
 		{
@@ -1228,8 +1208,6 @@ class PongScene
 		{
 			if ('dispose' in this.disposable[i])
 				this.disposable[i].dispose();
-			else
-				console.log('Not disposable', this.disposable[i]);
 		}
 		this.disposable = [];
 		this.renderer.renderLists.dispose();

@@ -107,7 +107,7 @@ export class PartyService
                     }
                 );
         
-                this.setState(
+                this.patchState(
                     party,
                     {
                         text: 'Saving...',
@@ -184,7 +184,7 @@ export class PartyService
         }
         catch (e)
         {
-            this.setState(
+            this.patchState(
                 party,
                 {
                     text: 'Failed to save the score',
@@ -192,7 +192,7 @@ export class PartyService
                     textColor: 0xff0000,
                 }
             );
-            setTimeout(this.removeParty.bind(this, party), 24*60*60*1000);
+            setTimeout(this.removeParty.bind(this, party), 60*1000);
         }
 
     }
@@ -281,60 +281,60 @@ export class PartyService
             }
         );
     }
+
+    private runFrame(party: Party)
+    {
+        const delta = party.clock.getDelta();
+
+        switch (party.status) {
+            case partyStatus.Warmup:
+                let now = new Date();
+                let elapsedSeconds = Math.floor((now.getTime() - party.statusData.since.getTime()) / 1000);
+                if (party.statusData.counter != elapsedSeconds)
+                {
+                    switch (elapsedSeconds) {
+                        case 1:
+                            this.patchState(
+                                party,
+                                {
+                                    lobby: false,
+                                    text: '2',
+                                    textSize: 1,
+                                    textColor: 0xff00ff,
+                                }
+                            );
+                            break;
+                        case 2:
+                            this.patchState(
+                                party,
+                                {
+                                    lobby: false,
+                                    text: '1',
+                                    textSize: 1,
+                                    textColor: 0xffff00,
+                                }
+                            );
+                            break;
+                        default:
+                            this.retake(party);
+                            break;
+                    }
+                    party.statusData.counter = elapsedSeconds;
+                }
+                break;
+            case partyStatus.Running:
+                this.run(party, delta);
+                break;
+
+            default:
+                break;
+        }
+    }
     
     @Interval(1000/30)
     private handleInterval()
     {
-        // only send update on nonpredictable action like bounce along player pos at the bounce (, player move [it's already sent along event]), ... (but not ball position if it's a simple forward)
-
-        this.parties.forEach(party =>
-        {
-            const delta = party.clock.getDelta();
-
-            switch (party.status) {
-                case partyStatus.Warmup:
-                    let now = new Date();
-                    let elapsedSeconds = Math.floor((now.getTime() - party.statusData.since.getTime()) / 1000);
-                    if (party.statusData.counter != elapsedSeconds)
-                    {
-                        switch (elapsedSeconds) {
-                            case 1:
-                                this.patchState(
-                                    party,
-                                    {
-                                        lobby: false,
-                                        text: '2',
-                                        textSize: 1,
-                                        textColor: 0xff00ff,
-                                    }
-                                );
-                                break;
-                            case 2:
-                                this.patchState(
-                                    party,
-                                    {
-                                        lobby: false,
-                                        text: '1',
-                                        textSize: 1,
-                                        textColor: 0xffff00,
-                                    }
-                                );
-                                break;
-                            default:
-                                this.retake(party);
-                                break;
-                        }
-                        party.statusData.counter = elapsedSeconds;
-                    }
-                    break;
-                case partyStatus.Running:
-                    this.run(party, delta);
-                    break;
-            
-                default:
-                    break;
-            }
-        });
+        this.parties.forEach(this.runFrame.bind(this));
     }
 
     public sendError(e, client: Socket)
@@ -461,6 +461,15 @@ export class PartyService
         party.clock.getDelta();
     }
 
+    private shouldBeControlsFrozen(party: Party): boolean
+    {
+        return (
+            party.status == partyStatus.Running
+            || party.statusData.previousStatus == partyStatus.Running
+            || party.status == partyStatus.Finish
+        );
+    }
+
     public play (party: Party)
     {
         party.status = partyStatus.Warmup;
@@ -470,7 +479,7 @@ export class PartyService
             party,
             {
                 lobby: false,
-                paused: false,
+                paused: this.shouldBeControlsFrozen(party),
                 text: '3',
                 textSize: 1,
                 textColor: 0x00ffff,
@@ -482,10 +491,7 @@ export class PartyService
     public pause (party: Party, reason: pauseReason)
     {
         if (party.status == partyStatus.Running)
-        {
-            let delta = party.clock.getDelta();
-            this.run(party, delta);
-        }
+            this.runFrame(party);
 
         if (party.status != partyStatus.Warmup
                 && party.status != partyStatus.Running
@@ -533,7 +539,7 @@ export class PartyService
         this.sendState(
             party,
             {
-                paused: true,
+                paused: this.shouldBeControlsFrozen(party),
                 ballSpeedX: 0,
                 ballSpeedY: 0,
                 ballX: party.state.ballX,
@@ -557,12 +563,14 @@ export class PartyService
     {
         const party = this.findPartyFromSocket(client);
 
-        if (!party || party.status == partyStatus.Paused)
+        if (!party || party.state.paused)
             return ;
         let slot = this.getSlotFromSocket(party, client);
 
         if (slot == -1)
             return ;
+        
+        this.runFrame(party);
         
         let newPlayerPosition = party.state.positions.slice() as [number, number];
         newPlayerPosition[slot] = position;
@@ -680,18 +688,15 @@ export class PartyService
         }
     }
 
-    public joinParty (party: Party, client: Socket, user: any): Party
+    public joinParty (party: Party, client: Socket, userId: userId): Party | null
     {
-        this.checkUserObject(user);
-        const userId: userId = user.id;
-
         let slot;
         if (party.playersId[0] && party.playersId[0] != userId)
         {
             if (party.playersId[1] && party.playersId[1] != userId)
             {
                 this.sendError("Party is already full", client);
-                return;
+                return (null);
             }
             else
                 slot = 1;
@@ -702,7 +707,7 @@ export class PartyService
         if (party.playersSocket[slot])
         {
             this.sendError("You are already playing in another window", client);
-            return;
+            return (null);
         }
 
         this.leaveAll(client);
@@ -764,7 +769,7 @@ export class PartyService
             {
                 if (!party.playersSocket[slot])
                 {
-                    this.joinParty(party, client, user);
+                    this.joinParty(party, client, userId);
                     return (party);
                 }
             }
@@ -794,7 +799,14 @@ export class PartyService
                 throw new HttpException("Party exists with a different map", HttpStatus.CONFLICT);
             if (party.playersSocket[0] && party.playersSocket[1] && !party.playersSocket.includes(client))
                 throw new HttpException("Party exists but is already full", HttpStatus.CONFLICT);
-            return (client && user) ? this.joinParty(party, client, user) : party;
+            if (client)
+            {
+                this.checkUserObject(user);
+                const userId: userId = user.id;
+                return (this.joinParty(party, client, userId));
+            }
+            else
+              return (party);
         }
         else if (involvedParty)
         {
@@ -895,26 +907,46 @@ export class PartyService
         return (this.parties);
     }
 
-    public find ({map}: partyQuery): string | null
+    public queryFoundParty(client: Socket, party: Party, userId: userId)
+    {
+      if (!party || !this.joinParty(party, client, userId))
+          return (false);
+      client.emit('game::query::found', party.room);
+      return (true);
+    }
+
+    protected isPartyCompatibleWithQuery(party: Party, query: partyQuery): boolean
+    {
+        if (party.status == partyStatus.Finish)
+            return (false);
+        if (party.playersId[0] && party.playersId[1])
+            if (party.playersId[0] != query.requester && party.playersId[1] != query.requester)
+              return (false);
+        if (query.adversary && party.playersId[0] != query.adversary && party.playersId[1] != query.adversary)
+            return (false);
+        if (query.map && party.map != query.map)
+            return (false);
+        return (true);
+    }
+
+    public find (query: partyQuery): Party | null
     {
         const candidates = this.parties.filter(
-            (party) =>
-            {
-                if (map && party.map != map)
-                    return (false);
-                return (true);
-            }
+            (party) => this.isPartyCompatibleWithQuery(party, query)
         );
 
         if (candidates.length)
-            return (candidates[0].room);
+            return (candidates[0]);
         else
             return (null);
     }
 
     private isQueryCompatible (query1: partyQuery, query2: partyQuery): boolean
     {
-        // @TODO also use socket to test "player=" criteria
+        if (query1.adversary && query2.requester != query1.adversary)
+            return (false);
+        if (query2.adversary && query1.requester != query2.adversary)
+            return (false);
 
         if (query1.map && query2.map)
             if (query1.map != query2.map)
@@ -927,16 +959,13 @@ export class PartyService
     {
         const map = query1.map || query2.map || null;
 
-        // @TODO: Get userId from sockets
-        const party = this.createParty(null, map, [1, 2]);
+        const party = this.createParty(null, map, [query1.requester, query2.requester]);
 
         return (party);
     }
 
     public queryParty (client: Socket, query: partyQuery)
     {
-        // @TODO: manage error: eg: disallow if involved in other party (or auto give-up)
-
         const hasToCreateQuery = this.queries.every(
             ({client: testedClient, query: testedQuery}) =>
             {
@@ -944,9 +973,8 @@ export class PartyService
                 {
                     const party = this.createPartyForQuery(query, testedQuery);
 
-                    client.emit('game::query::found', party.room);
-                    testedClient.emit('game::query::found', party.room);
-                    this.leaveAll(testedClient);
+                    this.queryFoundParty(client, party, query.requester);
+                    this.queryFoundParty(testedClient, party, testedQuery.requester);
                     return (false);
                 }
                 return (true);
@@ -971,13 +999,10 @@ export class PartyService
 
     public wireMatchingQuery (party: Party)
     {
-        if (party.playersId[0] && party.playersId[1]) // @TODO: Should check that's the place is not reserved to the querier
-            return ;
-
         this.queries.every(
             ({client, query}) =>
             {
-                if ((!query.map || query.map == party.map))
+                if (this.isPartyCompatibleWithQuery(party, query))
                 {
                     client.emit('game::query::found', party.room);
                     this.leaveAll(client);

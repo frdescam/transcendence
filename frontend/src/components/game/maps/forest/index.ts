@@ -6,7 +6,7 @@ import skyboxPY from '../ressources/kloppenheim_02/py.png?url';
 import skyboxNY from '../ressources/kloppenheim_02/ny.png?url';
 import skyboxPZ from '../ressources/kloppenheim_02/pz.png?url';
 import skyboxNZ from '../ressources/kloppenheim_02/nz.png?url';
-import sceneFile from './forest.glb?url';
+import sceneFile from './scene.glb?url';
 import font from 'three/examples/fonts/helvetiker_regular.typeface.json?url'; // https://threejs.org/docs/#examples/en/geometries/TextGeometry
 
 import type { mapConfig } from 'src/common/game/interfaces';

@@ -19,48 +19,7 @@
 			</q-card-section>
 			<q-separator inset />
 			<q-card-section>
-				<q-form
-					method="post"
-					@submit="passwordSubmit"
-				>
-					<q-input
-						v-model="oldPassword"
-						outlined
-						label="Current Password"
-						name="password"
-						:type="isOldPswd ? 'password' : 'text'"
-						class=""
-						:rules="[(val) => !!val || 'Field is required']"
-						ref="inputRef"
-					>
-						<template v-slot:append>
-							<q-icon
-								:name="isOldPswd ? 'visibility_off' : 'visibility'"
-								class="cursor-pointer"
-								@click="isOldPswd = !isOldPswd"
-							/>
-						</template>
-					</q-input>
-					<q-input
-						v-model="newPassword"
-						outlined
-						label="New Password"
-						name="password"
-						:type="isNewPswd ? 'password' : 'text'"
-						class=""
-						:rules="[(val) => !!val || 'Field is required']"
-						ref="inputRef"
-					>
-						<template v-slot:append>
-							<q-icon
-								:name="isNewPswd ? 'visibility_off' : 'visibility'"
-								class="cursor-pointer"
-								@click="isNewPswd = !isNewPswd"
-							/>
-						</template>
-					</q-input>
-					<q-btn type="submit" class="q-mt-md" label='Update' />
-				</q-form>
+				<passwordEditing></passwordEditing>
 			</q-card-section>
 		</q-card>
 
@@ -72,14 +31,14 @@
 			<q-card-section>
 				<q-form
 					method="post"
-					@submit="TFASubmit"
+					@submit="tfaSubmit"
 				>
 					<q-toggle
-						v-model="use2FA"
+						v-model='useTfa'
 						label="Activate?"
 					/>
 					<br/>
-					<div v-if="use2FA">
+					<div v-if="useTfa">
 						<p>Actions to enable 2FA</p>
 					</div>
 					<q-btn type="submit" class="q-mt-md" label='Update' />
@@ -136,42 +95,35 @@
 import { ref } from 'vue';
 import pictureEditing from 'src/components/userSettings/pictureEditing.vue';
 import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
+import passwordEditing from 'src/components/userSettings/passwordEditing.vue';
 
 export default ({
 	name: 'IndexPage',
 	components: {
+		pseudoEditing,
 		pictureEditing,
-		pseudoEditing
+		passwordEditing
 	},
 	setup ()
 	{
 		const username = ref('pohl');
 		const profilePicture = ref('https://placeimg.com/500/300/nature');
-		const newPassword = ref('');
-		const oldPassword = ref('');
-		const use2FA = ref(false);
+		const useTfa = ref(false);
+		const tfaSubmit = function ()
+		{
+			console.log(useTfa);
+		};
 		const paddleSelected = ref('Normal');
 
 		return {
 			username,
 			profilePicture,
-			oldPassword,
-			newPassword,
-			isOldPswd: ref(true),
-			isNewPswd: ref(true),
 			paddleSelected,
-			use2FA,
+			useTfa,
+			tfaSubmit,
 			GameOptionsSubmit ()
 			{
 				console.log(paddleSelected.value);
-			},
-			TFASubmit ()
-			{
-				console.log(use2FA.value);
-			},
-			passwordSubmit ()
-			{
-				console.log(oldPassword.value, newPassword.value);
 			},
 			deleteAccount ()
 			{

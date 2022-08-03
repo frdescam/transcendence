@@ -17,9 +17,15 @@
 				</q-responsive>
 				<div class="column items-center q-pt-xl">
 					<div class="absolute full-width row justify-evenly" style="top: 300px; transform: translateY(-50%);">
-						<q-btn round fab icon="mail" color="primary" :href="'chat/' + friend.pseudo" v-on:click.stop/>
-						<q-btn round fab icon="delete" color="primary" @click="onDeleteFriend(friend.id)" v-on:click.stop/>
-						<q-btn v-if="friend.status == 'playing'" fab icon="watch" color="primary" :href="'game/' + friend.pseudo" v-on:click.stop/>
+						<q-btn round fab icon="mail" color="primary" :href="'chat/' + friend.pseudo" v-on:click.stop>
+							<q-tooltip :delay="500">send message</q-tooltip>
+						</q-btn>
+						<q-btn round fab icon="delete" color="primary" @click="onDeleteFriend(friend.id)" v-on:click.stop>
+							<q-tooltip :delay="500">delete friend</q-tooltip>
+						</q-btn>
+						<q-btn v-if="friend.status == 'playing'" fab icon="watch" color="primary" :href="'game/' + friend.pseudo" v-on:click.stop>
+							<q-tooltip :delay="500">watch game</q-tooltip>
+						</q-btn>
 					</div>
 					<div class="row" style="font-size: 2em;">
 						<q-badge v-if="friend.status == 'online'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="light-green-14" rounded>

@@ -38,6 +38,14 @@
 					<div class="q-pb-md" style="font-size: 1em;">ratio : {{ friend.ratio }}</div>
 				</div>
 			</q-item>
+			<div v-if="filteredFriends.length == 0 && filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
+				<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
+				No matching records found
+			</div>
+			<div v-if="filteredFriends.length == 0 && !filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
+				<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
+				No data available
+			</div>
 		</q-list>
 	</div>
 </template>

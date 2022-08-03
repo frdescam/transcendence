@@ -64,7 +64,7 @@ const friends = ref([
 	{
 		id: 1,
 		pseudo: 'Pohl',
-		avatar: 'https://cdn.quasar.dev/img/boy-avatar.png',
+		avatar: 'https://cdn.intra.42.fr/users/pohl.jpg',
 		rank: 42,
 		level: 101,
 		ratio: 42,
@@ -73,7 +73,7 @@ const friends = ref([
 	{
 		id: 2,
 		pseudo: 'Buom',
-		avatar: 'https://cdn.quasar.dev/img/boy-avatar.png',
+		avatar: 'https://cdn.intra.42.fr/users/badam.jpg',
 		rank: 42,
 		level: 101,
 		ratio: 42,
@@ -82,7 +82,7 @@ const friends = ref([
 	{
 		id: 3,
 		pseudo: 'cbertran',
-		avatar: 'https://cdn.quasar.dev/img/boy-avatar.png',
+		avatar: 'https://cdn.intra.42.fr/users/cbertran.jpg',
 		rank: 42,
 		level: 101,
 		ratio: 42,
@@ -91,7 +91,7 @@ const friends = ref([
 	{
 		id: 4,
 		pseudo: 'lt',
-		avatar: 'https://cdn.quasar.dev/img/boy-avatar.png',
+		avatar: 'https://cdn.intra.42.fr/users/ltouret.jpg',
 		rank: 42,
 		level: 101,
 		ratio: 42,
@@ -100,7 +100,7 @@ const friends = ref([
 	{
 		id: 5,
 		pseudo: 'fdeĉ',
-		avatar: 'https://cdn.quasar.dev/img/boy-avatar.png',
+		avatar: 'https://cdn.intra.42.fr/users/frdescam.jpg',
 		rank: 42,
 		level: 101,
 		ratio: 42,

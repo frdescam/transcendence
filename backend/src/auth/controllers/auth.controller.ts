@@ -25,12 +25,35 @@ interface twoFAPayload { // could just use { code } its easier...
 export class AuthController {
         constructor(private auth_svc: AuthService, private auth2fa_svc: TwoFactorAuthService, private readonly cookies_svc: CookiesService,) { }
 
+    @Post("auto_reg")
+    async auto_reg(@Body() {id}, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
+    {
+        const user : User = await this.auth_svc.login({id: id});
+
+        if (user)
+            return "already exists";
+
+        const reg : AuthDto = {
+            id: id,
+            fortytwo_id: id,
+            pseudo: "sample" + id,
+            email: "sample" + id,
+        };
+
+        return await this.auth_svc.signup(reg);
+    }
+
     // to log in without auth42 for insomnia
-    // code to ignore 2FA too, ned to add this
+    // code to ignore 2FA too, need to add this
+    // add register too?
     @Post("auto_login")
     async auto_login(@Body() {id}, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
     {
-        const user : User = await this.auth_svc.login({id: id});
+        let user : User = await this.auth_svc.login({id: id});
+
+        if (!user)
+            return null;
+            //user = await this.auth_svc.signup({id: id});
 
         // if 2FA activated return obj to frontend to display 2FA to user, else set cookies with jwt (if logged in) and return to frontend obj two_factor_enabled: false.
         if (user.is2FActive === true) // use boolean in db instead of string?
@@ -78,7 +101,7 @@ export class AuthController {
 		};
     }
 
-
+    // erase dis
     @Get("")
     async index() {
         // if already logged re send to logged?
@@ -208,6 +231,7 @@ export class AuthController {
     @Get("login") // login // remember to change this in .env too!
     async login(@AuthUser() user: User, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
     {
+        //console.log("sapo");
         // if 2FA activated return obj to frontend to display 2FA to user, else set cookies with jwt (if logged in) and return to frontend obj two_factor_enabled: false.
         if (user.is2FActive === true) // use boolean in db instead of string?
         {

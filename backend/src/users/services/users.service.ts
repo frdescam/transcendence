@@ -1,15 +1,20 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Length } from "class-validator"; // what
 import { Like, Repository } from "typeorm";
 
 import { AuthDto } from '../../auth/dto';
+import { Friend } from "../entities/friend.entity";
 import { User } from "../entities/user.entity";
 
 
 @Injectable({})
 export class UsersService {
-    constructor(@InjectRepository(User)
-    private readonly users_repo: Repository<User>,) {}
+	constructor (
+        @InjectRepository(User)
+        private readonly users_repo: Repository<User>,
+        @InjectRepository(Friend)
+        private friends_repo: Repository<Friend>) {}
 
 	async turnOn2FA(userId: number): Promise<void> {
 		await this.users_repo.update(userId, {
@@ -36,7 +41,7 @@ export class UsersService {
 	// 	avatar: filename,
 	// });
 
-	const result = await this.users_repo.createQueryBuilder()
+	const result = await this.users_repo.createQueryBuilder() // raw sql type
     .update({
 		avatar: filename,
     })
@@ -78,17 +83,27 @@ export class UsersService {
 		return result.raw[0];
 	}
 
-	// add relation
-	// doenst work wait for franco too update relations.
-	async getFriends(userId : number) {
-		let user: User = await this.users_repo.findOne({
-			where: {
-				id: userId
-			},
-			//relations : [] // add relation
-		});
-		//console.log(user, user.friends);
-		return user.friends;
+	async follow(userId: number, follwedUserId: number) {
+		const user : User = await this.users_repo.findOne({id: userId});
+		const followedUser : User = await this.users_repo.findOne({id: follwedUserId});
+		if (!user)
+			return ;
+        this.friends_repo.create({
+            user: user,
+            followedUser: followedUser,
+            isPending: false
+        })
+    }
+
+	async getFriends(userId : number): Promise<User[]> {
+        const friendRelations = await this.friends_repo.find({
+            where: {user: userId, isPending: false}
+        })
+        let friends: User[] = [];
+        friendRelations.forEach(friendRelation => {
+            friends.push(friendRelation.followedUser);
+        });
+        return friends;
 	}
 	
     async findOne(user_dto: AuthDto): Promise<User> {

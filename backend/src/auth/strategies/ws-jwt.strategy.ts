@@ -5,21 +5,11 @@ import { Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 
 import { User } from 'src/users/entities/user.entity';
-
+import { TokenPayload } from '../dto/tokenPayload.dto';
 import { AuthService } from '../services/auth.service';
 
  // request here is a socket
 import { Socket } from 'socket.io'; 
-
- // request here is a socket
-// add socket types
-
-// Create token dto! 
-    // into its own file
-export interface TokenPayload {
-    sub: number;
-    isSecondFactorAuthenticated?: boolean; // most likely not needed
-}
 
 const tokenizeCookies = (str: string): any => { // returns object with cookies make interface
 	let cookieObject = {};

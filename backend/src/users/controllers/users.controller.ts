@@ -21,7 +21,7 @@ import path = require('path')
 export class UsersController {
         constructor(private readonly users_svc: UsersService,) { }
 
-    @Get('me')
+  @Get('me')
 	async me(@AuthUser() user: User): Promise<User> {
 		return user;
 	}

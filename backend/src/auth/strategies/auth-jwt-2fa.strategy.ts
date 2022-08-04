@@ -17,7 +17,7 @@ export class JwtAuth2FAStrategy extends PassportStrategy(Strategy, 'auth-jwt-2fa
 				(request: Request) => {
 					if (!request || !request.cookies)
 						return null;
-					return request.cookies?.isSecondFactorAuthenticated; // change to 2falogin cookie
+					return request.cookies?.isSecondFactorAuthenticated;
 				},
 			]),
 			secretOrKey: config.get('JWT_AUTH_2FA_SECRET'),
@@ -25,7 +25,6 @@ export class JwtAuth2FAStrategy extends PassportStrategy(Strategy, 'auth-jwt-2fa
 	}
 
 	async validate(payload: TokenPayload): Promise<User> {
-		//console.log(payload);
 		return this.auth_svc.login({
 			id: payload.sub,
 		});

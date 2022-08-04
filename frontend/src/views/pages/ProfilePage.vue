@@ -38,9 +38,9 @@
 				</div>
 			</div>
 			<q-item class="full-width row justify-around">
-				<q-btn style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="add friend"/>
-				<q-btn style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="send a message"/>
-				<q-btn style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="block user"/>
+				<q-btn @click="onDeleteFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="add friend"/>
+				<q-btn :href="'chat/' + computedUser.pseudo" style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="send a message"/>
+				<q-btn @click="onBlockUser()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="block user"/>
 			</q-item>
 		</div>
 		<!-- END HEADER -->
@@ -216,10 +216,23 @@ export default {
 	},
 	setup ()
 	{
+		async function onDeleteFriend ()
+		{
+			console.log("removing friend!");
+		}
+
+		async function onBlockUser ()
+		{
+			console.log("blocking user!");
+		}
+
 		return {
 			computedUser,
 			matches,
-			achievements
+			achievements,
+
+			onDeleteFriend,
+			onBlockUser
 		};
 	}
 };

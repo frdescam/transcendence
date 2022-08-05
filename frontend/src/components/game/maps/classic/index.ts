@@ -27,6 +27,6 @@ const config: mapConfig = {
 	textMaterial: new MeshBasicMaterial({
 		color: 0xaaaaaa
 	})
-};
+} as mapConfig;
 
 export default config;

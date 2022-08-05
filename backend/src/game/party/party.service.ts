@@ -15,6 +15,7 @@ import type { Socket } from 'socket.io';
 import type { MatchRegistrationDto } from 'src/match/orm/registration.dto';
 
 export type listChangeCallback = (partyJson: getPartyDto) => void;
+export type userStatusChangeCallback = (userId: userId, partyJson: getPartyDto | null) => void;
 
 @Injectable()
 export class PartyService
@@ -23,6 +24,7 @@ export class PartyService
     private partiesBySocket: any = {};
     private queries: Query[] = [];
     private onListChange: listChangeCallback | null = null;
+    private onUserStatusChange: userStatusChangeCallback | null = null;
 
     constructor (
       private readonly userService: UsersService,
@@ -220,11 +222,11 @@ export class PartyService
         }
     }
 
-    private handleListChange(party: Party, newState: Partial<serverState>, force: boolean = false)
+    private handlePartyChange(party: Party, newState: Partial<serverState>, force: boolean = false)
     {
         let changed = force;
 
-        if (!this.onListChange)
+        if (!this.onListChange && !this.onUserStatusChange)
             return ;
         if (!changed && ('avatars' in newState || 'scores' in newState || 'finish' in newState))
             changed = true;
@@ -234,15 +236,26 @@ export class PartyService
             state: Object.assign({}, party.state, newState)
         };
 
-        this.onListChange(
-            this.partyToPublicJson(mutedParty)
-        )
+		if (this.onListChange)
+			this.onListChange( this.partyToPublicJson(mutedParty) );
+		if (this.onUserStatusChange)
+		{
+			if (party.playersId[0])
+				this.onUserStatusChange( party.playersId[0], this.partyToPublicJson(mutedParty) );
+			if (party.playersId[1])
+				this.onUserStatusChange( party.playersId[1], this.partyToPublicJson(mutedParty) );
+		}
     }
 
     public setOnListChange(callback: listChangeCallback | null)
     {
         this.onListChange = callback;
     }
+
+	public setOnUserStatusChange(callback: userStatusChangeCallback | null)
+	{
+		this.onUserStatusChange = callback;
+	}
 
     private run(party: Party, delta: number)
     {
@@ -378,7 +391,7 @@ export class PartyService
             }
         );
 
-        this.handleListChange(party, state);
+        this.handlePartyChange(party, state);
     }
 
     private setState (party: Party, state: Partial<serverState>)
@@ -424,7 +437,7 @@ export class PartyService
                 ballSpeedY: Math.sin(ballAngle)
             }
         );
-        this.handleListChange(party, {}, true);
+        this.handlePartyChange(party, {}, true);
     }
 
     private retake (party: Party)
@@ -451,7 +464,7 @@ export class PartyService
                     }
                 );
                 party.status = partyStatus.Running;      
-                this.handleListChange(party, {}, true);      
+                this.handlePartyChange(party, {}, true);
                 break;
         
             default:
@@ -485,7 +498,7 @@ export class PartyService
                 textColor: 0x00ffff,
             }
         );
-        this.handleListChange(party, {}, true);
+        this.handlePartyChange(party, {}, true);
     }
 
     public pause (party: Party, reason: pauseReason)
@@ -554,7 +567,7 @@ export class PartyService
             if (party.status != partyStatus.Warmup)
                 party.statusData.previousStatus = party.status;
             party.status = partyStatus.Paused;
-            this.handleListChange(party, {}, true);
+            this.handlePartyChange(party, {}, true);
         }
         party.playersReady = [false, false];
     }
@@ -737,7 +750,7 @@ export class PartyService
                     true
                 );
 
-                this.handleListChange(party, {}, true);
+                this.handlePartyChange(party, {}, true);
             }
             else
                 this.pause(party, pauseReason.Regain);
@@ -871,7 +884,7 @@ export class PartyService
                 true
             );
 
-            this.handleListChange(party, {}, true);
+            this.handlePartyChange(party, {}, true);
             this.wireMatchingQuery(party);
 
             return (party);

@@ -30,18 +30,18 @@ const config: mapConfig = {
 	ballMaterial,
 	player1Material: itemsMaterial,
 	player2Material: itemsMaterial,
-	scoreFont: scoreFont,
+	scoreFont,
 	scoreMaterial: new MeshPhongMaterial({
 		color: 0x44fc50,
 		emissive: 0x44fc50,
 		emissiveIntensity: 0.8
 	}),
-	textFont: textFont,
+	textFont,
 	textMaterial: new MeshPhongMaterial({
 		color: 0xffffff,
 		emissive: 0xffffff,
 		emissiveIntensity: 2
 	})
-};
+} as mapConfig;
 
 export default config;

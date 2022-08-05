@@ -1,9 +1,9 @@
 import type { userId } from 'src/common/game/types';
 
-export class CreatePartyDto
+export interface CreatePartyDto
 {
     room?: string;
     map?: string;
     adversary?: userId
-};
+}
   

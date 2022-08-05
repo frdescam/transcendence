@@ -2,7 +2,7 @@ import classic from './classic';
 import forest from './forest';
 import synthwave from './synthwave';
 
-import type { mapConfig } from '../interfaces';
+import type { mapConfig } from 'src/common/game/interfaces';
 
 const maps = {
 	classic: classic as mapConfig,

@@ -1,7 +1,7 @@
 'use strict';
 import { Notify } from 'quasar';
 import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Material, Texture, PlaneBufferGeometry, BoxBufferGeometry, ShadowMapType, LinearMipmapNearestFilter, BufferGeometry, Light, Object3D, SpotLight, PointLight, WebGLRenderTarget, AnimationMixer, Vector2, MeshBasicMaterial, Raycaster } from 'three';
-import { EffectComposer, Pass } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -34,7 +34,7 @@ type options = {
 	onStateChange: onStateChangeCallback,
 };
 
-type disposable = ThreeMaterial | BufferGeometry | Texture | Light | WebGLRenderer | Pass | AnimationMixer;
+type disposable = ThreeMaterial | BufferGeometry | Texture | Light | WebGLRenderer;
 
 const supportedDeltaModes = [0, 1, 2];
 
@@ -474,7 +474,7 @@ class PongScene
 		{
 			this.loadingManager.onError = (ressourceUrl: string) =>
 			{
-				onError("Can't fetch " + ressourceUrl + ". Please verify your network and refresh.");
+				onError('Can\'t fetch ' + ressourceUrl + '. Please verify your network and refresh.');
 			};
 		}
 
@@ -781,8 +781,6 @@ class PongScene
 	_setPosition (ratio: number)
 	{
 		const { positions, team } = this.state;
-		if (team === -1)
-			return;
 		const previousRatio = positions[team];
 
 		let position = Math.round(ratio * 1000);
@@ -803,8 +801,6 @@ class PongScene
 	_addPosition (delta: number)
 	{
 		const { positions, team } = this.state;
-		if (team === -1)
-			return;
 
 		this._setPosition(positions[team] + delta);
 	}
@@ -1082,7 +1078,7 @@ class PongScene
 			else
 				this._play();
 		}
-		else if (!newState.paused && !newState.lobby && state.players && oldState.team !== -1 && newState.team !== -1)
+		else if (!newState.paused && !newState.lobby && typeof state.positions !== 'undefined')
 			state.positions[newState.team] = oldState.positions[oldState.team];
 
 		this.state = Object.assign(this.state, state);
@@ -1198,11 +1194,6 @@ class PongScene
 			this.track(this.text.geometry);
 
 		this.track(this.renderer);
-		this.track(this.renderPass);
-		this.track(this.fxaaPass);
-		this.track(this.bloomPass);
-		this.track(this.filmPass);
-		this.track(this.mixer);
 
 		for (let i = 0; i < this.disposable.length - 1; ++i)
 		{

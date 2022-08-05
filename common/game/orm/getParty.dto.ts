@@ -1,6 +1,6 @@
 import type { userId, avatar } from '../types';
 
-export class getPartyDto
+export interface getPartyDto
 {
     room: string;
     createdAt: string;

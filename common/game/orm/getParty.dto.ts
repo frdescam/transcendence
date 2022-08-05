@@ -10,5 +10,4 @@ export interface getPartyDto
     avatars: [avatar, avatar];
     scores: [number, number];
     finish: boolean;
-};
-  
+}

@@ -5,5 +5,4 @@ export interface getUserPartyDto
 {
   userId: userId;
   party: getPartyDto | null;
-};
-  
+}

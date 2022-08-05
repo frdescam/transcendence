@@ -1,6 +1,6 @@
 import type { userId, avatar } from '../types';
 
-export class getPartyDto
+export interface getPartyDto
 {
     room: string;
     createdAt: string;
@@ -10,5 +10,4 @@ export class getPartyDto
     avatars: [avatar, avatar];
     scores: [number, number];
     finish: boolean;
-};
-  
+}

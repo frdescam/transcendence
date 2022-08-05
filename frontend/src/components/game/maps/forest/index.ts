@@ -54,6 +54,6 @@ const config: mapConfig = {
 		emissiveIntensity: 0.65,
 		specular: 0x777777
 	})
-};
+} as mapConfig;
 
 export default config;

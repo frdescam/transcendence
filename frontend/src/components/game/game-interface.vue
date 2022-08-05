@@ -198,7 +198,7 @@ function teamActionText (state: interfaceState): string
 					color="green-7"
 					:icon="pong && pong.state.paused ? 'play_arrow' : 'pause'"
 					:label="pong && pong.state.paused ? 'Play' : 'Pause'"
-					:disable="pong && (pong.state.spectator || pong.state.finish)"
+					:disable="pong && (pong.state.spectator || pong.state.lobby)"
 					@click="pong.onClick()"
 				/>
 

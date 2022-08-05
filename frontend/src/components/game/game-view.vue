@@ -19,6 +19,7 @@ export interface interfaceState {
 	can_join: boolean,
 	spectator: boolean,
 	paused: boolean,
+	lobby: boolean,
 	finish: boolean,
 	available_controls: {
 		wheel: boolean,
@@ -46,6 +47,7 @@ const state = reactive<interfaceState>({
 	can_join: false,
 	spectator: true,
 	paused: true,
+	lobby: true,
 	finish: false,
 	available_controls: {
 		wheel: true,
@@ -268,6 +270,7 @@ function onConnected ()
 function onStateChange (gameState: commonState)
 {
 	state.paused = gameState.paused;
+	state.lobby = gameState.lobby;
 	state.spectator = gameState.team === -1;
 	state.can_join = state.spectator && gameState.lobby && (!gameState.avatars[0] || !gameState.avatars[1]);
 	state.finish = gameState.finish;

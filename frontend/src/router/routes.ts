@@ -26,6 +26,12 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
+		path: '/userstatus/:userId',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', name: 'userstatus', component: () => import('src/views/pages/UserStatus.vue') }]
+	},
+
+	{
 		path: '/login',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', component: () => import('src/views/pages/LoginPage.vue') }]

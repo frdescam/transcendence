@@ -5,7 +5,8 @@ import { PartyService } from './party/party.service';
 import type { Socket, Server } from 'socket.io';
 import type { userId } from 'src/common/game/types';
 import type { Pong, partyQuery } from 'src/common/game/interfaces';
-import { getPartyDto } from 'src/common/game/orm/getParty.dto';
+import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
+import type { getUserPartyDto } from 'src/common/game/orm/getUserParty.dto';
 import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
 
 @WebSocketGateway({
@@ -20,6 +21,7 @@ export class MainGateway
   constructor(private partyService: PartyService)
   {
     partyService.setOnListChange(this.onListChange.bind(this));
+    partyService.setOnUserStatusChange(this.onUserStatusChange.bind(this));
   }
 
   @WebSocketServer()
@@ -212,5 +214,45 @@ export class MainGateway
   {
     if (this.server)
       this.server.to('game::list').emit('game::list::update', partyJson);
+  }
+
+  @SubscribeMessage('game::userinfos::join')
+  joinUserInfos(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('id') userId: userId
+  ): void
+  {
+    client.join(`game::userinfos::${userId}`);
+    const party = this.partyService.findPartyWithUser(userId);
+    client.emit(
+      `game::userinfos`,
+      {
+        userId,
+        party: party ? this.partyService.partyToPublicJson(party) : null
+      } as getUserPartyDto
+    );
+  }
+
+  @SubscribeMessage('game::userinfos::leave')
+  leaveUserInfos(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('id') userId: userId
+  ): void
+  {
+    client.leave(`game::userinfos::${userId}`);
+  }
+
+  public onUserStatusChange (userId: userId, partyJson: getPartyDto | null)
+  {
+    if (this.server)
+    {
+      this.server.to(`game::userinfos::${userId}`).emit(
+        `game::userinfos`,
+        {
+          userId,
+          party: partyJson
+        } as getUserPartyDto
+      );
+    }
   }
 }

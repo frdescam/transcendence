@@ -167,43 +167,43 @@ const achievements = [
 	{
 		id: 1,
 		timestamp: '03/01/2022',
-		achievementName: 'Rigorous Basterd',
+		achievementName: 'Rigorous Basterd1',
 		achievementDescription: 'Win 10 matches in a row',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	},
 	{
 		id: 1,
 		timestamp: '03/02/2022',
-		achievementName: 'Rigorous Basterd',
-		achievementDescription: 'Win 10 matches in a row',
+		achievementName: 'Rigorous Basterd2',
+		achievementDescription: 'Win 10 matches in a row 1',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	},
 	{
 		id: 1,
 		timestamp: '03/03/2022',
-		achievementName: 'Rigorous Basterd',
-		achievementDescription: 'Win 10 matches in a row',
+		achievementName: 'Rigorous Basterd3',
+		achievementDescription: 'Win 10 matches in a row 2',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	},
 	{
 		id: 1,
 		timestamp: '03/04/2022',
-		achievementName: 'Rigorous Basterd',
-		achievementDescription: 'Win 10 matches in a row',
+		achievementName: 'Rigorous Basterd4',
+		achievementDescription: 'Win 10 matches in a row 3',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	},
 	{
 		id: 1,
 		timestamp: '03/05/2022',
-		achievementName: 'Rigorous Basterd',
-		achievementDescription: 'Win 10 matches in a row',
+		achievementName: 'Rigorous Basterd4',
+		achievementDescription: 'Win 10 matches in a row 4',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	},
 	{
 		id: 1,
 		timestamp: '03/06/2022',
-		achievementName: 'Rigorous Basterd',
-		achievementDescription: 'Win 10 matches in a row',
+		achievementName: 'Rigorous Basterd5',
+		achievementDescription: 'Win 10 matches in a row 5',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	}
 ];

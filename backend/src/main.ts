@@ -23,7 +23,7 @@ async function bootstrap() {
  // app.useGlobalPipes(new ValidationPipe({
   //  whitelist: true,
   //}))
-  app.enableCors();
+  app.enableCors({origin: "http://127.0.0.1:3000", allowedHeaders: ['content-type'], credentials: true});
   // for cookies
   app.use(cookieParser());
   // maybe not needed now? global filters

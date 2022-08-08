@@ -537,7 +537,7 @@ export class PartyService
                     lobby: false,
                     text: 'Ready to retake ?',
                     textSize: 0.5,
-                    textColor: 0x0000ff,
+                    textColor: 0x007fff,
                 },
                 true
             );

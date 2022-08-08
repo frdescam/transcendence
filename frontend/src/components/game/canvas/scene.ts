@@ -783,6 +783,9 @@ class PongScene
 		const { positions, team } = this.state;
 		const previousRatio = positions[team];
 
+		if (typeof previousRatio === 'undefined' || isNaN(previousRatio))
+			return;
+
 		let position = Math.round(ratio * 1000);
 
 		if (position !== Math.round(previousRatio * 1000))
@@ -1078,7 +1081,9 @@ class PongScene
 			else
 				this._play();
 		}
-		else if (!newState.paused && !newState.lobby && typeof state.positions !== 'undefined')
+		else if (!newState.paused && !newState.lobby &&
+			typeof state.positions !== 'undefined' && typeof oldState.positions !== 'undefined' &&
+			!isNaN(oldState.positions[oldState.team]))
 			state.positions[newState.team] = oldState.positions[oldState.team];
 
 		this.state = Object.assign(this.state, state);

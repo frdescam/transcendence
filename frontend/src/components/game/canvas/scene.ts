@@ -145,6 +145,7 @@ class PongScene
 			offside: false,
 			lobby: true,
 			paused: true,
+			frozen: true,
 			text: 'Awaiting server...',
 			textSize: 0.5,
 			textColor: 0xff0000,
@@ -220,7 +221,7 @@ class PongScene
 			(e: MouseEvent) =>
 			{
 				e.preventDefault();
-				if (this.state.paused)
+				if (this.state.frozen)
 					return;
 
 				this.mouse.x = (e.offsetX / this.renderer.domElement.clientWidth) * 2 - 1;
@@ -808,11 +809,11 @@ class PongScene
 		this._setPosition(positions[team] + delta);
 	}
 
-	_play ()
+	_unfreeze ()
 	{
-		const { paused } = this.state;
+		const { frozen } = this.state;
 
-		if (!paused)
+		if (!frozen)
 			return;
 
 		if ('ontouchstart' in window)
@@ -821,11 +822,11 @@ class PongScene
 			this.renderer.domElement.addEventListener('wheel', this.scrollMovementCallback);
 	}
 
-	_pause ()
+	_freeze ()
 	{
-		const { paused } = this.state;
+		const { frozen } = this.state;
 
-		if (paused)
+		if (frozen)
 			return;
 
 		if ('ontouchstart' in window)
@@ -1006,7 +1007,7 @@ class PongScene
 			}
 		}
 
-		if (!this.state.paused)
+		if (!this.state.frozen)
 		{
 			if (this.controls.keyboard && this.activeControls.keyboard && (this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
 			{
@@ -1074,14 +1075,14 @@ class PongScene
 		const oldState = Object.assign({}, this.state);
 		const newState = Object.assign({}, this.state, state);
 
-		if (oldState.paused !== newState.paused)
+		if (oldState.frozen !== newState.frozen)
 		{
-			if (newState.paused)
-				this._pause();
+			if (newState.frozen)
+				this._freeze();
 			else
-				this._play();
+				this._unfreeze();
 		}
-		else if (!newState.paused && !newState.lobby &&
+		else if (!newState.frozen && !newState.lobby &&
 			typeof state.positions !== 'undefined' && typeof oldState.positions !== 'undefined' &&
 			!isNaN(oldState.positions[oldState.team]))
 			state.positions[newState.team] = oldState.positions[oldState.team];
@@ -1104,7 +1105,7 @@ class PongScene
 		}
 
 		if (this.options.onStateChange)
-			this.options.onStateChange(this.state);
+			this.options.onStateChange(newState);
 	}
 
 	setDateTheta (theta: number)
@@ -1159,7 +1160,7 @@ class PongScene
 	dispose ()
 	{
 		this.disposed = true;
-		this._pause();
+		this._freeze();
 
 		window.removeEventListener('keydown', this.keydownMouvementCallback);
 		window.removeEventListener('keyup', this.keyupMouvementCallback);

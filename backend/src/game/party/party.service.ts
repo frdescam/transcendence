@@ -101,6 +101,7 @@ export class PartyService
                         offside: false,
                         lobby: true,
                         paused: true,
+                        frozen: true,
                         ballX: 0.5,
                         ballY: 0.5,
                         ballSpeedX: 0,
@@ -173,6 +174,7 @@ export class PartyService
                         offside: false,
                         lobby: true,
                         paused: true,
+                        frozen: true,
                         ballSpeedX: 0,
                         ballSpeedY: 0,
                         finish: true
@@ -431,6 +433,7 @@ export class PartyService
                 offside: false,
                 lobby: false,
                 paused: false,
+                frozen: false,
                 ballX: 0.5,
                 ballY: 0.5,
                 ballSpeedX: Math.cos(ballAngle) * ballDirection,
@@ -455,6 +458,7 @@ export class PartyService
                     {
                         text: '',
                         paused: false,
+                        frozen: false,
                     }
                 );
                 this.sendState(
@@ -492,7 +496,8 @@ export class PartyService
             party,
             {
                 lobby: false,
-                paused: this.shouldBeControlsFrozen(party),
+                paused: false,
+                frozen: this.shouldBeControlsFrozen(party),
                 text: '3',
                 textSize: 1,
                 textColor: 0x00ffff,
@@ -552,7 +557,8 @@ export class PartyService
         this.sendState(
             party,
             {
-                paused: this.shouldBeControlsFrozen(party),
+                paused: true,
+                frozen: this.shouldBeControlsFrozen(party),
                 ballSpeedX: 0,
                 ballSpeedY: 0,
                 ballX: party.state.ballX,
@@ -576,7 +582,7 @@ export class PartyService
     {
         const party = this.findPartyFromSocket(client);
 
-        if (!party || party.state.paused)
+        if (!party || party.state.frozen)
             return ;
         let slot = this.getSlotFromSocket(party, client);
 
@@ -859,6 +865,7 @@ export class PartyService
                     offside: false,
                     lobby: true,
                     paused: true,
+                    frozen: true,
                     text: '',
                     textSize: 0.5,
                     textColor: 0xff0000,

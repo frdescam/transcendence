@@ -66,6 +66,7 @@ interface serverState {
 	offside: boolean,
 	lobby: boolean,
 	paused: boolean,
+	frozen: boolean,
 	text: string,
 	textSize: number,
 	textColor: Color | number,

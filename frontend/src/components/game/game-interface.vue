@@ -20,10 +20,11 @@ function toggleFullscreen ()
 			requestAnimationFrame(
 				function ()
 				{
+					pong.value?.resize();
 					requestAnimationFrame(
 						function ()
 						{
-							pong.value?.resize();
+							setTimeout(pong.value?.resize);
 						}
 					);
 				}

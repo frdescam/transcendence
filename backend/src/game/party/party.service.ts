@@ -887,7 +887,7 @@ export class PartyService
                     lobby: true,
                     text: 'Awaiting player...',
                     textSize: 0.5,
-                    textColor: 0xffff00
+                    textColor: (party.playersId[0] && party.playersId[1]) ? 0xff00ff : 0xffff00
                 },
                 false,
                 true

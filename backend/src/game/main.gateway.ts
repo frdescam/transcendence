@@ -7,11 +7,16 @@ import type { userId } from 'src/common/game/types';
 import type { Pong, partyQuery } from 'src/common/game/interfaces';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
+import { WsJwtGuard } from "src/auth/guards/ws-jwt.guard"; // erase WS strategy not needed here
+
 
 @WebSocketGateway({
   namespace: 'game',
+  // cors: '*:*',
   cors: {
     origin: '*',
+    //allowedHeaders: ["Authentication"],
+    //credentials: true,
   },
 })
 export class MainGateway
@@ -40,7 +45,7 @@ export class MainGateway
     client.volatile.emit('party::pong', {cdate, sdate: (new Date()).toISOString()} as Pong);
   }
 
-  @UseGuards(SocketMockupAuthGuard)
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('party::create')
   create(
     @MessageBody('room') room: string,
@@ -73,7 +78,7 @@ export class MainGateway
     }
   }
 
-  @UseGuards(SocketMockupAuthGuard)
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('party::join')
   join(
     @MessageBody('room') room: string,
@@ -84,6 +89,7 @@ export class MainGateway
     const party = this.partyService.findParty(room);
     const user: any = req.user;
     const userId: userId = user.id;
+    //console.log(user);
 
     if (party)
       this.partyService.joinParty(party, client, userId);
@@ -101,6 +107,7 @@ export class MainGateway
   {
     const party = this.partyService.findParty(room);
     const user: any = req.user;
+    console.log(user, party);
 
     if (party)
       this.partyService.spectateParty(party, client, user);
@@ -157,7 +164,7 @@ export class MainGateway
     return ({left: true});
   }
 
-  @UseGuards(SocketMockupAuthGuard)
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('game::query::find')
   query(
     @ConnectedSocket() client: Socket,

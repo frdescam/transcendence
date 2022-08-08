@@ -4,6 +4,8 @@ import { userId } from 'src/common/game/types';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import { CreatePartyDto } from '../orm/createParty.dto';
 import { HTTPMockupAuthGuard } from 'src/usermockup/auth.guard';
+import { JwtAuthGuard } from "src/auth/guards/auth-jwt.guard";
+
 
 @Controller('party')
 export class PartyController
@@ -30,12 +32,13 @@ export class PartyController
         return (party ? party.room : null);        
     }
 
-    @UseGuards(HTTPMockupAuthGuard)
+    @UseGuards(JwtAuthGuard)
     @Put('giveup')
     giveup(
         @Request() req,
     )
     {
+        //console.log(req);
         const user: any = req.user;
         this.partyService.checkUserObject(user);
         const himself: userId = user.id;
@@ -58,7 +61,7 @@ export class PartyController
         return (partyArr.length ? this.partyService.partyToPublicJson(partyArr[0]) : null);
     }
     
-    @UseGuards(HTTPMockupAuthGuard)
+    @UseGuards(JwtAuthGuard)
     @Post()
     @UsePipes(new ValidationPipe({ transform: true, transformOptions: {enableImplicitConversion: true} }))
     create(
@@ -66,9 +69,11 @@ export class PartyController
         @Request() req
     ): string
     {
+        //console.log(req);
         const user: any = req.user;
         this.partyService.checkUserObject(user);
         const himself: userId = user.id;
+
 
         // @TODO: check adversary ID existence
         const party = this.partyService.createParty(

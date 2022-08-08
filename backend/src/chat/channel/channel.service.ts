@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 
 import { ChannelDTO } from '../orm/channel.dto';
 import { Channel } from '../orm/channel.entity';
-import { UserDTO } from 'src/user/orm/user.dto';
+//import { UserDTO } from 'src/user/orm/user.dto';
 
 @Injectable()
 export class ChannelService {
@@ -80,7 +80,7 @@ export class ChannelService {
     });
   }
 
-  async addUser(channelId: number, user: UserDTO) {
+  async addUser(channelId: number, user) {
     try {
       await this.channelRepository.createQueryBuilder()
         .relation(Channel, 'users')
@@ -102,7 +102,7 @@ export class ChannelService {
     }
   }
 
-  async removeUser(channelId: number, user: UserDTO) {
+  async removeUser(channelId: number, user) {
     try {
       await this.channelRepository.createQueryBuilder()
         .relation(Channel, 'users')
@@ -124,7 +124,7 @@ export class ChannelService {
     }
   }
 
-  async addAdmin(channelId: number, user: UserDTO) {
+  async addAdmin(channelId: number, user) {
     try {
       const newUser = await this.channelRepository.createQueryBuilder()
         .relation(Channel, 'admins')
@@ -148,7 +148,7 @@ export class ChannelService {
     }
   }
 
-  async removeAdmin(channelId: number, user: UserDTO) {
+  async removeAdmin(channelId: number, user) {
     try {
       const newUser = await this.channelRepository.createQueryBuilder()
         .relation(Channel, 'admins')

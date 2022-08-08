@@ -9,7 +9,8 @@ declare module '@vue/runtime-core' {
 }
 
 const manager = new Manager('http://' + document.location.hostname + ':8080', {
-	autoConnect: true
+	autoConnect: true,
+	withCredentials: true
 });
 const chat = manager.socket('/chat::');
 const game = manager.socket('/game', {

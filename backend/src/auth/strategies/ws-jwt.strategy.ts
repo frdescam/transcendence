@@ -39,9 +39,11 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {
 		super({
 			jwtFromRequest: ExtractJwt.fromExtractors([
 				(request: any) => { // request here is a socket
+					//console.log(request, request.handshake.headers.cookie);
 					const cookies: any = tokenizeCookies( // returns object with cookies make interface
 						request.handshake.headers.cookie, // to test with requests change handshake here, req.headers.cookie shoudl exist and can then test if validate func works!
 					);
+					//console.log(cookies, cookies.Authentication, cookies.Refresh);
 					return cookies.Authentication;
 				},
 			]),
@@ -52,15 +54,17 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {
 	}
 
 	async validate(request: Socket, payload: TokenPayload): Promise<User> { // request is socket
-		console.log(request);
-		if (request['user']) {
-			const cookies: any = tokenizeCookies(request.handshake.headers.cookie);
-			return this.auth_svc.login({
-				id: request['user']?.id,
-				refresh_token: cookies.Refresh,
-			});
-		}
-
+		//console.log(request['user']);
+		// console.log(payload);
+		// if (request['user']) {
+		// 	const cookies: any = tokenizeCookies(request.handshake.headers.cookie);
+		// 	console.log(cookies.Refresh);
+		// 	return this.auth_svc.login({
+		// 		id: request['user']?.id,
+		// 		refresh_token: cookies.Refresh,
+		// 	});
+		// }
+		// console.log("hello");
 		return this.auth_svc.login({
 			id: payload.sub,
 		});

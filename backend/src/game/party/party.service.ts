@@ -409,6 +409,7 @@ export class PartyService
 
     private introduceBall (party: Party)
     {
+				const { speedFactor } = maps[party.map];
         let ballDirection;
         let ballAngle = this.getNumberInRange(-Math.PI / 4, Math.PI / 4);
         switch (party.wonSleeve)
@@ -436,8 +437,8 @@ export class PartyService
                 frozen: false,
                 ballX: 0.5,
                 ballY: 0.5,
-                ballSpeedX: Math.cos(ballAngle) * ballDirection,
-                ballSpeedY: Math.sin(ballAngle)
+                ballSpeedX: Math.cos(ballAngle) * ballDirection * speedFactor,
+                ballSpeedY: Math.sin(ballAngle) * speedFactor
             }
         );
         this.handlePartyChange(party, {}, true);

@@ -6,7 +6,8 @@ interface mapConfig {
 	fov: number,
 	forceRotationRatio: number,
 	effects: string[],
-	controls: string[]
+	controls: string[],
+  speedFactor: number,
 	sceneFile?: string,
 	additionnalLight?: string[],
 	skybox?: [

@@ -1,6 +1,7 @@
 'use strict';
 import { Notify } from 'quasar';
 import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Material, Texture, PlaneBufferGeometry, BoxBufferGeometry, ShadowMapType, LinearMipmapNearestFilter, BufferGeometry, Light, Object3D, SpotLight, PointLight, WebGLRenderTarget, AnimationMixer, Vector2, MeshBasicMaterial, Raycaster } from 'three';
+import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -89,6 +90,7 @@ class PongScene
 	protected mouseCatcher: Mesh;
 	protected envLight: AmbientLight | null;
 	protected ball: Mesh;
+	protected dash: Mesh | null;
 	protected player1: Mesh;
 	protected player2: Mesh;
 	protected scoreFont: Font | null;
@@ -246,6 +248,7 @@ class PongScene
 			cameraClip, sceneFile,
 			gameScale, pauseCameraPosition, pauseCameraRotation,
 			ballMaterial, baseSize,
+			dash, dashHeight, dashMaterial,
 			floorMaterial,
 			playerSize, player1Material, player2Material, moveSteps,
 			scoreFont, textFont,
@@ -329,6 +332,35 @@ class PongScene
 		if ('transparent' in this.ball.material)
 			this.ball.material.transparent = true;
 		this.scene.add(this.ball);
+
+		if (dash)
+		{
+			const dashNumber = dash;
+			const dashLength = gameScale * baseSize[1] / dashNumber / 2;
+			const spaceLength = gameScale * baseSize[1] / (dashNumber - 1) / 2;
+			const dashHeightVal = typeof dashHeight !== "undefined" ? dashHeight * gameScale : dashLength / 2;
+			const singleDashGeomerty = new BoxBufferGeometry(dashLength / 2, dashHeightVal, dashLength);
+			const dashParts: BufferGeometry[] = [];
+			for (let i = 0; i < dashNumber; i++)
+			{
+				const partGeometry = singleDashGeomerty.clone();
+				partGeometry.translate(0, 0, -baseSize[1] / 2 * gameScale + (dashLength + spaceLength) * i + dashLength / 2);
+				dashParts.push(partGeometry);
+			}
+			const dashGeomerty = mergeBufferGeometries(dashParts);
+			this.track(dashGeomerty);
+			singleDashGeomerty.dispose();
+			dashParts.forEach((geometry) =>
+			{
+				geometry.dispose();
+			});
+			this.dash = new Mesh(dashGeomerty, dashMaterial);
+			this.dash.receiveShadow = true;
+			this.dash.castShadow = true;
+			this.scene.add(this.dash);
+		}
+		else
+			this.dash = null;
 
 		const floorGeometry = new BoxBufferGeometry(
 			baseSize[0] * gameScale,

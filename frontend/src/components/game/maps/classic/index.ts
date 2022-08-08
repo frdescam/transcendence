@@ -17,6 +17,8 @@ const config: mapConfig = {
 		color: 0x1c1c1c
 	}),
 	ballMaterial,
+	dash: 31,
+	dashMaterial: itemsMaterial,
 	player1Material: itemsMaterial,
 	player2Material: itemsMaterial,
 	scoreFont: font,

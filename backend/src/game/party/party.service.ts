@@ -617,6 +617,8 @@ export class PartyService
         
         if (party.status == partyStatus.Paused)
         {
+            if (!party.playersSocket[0] || !party.playersSocket[1])
+                return ;
             party.playersReady[slot] = !party.playersReady[slot];
             if (party.playersReady[0] && party.playersReady[1])
                 this.play(party);

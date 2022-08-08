@@ -8,6 +8,7 @@ const config: Partial<mapConfig> = {
 	forceRotationRatio: 1.3,
 	effects: ['film'],
 	controls: ['wheel', 'keyboard'],
+	additionnalLight: [],
 	skyboxAsEnvironment: false,
 	EnvironmentColor: 0xffffff,
 	lightDecayFactor: 0.5,

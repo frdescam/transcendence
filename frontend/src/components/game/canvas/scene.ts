@@ -625,7 +625,7 @@ class PongScene
 			critical
 		} = qualities[qualityLevel] as quality;
 
-		this.useEffects = false;
+		this.useEffects = !critical;
 		this.composer.passes = [];
 		this.composer.addPass(this.renderPass);
 		this.composer.addPass(this.fxaaPass);
@@ -636,10 +636,7 @@ class PongScene
 			(effectName: string) =>
 			{
 				if (allowedEffects.indexOf(effectName) !== -1)
-				{
-					this.useEffects = true;
 					this._addEffect(effectName);
-				}
 			}
 		);
 	}

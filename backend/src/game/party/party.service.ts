@@ -502,6 +502,7 @@ export class PartyService
                 text: '3',
                 textSize: 1,
                 textColor: 0x00ffff,
+                readyStates: [false, false]
             }
         );
         this.handlePartyChange(party, {}, true);
@@ -564,7 +565,8 @@ export class PartyService
                 ballSpeedY: 0,
                 ballX: party.state.ballX,
                 ballY: party.state.ballY,
-                positions: party.state.positions
+                positions: party.state.positions,
+                readyStates: [false, false]
             },
             false,
             true
@@ -576,7 +578,6 @@ export class PartyService
             party.status = partyStatus.Paused;
             this.handlePartyChange(party, {}, true);
         }
-        party.playersReady = [false, false];
     }
 
     public move (position: number, client: Socket)
@@ -620,10 +621,17 @@ export class PartyService
         {
             if (!party.playersSocket[0] || !party.playersSocket[1])
                 return ;
-            party.playersReady[slot] = !party.playersReady[slot];
-            if (party.playersReady[0] && party.playersReady[1])
+            const readyStates = party.state.readyStates.slice() as [boolean, boolean];
+            readyStates[slot] = !readyStates[slot];
+            this.patchState(
+                party,
+                {
+                    readyStates
+                }
+            );
+            if (readyStates[0] && readyStates[1])
                 this.play(party);
-            else if (party.playersReady[slot])
+            else if (readyStates[slot])
             {
                 this.sendSocketState(
                     client,
@@ -696,7 +704,7 @@ export class PartyService
             }
 
             party.playersSocket[slot] = null;
-            party.playersReady[slot] = false;
+            party.state.readyStates[slot] = false;
             delete this.partiesBySocket[client.id];
 
             this.patchState(
@@ -855,7 +863,6 @@ export class PartyService
                 spectators: [],
                 playersSocket: [client || null, null],
                 playersId: userIds,
-                playersReady: [false, false],
                 state: {
                     date: new Date(),
                     positions: [0.5, 0.5],
@@ -874,6 +881,7 @@ export class PartyService
                     textColor: 0xff0000,
                     avatars: [null, null],
                     presences: [!!client, false],
+                    readyStates: [false, false],
                     finish: false
                 },
             };

@@ -1,18 +1,42 @@
 <template>
 	<div class="q-pa-none">
-		<profileHeader
-			:user="user"
-		></profileHeader>
-		<div class="row justify-evenly">
-			<div class="col-12 col-md-6 q-py-md q-pl-md" v-bind:class=" $q.screen.lt.md ? 'q-pr-md' : 'q-pr-sm'">
-				<matchesList
-					:matches="matches"
-				></matchesList>
+		<div class="column"
+			style="background-image: url(/background.png); background-position: center; background-size: cover; background-repeat: no-repeat;">
+			<div class="q-pa-md full-width row items-center">
+				<div v-bind:class="{ 'q-pr-md': $q.screen.gt.sm }"
+					class="q-my-lg row full-height items-center justify-around col-md-2 col-12">
+					<q-avatar class="q-my-auto" size=150px>
+						<img :src='user.avatar'>
+						<q-badge v-if="user.status == 'online'" class="absolute-bottom-right"
+							style="width: 30px; height: 30px" color="light-green-14" rounded>
+							<q-tooltip>{{ user.status }}</q-tooltip>
+						</q-badge>
+						<q-badge v-if="user.status == 'offline'" class="absolute-bottom-right"
+							style="width: 30px; height: 30px" color="red" rounded>
+							<q-tooltip>{{ user.status }}</q-tooltip>
+						</q-badge>
+						<q-badge v-if="user.status == 'playing'" class="absolute-bottom-right"
+							style="width: 30px; height: 30px" color="orange" rounded>
+							<q-tooltip>{{ user.status }}</q-tooltip>
+						</q-badge>
+					</q-avatar>
+				</div>
+				<profileHeader :user="user"></profileHeader>
 			</div>
-            <div class="col-12 col-md-6  q-py-md q-pr-md" v-bind:class=" $q.screen.lt.md ? 'q-pl-md' : 'q-pl-sm'">
-				<achievementsList
-					:achievements="achievements"
-				></achievementsList>
+			<q-item class="full-width row justify-around">
+				<q-btn @click="onDeleteFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
+					label="add friend" />
+				<q-btn :href="'chat/' + user.pseudo" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
+					label="send a message" />
+				<q-btn @click="onBlockUser()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="block user" />
+			</q-item>
+		</div>
+		<div class="row justify-evenly">
+			<div class="col-12 col-md-6 q-py-md q-pl-md" v-bind:class="$q.screen.lt.md ? 'q-pr-md' : 'q-pr-sm'">
+				<matchesList :matches="matches"></matchesList>
+			</div>
+			<div class="col-12 col-md-6  q-py-md q-pr-md" v-bind:class="$q.screen.lt.md ? 'q-pl-md' : 'q-pl-sm'">
+				<achievementsList :achievements="achievements"></achievementsList>
 			</div>
 		</div>
 	</div>
@@ -36,7 +60,7 @@ const user = {
 	xp: 4.2,
 	ratio: 42,
 	rank: 101,
-	status: "online"
+	status: 'online'
 };
 
 const matches = [

@@ -35,7 +35,7 @@
 		</q-list>
 		<q-dialog v-model="firstConnection">
 			<div class="column items-center q-pa-md" style="background-color: white; max-width: 400px;">
-				<h5 class="q-ma-md">You can edit you pseudo and profile picture right here:</h5>
+				<h5 class="q-ma-md">You can edit your pseudo and profile picture right here:</h5>
 				<q-card bordered style='width: 300px;' class="q-ma-md">
 					<q-card-section>
 						<pseudoEditing :username='user.pseudo'></pseudoEditing>

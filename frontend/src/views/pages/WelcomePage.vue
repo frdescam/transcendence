@@ -38,7 +38,7 @@ export default ({
 	{
 		const username = ref('pohl');
 		const profilePicture = ref('https://placeimg.com/500/300/nature');
-		const firstConnection = ref('true');
+		const firstConnection = true;
 
 		return {
 			username,

@@ -1,6 +1,6 @@
 <template>
 	<q-page class="row items-start justify-evenly">
-		<q-list class="row q-mt-md justify-evenly shadow-2 rounded-borders">
+		<q-list class="row q-ma-md justify-evenly shadow-2 rounded-borders">
 			<q-toolbar>
 				<q-toolbar-title class="q-ml-lg q-mt-md">Settings:</q-toolbar-title>
 			</q-toolbar>

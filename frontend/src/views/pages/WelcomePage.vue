@@ -33,32 +33,29 @@
 				<q-btn class="q-mb-xs" :to="{ path: '/settings' }" color="primary">Edit your settings</q-btn>
 			</q-list>
 		</q-list>
+		<q-dialog v-model="firstConnection">
+			<div class="column items-center q-pa-md" style="background-color: white; max-width: 400px;">
+				<h5 class="q-ma-md">You can edit you pseudo and profile picture right here:</h5>
+				<q-card bordered style='width: 300px;' class="q-ma-md">
+					<q-card-section>
+						<pseudoEditing :username='user.pseudo'></pseudoEditing>
+					</q-card-section>
+					<q-separator inset />
+					<q-card-section>
+						<pictureEditing :picture='user.avatar'></pictureEditing>
+					</q-card-section>
+				</q-card>
+				<q-btn flat v-close-popup>Dismiss</q-btn>
+			</div>
+		</q-dialog>
 	</q-page>
-
-    <q-dialog v-model="alert">
-		<div class="column items-center">
-			<h5 class="q-mb-md">You can edit you pseudo and profile picture right here:</h5>
-			<q-card bordered style='width: 300px;' class="q-ma-md">
-				<q-card-section>
-					<pseudoEditing :username='user.pseudo'></pseudoEditing>
-				</q-card-section>
-				<q-separator inset />
-				<q-card-section>
-					<pictureEditing :picture='user.avatar'></pictureEditing>
-				</q-card-section>
-			</q-card>
-			<q-btn class="q-mb-xs" :to="{ path: '/settings' }" color="primary">Or edit the rest of your settings
-			</q-btn>
-		</div>
-	</q-dialog>
 </template>
 
 <script lang="ts">
 import pictureEditing from 'src/components/userSettings/pictureEditing.vue';
 import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
-
-// v-if="firstConnection == true"
+import { ref } from 'vue';
 
 const user = {
 	id: 1,
@@ -85,7 +82,7 @@ export default ({
 	},
 	setup ()
 	{
-		const firstConnection = true;
+		const firstConnection = ref(true);
 
 		return {
 			user,

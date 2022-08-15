@@ -5,37 +5,42 @@
 			<div class="q-pa-md full-width row items-center">
 				<div v-bind:class="{ 'q-pr-md': $q.screen.gt.sm }" class="q-my-lg row full-height items-center justify-around col-md-2 col-12">
 					<q-avatar class="q-my-auto" size=150px>
-						<img src='https://cdn.quasar.dev/img/boy-avatar.png'>
-							<q-badge v-if="online" class="absolute-bottom-right" style="width: 30px; height: 30px" color="light-green-14" rounded></q-badge>
-							<q-badge v-else class="absolute-bottom-right" style="width: 30px; height: 30px" color="red" rounded></q-badge>
-							<q-tooltip v-if="online">Online</q-tooltip>
-							<q-tooltip v-else>Offline</q-tooltip>
+						<img :src='computedUser.avatar'>
+							<q-badge v-if="computedUser.status == 'online'" class="absolute-bottom-right" style="width: 30px; height: 30px" color="light-green-14" rounded>
+								<q-tooltip>{{computedUser.status}}</q-tooltip>
+							</q-badge>
+							<q-badge v-if="computedUser.status == 'offline'" class="absolute-bottom-right" style="width: 30px; height: 30px" color="red" rounded>
+								<q-tooltip>{{computedUser.status}}</q-tooltip>
+							</q-badge>
+							<q-badge v-if="computedUser.status == 'playing'" class="absolute-bottom-right" style="width: 30px; height: 30px" color="orange" rounded>
+								<q-tooltip>{{computedUser.status}}</q-tooltip>
+							</q-badge>
 					</q-avatar>
 				</div>
 				<div class="col-md-10 col-12">
 					<div class="fit column q-pa-sm" style="background: rgba(0, 0, 0, 0.4); border-radius: 10px">
 						<div class="q-pa-sm row col-3 items-center">
 							<div v-bind:class="{ 'justify-center': $q.screen.lt.md }" class="col-12 col-md-6 row" style="height: 4em">
-								<div style="font-size: 3em; color: #eee;">Frdescam</div>
-								<div class="text-weight-bold q-ml-sm" style="font-size: 3em; color: #eee;">#101</div>
+								<div style="font-size: 3em; color: #eee;">{{computedUser.pseudo}}</div>
+								<div class="text-weight-bold q-ml-sm" style="font-size: 3em; color: #eee;">#{{computedUser.rank}}</div>
 							</div>
-							<div v-bind:class=" $q.screen.lt.md ? 'text-center' : 'text-right' " class="col-12 col-md-6" style="font-size: 1.5em; color: #eee;">Ratio : 42%</div>
+							<div v-bind:class=" $q.screen.lt.md ? 'text-center' : 'text-right' " class="col-12 col-md-6" style="font-size: 1.5em; color: #eee;">Ratio : {{computedUser.ratio}}%</div>
 						</div>
-						<q-badge class="col-5 q-mx-auto" style="font-size: 3em; color: #eee; height: 75px; background: rgba(0, 0, 0, 0.4); border-radius: 15px">Level 42</q-badge>
+						<q-badge class="col-5 q-mx-auto" style="font-size: 3em; color: #eee; height: 75px; background: rgba(0, 0, 0, 0.4); border-radius: 15px">Level {{computedUser.level}}</q-badge>
 						<div class="row justify-between col-2 items-end">
 							<div style="color: #eee;" class="q-mb-none">Next level :</div>
-							<div style="color: #eee;" class="q-mb-none">42 / 100 XP</div>
+							<div style="color: #eee;" class="q-mb-none">{{computedUser.xpToNextLevel}} / 100 XP</div>
 						</div>
 						<div class="col-2">
-							<q-linear-progress stripe rounded class="q-mt-sm" size="20px" value="0.42" color="blue"/>
+							<q-linear-progress stripe rounded class="q-mt-sm" size="20px" :value="computedUser.xpToNextLevel / 100" color="blue"/>
 						</div>
 					</div>
 				</div>
 			</div>
 			<q-item class="full-width row justify-around">
-				<q-btn style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="add friend"/>
-				<q-btn style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="send a message"/>
-				<q-btn style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="block user"/>
+				<q-btn @click="onDeleteFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="add friend"/>
+				<q-btn :href="'chat/' + computedUser.pseudo" style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="send a message"/>
+				<q-btn @click="onBlockUser()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="block user"/>
 			</q-item>
 		</div>
 		<!-- END HEADER -->
@@ -61,6 +66,39 @@
 
 import matchesList from 'src/components/profilePage/MatchesList.vue';
 import achievementsList from 'src/components/profilePage/AchievementsList.vue';
+
+const user = {
+	id: 1,
+	fortytwo_id: 56455,
+	pseudo: 'fdeĉ',
+	refresh_token: 'null',
+	email: 'lol',
+	password: 'k',
+	avatar: 'https://cdn.intra.42.fr/users/frdescam.jpg',
+	is2FActive: false,
+	secretOf2FA: 'k',
+	xp: 4.2,
+	ratio: 42,
+	rank: 101,
+	status: "online"
+};
+
+const computedUser = {
+	id: user.id,
+	fortytwo_id: user.fortytwo_id,
+	pseudo: user.pseudo,
+	refresh_token: user.refresh_token,
+	email: user.email,
+	password: user.password,
+	avatar: user.avatar,
+	is2FActive: user.is2FActive,
+	secretOf2FA: user.secretOf2FA,
+	level: parseInt(user.xp),
+	xpToNextLevel: parseInt((user.xp - parseInt(user.xp)) * 100),
+	ratio: user.ratio,
+	rank: user.rank,
+	status: user.status
+};
 
 const matches = [
 	{
@@ -129,43 +167,43 @@ const achievements = [
 	{
 		id: 1,
 		timestamp: '03/01/2022',
-		achievementName: 'Rigorous Basterd',
+		achievementName: 'Rigorous Basterd1',
 		achievementDescription: 'Win 10 matches in a row',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	},
 	{
 		id: 1,
 		timestamp: '03/02/2022',
-		achievementName: 'Rigorous Basterd',
-		achievementDescription: 'Win 10 matches in a row',
+		achievementName: 'Rigorous Basterd2',
+		achievementDescription: 'Win 10 matches in a row 1',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	},
 	{
 		id: 1,
 		timestamp: '03/03/2022',
-		achievementName: 'Rigorous Basterd',
-		achievementDescription: 'Win 10 matches in a row',
+		achievementName: 'Rigorous Basterd3',
+		achievementDescription: 'Win 10 matches in a row 2',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	},
 	{
 		id: 1,
 		timestamp: '03/04/2022',
-		achievementName: 'Rigorous Basterd',
-		achievementDescription: 'Win 10 matches in a row',
+		achievementName: 'Rigorous Basterd4',
+		achievementDescription: 'Win 10 matches in a row 3',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	},
 	{
 		id: 1,
 		timestamp: '03/05/2022',
-		achievementName: 'Rigorous Basterd',
-		achievementDescription: 'Win 10 matches in a row',
+		achievementName: 'Rigorous Basterd4',
+		achievementDescription: 'Win 10 matches in a row 4',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	},
 	{
 		id: 1,
 		timestamp: '03/06/2022',
-		achievementName: 'Rigorous Basterd',
-		achievementDescription: 'Win 10 matches in a row',
+		achievementName: 'Rigorous Basterd5',
+		achievementDescription: 'Win 10 matches in a row 5',
 		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
 	}
 ];
@@ -178,10 +216,23 @@ export default {
 	},
 	setup ()
 	{
+		async function onDeleteFriend ()
+		{
+			console.log("removing friend!");
+		}
+
+		async function onBlockUser ()
+		{
+			console.log("blocking user!");
+		}
+
 		return {
-			online: true,
+			computedUser,
 			matches,
-			achievements
+			achievements,
+
+			onDeleteFriend,
+			onBlockUser
 		};
 	}
 };

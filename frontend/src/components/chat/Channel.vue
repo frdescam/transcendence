@@ -30,7 +30,7 @@
 						v-for="channel in channels"
 						v-bind:key="channel.id"
 						:class="(channel.id === selectedChannelId) ? 'selected-channel' : ''"
-						@click="channelIsSelected(channel.id, channel.type)"
+						@click="changeChannel(channel.id, channel.type)"
 						:data-id="channel.id"
 					>
 						<q-item-section avatar>
@@ -210,7 +210,7 @@ export default defineComponent({
 
 		let emitFromChannel = false;
 		let saveEmitChannelId = -1;
-		const channelIsSelected = (channelId: number, channelType: string) =>
+		const changeChannel = (channelId: number, channelType: string) =>
 		{
 			if (!selectedChannelId.value ||
 				(selectedChannelId.value && selectedChannelId.value !== channelId))
@@ -289,9 +289,13 @@ export default defineComponent({
 		};
 
 		// #region Update user of channel
+		socket.on('channel::data::change', (channelId, ret) =>
+		{
+			console.log('log', channelId, ret);
+		});
 		const updateUser = (channelId: number, user: updateUserInterface) =>
 		{
-			const setVal = (type: string, compare: boolean, arr: number[], hideEdition = false, hideOnInsert = true) =>
+			const setVal = (compare: boolean, arr: number[], hideEdition = false, hideOnInsert = true) =>
 			{
 				const x = arr.indexOf(user.userId);
 				if (x !== -1)
@@ -319,9 +323,9 @@ export default defineComponent({
 					channels.value.splice(i, 1);
 					return;
 				}
-				setVal('admin', user.admin, channels.value[i].admins, true, false);
-				setVal('banned', user.banned, channels.value[i].banned, true);
-				setVal('muted', user.muted, channels.value[i].muted);
+				setVal(user.admin, channels.value[i].admins, true, false);
+				setVal(user.banned, channels.value[i].banned, true);
+				setVal(user.muted, channels.value[i].muted);
 				emit('channel-user-update', {
 					user: user.userId,
 					admin: user.admin,
@@ -341,7 +345,6 @@ export default defineComponent({
 		{
 			if (bypass === false && selectedChannelId.value !== channelId)
 				return;
-			console.log('print alert');
 			dialogAlertUser.value = user;
 			dialogAlertType.value = type;
 			dialogAlertToggle.value = toggle;
@@ -443,19 +446,33 @@ export default defineComponent({
 			}
 		});
 
+		socket.on('channel::receive::change', (ret) =>
+		{
+			if (ret.socketId !== socket.id)
+				return;
+			selectedChannelId.value = 0;
+			changeChannel(ret.data.id, ret.data.type);
+		});
+
 		socket.on('channel::receive::add', (ret) =>
 		{
-			if (ret.channel && ret.channel.created)
+			if (ret.channel && ret.channel.created === true)
 			{
 				if (ret.channel.data.type === 'public' || ret.channel.data.type === 'protected')
 					channels.value.push(generateData(ret.channel.data));
 				else if (ret.channel.data.type === 'private' || ret.channel.data.type === 'direct')
 				{
-					for (const user of ret.channel.data.users)
+					for (const user of ret.users)
 					{
-						if (user.id === props.userId)
+						if (user.data.id === props.userId)
 						{
 							channels.value.push(generateData(ret.channel.data));
+							if (user.data.id === ret.channel.data.owner.id)
+							{
+								// Force creator of private message to switch automatically to new channel
+								selectedChannelId.value = 0;
+								changeChannel(ret.channel.data.id, ret.channel.data.type);
+							}
 							return;
 						}
 					}
@@ -520,7 +537,7 @@ export default defineComponent({
 			selectedChannelName,
 
 			sendEvent,
-			channelIsSelected,
+			changeChannel,
 			openContextualMenu,
 			updateUser,
 

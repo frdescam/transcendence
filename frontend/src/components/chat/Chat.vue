@@ -12,7 +12,7 @@
 		<q-editor
 			:placeholder="$t('chat.editor.placeholder')"
 			:disable="disableForm"
-      square
+			square
 			ref="editorRef"
 			:definitions="{
 				image: {
@@ -112,6 +112,8 @@
 </template>
 
 <script lang="ts">
+
+/* eslint-disable no-array-constructor */
 import { Timestamp, TimestampFunction, SanitizeMessage } from 'src/boot/libs';
 import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, nextTick, watch } from 'vue';
@@ -152,7 +154,7 @@ export default defineComponent({
 		const loading = ref(false);
 		const noError = ref(true);
 		const editor = ref('');
-		const messages = ref(new Array<messageInterface>()); // eslint-disable-line no-array-constructor
+		const messages = ref(new Array<messageInterface>());
 		const messageEditId = ref(-1);
 
 		const getBottomOfChat = () =>
@@ -162,6 +164,15 @@ export default defineComponent({
 				if (chat.value)
 					chat.value.scrollTop = chat.value.scrollHeight;
 			});
+		};
+
+		const reset = () =>
+		{
+			loading.value = false;
+			noError.value = true;
+			disableForm.value = true;
+			messageEditId.value = -1;
+			messages.value.length = 0;
 		};
 
 		const calcHash = async (str: string) =>
@@ -277,30 +288,33 @@ export default defineComponent({
 		{
 			if (disableForm.value === true || editor.value.length <= 0)
 				return;
-			if (messageEditId.value === -1)
+			if (props.selectedChannel.id > 0)
 			{
-				socket.emit('message::add',
-					{
-						id: props.userId,
-						channel: props.selectedChannel.id,
-						message: editor.value,
-						length: editor.value.length,
-						timestamp: Date.now(),
-						hash: await calcHash(editor.value)
-					});
-			}
-			else
-			{
-				socket.emit('message::update',
-					{
-						id: props.userId,
-						channel: props.selectedChannel.id,
-						messageId: messageEditId.value,
-						message: editor.value,
-						length: editor.value.length,
-						timestamp: Date.now(),
-						hash: await calcHash(editor.value)
-					});
+				if (messageEditId.value === -1)
+				{
+					socket.emit('message::add',
+						{
+							id: props.userId,
+							channel: props.selectedChannel.id,
+							message: editor.value,
+							length: editor.value.length,
+							timestamp: Date.now(),
+							hash: await calcHash(editor.value)
+						});
+				}
+				else
+				{
+					socket.emit('message::update',
+						{
+							id: props.userId,
+							channel: props.selectedChannel.id,
+							messageId: messageEditId.value,
+							message: editor.value,
+							length: editor.value.length,
+							timestamp: Date.now(),
+							hash: await calcHash(editor.value)
+						});
+				}
 			}
 			editor.value = '';
 			messageEditId.value = -1;
@@ -327,8 +341,6 @@ export default defineComponent({
 		{
 			if (ret.data.channel !== props.selectedChannel.id)
 				return;
-
-			console.log(ret);
 
 			const newMessages: messageInterface = {
 				user: {
@@ -447,11 +459,7 @@ export default defineComponent({
 		socket.on('channel::receive::delete', (ret) =>
 		{
 			if (ret && ret.deleted === true && ret.id === props.selectedChannel.id)
-			{
-				messages.value.length = 0;
-				loading.value = false;
-				noError.value = true;
-			}
+				reset();
 		});
 		// #endregion Delete current channel
 
@@ -512,13 +520,18 @@ export default defineComponent({
 					noError.value = true;
 					getMessages(props.selectedChannel.id);
 				}
+				else if (props.selectedChannel.id === -1)
+					reset();
 			});
 			if (props.selectedChannel.id > 0)
 			{
 				loading.value = true;
 				noError.value = true;
+				disableForm.value = false;
 				getMessages(props.selectedChannel.id);
 			}
+			else
+				disableForm.value = true;
 		});
 
 		return {
@@ -555,7 +568,7 @@ export default defineComponent({
 	.chat .message-list {
 		padding: .5em;
 		overflow-x: auto;
-    z-index: 2;
+		z-index: 2;
 	}
 	.chat form img {
 		width: 100%;
@@ -577,7 +590,7 @@ export default defineComponent({
 		position: relative;
 		outline: currentColor none medium;
 		overflow-wrap: break-word;
-    border: none;
+		border: none;
 	}
 	.q-editor__content {
 		min-height: calc(10rem - 32px) !important;

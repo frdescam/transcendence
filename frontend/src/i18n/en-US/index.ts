@@ -117,6 +117,11 @@ export default {
 		},
 		message: {
 			me: 'Me'
+		},
+		mp: 'Private message(s)',
+		quit: {
+			info: 'Do you want to leave the channel ?',
+			creator: 'You are the creator of the channel, this one will be immediately deleted when you leave. Do you want to leave it ?'
 		}
 	}
 };

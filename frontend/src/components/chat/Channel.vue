@@ -37,6 +37,14 @@
 							<div class="channel-avatar" :style="{ backgroundColor: `${channel.color}` }">
 								<span>{{ channel.name.slice(0, 2).toUpperCase() }}</span>
 							</div>
+							<q-badge
+								class="icon-private-message"
+								color="green-7"
+								v-if="channel.type === 'direct'"
+							>
+								<q-icon name="forum"></q-icon>
+								<q-tooltip anchor="center right" self="center left">{{ $t('chat.mp') }}</q-tooltip>
+							</q-badge>
 						</q-item-section>
 						<q-item-section>{{ channel.name }}</q-item-section>
 					</q-item>
@@ -50,6 +58,7 @@
 							<q-item
 								clickable
 								@click="openDialogEdition(); contextmenu?.hide()"
+								v-if="contextMenuSelectType !== 'direct' && (contextMenuIsCreator || contextMenuIsAdmin)"
 							>
 								<q-item-section avatar>
 									<q-icon name="edit"></q-icon>
@@ -57,7 +66,7 @@
 								<q-item-section>{{ $t('chat.channel.menu.edit.title') }}</q-item-section>
 							</q-item>
 							<q-item
-								v-if="contextMenuIsCreator"
+								v-if="contextMenuIsCreator || contextMenuIsAdmin"
 								clickable
 								@click="openDialogDeletion(); contextmenu?.hide()"
 							>
@@ -68,6 +77,8 @@
 							</q-item>
 							<q-item
 								clickable
+								v-if="contextMenuUserIsIn"
+								@click="openDialogQuit(); contextmenu?.hide()"
 							>
 								<q-item-section avatar>
 									<q-icon name="logout"></q-icon>
@@ -125,6 +136,14 @@
 		@dialog-edition-update-user="updateUser"
 		@dialog-edition-hide="dialogEditionShow = false"
 	/>
+	<dialog-quit
+		:dialogQuitShow="dialogQuitShow"
+		:channelCreator="contextMenuIsCreator"
+		:channelName="contextMenuSelectName"
+		:channelId="contextMenuSelectId"
+		@dialog-quit-ok="validationQuitDialog"
+		@dialog-quit-hide="dialogQuitShow = false"
+	/>
 </template>
 
 <script lang="ts">
@@ -138,6 +157,7 @@ import dialogCreation from './chatComponents/DialogCreation.vue';
 import dialogDeletion from './chatComponents/DialogDeletion.vue';
 import dialogEdition from './chatComponents/DialogEdition.vue';
 import dialogPassword from './chatComponents/DialogPassword.vue';
+import dialogQuit from './chatComponents/DialogQuit.vue';
 
 interface channelInterface {
 	id: number,
@@ -148,6 +168,7 @@ interface channelInterface {
 	password: string,
 	creationDate: Date,
 	admins: number[],
+	users: number[],
 	muted: number[],
 	banned: number[]
 }
@@ -172,7 +193,8 @@ export default defineComponent({
 		dialogCreation,
 		dialogDeletion,
 		dialogEdition,
-		dialogPassword
+		dialogPassword,
+		dialogQuit
 	},
 	setup (props, { emit })
 	{
@@ -190,6 +212,8 @@ export default defineComponent({
 		const contextMenuSelectOwner = ref(0);
 		const contextMenuSelectPassword = ref();
 		const contextMenuIsCreator = ref(false);
+		const contextMenuIsAdmin = ref(false);
+		const contextMenuUserIsIn = ref(false);
 
 		const selectedChannelError = ref<boolean>(false);
 		const selectedChannelPassword = ref();
@@ -208,8 +232,60 @@ export default defineComponent({
 			});
 		};
 
+		const openContextualMenu = (e: Event) =>
+		{
+			let target = e.target as HTMLElement;
+			dialogEditionShow.value = false;
+			contextMenuIsCreator.value = false;
+			contextMenuIsAdmin.value = false;
+			contextMenuUserIsIn.value = false;
+
+			if (target)
+			{
+				while (!target.classList.contains('q-item'))
+					target = target.parentNode as HTMLElement;
+				if (target.hasAttribute('data-id'))
+				{
+					contextMenuSelectId.value = Number(target.getAttribute('data-id'));
+					for (const channel of channels.value)
+					{
+						if (channel.id === contextMenuSelectId.value)
+						{
+							if (!channel.banned.includes(Number(props.userId)))
+							{
+								if (channel.owner === props.userId)
+									contextMenuIsCreator.value = true;
+								if (channel.admins.includes(Number(props.userId)))
+									contextMenuIsAdmin.value = true;
+								contextMenuSelectId.value = channel.id;
+								contextMenuSelectName.value = channel.name;
+								contextMenuSelectType.value = channel.type;
+								contextMenuSelectPassword.value = channel.password;
+								contextMenuSelectOwner.value = channel.owner;
+								for (const channel of channels.value)
+								{
+									if (channel.id === contextMenuSelectId.value &&
+										channel.users.includes(props.userId))
+									{
+										contextMenuUserIsIn.value = true;
+										break;
+									}
+								}
+								return;
+							}
+							contextmenu.value?.hide();
+							return;
+						}
+					}
+				}
+			}
+			contextmenu.value?.hide();
+		};
+
+		// #region Channel selection
 		let emitFromChannel = false;
 		let saveEmitChannelId = -1;
+		let userIsExistChannel = false;
 		const changeChannel = (channelId: number, channelType: string) =>
 		{
 			if (!selectedChannelId.value ||
@@ -220,6 +296,18 @@ export default defineComponent({
 				selectedChannelType.value = channelType;
 				socket.emit('channel::get', channelId);
 			}
+		};
+		const sendEventChangeChannel = () =>
+		{
+			if (!userIsExistChannel)
+			{
+				socket.emit('channel::user::add', {
+					channelId: saveEmitChannelId,
+					userId: props.userId
+				});
+			}
+			userIsExistChannel = false;
+			sendEvent(saveEmitChannelId);
 		};
 		socket.on('channel::receive::get', (ret) =>
 		{
@@ -237,8 +325,17 @@ export default defineComponent({
 				}
 			}
 
+			for (const user of ret.data.users)
+			{
+				if (user.id === props.userId)
+				{
+					userIsExistChannel = true;
+					break;
+				}
+			}
+
 			if (selectedChannelType.value !== 'protected')
-				sendEvent(saveEmitChannelId);
+				sendEventChangeChannel();
 			else
 			{
 				selectedChannelPasswordValue.value = ret.data.password;
@@ -246,47 +343,7 @@ export default defineComponent({
 			}
 			emitFromChannel = false;
 		});
-
-		const openContextualMenu = (e: Event) =>
-		{
-			let target = e.target as HTMLElement;
-			dialogEditionShow.value = false;
-			contextMenuIsCreator.value = false;
-			if (target)
-			{
-				while (!target.classList.contains('q-item'))
-					target = target.parentNode as HTMLElement;
-				if (target.hasAttribute('data-id'))
-				{
-					contextMenuSelectId.value = Number(target.getAttribute('data-id'));
-					for (const channel of channels.value)
-					{
-						if (channel.id === contextMenuSelectId.value)
-						{
-							if (!channel.banned.includes(Number(props.userId)) &&
-								(
-									channel.owner === props.userId ||
-									channel.admins.includes(Number(props.userId))
-								)
-							)
-							{
-								if (channel.owner === props.userId)
-									contextMenuIsCreator.value = true;
-								contextMenuSelectId.value = channel.id;
-								contextMenuSelectName.value = channel.name;
-								contextMenuSelectType.value = channel.type;
-								contextMenuSelectPassword.value = channel.password;
-								contextMenuSelectOwner.value = channel.owner;
-								return;
-							}
-							contextmenu.value?.hide();
-							return;
-						}
-					}
-				}
-			}
-			contextmenu.value?.hide();
-		};
+		// #endregion Channel selection
 
 		// #region Update user of channel
 		socket.on('channel::data::change', (channelId, ret) =>
@@ -378,7 +435,7 @@ export default defineComponent({
 		};
 		const openDialogPasswordOk = (isSet: boolean) =>
 		{
-			sendEvent(saveEmitChannelId);
+			sendEventChangeChannel();
 			if (isSet === false)
 				saveEmitChannelId = -1;
 		};
@@ -388,25 +445,78 @@ export default defineComponent({
 		{
 			dialogEditionShow.value = true;
 		};
+
+		const dialogQuitShow = ref(false);
+		const openDialogQuit = () =>
+		{
+			for (const channel of channels.value)
+			{
+				if (channel.id === contextMenuSelectId.value && channel.users.includes(props.userId))
+				{
+					dialogQuitShow.value = true;
+					return;
+				}
+			}
+		};
+		const validationQuitDialog = (val: boolean) =>
+		{
+			dialogQuitShow.value = false;
+			if (val === false)
+				return;
+			if (contextMenuIsCreator.value)
+			{
+				socket.emit('channel::delete', {
+					id: contextMenuSelectId.value,
+					creator: props.userId,
+					name: null,
+					type: null,
+					password: null
+				});
+			}
+			else
+			{
+				socket.emit('channel::user::remove', {
+					channelId: contextMenuSelectId.value,
+					userId: props.userId
+				});
+			}
+			selectedChannelId.value = 0;
+			sendEvent(-1, true);
+		};
 		// #endregion Dialog
 
 		// #region Socket
 		const generateData = (channel: any) =>
 		{
-			const randomColor = () =>
+			const getLinkColor = (channelId: number) =>
 			{
 				const __colors = ['#ffc93c', '#ff9a3c', '#ff6f3c', '#49beb7', '#35bcbf', '#c5d86d'];
-				return __colors[Math.floor(Math.random() * __colors.length)];
+				const n = (channelId / (__colors.length - 1));
+				const m = n % 1;
+
+				const extract = () =>
+				{
+					if (n <= 1)
+						return channelId;
+					if (m === 0 && n <= (__colors.length - 1))
+						return n;
+					let i = Number(m.toFixed(1)[2]);
+					if (i > (__colors.length - 1))
+						i -= (__colors.length - 1);
+					return i;
+				};
+				return __colors[extract()];
 			};
 			const ret: channelInterface = {
 				id: channel.id,
 				owner: channel.owner.id,
-				color: randomColor(),
+				color: getLinkColor(channel.id),
 				type: channel.type,
 				name: channel.name,
 				password: channel.password,
 				creationDate: channel.creationDate,
 				admins: channel.admins.map((el: any) => el.id),
+				users: channel.users.map((el: any) => el.id),
 				muted: channel.mutedUsers.map((el: any) => el.user.id),
 				banned: channel.bannedUsers.map((el: any) => el.user.id)
 			};
@@ -495,6 +605,32 @@ export default defineComponent({
 			}
 		});
 
+		socket.on('channel::user::receive::add', (ret) =>
+		{
+			for (const channel of channels.value)
+			{
+				if (channel.id === ret.data.channel)
+				{
+					channel.users.push(ret.data.data.id);
+					return;
+				}
+			}
+		});
+
+		socket.on('channel::user::receive::delete', (ret) =>
+		{
+			for (const channel of channels.value)
+			{
+				if (channel.id === ret.data.channel)
+				{
+					const i = channel.users.findIndex(ret.data.data.id);
+					if (i !== -1)
+						channel.users.splice(i, 1);
+					return;
+				}
+			}
+		});
+
 		socket.on('channel::receive::delete', (ret) =>
 		{
 			for (const i in channels.value)
@@ -529,6 +665,8 @@ export default defineComponent({
 			contextMenuSelectPassword,
 			contextMenuSelectOwner,
 			contextMenuIsCreator,
+			contextMenuIsAdmin,
+			contextMenuUserIsIn,
 
 			selectedChannelId,
 			selectedChannelError,
@@ -540,7 +678,6 @@ export default defineComponent({
 			changeChannel,
 			openContextualMenu,
 			updateUser,
-
 			// ====== Dialogs ====== //
 
 			dialogAlertShow,
@@ -561,7 +698,11 @@ export default defineComponent({
 			openDialogPasswordOk,
 
 			dialogEditionShow,
-			openDialogEdition
+			openDialogEdition,
+
+			dialogQuitShow,
+			openDialogQuit,
+			validationQuitDialog
 		};
 	}
 });
@@ -617,5 +758,10 @@ export default defineComponent({
 	}
 	.tab-row > div span {
 		margin-left: .4em
+	}
+	.icon-private-message {
+		position: absolute;
+		bottom: .3em;
+		left: 3.7em;
 	}
 </style>

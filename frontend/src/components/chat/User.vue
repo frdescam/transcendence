@@ -56,18 +56,18 @@
 		ref="errorDialog"
 		square
 	>
-    <q-card>
-      <q-card-section>
-        <div class="text-h6">Alert</div>
-      </q-card-section>
+		<q-card>
+			<q-card-section>
+				<div class="text-h6">Alert</div>
+			</q-card-section>
 
-      <q-card-section class="q-pt-none">toto</q-card-section>
+			<q-card-section class="q-pt-none">toto</q-card-section>
 
-      <q-card-actions align="right">
-        <q-btn flat label="OK" color="primary" v-close-popup />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
+			<q-card-actions align="right">
+				<q-btn flat label="OK" color="primary" v-close-popup />
+			</q-card-actions>
+		</q-card>
+	</q-dialog>
 </template>
 
 <script lang="ts">
@@ -85,7 +85,7 @@ export default defineComponent({
 	{
 		const socket: Socket = inject('socketChat') as Socket;
 
-		const loading = ref(true);
+		const loading = ref(false);
 		const noError = ref(true);
 		const users = ref();
 
@@ -100,12 +100,26 @@ export default defineComponent({
 				target.src = 'imgs/chat/default.webp';
 		};
 
+		const reset = () =>
+		{
+			loading.value = false;
+			noError.value = true;
+			users.value = [];
+		};
+
+		// #region Channel
 		let socketComingFromUserVue = false;
 		const getData = () =>
 		{
 			socketComingFromUserVue = true;
+			loading.value = true;
 			socket.emit('channel::get', props.selectedChannel.id);
 		};
+
+		socket.on('channel::receive::delete', (ret) =>
+		{
+			console.log(ret);
+		});
 
 		socket.on('channel::receive::get', (ret) =>
 		{
@@ -115,6 +129,7 @@ export default defineComponent({
 			loading.value = false;
 			users.value = ret.data.users;
 		});
+		// #endregion Channel
 
 		// #region MP
 		const openMpMenu = (e: Event) =>
@@ -161,12 +176,42 @@ export default defineComponent({
 		};
 		// #endregion
 
+		// #region Users
+		socket.on('channel::user::receive::add', (ret) =>
+		{
+			if (!users.value || !ret.data.added || ret.data.channel !== props.selectedChannel.id)
+				return;
+			users.value.push(ret.data.data);
+		});
+
+		socket.on('channel::user::receive::remove', (ret) =>
+		{
+			const findIndex = (id: number) =>
+			{
+				for (const i in users.value)
+				{
+					if (users.value[i].id === id)
+						return Number(i);
+				}
+				return -1;
+			};
+
+			if (!users.value || !ret.data.deleted || ret.data.channel !== props.selectedChannel.id)
+				return;
+			const i = findIndex(ret.data.data.id);
+			if (i !== -1)
+				users.value.splice(i, 1);
+		});
+		// #endregion Users
+
 		onMounted(() =>
 		{
 			watch(() => props.selectedChannel, () =>
 			{
 				if (!props.selectedChannel.isDeleted)
 					getData();
+				else if (props.selectedChannel.id === -1)
+					reset();
 			});
 
 			if (props.selectedChannel.id > 0)

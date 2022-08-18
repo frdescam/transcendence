@@ -7,7 +7,6 @@ import { Repository } from 'typeorm';
 import { ChannelDTO } from '../orm/channel.dto';
 import { Channel } from '../orm/channel.entity';
 import { UserDTO } from 'src/user/orm/user.dto';
-import { User } from 'src/user/orm/user.entity';
 import { channelTypesDTO } from '../orm/channelTypes.dto';
 
 @Injectable()
@@ -154,14 +153,14 @@ export class ChannelService {
         message: `User ${user.id} removed to channel ${channelId}`,
         channel: channelId,
         data: user,
-        added: true,
+        deleted: true,
       };
     } catch (err) {
       return {
         message: `User ${user.id} don't removed to channel ${channelId}`,
         channel: channelId,
         data: user,
-        added: false,
+        deleted: false,
       };
     }
   }

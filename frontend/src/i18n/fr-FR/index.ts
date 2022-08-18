@@ -117,6 +117,11 @@ export default {
 		},
 		message: {
 			me: 'Moi'
+		},
+		mp: 'Message(s) privé(s)',
+		quit: {
+			info: 'Voulez-vous quitter le canal ?',
+			creator: 'Vous êtes le créateur du canal, il sera immédiatement supprimé lorsque vous le quitterez. Voulez-vous le quitter ?'
 		}
 	}
 };

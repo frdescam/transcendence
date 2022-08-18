@@ -1,10 +1,10 @@
-import { BaseEntity, Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Match } from "./match.entity";
 import { Channel } from "./channel.entity";
 import { Message } from "./message.entity";
 import { BannedUser } from "./bannedUser.entity";
 import { MutedUser } from "./mutedUser.entity";
-import { PendingInvitation } from "./pendingInvitation.entity";
+import { Friend } from "./friend.entity";
 
 // Add status : online | offline? (use refresh token)
 
@@ -28,7 +28,7 @@ export class User extends BaseEntity {
     @Column({type: "varchar", length: 60, nullable: true}) // nullable, optional?
     password: string;
 
-    @Column({type: "varchar", length: 50, nullable: true})
+    @Column({type: "varchar", length: 50, nullable: true}) // add default of default avatar (stormtrooper)
     avatar: string;
 
     @Column({type: "boolean", default: false})
@@ -43,14 +43,11 @@ export class User extends BaseEntity {
     @Column({type: "int4", default: 0})
     ratio: number;
 
-    @ManyToMany(() => User, (user) => user.friends)
-    friends: User[];
+    @OneToMany(() => Friend, (friend) => friend.user)
+    friends: Friend[];
 
-    @OneToMany(() => PendingInvitation, (pendingInvitation) => pendingInvitation.userSending)
-    receivedInvitations: PendingInvitation[];
-
-    @OneToMany(() => PendingInvitation, (pendingInvitation) => pendingInvitation.userReceiving)
-    sentInvitations: PendingInvitation[];
+    @OneToMany(() => Friend, (friend) => friend.followedUser)
+    followedBy: Friend[];
 
     @OneToMany(() => Match, (match) => match.userHome)
     matchesHome: Match[];

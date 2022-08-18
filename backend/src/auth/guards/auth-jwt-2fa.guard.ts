@@ -7,7 +7,7 @@ export class JwtAuth2FAGuard extends AuthGuard('auth-jwt-2fa') {
 		if (error || !user)
         {
             console.log("2fa error: ", error, user);
-            throw new UnauthorizedException('Invalid JWT Token.');
+            throw new UnauthorizedException('Invalid 2FA JWT Token.');
         }
 		return user;
 	}

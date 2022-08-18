@@ -2,6 +2,9 @@
 # env
 .auth.env
 
+#upload
+upload/
+
 # Compiled output
 dist
 node_modules
@@ -38,7 +41,6 @@ lerna-debug.log*
 
 # IDE - VSCode
 .vscode/*
-.eslintrc.js
 .prettierrc
 
 # IDE - VSCode

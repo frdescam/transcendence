@@ -28,9 +28,9 @@ const tokenizeCookies = (str: string): any => {
 };
 
 @Injectable()
-export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {
+export class WsJwtSpectateStrategy extends PassportStrategy(Strategy, 'ws-jwt-spectate') {
 	constructor(config: ConfigService, private readonly auth_svc: AuthService) {
-		super({
+    super({
 			jwtFromRequest: ExtractJwt.fromExtractors([
 				(request: any) => {
 					const cookies: any = tokenizeCookies(
@@ -45,8 +45,8 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {
 	}
 
 	async validate(payload: TokenPayload): Promise<User> {
-		return this.auth_svc.login({
+    return this.auth_svc.login({
 			id: payload.sub,
-		});
+	  });
 	}
 }

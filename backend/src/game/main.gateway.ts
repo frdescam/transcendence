@@ -6,7 +6,7 @@ import type { Socket, Server } from 'socket.io';
 import type { userId } from 'src/common/game/types';
 import type { Pong, partyQuery } from 'src/common/game/interfaces';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
-import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
+import { WsJwtSpectateGuard } from 'src/auth/guards/ws-jwt-spectate.guard';
 import { WsJwtGuard } from "src/auth/guards/ws-jwt.guard"; // erase WS strategy not needed here
 
 
@@ -89,7 +89,7 @@ export class MainGateway
     const party = this.partyService.findParty(room);
     const user: any = req.user;
     const userId: userId = user.id;
-    //console.log(user);
+    console.log(user);
 
     if (party)
       this.partyService.joinParty(party, client, userId);
@@ -97,7 +97,7 @@ export class MainGateway
       this.partyService.sendError("Party not found", client);
   }
 
-  @UseGuards(SocketMockupAuthGuard)
+  @UseGuards(WsJwtSpectateGuard)
   @SubscribeMessage('party::spectate')
   spectate(
     @MessageBody('room') room: string,
@@ -107,7 +107,7 @@ export class MainGateway
   {
     const party = this.partyService.findParty(room);
     const user: any = req.user;
-    console.log(user, party);
+    console.log(user);
 
     if (party)
       this.partyService.spectateParty(party, client, user);

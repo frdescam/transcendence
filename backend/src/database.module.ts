@@ -11,7 +11,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         type: 'postgres',
         host: 'postgres',
         port: 5432,
-        username: 'transcendence',
+        username: 'user',
         password: 'password',
         database: 'transcendence',
         entities: ['dist/**/*.entity{.ts,.js}'],

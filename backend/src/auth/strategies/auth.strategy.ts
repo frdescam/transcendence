@@ -42,8 +42,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, 'auth') // chan
 			fortytwo_id: data.id,
 			pseudo: data.login,
 			email: data.email,
-			//password: "changeMePlz", //change later // not needed
-			avatar: data.image_url,
+			avatar: 'no_avatar.png',
 		};
 
 		const user: User = await this.authService.login(user_dto);

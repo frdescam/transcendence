@@ -59,7 +59,7 @@ export class UsersController {
         },
         
       }))
-    async uploadFile(@AuthUser() user: User, @UploadedFile() file: Express.Multer.File) {
+    async uploadFile(@AuthUser() user: User, @UploadedFile() file) {
         //console.log(file, file.filename, file.mimetype.includes('image'), path.parse(file.originalname).name.replace(/\s/g, ''));
         //await this.users_svc.setAvatar(file.filename, user.id);
         //console.log(user);

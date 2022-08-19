@@ -2,7 +2,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, Ma
 import { Banned } from './banned.entity';
 import { Message } from './message.entity';
 import { Muted } from './muted.entity';
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/users/orm/user.entity';
 
 import { channelTypesDTO } from './channelTypes.dto';
 

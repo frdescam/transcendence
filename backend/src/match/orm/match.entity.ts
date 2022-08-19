@@ -1,5 +1,5 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/users/orm/user.entity';
 
 @Entity()
 export class Match extends BaseEntity {

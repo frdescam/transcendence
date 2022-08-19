@@ -1,5 +1,5 @@
 import { Channel } from './channel.entity';
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/users/orm/user.entity';
 
 export interface BannedDTO {
   id: number;

@@ -3,6 +3,7 @@ import { ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage, We
 import { map } from './interface';
 import { PartyService } from './party/party.service';
 import type { Socket, Server } from 'socket.io';
+
 import type { userId } from 'src/common/game/types';
 import type { Pong, partyQuery } from 'src/common/game/interfaces';
 import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
@@ -15,8 +16,7 @@ import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
     origin: '*',
   },
 })
-export class MainGateway
-  implements OnGatewayDisconnect
+export class MainGateway implements OnGatewayDisconnect
 {
   constructor(private partyService: PartyService)
   {
@@ -90,7 +90,7 @@ export class MainGateway
     if (party)
       this.partyService.joinParty(party, client, userId);
     else
-      this.partyService.sendError("Party not found", client);
+      this.partyService.sendError('Party not found', client);
   }
 
   @UseGuards(SocketMockupAuthGuard)
@@ -107,7 +107,7 @@ export class MainGateway
     if (party)
       this.partyService.spectateParty(party, client, user);
     else
-      this.partyService.sendError("Party not found", client);
+      this.partyService.sendError('Party not found', client);
   }
 
   @SubscribeMessage('party::leaveAll')
@@ -152,7 +152,7 @@ export class MainGateway
     if (!party)
       return ({left: false});
     const slot = this.partyService.getSlotFromSocket(party, client);
-    if (slot == -1)
+    if (slot === -1)
       return ({left: false});
 
     this.partyService.admitDefeat(party, slot);
@@ -225,7 +225,7 @@ export class MainGateway
     client.join(`game::userinfos::${userId}`);
     const party = this.partyService.findPartyWithUser(userId);
     client.emit(
-      `game::userinfos`,
+      'game::userinfos',
       {
         userId,
         party: party ? this.partyService.partyToPublicJson(party) : null
@@ -247,7 +247,7 @@ export class MainGateway
     if (this.server)
     {
       this.server.to(`game::userinfos::${userId}`).emit(
-        `game::userinfos`,
+        'game::userinfos',
         {
           userId,
           party: partyJson

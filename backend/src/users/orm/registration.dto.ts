@@ -4,9 +4,9 @@ export class UserRegistrationDto {
     @IsString()
     @IsNotEmpty()
     @Length(1, 50)
-    pseudo: string;
+      pseudo: string;
 
     @IsString()
     @IsNotEmpty()
-    password: string;
+      password: string;
 }

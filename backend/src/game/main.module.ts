@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from 'src/users/main.module';
 import { PartyModule } from './party/party.module';
 
 import { MainGateway } from './main.gateway';

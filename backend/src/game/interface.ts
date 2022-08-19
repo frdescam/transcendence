@@ -20,7 +20,7 @@ export enum pauseReason
     Explicit,
     Leave,
     Regain,
-};
+}
 
 export interface Party
 {
@@ -40,7 +40,7 @@ export interface Party
     playersId: [userId | null, userId | null],  // Also used to reserve the place
     playersReady: [boolean, boolean],
     state: serverState
-};
+}
 
 export interface Query
 {

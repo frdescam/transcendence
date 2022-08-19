@@ -1,4 +1,4 @@
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/users/orm/user.entity';
 import { channelTypesDTO } from './channelTypes.dto';
 import { Message } from './message.entity';
 import { Banned } from './banned.entity';

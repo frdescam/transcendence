@@ -8,26 +8,26 @@ import { HTTPMockupAuthGuard } from 'src/usermockup/auth.guard';
 @Controller('party')
 export class PartyController
 {
-    constructor (private partyService: PartyService)
-    {}
+  constructor (private partyService: PartyService)
+  {}
     
     @Get()
-    findAll(): getPartyDto[]
-    {
-        return (this.partyService.getAllAsJSON());
-    }
+  findAll(): getPartyDto[]
+  {
+    return (this.partyService.getAllAsJSON());
+  }
 
     @Get('mine')
     findMine(
         @Request() req,
     ): string | null
     {
-        const user: any = req.user;
-        this.partyService.checkUserObject(user);
-        const himself: userId = user.id;
-        const party = this.partyService.findPartyWithUser(himself);
+      const user: any = req.user;
+      this.partyService.checkUserObject(user);
+      const himself: userId = user.id;
+      const party = this.partyService.findPartyWithUser(himself);
 
-        return (party ? party.room : null);        
+      return (party ? party.room : null);        
     }
 
     @UseGuards(HTTPMockupAuthGuard)
@@ -36,46 +36,46 @@ export class PartyController
         @Request() req,
     )
     {
-        const user: any = req.user;
-        this.partyService.checkUserObject(user);
-        const himself: userId = user.id;
-        const party = this.partyService.findPartyWithUser(himself);
-        if (!party)
-            return ({left: false});
-        const slot = this.partyService.getSlotFromUser(party, himself);
-        if (slot == -1)
-            throw "Unexpected state";
+      const user: any = req.user;
+      this.partyService.checkUserObject(user);
+      const himself: userId = user.id;
+      const party = this.partyService.findPartyWithUser(himself);
+      if (!party)
+        return ({left: false});
+      const slot = this.partyService.getSlotFromUser(party, himself);
+      if (slot === -1)
+        throw 'Unexpected state';
 
-        this.partyService.admitDefeat(party, slot);
-        return ({left: true});
+      this.partyService.admitDefeat(party, slot);
+      return ({left: true});
     }
 
     @Get(':room')
     findOne(@Param() params): getPartyDto | null
     {
-        const partyArr = this.partyService.getAll().filter(({room}) => (room == params.room));
+      const partyArr = this.partyService.getAll().filter(({room}) => (room === params.room));
 
-        return (partyArr.length ? this.partyService.partyToPublicJson(partyArr[0]) : null);
+      return (partyArr.length ? this.partyService.partyToPublicJson(partyArr[0]) : null);
     }
     
     @UseGuards(HTTPMockupAuthGuard)
     @Post()
     @UsePipes(new ValidationPipe({ transform: true, transformOptions: {enableImplicitConversion: true} }))
     create(
-        @Body() {room = null, map = "classic", adversary = null}: CreatePartyDto,
+        @Body() {room = null, map = 'classic', adversary = null}: CreatePartyDto,
         @Request() req
     ): string
     {
-        const user: any = req.user;
-        this.partyService.checkUserObject(user);
-        const himself: userId = user.id;
+      const user: any = req.user;
+      this.partyService.checkUserObject(user);
+      const himself: userId = user.id;
 
-        // @TODO: check adversary ID existence
-        const party = this.partyService.createParty(
-            room,
-            map,
-            [himself, adversary]
-        );
-        return (party.room);
+      // @TODO: check adversary ID existence
+      const party = this.partyService.createParty(
+        room,
+        map,
+        [himself, adversary]
+      );
+      return (party.room);
     }
 }

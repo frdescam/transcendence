@@ -1,6 +1,7 @@
 'use strict';
 import { Notify } from 'quasar';
 import { Euler, Mesh, AmbientLight, Clock, LoadingManager, CubeTextureLoader, TextureLoader, Scene, PerspectiveCamera, WebGLRenderer, LinearEncoding, ACESFilmicToneMapping, SpriteMaterial, Sprite, Material, Texture, PlaneBufferGeometry, BoxBufferGeometry, ShadowMapType, LinearMipmapNearestFilter, BufferGeometry, Light, Object3D, SpotLight, PointLight, WebGLRenderTarget, AnimationMixer, Vector2, MeshBasicMaterial, Raycaster } from 'three';
+import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -89,6 +90,7 @@ class PongScene
 	protected mouseCatcher: Mesh;
 	protected envLight: AmbientLight | null;
 	protected ball: Mesh;
+	protected dash: Mesh | null;
 	protected player1: Mesh;
 	protected player2: Mesh;
 	protected scoreFont: Font | null;
@@ -145,11 +147,13 @@ class PongScene
 			offside: false,
 			lobby: true,
 			paused: true,
+			frozen: true,
 			text: 'Awaiting server...',
 			textSize: 0.5,
 			textColor: 0xff0000,
 			avatars: [null, null],
-			presences: [false, false]
+			presences: [false, false],
+			readyStates: [false, false]
 		};
 		this.raycaster = new Raycaster();
 
@@ -220,7 +224,7 @@ class PongScene
 			(e: MouseEvent) =>
 			{
 				e.preventDefault();
-				if (this.state.paused)
+				if (this.state.frozen)
 					return;
 
 				this.mouse.x = (e.offsetX / this.renderer.domElement.clientWidth) * 2 - 1;
@@ -245,6 +249,7 @@ class PongScene
 			cameraClip, sceneFile,
 			gameScale, pauseCameraPosition, pauseCameraRotation,
 			ballMaterial, baseSize,
+			dash, dashHeight, dashMaterial,
 			floorMaterial,
 			playerSize, player1Material, player2Material, moveSteps,
 			scoreFont, textFont,
@@ -328,6 +333,35 @@ class PongScene
 		if ('transparent' in this.ball.material)
 			this.ball.material.transparent = true;
 		this.scene.add(this.ball);
+
+		if (dash)
+		{
+			const dashNumber = dash;
+			const dashLength = gameScale * baseSize[1] / dashNumber / 2;
+			const spaceLength = gameScale * baseSize[1] / (dashNumber - 1) / 2;
+			const dashHeightVal = typeof dashHeight !== 'undefined' ? dashHeight * gameScale : dashLength / 2;
+			const singleDashGeomerty = new BoxBufferGeometry(dashLength / 2, dashHeightVal, dashLength);
+			const dashParts: BufferGeometry[] = [];
+			for (let i = 0; i < dashNumber; i++)
+			{
+				const partGeometry = singleDashGeomerty.clone();
+				partGeometry.translate(0, 0, -baseSize[1] / 2 * gameScale + (dashLength + spaceLength) * i + dashLength / 2);
+				dashParts.push(partGeometry);
+			}
+			const dashGeomerty = mergeBufferGeometries(dashParts);
+			this.track(dashGeomerty);
+			singleDashGeomerty.dispose();
+			dashParts.forEach((geometry) =>
+			{
+				geometry.dispose();
+			});
+			this.dash = new Mesh(dashGeomerty, dashMaterial);
+			this.dash.receiveShadow = true;
+			this.dash.castShadow = true;
+			this.scene.add(this.dash);
+		}
+		else
+			this.dash = null;
 
 		const floorGeometry = new BoxBufferGeometry(
 			baseSize[0] * gameScale,
@@ -624,7 +658,7 @@ class PongScene
 			critical
 		} = qualities[qualityLevel] as quality;
 
-		this.useEffects = false;
+		this.useEffects = !critical;
 		this.composer.passes = [];
 		this.composer.addPass(this.renderPass);
 		this.composer.addPass(this.fxaaPass);
@@ -635,10 +669,7 @@ class PongScene
 			(effectName: string) =>
 			{
 				if (allowedEffects.indexOf(effectName) !== -1)
-				{
-					this.useEffects = true;
 					this._addEffect(effectName);
-				}
 			}
 		);
 	}
@@ -783,6 +814,9 @@ class PongScene
 		const { positions, team } = this.state;
 		const previousRatio = positions[team];
 
+		if (typeof previousRatio === 'undefined' || isNaN(previousRatio))
+			return;
+
 		let position = Math.round(ratio * 1000);
 
 		if (position !== Math.round(previousRatio * 1000))
@@ -805,11 +839,11 @@ class PongScene
 		this._setPosition(positions[team] + delta);
 	}
 
-	_play ()
+	_unfreeze ()
 	{
-		const { paused } = this.state;
+		const { frozen } = this.state;
 
-		if (!paused)
+		if (!frozen)
 			return;
 
 		if ('ontouchstart' in window)
@@ -818,11 +852,11 @@ class PongScene
 			this.renderer.domElement.addEventListener('wheel', this.scrollMovementCallback);
 	}
 
-	_pause ()
+	_freeze ()
 	{
-		const { paused } = this.state;
+		const { frozen } = this.state;
 
-		if (paused)
+		if (frozen)
 			return;
 
 		if ('ontouchstart' in window)
@@ -924,6 +958,29 @@ class PongScene
 			this.rightAvatar.updateMatrix();
 			this.scene.add(this.rightAvatar);
 		}
+
+		this._refreshPresences();
+		this._refreshReadyStates();
+	}
+
+	_refreshPresences ()
+	{
+		const { presences } = this.state;
+
+		if (this.leftAvatar)
+			this.leftAvatar.material.opacity = presences[0] ? 1 : 0.65;
+		if (this.rightAvatar)
+			this.rightAvatar.material.opacity = presences[1] ? 1 : 0.65;
+	}
+
+	_refreshReadyStates ()
+	{
+		const { readyStates } = this.state;
+
+		if (this.leftAvatar)
+			this.leftAvatar.material.color.set(readyStates[0] ? 0x7fff7f : 0xffffff);
+		if (this.rightAvatar)
+			this.rightAvatar.material.color.set(readyStates[1] ? 0x7fff7f : 0xffffff);
 	}
 
 	_refreshText ()
@@ -967,8 +1024,7 @@ class PongScene
 
 		const {
 			positions, ballX, ballY, lobby, ball,
-			offside, ballSpeedX, ballSpeedY,
-			presences
+			offside, ballSpeedX, ballSpeedY
 		} = this.state;
 		const {
 			transitionSpeed, gameScale,
@@ -1003,7 +1059,7 @@ class PongScene
 			}
 		}
 
-		if (!this.state.paused)
+		if (!this.state.frozen)
 		{
 			if (this.controls.keyboard && this.activeControls.keyboard && (this.keys.up || this.keys.down) && !(this.keys.up && this.keys.down))
 			{
@@ -1047,11 +1103,6 @@ class PongScene
 			this.ball.castShadow = this.ball.material.opacity > 0.99;
 		}
 
-		if (this.leftAvatar)
-			this.leftAvatar.material.opacity = presences[0] ? 1 : 0.65;
-		if (this.rightAvatar)
-			this.rightAvatar.material.opacity = presences[1] ? 1 : 0.65;
-
 		if (!this.options.accessibility)
 			this.mixer.update(delta);
 
@@ -1071,14 +1122,16 @@ class PongScene
 		const oldState = Object.assign({}, this.state);
 		const newState = Object.assign({}, this.state, state);
 
-		if (oldState.paused !== newState.paused)
+		if (oldState.frozen !== newState.frozen)
 		{
-			if (newState.paused)
-				this._pause();
+			if (newState.frozen)
+				this._freeze();
 			else
-				this._play();
+				this._unfreeze();
 		}
-		else if (!newState.paused && !newState.lobby && typeof state.positions !== 'undefined')
+		else if (!newState.frozen && !newState.lobby &&
+			typeof state.positions !== 'undefined' && typeof oldState.positions !== 'undefined' &&
+			!isNaN(oldState.positions[oldState.team]))
 			state.positions[newState.team] = oldState.positions[oldState.team];
 
 		this.state = Object.assign(this.state, state);
@@ -1091,6 +1144,10 @@ class PongScene
 
 		if (newState.avatars[0] !== oldState.avatars[0] || newState.avatars[1] !== oldState.avatars[1])
 			this._refreshAvatar();
+		if (newState.presences[0] !== oldState.presences[0] || newState.presences[1] !== oldState.presences[1])
+			this._refreshPresences();
+		if (newState.readyStates[0] !== oldState.readyStates[0] || newState.readyStates[1] !== oldState.readyStates[1])
+			this._refreshReadyStates();
 
 		if (latency)
 		{
@@ -1099,7 +1156,7 @@ class PongScene
 		}
 
 		if (this.options.onStateChange)
-			this.options.onStateChange(this.state);
+			this.options.onStateChange(newState);
 	}
 
 	setDateTheta (theta: number)
@@ -1154,7 +1211,7 @@ class PongScene
 	dispose ()
 	{
 		this.disposed = true;
-		this._pause();
+		this._freeze();
 
 		window.removeEventListener('keydown', this.keydownMouvementCallback);
 		window.removeEventListener('keyup', this.keyupMouvementCallback);

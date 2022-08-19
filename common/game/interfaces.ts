@@ -6,7 +6,8 @@ interface mapConfig {
 	fov: number,
 	forceRotationRatio: number,
 	effects: string[],
-	controls: string[]
+	controls: string[],
+  speedFactor: number,
 	sceneFile?: string,
 	additionnalLight?: string[],
 	skybox?: [
@@ -33,6 +34,9 @@ interface mapConfig {
 	floorReflectivity: number,
 	floorReflectorColor: Color | number,
 	ballMaterial: Material,
+	dash: number | false,
+	dashHeight?: number,
+	dashMaterial?: Material,
 	offsideOpacityMultiplier: number,
 	gameScale: number,
 	baseSize: [number, number],
@@ -66,11 +70,13 @@ interface serverState {
 	offside: boolean,
 	lobby: boolean,
 	paused: boolean,
+	frozen: boolean,
 	text: string,
 	textSize: number,
 	textColor: Color | number,
 	avatars: [avatar, avatar],
 	presences: [boolean, boolean],
+	readyStates: [boolean, boolean],
 	finish: boolean
 }
 

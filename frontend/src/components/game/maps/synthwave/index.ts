@@ -28,6 +28,9 @@ const config: mapConfig = {
 		specular: 0x080808
 	}),
 	ballMaterial,
+	dash: 5,
+	dashHeight: 0.25,
+	dashMaterial: itemsMaterial,
 	player1Material: itemsMaterial,
 	player2Material: itemsMaterial,
 	scoreFont,

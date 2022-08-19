@@ -101,6 +101,7 @@ export class PartyService
             offside: false,
             lobby: true,
             paused: true,
+            frozen: true,
             ballX: 0.5,
             ballY: 0.5,
             ballSpeedX: 0,
@@ -173,6 +174,7 @@ export class PartyService
             offside: false,
             lobby: true,
             paused: true,
+            frozen: true,
             ballSpeedX: 0,
             ballSpeedY: 0,
             finish: true
@@ -298,7 +300,8 @@ export class PartyService
   private runFrame(party: Party)
   {
     const delta = party.clock.getDelta();
-    const elapsedSeconds = Math.floor((new Date().getTime() - party.statusData.since.getTime()) / 1000);
+    const now = new Date();
+    const elapsedSeconds = Math.floor((now.getTime() - party.statusData.since.getTime()) / 1000);
 
     switch (party.status) {
     case partyStatus.Warmup:
@@ -344,7 +347,10 @@ export class PartyService
   }
     
     @Interval(1000/30)
-  private handleInterval() { this.parties.forEach(this.runFrame.bind(this)); }
+  private handleInterval()
+  {
+    this.parties.forEach(this.runFrame.bind(this));
+  }
 
     public sendError(e, client: Socket)
     {
@@ -403,6 +409,7 @@ export class PartyService
 
     private introduceBall (party: Party)
     {
+      const { speedFactor } = maps[party.map];
       let ballDirection;
       const ballAngle = this.getNumberInRange(-Math.PI / 4, Math.PI / 4);
       switch (party.wonSleeve)
@@ -427,10 +434,11 @@ export class PartyService
           offside: false,
           lobby: false,
           paused: false,
+          frozen: false,
           ballX: 0.5,
           ballY: 0.5,
-          ballSpeedX: Math.cos(ballAngle) * ballDirection,
-          ballSpeedY: Math.sin(ballAngle)
+          ballSpeedX: Math.cos(ballAngle) * ballDirection * speedFactor,
+          ballSpeedY: Math.sin(ballAngle) * speedFactor
         }
       );
       this.handlePartyChange(party, {}, true);
@@ -451,6 +459,7 @@ export class PartyService
           {
             text: '',
             paused: false,
+            frozen: false,
           }
         );
         this.sendState(
@@ -463,9 +472,7 @@ export class PartyService
         this.handlePartyChange(party, {}, true);
       }
       else
-      {
         console.warn('Should never happen');
-      }
       party.clock.getDelta();
     }
 
@@ -487,10 +494,12 @@ export class PartyService
         party,
         {
           lobby: false,
-          paused: this.shouldBeControlsFrozen(party),
+          paused: false,
+          frozen: this.shouldBeControlsFrozen(party),
           text: '3',
           textSize: 1,
           textColor: 0x00ffff,
+          readyStates: [false, false]
         }
       );
       this.handlePartyChange(party, {}, true);
@@ -547,12 +556,14 @@ export class PartyService
       this.sendState(
         party,
         {
-          paused: this.shouldBeControlsFrozen(party),
+          paused: true,
+          frozen: this.shouldBeControlsFrozen(party),
           ballSpeedX: 0,
           ballSpeedY: 0,
           ballX: party.state.ballX,
           ballY: party.state.ballY,
-          positions: party.state.positions
+          positions: party.state.positions,
+          readyStates: [false, false]
         },
         false,
         true
@@ -564,14 +575,13 @@ export class PartyService
         party.status = partyStatus.Paused;
         this.handlePartyChange(party, {}, true);
       }
-      party.playersReady = [false, false];
     }
 
     public move (position: number, client: Socket)
     {
       const party = this.findPartyFromSocket(client);
 
-      if (!party || party.state.paused)
+      if (!party || party.state.frozen)
         return ;
       const slot = this.getSlotFromSocket(party, client);
 
@@ -606,10 +616,19 @@ export class PartyService
         
       if (party.status === partyStatus.Paused)
       {
-        party.playersReady[slot] = !party.playersReady[slot];
-        if (party.playersReady[0] && party.playersReady[1])
+        if (!party.playersSocket[0] || !party.playersSocket[1])
+          return ;
+        const readyStates = party.state.readyStates.slice() as [boolean, boolean];
+        readyStates[slot] = !readyStates[slot];
+        this.patchState(
+          party,
+          {
+            readyStates
+          }
+        );
+        if (readyStates[0] && readyStates[1])
           this.play(party);
-        else if (party.playersReady[slot])
+        else if (readyStates[slot])
         {
           this.sendSocketState(
             client,
@@ -682,7 +701,7 @@ export class PartyService
         }
 
         party.playersSocket[slot] = null;
-        party.playersReady[slot] = false;
+        party.state.readyStates[slot] = false;
         delete this.partiesBySocket[client.id];
 
         this.patchState(
@@ -841,7 +860,6 @@ export class PartyService
           spectators: [],
           playersSocket: [client || null, null],
           playersId: userIds,
-          playersReady: [false, false],
           state: {
             date: new Date(),
             positions: [0.5, 0.5],
@@ -854,11 +872,13 @@ export class PartyService
             offside: false,
             lobby: true,
             paused: true,
+            frozen: true,
             text: '',
             textSize: 0.5,
             textColor: 0xff0000,
             avatars: [null, null],
             presences: [!!client, false],
+            readyStates: [false, false],
             finish: false
           },
         };
@@ -873,7 +893,7 @@ export class PartyService
             lobby: true,
             text: 'Awaiting player...',
             textSize: 0.5,
-            textColor: 0xffff00
+            textColor: (party.playersId[0] && party.playersId[1]) ? 0xff00ff : 0xffff00
           },
           false,
           true

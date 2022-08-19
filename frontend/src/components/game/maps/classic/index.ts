@@ -14,18 +14,20 @@ const ballMaterial = itemsMaterial.clone();
 const config: mapConfig = {
 	...headlessConfig,
 	floorMaterial: new MeshBasicMaterial({
-		color: 0x202020
+		color: 0x1c1c1c
 	}),
 	ballMaterial,
+	dash: 31,
+	dashMaterial: itemsMaterial,
 	player1Material: itemsMaterial,
 	player2Material: itemsMaterial,
 	scoreFont: font,
 	scoreMaterial: new MeshBasicMaterial({
-		color: 0xaaaaaa
+		color: 0xffffff
 	}),
 	textFont: font,
 	textMaterial: new MeshBasicMaterial({
-		color: 0xaaaaaa
+		color: 0xffffff
 	})
 } as mapConfig;
 

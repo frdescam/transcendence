@@ -46,22 +46,9 @@
 import matchesList from 'src/components/profilePage/MatchesList.vue';
 import achievementsList from 'src/components/profilePage/AchievementsList.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
-
-const user = {
-	id: 1,
-	fortytwo_id: 56455,
-	pseudo: 'fdeĉ',
-	refresh_token: 'null',
-	email: 'lol',
-	password: 'k',
-	avatar: 'https://cdn.intra.42.fr/users/frdescam.jpg',
-	is2FActive: false,
-	secretOf2FA: 'k',
-	xp: 4.2,
-	ratio: 42,
-	rank: 101,
-	status: 'online'
-};
+import { onMounted, ref } from 'vue-demi';
+import { useRoute } from 'vue-router';
+import { api } from 'boot/axios';
 
 const matches = [
 	{
@@ -180,6 +167,15 @@ export default {
 	},
 	setup ()
 	{
+        const route = useRoute();
+        const userId = route.params.id;
+        const user = ref({});
+
+		api.get('/users/' + userId).then((res) =>
+		{
+			user.value = res.data;
+		});
+
 		return {
 			user,
 			matches,

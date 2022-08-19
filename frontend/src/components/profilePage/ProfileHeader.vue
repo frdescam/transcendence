@@ -4,23 +4,23 @@
 			<div class="q-pa-sm row col-3 items-center">
 				<div v-bind:class="{ 'justify-center': $q.screen.lt.md }" class="col-12 col-md-6 row"
 					style="height: 4em">
-					<div style="font-size: 3em; color: #eee;">{{ computedUser.pseudo }}</div>
+					<div style="font-size: 3em; color: #eee;">{{ user.pseudo }}</div>
 					<div class="text-weight-bold q-ml-sm" style="font-size: 3em; color: #eee;">
-						#{{ computedUser.rank }}</div>
+						#{{ user.rank }}</div>
 				</div>
 				<div v-bind:class="$q.screen.lt.md ? 'text-center' : 'text-right'" class="col-12 col-md-6"
-					style="font-size: 1.5em; color: #eee;">Ratio : {{ computedUser.ratio }}%</div>
+					style="font-size: 1.5em; color: #eee;">Ratio : {{ user.ratio }}%</div>
 			</div>
 			<q-badge class="col-5 q-mx-auto"
 				style="font-size: 3em; color: #eee; height: 75px; background: rgba(0, 0, 0, 0.4); border-radius: 15px">
-				Level {{ computedUser.level }}</q-badge>
+				Level {{ parseInt(user.xp) }}</q-badge>
 			<div class="row justify-between col-2 items-end">
 				<div style="color: #eee;" class="q-mb-none">Next level :</div>
-				<div style="color: #eee;" class="q-mb-none">{{ computedUser.xpToNextLevel }} / 100 XP</div>
+				<div style="color: #eee;" class="q-mb-none">{{ parseInt((user.xp - parseInt(user.xp)) * 100) }} / 100 XP</div>
 			</div>
 			<div class="col-2">
 				<q-linear-progress stripe rounded class="q-mt-sm" size="20px"
-					:value="computedUser.xpToNextLevel / 100" color="blue" />
+					:value="parseInt((user.xp - parseInt(user.xp)) * 100) / 100" color="blue" />
 			</div>
 		</div>
 	</div>
@@ -35,23 +35,6 @@ export default defineComponent({
 	],
 	setup (props)
 	{
-		const computedUser = {
-			id: props.user.id,
-			fortytwo_id: props.user.fortytwo_id,
-			pseudo: props.user.pseudo,
-			refresh_token: props.user.refresh_token,
-			email: props.user.email,
-			password: props.user.password,
-			avatar: props.user.avatar,
-			is2FActive: props.user.is2FActive,
-			secretOf2FA: props.user.secretOf2FA,
-			level: parseInt(props.user.xp),
-			xpToNextLevel: parseInt((props.user.xp - parseInt(props.user.xp)) * 100),
-			ratio: props.user.ratio,
-			rank: props.user.rank,
-			status: props.user.status
-		};
-
 		async function onDeleteFriend ()
 		{
 			console.log('removing friend!');
@@ -63,8 +46,6 @@ export default defineComponent({
 		}
 
 		return {
-			computedUser,
-
 			onDeleteFriend,
 			onBlockUser
 		};

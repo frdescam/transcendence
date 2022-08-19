@@ -43,6 +43,9 @@ export class User extends BaseEntity {
     @Column({type: "int4", default: 0})
     ratio: number;
 
+    @Column({type: "int4"})
+    rank: number;
+
     @OneToMany(() => Friend, (friend) => friend.user)
     friends: Friend[];
 

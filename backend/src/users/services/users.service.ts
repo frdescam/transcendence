@@ -148,6 +148,7 @@ export class UsersService {
     async signup(user_dto: AuthDto): Promise<User> {
         user_dto.pseudo = await this.getUniquePseudo(user_dto.pseudo);
         console.log("new user: " ,user_dto);
+        user_dto.rank = await this.users_repo.count({}) + 1;
         const user: User = this.users_repo.create({
 			...user_dto,
 		});

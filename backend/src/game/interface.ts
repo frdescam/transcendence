@@ -20,7 +20,7 @@ export enum pauseReason
     Explicit,
     Leave,
     Regain,
-};
+}
 
 export interface Party
 {
@@ -39,7 +39,7 @@ export interface Party
     playersSocket: [Socket | null, Socket | null],
     playersId: [userId | null, userId | null],  // Also used to reserve the place
     state: serverState
-};
+}
 
 export interface Query
 {

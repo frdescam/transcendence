@@ -16,7 +16,7 @@ import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
   },
 })
 export class MainGateway
-  implements OnGatewayDisconnect
+implements OnGatewayDisconnect
 {
   constructor(private partyService: PartyService)
   {
@@ -90,7 +90,7 @@ export class MainGateway
     if (party)
       this.partyService.joinParty(party, client, userId);
     else
-      this.partyService.sendError("Party not found", client);
+      this.partyService.sendError('Party not found', client);
   }
 
   @UseGuards(SocketMockupAuthGuard)
@@ -107,7 +107,7 @@ export class MainGateway
     if (party)
       this.partyService.spectateParty(party, client, user);
     else
-      this.partyService.sendError("Party not found", client);
+      this.partyService.sendError('Party not found', client);
   }
 
   @SubscribeMessage('party::leaveAll')
@@ -225,7 +225,7 @@ export class MainGateway
     client.join(`game::userinfos::${userId}`);
     const party = this.partyService.findPartyWithUser(userId);
     client.emit(
-      `game::userinfos`,
+      'game::userinfos',
       {
         userId,
         party: party ? this.partyService.partyToPublicJson(party) : null
@@ -247,7 +247,7 @@ export class MainGateway
     if (this.server)
     {
       this.server.to(`game::userinfos::${userId}`).emit(
-        `game::userinfos`,
+        'game::userinfos',
         {
           userId,
           party: partyJson

@@ -44,6 +44,26 @@ services:
     networks:
       - webnet
 
+  ################## Frontend #################
+  front:
+    container_name: front
+    restart: unless-stopped
+    ports:
+      - ${VITE_PORT}:${VITE_PORT}
+    build:
+      context: .
+      dockerfile: ./docker/front.Dockerfile
+      args:
+        NODE_ENV: developpement
+    command: yarn dev
+    volumes:
+      - './frontend/:/usr/src/app'
+      - './common/:/usr/src/app/src/common/'
+    env_file:
+      - .env
+    networks:
+      - webnet
+
   ################## PGadmin ##################
   pgadmin:
     container_name: pgadmin

@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
-    "@types/three": "0.141",
     "axios": "^0.21.1",
     "clsx": "^1.1.1",
     "quasar": "^2.6.0",
@@ -27,6 +26,7 @@
     "@quasar/app-vite": "^1.0.0-alpha.0",
     "@types/node": "^12.20.21",
     "@types/sanitize-html": "^2.6.2",
+    "@types/three": "0.141",
     "@typescript-eslint/eslint-plugin": "^5.10.0",
     "@typescript-eslint/parser": "^5.10.0",
     "@vue/devtools": "^6.1.4",

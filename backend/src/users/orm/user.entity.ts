@@ -4,12 +4,9 @@ import { Channel } from 'src/chat/orm/channel.entity';
 import { Message } from 'src/chat/orm/message.entity';
 import { Banned } from 'src/chat/orm/banned.entity';
 import { Muted } from 'src/chat/orm/muted.entity';
-
 import { Match } from 'src/match/orm/match.entity';
 
 import { Invitation } from './invitation.entity';
-
-// Add status : online | offline? (use refresh token)
 
 @Entity()
 export class User extends BaseEntity {
@@ -25,7 +22,7 @@ export class User extends BaseEntity {
     @Column({type: 'varchar', nullable: true}) // nullable
       refresh_token: string;
 
-    @Column({type: 'varchar', length: 50}) // is email even useful here? could erase mosty likely
+    @Column({type: 'varchar', length: 50, nullable: true}) // is email even useful here? could erase mosty likely
       email: string;
 
     @Column({type: 'varchar', length: 60, nullable: true}) // nullable, optional?

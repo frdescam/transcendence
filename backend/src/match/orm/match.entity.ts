@@ -6,7 +6,7 @@ export class Match extends BaseEntity {
     @PrimaryGeneratedColumn()
       id: number;
 
-    @Column()
+    @Column({type: 'varchar', nullable: false, default: 'classic'})
       map: string;
 
     @ManyToOne(() => User, (user) => user.matchesHome)

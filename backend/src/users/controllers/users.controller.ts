@@ -69,8 +69,9 @@ export class UsersController {
     // for testing erase later
     // test to show that we can send the avatar to the frontend
     @Get('show')
-    display(@Res() res){
-    res.sendFile('1',{ root: './upload/avatars' })
+    display(@AuthUser() user: User, @Res() res){
+    console.log(user);
+    res.sendFile('1', { root: './upload/avatars' })
   }
 
     @Patch('updatePseudo')

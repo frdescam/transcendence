@@ -52,6 +52,7 @@ export class AuthController {
     {
         let user : User = await this.auth_svc.login({id: id});
 
+        console.log(user);
         if (!user)
             return null;
             //user = await this.auth_svc.signup({id: id});

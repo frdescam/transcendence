@@ -66,7 +66,7 @@ export class UsersService {
 		if (user)
 			return {error: "pseudo already taken!"}
 		
-		console.log("user: ", user);
+		console.log("if undefined is good, user: ", user);
 		
 		const result = await this.users_repo.createQueryBuilder()
 		.update({

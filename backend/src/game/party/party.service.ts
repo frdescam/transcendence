@@ -447,7 +447,7 @@ export class PartyService
     private retake (party: Party)
     {
       const { ballSpeedX, ballSpeedY, ballX, ballY, positions } = party.state;
-
+      
       switch (party.statusData.previousStatus) {
       case partyStatus.IntroducingSleeve:
       case partyStatus.AwaitingPlayer:
@@ -905,6 +905,23 @@ export class PartyService
 
         this.handlePartyChange(party, {}, true);
         this.wireMatchingQuery(party);
+
+        if (userIds[1])
+        {
+          /*
+@TODO: Should send invitation to userIds[1]
+The room is defined in `room` and the link is:
+- On the client (vue-router): ```
+router.resolve({
+  name: 'party',
+  params: {
+    party: room
+  }
+}).href
+```
+- On the server, it had to be hardcoded: `/game/${room}`
+          */
+        }
 
         return (party);
       }

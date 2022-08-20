@@ -300,11 +300,11 @@ export class PartyService
   private runFrame(party: Party)
   {
     const delta = party.clock.getDelta();
+    const now = new Date();
+    const elapsedSeconds = Math.floor((now.getTime() - party.statusData.since.getTime()) / 1000);
 
     switch (party.status) {
     case partyStatus.Warmup:
-      const now = new Date();
-      const elapsedSeconds = Math.floor((now.getTime() - party.statusData.since.getTime()) / 1000);
       if (party.statusData.counter != elapsedSeconds)
       {
         switch (elapsedSeconds) {
@@ -446,6 +446,8 @@ export class PartyService
 
     private retake (party: Party)
     {
+      const { ballSpeedX, ballSpeedY, ballX, ballY, positions } = party.state;
+
       switch (party.statusData.previousStatus) {
       case partyStatus.IntroducingSleeve:
       case partyStatus.AwaitingPlayer:
@@ -453,7 +455,6 @@ export class PartyService
         break;
 
       case partyStatus.Running:
-        const { ballSpeedX, ballSpeedY, ballX, ballY, positions } = party.state;
         this.patchState(
           party,
           {

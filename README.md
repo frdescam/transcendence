@@ -3,6 +3,7 @@
 - [Features](#features)
 - [Architecture](#architecture)
 - [Database](#database)
+- [Frontend](#frontend)
 - [Command](#command)
   - [Clean docker instance](#command_clean)
   - [Development mode](#command_dev)
@@ -25,6 +26,9 @@ Feel free to read the subject for more information
 
 ## <a id="database">Database</a>
 ![database](.git-assets/database.png)
+
+## <a id="frontend">Frontend</a>
+![frontend](.git-assets/frontend.png)
 
 ## <a id="command">Command</a>
 

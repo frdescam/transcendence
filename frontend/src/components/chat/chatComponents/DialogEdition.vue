@@ -502,14 +502,16 @@ export default defineComponent({
 		{
 			const __ret = (option: usersOptionsInterface, _type: string, _val: boolean) =>
 			{
-				emit('dialog-edition-alert', props.channelId, option.id, _type, _val);
-				emit('dialog-edition-update-user', props.channelId, {
+				const ret = {
 					userId: option.id,
 					admin: option.isAdmin,
 					muted: option.isMuted,
 					banned: option.isBanned,
 					deleted: (_type === 'deleted')
-				});
+				};
+				emit('dialog-edition-alert', props.channelId, option.id, _type, _val);
+				emit('dialog-edition-update-user', props.channelId, ret);
+				socket.emit('channel::data::change', props.channelId, ret);
 			};
 
 			if (ret.channel !== props.channelId)

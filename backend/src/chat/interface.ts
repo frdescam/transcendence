@@ -10,7 +10,8 @@ interface receiveChannel {
   creator: number,
   name: string,
   type: string,
-  password: string
+  password: string,
+  users?: Array<number>
 }
 
 interface receiveMessage {

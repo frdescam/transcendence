@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { ChannelDTO } from '../orm/channel.dto';
 import { Channel } from '../orm/channel.entity';
 import { UserDTO } from 'src/users/orm/user.dto';
+import { channelTypesDTO } from '../orm/channelTypes.dto';
 
 @Injectable()
 export class ChannelService {
@@ -80,6 +81,46 @@ export class ChannelService {
     });
   }
 
+  async mpIsExist(userOne: number, userTwo: number) {
+    try {
+      const channels = await this.getAllNoMessages();
+      for (const channel of channels)
+      {
+        if (channel.type === channelTypesDTO.DIRECT && channel.users.length === 2)
+        {
+          const check = [false, false];
+          for (const user of channel.users)
+          {
+            if (user.id === userOne)
+              check[0] = true;
+            else if (user.id === userTwo)
+              check[1] = true;
+            if (check[0] && check[1])
+            {
+              return {
+                message: 'MP channel exist',
+                channel: channel,
+                exist: true,
+              };
+            }
+          }
+        }
+      }
+      return {
+        message: 'MP channel don\'t exist',
+        channel: undefined,
+        exist: false,
+      };
+    }
+    catch (err) {
+      return {
+        message: 'MP channel don\'t exist',
+        channel: undefined,
+        exist: false,
+      };
+    }
+  }
+
   async addUser(channelId: number, user: UserDTO) {
     try {
       await this.channelRepository.createQueryBuilder()
@@ -112,14 +153,14 @@ export class ChannelService {
         message: `User ${user.id} removed to channel ${channelId}`,
         channel: channelId,
         data: user,
-        added: true,
+        deleted: true,
       };
     } catch (err) {
       return {
         message: `User ${user.id} don't removed to channel ${channelId}`,
         channel: channelId,
         data: user,
-        added: false,
+        deleted: false,
       };
     }
   }

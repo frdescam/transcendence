@@ -23,7 +23,7 @@ interface twoFAPayload { // could just use { code } its easier...
 
 @Controller() //api heres // for now its in the index if not logged // change to auth someday
 export class AuthController {
-        constructor(private auth_svc: AuthService, private auth2fa_svc: TwoFactorAuthService, private readonly cookies_svc: CookiesService,) { }
+        constructor(private auth_svc: AuthService, private auth2fa_svc: TwoFactorAuthService, private readonly cookies_svc: CookiesService, private config: ConfigService) { }
 
     @Post("auto_reg")
     async auto_reg(@Body() {id}, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
@@ -31,13 +31,14 @@ export class AuthController {
         const user : User = await this.auth_svc.login({id: id});
 
         if (user)
-            return "already exists";
+            return "already exists"; // check dis error code
 
         const reg : AuthDto = {
             id: id,
             fortytwo_id: id,
             pseudo: "sample" + id,
             email: "sample" + id,
+			avatar: 'no_avatar.png',
         };
 
         return await this.auth_svc.signup(reg);
@@ -101,16 +102,6 @@ export class AuthController {
 		};
     }
 
-    // erase dis
-    @Get("")
-    async index() {
-        // if already logged re send to logged?
-        // could check cookies and see if already logged just send to index directly.
-        // if cookies are already there verify if they are valid and dont log in, just return object to frontend
-        return "<a href='http://127.0.0.1:8080/login'><button>Log in!</button></a>";
-    }
-
-    // call deactivate + generate.
     @UseGuards(JwtAuthGuard)
 	@Get('2FA/reset')
 	async reset2FA(@Res() response: Response, @AuthUser() user: User): Promise<void> {
@@ -203,13 +194,13 @@ export class AuthController {
 
 		this.auth_svc.refresh(user, refresh_token);
 
-        request.res.cookie("Authentication", auth_token, {maxAge: 86400 * 1000, // in ms // use env for maxAge
+        request.res.cookie("Authentication", auth_token, {maxAge: this.config.get('JWT_AUTH_LIFETIME') * 1000, // in ms // use env for maxAge
             sameSite: 'strict',
             httpOnly: true,
             path: '/',
         });
 
-        request.res.cookie("Refresh", refresh_token, {maxAge: 86400 * 1000, // in ms // use env for maxAge
+        request.res.cookie("Refresh", refresh_token, {maxAge: this.config.get('JWT_REFRESH_LIFETIME') * 1000, // in ms // use env for maxAge
             sameSite: 'strict',
             httpOnly: true,
             path: '/',
@@ -260,14 +251,13 @@ export class AuthController {
         // here call function that will update the status in our db to online, and update the refresh_token for the token
 		this.auth_svc.refresh(user, refresh_token);
 
-        // Add cookies here if not 2FA
-        request.res.cookie("Authentication", auth_token, {maxAge: 86400 * 1000, // in ms // use env for maxAge
+        request.res.cookie("Authentication", auth_token, {maxAge: this.config.get('JWT_AUTH_LIFETIME') * 1000, // in ms // use env for maxAge
             sameSite: 'strict',
             httpOnly: true,
             path: '/',
         });
 
-        request.res.cookie("Refresh", refresh_token, {maxAge: 86400 * 1000, // in ms // use env for maxAge
+        request.res.cookie("Refresh", refresh_token, {maxAge: this.config.get('JWT_REFRESH_LIFETIME') * 1000, // in ms // use env for maxAge
             sameSite: 'strict',
             httpOnly: true,
             path: '/',
@@ -285,7 +275,7 @@ export class AuthController {
         console.log(user);
         this.auth_svc.test_users(user);
         //console.log(request.headers, request.headers.cookie);
-        return "really logged in with jwt!";
+        return user;
     }
 
     // change return type & add async

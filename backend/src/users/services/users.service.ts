@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Length } from "class-validator"; // what
 import { Match } from "src/match.entity";
 import { MatchDTO } from "src/match/orm/match.dto";
-import { Like, MoreThanOrEqual, Not, Repository } from "typeorm";
+import { LessThan, LessThanOrEqual, Like, MoreThanOrEqual, Not, Repository } from "typeorm";
 
 import { AuthDto } from '../../auth/dto';
 import { Friend } from "../entities/friend.entity";
@@ -161,6 +161,35 @@ export class UsersService {
         return parseInt(ratio.toString());
     }
 
+    async updateRanks(userId: number) {
+        const user = await this.findOne({ id: userId });
+        const usersToUpdate = await this.users_repo.find({
+            where: {
+                rank: LessThanOrEqual(user.rank),
+                xp: LessThanOrEqual(user.xp)
+            }
+        });
+        usersToUpdate.sort((a: User, b: User) => {
+            if (a.rank > b.rank)
+                return 1;
+            else
+                return -1;
+        });
+        console.log("usersToUpdate : ", usersToUpdate);
+        const newRank = usersToUpdate[0].rank;
+        usersToUpdate.forEach((user) => {
+            if (user.id == userId) {
+                this.users_repo.update(userId, {
+                    rank: newRank
+                });
+            } else {
+                this.users_repo.update(user.id, {
+                    rank: user.rank + 1
+                });
+            }
+        })
+    }
+
     async updateUserStats(userId: number) {
         const nbWon = await this.match_repo.count({
             where: {
@@ -177,10 +206,12 @@ export class UsersService {
 
         console.log("user : ", userId, "nbWon : ", nbWon, "nbLost : ", nbLost);
 
-        this.users_repo.update(userId, {
+        await this.users_repo.update(userId, {
             xp: this.computeXp(nbWon, nbLost),
             ratio: this.computeRatio(nbWon, nbLost),
         });
+
+        this.updateRanks(userId);
     }
 
     async signup(user_dto: AuthDto): Promise<User> {

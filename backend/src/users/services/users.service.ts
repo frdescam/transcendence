@@ -104,19 +104,42 @@ export class UsersService {
         });
         return friends;
 	}
-	
-    async findOne(user_dto: AuthDto): Promise<User> {
+
+	async findOneComplete(user_dto: AuthDto): Promise<User> {
         // print this when testing multiple pseudos
         //console.log(await this.getUniquePseudo(user_dto.pseudo));
 		//console.log(user_dto, await this.users_repo.findOne({where: user_dto}));
 		return this.users_repo.findOne({where: user_dto}); // use where? // if auth breaks is this line
     }
 
+    async findOne(user_dto: AuthDto): Promise<User> {
+		const user: User = await this.users_repo.findOne({where: user_dto});
+
+		delete user.fortytwo_id;
+		delete user.refresh_token;
+		//delete user.email; erase in entity
+		//delete user.password;
+		delete user.is2FActive;
+		delete user.secretOf2FA;
+
+		return user;
+    }
+
 	async getOne(userId: number): Promise<User>
 	{
-		return this.users_repo.findOne({id: userId});
+		const user: User = await this.users_repo.findOne({id: userId});
+
+		delete user.fortytwo_id;
+		delete user.refresh_token;
+		//delete user.email; erase in entity
+		//delete user.password;
+		delete user.is2FActive;
+		delete user.secretOf2FA;
+
+		return user;
 	}
 
+	// this is broken
     async findAll(): Promise<User[]> {
         return this.users_repo.find();
     }

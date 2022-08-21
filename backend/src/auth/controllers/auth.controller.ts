@@ -38,7 +38,7 @@ export class AuthController {
             fortytwo_id: id,
             pseudo: "sample" + id,
             email: "sample" + id,
-			avatar: 'no_avatar.png',
+			avatar: 'http://127.0.0.1:8080/public/no_avatar.png',
         };
 
         return await this.auth_svc.signup(reg);
@@ -157,7 +157,6 @@ export class AuthController {
 		two_factor_enabled: true,
       }
     }
-    
 
     // receive 2FA code to check if its correct, if it is correct logs user in. if fails return error.
     // clear the jwt 2fa cookie after this, if it works. what if it doesnt, clear or try again?
@@ -166,7 +165,8 @@ export class AuthController {
 	async login2FA(
 		@Body() twoFACode: twoFAPayload, // create dto of dis shit
 		@Req() request: Request,
-        @AuthUser() user: User
+        @AuthUser() user: User,
+        @Res() res: Response
 	)//: Promise<LoginResponseType> {
         {
 		const isCodeValid =
@@ -213,6 +213,8 @@ export class AuthController {
             path: '/',
         });
 
+        res.redirect('http://127.0.0.1:3000/');
+
         // logged in
 		return {
 			two_factor_enabled: user.is2FActive,
@@ -221,18 +223,22 @@ export class AuthController {
     
     @UseGuards(OAuthGuard)
     @Get("login") // login // remember to change this in .env too!
-    async login(@AuthUser() user: User, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
+    async login(@AuthUser() user: User, @Req() request: Request, @Res() res: Response)//: Promise<any> {
     {
-        //console.log("sapo");
         // if 2FA activated return obj to frontend to display 2FA to user, else set cookies with jwt (if logged in) and return to frontend obj two_factor_enabled: false.
         if (user.is2FActive === true) // use boolean in db instead of string?
         {
             const twoFA_token = this.cookies_svc.get2FAJwtTokenCookie(user,);
-            request.res.cookie("isSecondFactorAuthenticated", twoFA_token, {maxAge: 86400 * 1000, // maxAge .env
+            request.res.cookie("isSecondFactorAuthenticated", twoFA_token, {maxAge: 400 * 1000, // maxAge .env
             sameSite: 'strict',
             httpOnly: true,
             path: '/',
             });
+
+            res.redirect('http://127.0.0.1:3000/login/2fa');
+            //return to 127.0.0.1:3000/login/2fa
+
+            //return to 127.0.0.1:3000/
 
             // here add jwt cookie that tells the server that user tried to log in, make it available for 5 mins after that guard in /2fa/login will return 401.
             return { // maybe like i add a cookie with id here its not necessary to return to the frontend the id of the user.
@@ -265,6 +271,9 @@ export class AuthController {
         });
 
         // return if 2FA or if logged to front end here! with a json obj
+
+        res.redirect('http://127.0.0.1:3000/');
+
         return {
 			two_factor_enabled: false,
 		};

@@ -1,7 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Length } from "class-validator"; // what
-import { Like, Repository } from "typeorm";
+import { Match } from "src/match.entity";
+import { MatchDTO } from "src/match/orm/match.dto";
+import { Like, MoreThanOrEqual, Not, Repository } from "typeorm";
 
 import { AuthDto } from '../../auth/dto';
 import { Friend } from "../entities/friend.entity";
@@ -14,7 +16,9 @@ export class UsersService {
         @InjectRepository(User)
         private readonly users_repo: Repository<User>,
         @InjectRepository(Friend)
-        private friends_repo: Repository<Friend>) {}
+        private friends_repo: Repository<Friend>,
+        @InjectRepository(Match)
+        private match_repo: Repository<Match>) {}
 
 	async turnOn2FA(userId: number): Promise<void> {
 		await this.users_repo.update(userId, {
@@ -144,6 +148,40 @@ export class UsersService {
 
 		return `${login}#${last?.id + 1}`;
 	}
+
+    private computeXp(nbWon: number, nbLost: number): number {
+        return nbWon * 0.1 + nbLost * 0.0075;
+    }
+
+    private computeRatio(nbWon: number, nbLost: number): number {
+        const ratio :number = (nbWon / (nbWon + nbLost)) * 100;
+        console.log(ratio);
+        if (isNaN(ratio) || !isFinite(ratio))
+            return 0;
+        return parseInt(ratio.toString());
+    }
+
+    async updateUserStats(userId: number) {
+        const nbWon = await this.match_repo.count({
+            where: {
+                winner: userId
+            }
+        });
+
+        const nbLost = await this.match_repo.count({
+            where: [
+                { userForeign: userId, winner: Not(userId) },
+                { userHome: userId, winner: Not(userId) }
+            ],
+        });
+
+        console.log("user : ", userId, "nbWon : ", nbWon, "nbLost : ", nbLost);
+
+        this.users_repo.update(userId, {
+            xp: this.computeXp(nbWon, nbLost),
+            ratio: this.computeRatio(nbWon, nbLost),
+        });
+    }
 
     async signup(user_dto: AuthDto): Promise<User> {
         user_dto.pseudo = await this.getUniquePseudo(user_dto.pseudo);

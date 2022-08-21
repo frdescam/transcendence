@@ -44,6 +44,12 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
+		path: '/login/2FA',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/2FA.vue') }]
+	},
+
+	{
 		path: '/register',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', component: () => import('src/views/pages/RegisterPage.vue') }]
@@ -53,6 +59,12 @@ const routes: RouteRecordRaw[] = [
 		path: '/profile',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', component: () => import('src/views/pages/ProfilePage.vue') }]
+	},
+
+	{
+		path: '/welcome',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/WelcomePage.vue') }]
 	},
 
 	{

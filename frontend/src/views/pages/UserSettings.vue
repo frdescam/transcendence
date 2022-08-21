@@ -1,79 +1,25 @@
 <template>
 	<q-page class="row items-start">
 		<q-card bordered style='width: 300px;' class="q-ma-md">
-			<q-form
-				method="post"
-				@submit="editUsernameAndOrProfilePicture"
-			>
-				<q-card-section>
-					<div class="text-h6">
-						<span id="username-display">{{ currentUsername }}</span>
-						<span id="username-edit" style="display:none;">
-							<q-input v-model="newUsername" label="Change username" />
-						</span>
-						<q-btn @click="toggleNameEdit" flat round icon="edit" />
-					</div>
-				</q-card-section>
-				<q-separator inset />
-				<q-card-section>
-					<q-img :src="oldProfilePicture" class="profile-picture">
-						<div class="absolute-full text-subtitle2 flex flex-center profile-picture-edit">
-							<q-file outlined bg-color="white" v-model="newProfilePicture" label="Change your picture"/>
-						</div>
-					</q-img>
-					<q-btn type="submit" class="q-mt-md" label='Update' />
-				</q-card-section>
-			</q-form>
+			<q-card-section>
+				<pseudoEditing
+					:username='username'
+				></pseudoEditing>
+			</q-card-section>
+			<q-separator inset />
+			<q-card-section>
+				<pictureEditing
+					:picture='profilePicture'
+				></pictureEditing>
+			</q-card-section>
 		</q-card>
-
 		<q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section>
 				<div class="text-h6">Password</div>
 			</q-card-section>
 			<q-separator inset />
 			<q-card-section>
-				<q-form
-					method="post"
-					@submit="passwordSubmit"
-				>
-					<q-input
-						v-model="oldPassword"
-						outlined
-						label="Current Password"
-						name="password"
-						:type="isOldPswd ? 'password' : 'text'"
-						class=""
-						:rules="[(val) => !!val || 'Field is required']"
-						ref="inputRef"
-					>
-						<template v-slot:append>
-							<q-icon
-								:name="isOldPswd ? 'visibility_off' : 'visibility'"
-								class="cursor-pointer"
-								@click="isOldPswd = !isOldPswd"
-							/>
-						</template>
-					</q-input>
-					<q-input
-						v-model="newPassword"
-						outlined
-						label="New Password"
-						name="password"
-						:type="isNewPswd ? 'password' : 'text'"
-						class=""
-						:rules="[(val) => !!val || 'Field is required']"
-						ref="inputRef"
-					>
-						<template v-slot:append>
-							<q-icon
-								:name="isNewPswd ? 'visibility_off' : 'visibility'"
-								class="cursor-pointer"
-								@click="isNewPswd = !isNewPswd"
-							/>
-						</template>
-					</q-input>
-					<q-btn type="submit" class="q-mt-md" label='Update' />
-				</q-form>
+				<passwordEditing></passwordEditing>
 			</q-card-section>
 		</q-card>
 
@@ -85,14 +31,14 @@
 			<q-card-section>
 				<q-form
 					method="post"
-					@submit="TFASubmit"
+					@submit="tfaSubmit"
 				>
 					<q-toggle
-						v-model="use2FA"
+						v-model='useTfa'
 						label="Activate?"
 					/>
 					<br/>
-					<div v-if="use2FA">
+					<div v-if="useTfa">
 						<p>Actions to enable 2FA</p>
 					</div>
 					<q-btn type="submit" class="q-mt-md" label='Update' />
@@ -147,66 +93,37 @@
 
 <script lang="ts">
 import { ref } from 'vue';
-
-function toggleInlineDisplay (id: string)
-{
-	const element = document.getElementById(id);
-
-	if (element)
-	{
-		if (element.style.display === 'none')
-			element.style.display = 'inline-block';
-		else
-			element.style.display = 'none';
-	}
-}
+import pictureEditing from 'src/components/userSettings/pictureEditing.vue';
+import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
+import passwordEditing from 'src/components/userSettings/passwordEditing.vue';
 
 export default ({
 	name: 'IndexPage',
+	components: {
+		pseudoEditing,
+		pictureEditing,
+		passwordEditing
+	},
 	setup ()
 	{
-		const oldProfilePicture = ref('https://placeimg.com/500/300/nature');
-		const newProfilePicture = ref(null);
-		const currentUsername = ref('pohl');
-		const newUsername = ref('');
-		const newPassword = ref('');
-		const oldPassword = ref('');
-		const use2FA = ref(false);
+		const username = ref('pohl');
+		const profilePicture = ref('https://placeimg.com/500/300/nature');
+		const useTfa = ref(false);
+		const tfaSubmit = function ()
+		{
+			console.log(useTfa);
+		};
 		const paddleSelected = ref('Normal');
 
 		return {
-			oldProfilePicture,
-			currentUsername,
-			oldPassword,
-			newPassword,
-			isOldPswd: ref(true),
-			isNewPswd: ref(true),
-			newUsername,
+			username,
+			profilePicture,
 			paddleSelected,
-			use2FA,
-			newProfilePicture,
-			toggleNameEdit ()
-			{
-				const usernameInput = document.getElementById('username-edit')?.getElementsByTagName('input')[0];
-				toggleInlineDisplay('username-display');
-				toggleInlineDisplay('username-edit');
-				usernameInput?.focus();
-			},
-			editUsernameAndOrProfilePicture ()
-			{
-				console.log(newUsername.value, newProfilePicture.value);
-			},
+			useTfa,
+			tfaSubmit,
 			GameOptionsSubmit ()
 			{
 				console.log(paddleSelected.value);
-			},
-			TFASubmit ()
-			{
-				console.log(use2FA.value);
-			},
-			passwordSubmit ()
-			{
-				console.log(oldPassword.value, newPassword.value);
 			},
 			deleteAccount ()
 			{
@@ -219,17 +136,3 @@ export default ({
 	}
 });
 </script>
-
-<style lang="scss">
-.profile-picture .profile-picture-edit {
-  visibility: hidden;
-  opacity: 0;
-  transition: .5s;
-}
-
-.profile-picture:hover .profile-picture-edit {
-  visibility: visible;
-  opacity: 1;
-  transition: .5s;
-}
-</style>

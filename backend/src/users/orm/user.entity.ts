@@ -16,7 +16,8 @@ export class User extends BaseEntity {
     @Column({type: 'int4', nullable: true, unique: true}) // if we dont do passwords then this shouldnt be null!
       fortytwo_id: number; // marvin id to look for ppl;
 
-    @Column({type: 'varchar', length: 50, unique: true}) // change to unique cos must be unique!
+    // unique commented by badam. Reason: Fail to initialize on a fresh database
+    @Column({type: 'varchar', length: 50/*, unique: true*/}) // change to unique cos must be unique!
       pseudo: string;
 
     @Column({type: 'varchar', nullable: true}) // nullable

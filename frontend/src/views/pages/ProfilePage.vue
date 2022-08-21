@@ -80,7 +80,7 @@ const user = {
 	xp: 4.2,
 	ratio: 42,
 	rank: 101,
-	status: "online"
+	status: 'online'
 };
 
 const computedUser = {
@@ -218,12 +218,12 @@ export default {
 	{
 		async function onDeleteFriend ()
 		{
-			console.log("removing friend!");
+			console.log('removing friend!');
 		}
 
 		async function onBlockUser ()
 		{
-			console.log("blocking user!");
+			console.log('blocking user!');
 		}
 
 		return {

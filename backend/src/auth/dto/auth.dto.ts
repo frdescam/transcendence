@@ -7,4 +7,5 @@ export interface AuthDto
     password? : string, // not needed?
     avatar?: string,
     refresh_token?: string,
+    rank?: number,
 }

@@ -19,8 +19,12 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
     UsersModule,
     AuthModule,
     ChatModule,
-    LeaderboardModule
+    LeaderboardModule,
     //GameModule
+    ServeStaticModule.forRoot({
+      rootPath: path.join(__dirname, '..', './upload/avatars/',),
+      serveRoot: '/public',
+    }),
   ],
 })
 export class AppModule { }

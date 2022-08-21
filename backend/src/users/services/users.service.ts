@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Length } from "class-validator"; // what
 import { Like, Repository } from "typeorm";
 
 import { AuthDto } from '../../auth/dto';
@@ -43,7 +42,7 @@ export class UsersService {
 
 	const result = await this.users_repo.createQueryBuilder() // raw sql type
     .update({
-		avatar: filename,
+		avatar: 'http://127.0.0.1:8080/public/'+filename,
     })
     .where({
         id: userId,

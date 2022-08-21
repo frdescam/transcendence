@@ -55,7 +55,7 @@ export class UsersController {
           callback(null, true);
         },
         limits: {
-          fileSize: Math.pow(1024, 2) // 1MB more dan 1 mb?
+          fileSize: 5242880 // 5MB 
         },
         
       }))
@@ -69,9 +69,9 @@ export class UsersController {
     // for testing erase later
     // test to show that we can send the avatar to the frontend
     @Get('show')
-    display(@AuthUser() user: User, @Res() res){
-    console.log(user);
-    res.sendFile('1', { root: './upload/avatars' })
+    display(@AuthUser() user: User, @Res() res: Response){
+    console.log(user, user.avatar);
+    res.sendFile(user.avatar, { /*headers: ,*/ root: './upload/avatars' })
   }
 
     @Patch('updatePseudo')
@@ -91,7 +91,6 @@ export class UsersController {
 
       if (!target)
               throw new BadRequestException('User not found.');
-              //throw new NotFoundException('User not found.');
               //return undefined;
 
       return target;

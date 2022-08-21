@@ -10,9 +10,9 @@ declare module '@vue/runtime-core' {
 /**
  * Access directly to backend api, axios is already preconfigured on the backend
  */
-const api = axios.create({
+export const api = axios.create({
 	baseURL: `http://${document.location.hostname}:8080/api/`,
-  withCredentials: true
+	withCredentials: true
 });
 
 export default boot(({ app }) =>

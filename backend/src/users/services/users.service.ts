@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Length } from "class-validator"; // what
 import { Like, Repository } from "typeorm";
 
 import { AuthDto } from '../../auth/dto';
@@ -16,17 +15,6 @@ export class UsersService {
         @InjectRepository(Friend)
         private readonly friends_repo: Repository<Friend>
     ) {}
-
-    async getFriends(userId : number): Promise<User[]> {
-        const friendRelations = await this.friends_repo.find({
-            where: {user: userId, isPending: false}
-        })
-        let friends: User[] = [];
-        friendRelations.forEach(friendRelation => {
-            friends.push(friendRelation.followedUser);
-        });
-        return friends;
-	}
 
 	// add return type!!!
 	async turnOn2FA(userId: number)//: Promise<void> {
@@ -57,7 +45,7 @@ export class UsersService {
 
 	const result = await this.users_repo.createQueryBuilder() // raw sql type
     .update({
-		avatar: filename,
+		avatar: 'http://127.0.0.1:8080/public/'+filename,
     })
     .where({
         id: userId,
@@ -80,7 +68,7 @@ export class UsersService {
 		if (user)
 			return {error: "pseudo already taken!"}
 		
-		console.log("user: ", user);
+		console.log("if undefined is good, user: ", user);
 		
 		const result = await this.users_repo.createQueryBuilder()
 		.update({
@@ -108,19 +96,53 @@ export class UsersService {
             isPending: false
         })
     }
-	
-    async findOne(user_dto: AuthDto): Promise<User> {
+
+	async getFriends(userId : number): Promise<User[]> {
+        const friendRelations = await this.friends_repo.find({
+            where: {user: userId, isPending: false}
+        })
+        let friends: User[] = [];
+        friendRelations.forEach(friendRelation => {
+            friends.push(friendRelation.followedUser);
+        });
+        return friends;
+	}
+
+	async findOneComplete(user_dto: AuthDto): Promise<User> {
         // print this when testing multiple pseudos
         //console.log(await this.getUniquePseudo(user_dto.pseudo));
 		//console.log(user_dto, await this.users_repo.findOne({where: user_dto}));
 		return this.users_repo.findOne({where: user_dto}); // use where? // if auth breaks is this line
     }
 
+    async findOne(user_dto: AuthDto): Promise<User> {
+		const user: User = await this.users_repo.findOne({where: user_dto});
+
+		delete user.fortytwo_id;
+		delete user.refresh_token;
+		//delete user.email; erase in entity
+		//delete user.password;
+		delete user.is2FActive;
+		delete user.secretOf2FA;
+
+		return user;
+    }
+
 	async getOne(userId: number): Promise<User>
 	{
-		return this.users_repo.findOne({id: userId});
+		const user: User = await this.users_repo.findOne({id: userId});
+
+		delete user.fortytwo_id;
+		delete user.refresh_token;
+		//delete user.email; erase in entity
+		//delete user.password;
+		delete user.is2FActive;
+		delete user.secretOf2FA;
+
+		return user;
 	}
 
+	// this is broken
     async findAll(): Promise<User[]> {
         return this.users_repo.find();
     }

@@ -23,7 +23,14 @@ export class UsersController {
 
   @Get('me')
 	async me(@AuthUser() user: User): Promise<User> {
-		return user;
+    const sanitize_user: User = await this.users_svc.findOne({
+      id: user.id,
+    });
+
+    if (!sanitize_user)
+      throw new BadRequestException('User not found.');
+
+		return sanitize_user;
 	}
 
     // if file is saved as :id and do we need to store the extension of teh file somewhere too? or can we just serve a file without telling the browser about it?
@@ -55,7 +62,7 @@ export class UsersController {
           callback(null, true);
         },
         limits: {
-          fileSize: Math.pow(1024, 2) // 1MB more dan 1 mb?
+          fileSize: 5242880 // 5MB 
         },
         
       }))
@@ -68,10 +75,11 @@ export class UsersController {
 
     // for testing erase later
     // test to show that we can send the avatar to the frontend
-    @Get('show')
-    display(@Res() res){
-    res.sendFile('1',{ root: './upload/avatars' })
-  }
+  //   @Get('show')
+  //   display(@AuthUser() user: User, @Res() res: Response){
+  //   console.log(user, user.avatar);
+  //   res.sendFile(user.avatar, { /*headers: ,*/ root: './upload/avatars' })
+  // }
 
     @Patch('updatePseudo')
     async updatePseudo(
@@ -84,15 +92,15 @@ export class UsersController {
 
     @Get(':id') // add ParseIntPipe to validate id
 	  async findOne(@Param('id') id: number): Promise<User> {
-      const target: User = await this.users_svc.findOne({
+      const sanitize_user: User = await this.users_svc.findOne({
         id: id,
       });
 
-      if (!target)
-              throw new BadRequestException('User not found.');
-              //throw new NotFoundException('User not found.');
-              //return undefined;
+      if (!sanitize_user)
+        throw new BadRequestException('User not found.');
+        //return undefined;
 
-      return target;
+      // console.log(target);
+      return sanitize_user;
 	  }
 }

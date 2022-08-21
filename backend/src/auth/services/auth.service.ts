@@ -8,7 +8,7 @@ export class AuthService {
     constructor(private readonly users_svc: UsersService) {}
 
     async login(user_dto: AuthDto): Promise<User> {
-        const user: User = await this.users_svc.findOne(user_dto);
+        const user: User = await this.users_svc.findOneComplete(user_dto);
 
         // console.log(user, user_dto);
 

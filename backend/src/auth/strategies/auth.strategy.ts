@@ -38,17 +38,17 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, 'auth') // chan
 			headers: { Authorization: `Bearer ${accessToken}` },
 		}).toPromise();
 
+		const user: User = await this.authService.login({fortytwo_id: data.id});
+
+		if (user)
+			return (user);
+
 		const user_dto: AuthDto = {
 			fortytwo_id: data.id,
 			pseudo: data.login,
 			email: data.email,
-			avatar: 'no_avatar.png',
+			avatar: 'http://127.0.0.1:8080/public/no_avatar.png',
 		};
-
-		const user: User = await this.authService.login(user_dto);
-
-		if (user)
-			return (user);
 
 		return this.authService.signup(user_dto);
 	}

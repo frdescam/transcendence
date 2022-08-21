@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { nanoid } from 'nanoid';
-import { Clock } from 'three';  // @TODO : should find a lighter technologie
+import { Clock } from 'three';
 import { MatchService } from 'src/match/match/match.service';
-import { UserService } from 'src/user/user/user.service';
+import { UserService } from 'src/users/user/user.service';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import { bounceBall } from 'src/common/game/logic';
 import { teamEnum } from 'src/common/game/types';
@@ -34,7 +34,7 @@ export class PartyService
 
   public checkUserObject(user: any)
   {
-    if (!user || typeof user.id != 'number')
+    if (!user || typeof user.id !== 'number')
       throw 'Authentification is required for that function';
   }
 
@@ -44,9 +44,9 @@ export class PartyService
 
   public getSlotFromSocket (party: Party, client: Socket): -1 | 0 | 1
   {
-    if (party.playersSocket[0] && party.playersSocket[0].id == client.id)
+    if (party.playersSocket[0] && party.playersSocket[0].id === client.id)
       return 0;
-    else if (party.playersSocket[1] && party.playersSocket[1].id == client.id)
+    else if (party.playersSocket[1] && party.playersSocket[1].id === client.id)
       return 1;
     else
       return -1;
@@ -54,9 +54,9 @@ export class PartyService
 
   public getSlotFromUser (party: Party, userId: userId): -1 | 0 | 1
   {
-    if (party.playersId[0] && party.playersId[0] == userId)
+    if (party.playersId[0] && party.playersId[0] === userId)
       return 0;
-    else if (party.playersId[1] && party.playersId[1] == userId)
+    else if (party.playersId[1] && party.playersId[1] === userId)
       return 1;
     else
       return -1;
@@ -89,7 +89,7 @@ export class PartyService
     party.status = partyStatus.Finish;
     try
     {
-      if (typeof winnerSlot != 'undefined' && typeof looserSlot != 'undefined')
+      if (typeof winnerSlot !== 'undefined' && typeof looserSlot !== 'undefined')
       {
         this.patchState(
           party,
@@ -215,8 +215,8 @@ export class PartyService
         scores
       }
     );
-    if (Math.max(party.state.scores[0], party.state.scores[1]) == 11)
-      this.onFinish(party, party.state.scores[0] == 11 ? 0 : 1, party.state.scores[0] == 11 ? 1 : 0);
+    if (Math.max(party.state.scores[0], party.state.scores[1]) === 11)
+      this.onFinish(party, party.state.scores[0] === 11 ? 0 : 1, party.state.scores[0] === 11 ? 1 : 0);
     else
     {
       party.statusData.previousStatus = partyStatus.IntroducingSleeve;
@@ -305,7 +305,7 @@ export class PartyService
 
     switch (party.status) {
     case partyStatus.Warmup:
-      if (party.statusData.counter != elapsedSeconds)
+      if (party.statusData.counter !== elapsedSeconds)
       {
         switch (elapsedSeconds) {
         case 1:
@@ -368,7 +368,7 @@ export class PartyService
     {
       if (!client)
         return ;
-      if (typeof team != 'undefined')
+      if (typeof team !== 'undefined')
         client.emit('party::state', (Object.assign({team}, state)));
       else
         client.emit('party::state', state);
@@ -378,7 +378,7 @@ export class PartyService
     {
       let stateToSend = sendFull ? Object.assign({}, party.state, state) : state;
 
-      if (party.status != partyStatus.Running && sendFull)
+      if (party.status !== partyStatus.Running && sendFull)
         stateToSend = Object.assign(stateToSend, {ballSpeedX: 0, ballSpeedY: 0});
 
       if (party.playersSocket[0])
@@ -448,13 +448,13 @@ export class PartyService
     {
       const { ballSpeedX, ballSpeedY, ballX, ballY, positions } = party.state;
       
-      switch (party.statusData.previousStatus) {
-      case partyStatus.IntroducingSleeve:
-      case partyStatus.AwaitingPlayer:
+      if (party.statusData.previousStatus === partyStatus.IntroducingSleeve ||
+        party.statusData.previousStatus === partyStatus.AwaitingPlayer)
+      {
         this.introduceBall(party);
-        break;
-
-      case partyStatus.Running:
+      }
+      else if (party.statusData.previousStatus === partyStatus.Running)
+      {
         this.patchState(
           party,
           {
@@ -471,21 +471,18 @@ export class PartyService
         );
         party.status = partyStatus.Running;      
         this.handlePartyChange(party, {}, true);
-        break;
-        
-      default:
-        console.warn('Should never happen');
-        break;
       }
+      else
+        console.warn('Should never happen');
       party.clock.getDelta();
     }
 
     private shouldBeControlsFrozen(party: Party): boolean
     {
       return (
-        party.status == partyStatus.Running
-            || party.statusData.previousStatus == partyStatus.Running
-            || party.status == partyStatus.Finish
+        party.status === partyStatus.Running
+            || party.statusData.previousStatus === partyStatus.Running
+            || party.status === partyStatus.Finish
       );
     }
 
@@ -511,16 +508,16 @@ export class PartyService
 
     public pause (party: Party, reason: pauseReason)
     {
-      if (party.status == partyStatus.Running)
+      if (party.status === partyStatus.Running)
         this.runFrame(party);
 
-      if (party.status != partyStatus.Warmup
-                && party.status != partyStatus.Running
-                && party.status != partyStatus.IntroducingSleeve
-                && party.status != partyStatus.Paused)
+      if (party.status !== partyStatus.Warmup
+                && party.status !== partyStatus.Running
+                && party.status !== partyStatus.IntroducingSleeve
+                && party.status !== partyStatus.Paused)
         return ;
 
-      if (reason == pauseReason.Leave)
+      if (reason === pauseReason.Leave)
       {
         this.patchState(
           party,
@@ -532,7 +529,7 @@ export class PartyService
           }
         );
       }
-      else if (reason == pauseReason.Regain)
+      else if (reason === pauseReason.Regain)
       {
         this.patchState(
           party,
@@ -540,12 +537,12 @@ export class PartyService
             lobby: false,
             text: 'Ready to retake ?',
             textSize: 0.5,
-            textColor: 0x007fff,
+            textColor: 0x0000ff,
           },
           true
         );
       }
-      else if (reason == pauseReason.Explicit)
+      else if (reason === pauseReason.Explicit)
       {
         this.patchState(
           party,
@@ -572,9 +569,9 @@ export class PartyService
         false,
         true
       );
-      if (party.status != partyStatus.Paused)
+      if (party.status !== partyStatus.Paused)
       {
-        if (party.status != partyStatus.Warmup)
+        if (party.status !== partyStatus.Warmup)
           party.statusData.previousStatus = party.status;
         party.status = partyStatus.Paused;
         this.handlePartyChange(party, {}, true);
@@ -589,7 +586,7 @@ export class PartyService
         return ;
       const slot = this.getSlotFromSocket(party, client);
 
-      if (slot == -1)
+      if (slot === -1)
         return ;
         
       this.runFrame(party);
@@ -598,7 +595,7 @@ export class PartyService
       newPlayerPosition[slot] = position;
       const newState = { positions: newPlayerPosition };
       this.setState(party, newState);
-      this.sendSocketState(party.playersSocket[slot == 0 ? 1 : 0], newState, undefined);
+      this.sendSocketState(party.playersSocket[slot === 0 ? 1 : 0], newState, undefined);
       party.spectators.forEach(
         (spectator) =>
         {
@@ -615,10 +612,10 @@ export class PartyService
         return ;
       const slot = this.getSlotFromSocket(party, client);
 
-      if (slot == -1)
+      if (slot === -1)
         return ;
         
-      if (party.status == partyStatus.Paused)
+      if (party.status === partyStatus.Paused)
       {
         if (!party.playersSocket[0] || !party.playersSocket[1])
           return ;
@@ -671,7 +668,7 @@ export class PartyService
         return ;
       const slot = this.getSlotFromSocket(party, client);
 
-      if (slot == -1)
+      if (slot === -1)
         return ;
 
       this.pause(party, pauseReason.Explicit);
@@ -679,14 +676,14 @@ export class PartyService
 
     public admitDefeat (party: Party, slot: 0 | 1)
     {
-      if (party.status == partyStatus.Finish)
+      if (party.status === partyStatus.Finish)
         return ;
         
-      if (party.status == partyStatus.AwaitingPlayer
-            || (party.statusData.previousStatus == partyStatus.AwaitingPlayer && party.status == partyStatus.Paused))
+      if (party.status === partyStatus.AwaitingPlayer
+            || (party.statusData.previousStatus === partyStatus.AwaitingPlayer && party.status === partyStatus.Paused))
         this.onFinish(party, undefined, undefined);
       else
-        this.onFinish(party, slot == 0 ? 1 : 0, slot);
+        this.onFinish(party, slot === 0 ? 1 : 0, slot);
     }
 
     public leaveAll (client: Socket)
@@ -697,9 +694,9 @@ export class PartyService
       {
         const slot = this.getSlotFromSocket(party, client);
 
-        if (slot == -1)
+        if (slot === -1)
         {
-          party.spectators = party.spectators.filter((socket) => (socket != client));
+          party.spectators = party.spectators.filter((socket) => (socket !== client));
           delete this.partiesBySocket[client.id];
           return ;
         }
@@ -722,9 +719,9 @@ export class PartyService
     public joinParty (party: Party, client: Socket, userId: userId): Party | null
     {
       let slot;
-      if (party.playersId[0] && party.playersId[0] != userId)
+      if (party.playersId[0] && party.playersId[0] !== userId)
       {
-        if (party.playersId[1] && party.playersId[1] != userId)
+        if (party.playersId[1] && party.playersId[1] !== userId)
         {
           this.sendError('Party is already full', client);
           return (null);
@@ -750,7 +747,7 @@ export class PartyService
 
       if (party.playersSocket[0] && party.playersSocket[1])
       {
-        if (party.status == partyStatus.AwaitingPlayer)
+        if (party.status === partyStatus.AwaitingPlayer)
         {
           party.status = partyStatus.Paused;
           party.statusData.previousStatus = partyStatus.AwaitingPlayer;
@@ -796,7 +793,7 @@ export class PartyService
         const userId: userId = user.id;
 
         let slot;
-        if ((slot = this.getSlotFromUser(party, userId)) != -1)
+        if ((slot = this.getSlotFromUser(party, userId)) !== -1)
         {
           if (!party.playersSocket[slot])
           {
@@ -822,11 +819,11 @@ export class PartyService
       if (!(map in maps))
         throw new HttpException('Unknown map', HttpStatus.NOT_FOUND);
         
-      if (room == 'mine')
+      if (room === 'mine')
         throw new HttpException('This party name is special and cannot be used', HttpStatus.CONFLICT);
       else if (party)
       {
-        if (party.map != map)
+        if (party.map !== map)
           throw new HttpException('Party exists with a different map', HttpStatus.CONFLICT);
         if (party.playersSocket[0] && party.playersSocket[1] && !party.playersSocket.includes(client))
           throw new HttpException('Party exists but is already full', HttpStatus.CONFLICT);
@@ -938,7 +935,7 @@ router.resolve({
 
     public findParty (room: string): Party | null
     {
-      return (this.parties.find(({room: partyRoom}) => (partyRoom == room)) || null);
+      return (this.parties.find(({room: partyRoom}) => (partyRoom === room)) || null);
     }
 
     public findPartyFromSocket(client: Socket): Party | null
@@ -948,7 +945,7 @@ router.resolve({
 
     public findPartyWithUser (userId: userId): Party | null
     {
-      return (this.parties.find(({playersId}) => (playersId[0] == userId || playersId[1] == userId)) || null);
+      return (this.parties.find(({playersId}) => (playersId[0] === userId || playersId[1] === userId)) || null);
     }
 
     public getAll(): Party[]
@@ -966,14 +963,14 @@ router.resolve({
 
     protected isPartyCompatibleWithQuery(party: Party, query: partyQuery): boolean
     {
-      if (party.status == partyStatus.Finish)
+      if (party.status === partyStatus.Finish)
         return (false);
       if (party.playersId[0] && party.playersId[1])
-        if (party.playersId[0] != query.requester && party.playersId[1] != query.requester)
+        if (party.playersId[0] !== query.requester && party.playersId[1] !== query.requester)
           return (false);
-      if (query.adversary && party.playersId[0] != query.adversary && party.playersId[1] != query.adversary)
+      if (query.adversary && party.playersId[0] !== query.adversary && party.playersId[1] !== query.adversary)
         return (false);
-      if (query.map && party.map != query.map)
+      if (query.map && party.map !== query.map)
         return (false);
       return (true);
     }
@@ -992,13 +989,13 @@ router.resolve({
 
     private isQueryCompatible (query1: partyQuery, query2: partyQuery): boolean
     {
-      if (query1.adversary && query2.requester != query1.adversary)
+      if (query1.adversary && query2.requester !== query1.adversary)
         return (false);
-      if (query2.adversary && query1.requester != query2.adversary)
+      if (query2.adversary && query1.requester !== query2.adversary)
         return (false);
 
       if (query1.map && query2.map)
-        if (query1.map != query2.map)
+        if (query1.map !== query2.map)
           return (false);
         
       return (true);
@@ -1042,7 +1039,7 @@ router.resolve({
     public leaveAllQuery (client: Socket)
     {
       this.queries = this.queries.filter(
-        ({client: partyClient}) => (client != partyClient)
+        ({client: partyClient}) => (client !== partyClient)
       );
     }
 

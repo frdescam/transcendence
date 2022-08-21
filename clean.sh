@@ -1,3 +1,4 @@
+#!/bin/sh
 npm cache clean --force
 yarn cache clean
 docker ps -q | xargs docker stop

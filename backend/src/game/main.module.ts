@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 
-import { UserModule } from 'src/user/main.module';
+import { UsersModule } from 'src/users/main.module';
 import { PartyModule } from './party/party.module';
 
 import { MainGateway } from './main.gateway';
 
 @Module({
   imports: [
-    UserModule,
+    UsersModule,
     PartyModule
   ],
   providers: [

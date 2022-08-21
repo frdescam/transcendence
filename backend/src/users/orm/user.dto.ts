@@ -5,24 +5,28 @@ import { Message } from 'src/chat/orm/message.entity';
 
 import { Match } from 'src/match/orm/match.entity';
 
-import { twoFaDTO } from './twoFaDTO';
 import { Invitation } from './invitation.entity';
 import { User } from './user.entity';
 
 export interface UserDTO {
   id: number;
+  fortytwo_id: number;
   pseudo: string;
+  refresh_token: string;
+  email: string;
   password: string;
   avatar: string;
-  typeOf2FA: twoFaDTO;
-  valueOf2FA: string;
+  is2FActive: boolean;
+  secretOf2FA: string;
   xp: number;
+  ratio: number;
   connected: boolean;
   friends: UserDTO[];
   receivedInvitations: Invitation[];
   sentInvitations: Invitation[];
   matchesHome: Match[];
   matchesForeign: Match[];
+  matchesWon: Match[];
   ownedChannels: Channel[];
   messages: Message[];
   bannedFrom: Banned[];

@@ -1,4 +1,8 @@
 #compiled output
+# env
+.auth.env
+
+# Compiled output
 dist
 node_modules
 src_old
@@ -30,9 +34,16 @@ lerna-debug.log*
 .*.swp
 .*.swo
 *.vim
+.prettierrc
 
 # IDE - VSCode
 .vscode/*
+.eslintrc.js
+.prettierrc
+
+# IDE - VSCode
+.vscode/*
+.vscode
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -43,3 +54,5 @@ data/
 
 # For pohl
 TODO.md
+
+backend/src/auth/auth.env

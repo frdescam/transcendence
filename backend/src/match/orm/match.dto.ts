@@ -1,4 +1,4 @@
-import { User } from 'src/user/orm/user.entity';
+import { User } from 'src/users/orm/user.entity';
 
 export interface MatchDTO {
   id: number;

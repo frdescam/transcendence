@@ -16,7 +16,7 @@ import { BannedService } from './banned/banned.service';
 import { ChannelService } from './channel/channel.service';
 import { MessageService } from './message/message.service';
 import { MutedService } from './muted/muted.service';
-import { UserService } from 'src/user/user/user.service';
+import { UserService } from 'src/users/user/user.service';
 
 import { BannedDTO } from './orm/banned.dto';
 import { ChannelDTO } from './orm/channel.dto';

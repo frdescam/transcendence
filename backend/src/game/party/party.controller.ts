@@ -43,7 +43,7 @@ export class PartyController
       if (!party)
         return ({left: false});
       const slot = this.partyService.getSlotFromUser(party, himself);
-      if (slot == -1)
+      if (slot === -1)
         throw 'Unexpected state';
 
       this.partyService.admitDefeat(party, slot);
@@ -53,7 +53,7 @@ export class PartyController
     @Get(':room')
     findOne(@Param() params): getPartyDto | null
     {
-      const partyArr = this.partyService.getAll().filter(({room}) => (room == params.room));
+      const partyArr = this.partyService.getAll().filter(({room}) => (room === params.room));
 
       return (partyArr.length ? this.partyService.partyToPublicJson(partyArr[0]) : null);
     }

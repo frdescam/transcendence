@@ -3,7 +3,7 @@ version: '3.3'
 services:
   ################ Postgresql ################
   postgres:
-    container_name: postgres
+    container_name: ${DB_HOST}
     restart: unless-stopped
     image: postgres:14
     environment:
@@ -12,13 +12,14 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_INITDB_ARGS: --encoding=UTF-8
       PG_DATA: /var/lib/postgresql/data
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
-    networks:
-      - webnet
-  ################## Website #################
-  website:
-    container_name: website
+
+  ################# Transcendence #################
+  transcendence:
+    container_name: transcendence
     restart: unless-stopped
     depends_on:
       - postgres
@@ -29,15 +30,9 @@ services:
       dockerfile: ./docker/production.Dockerfile
       args:
         NODE_ENV: production
-    env_file:
-      - .env
-    networks:
-      - webnet
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
 
-networks:
-  webnet:
-    driver: bridge
-  
 volumes:
   pgdata:
     driver: local

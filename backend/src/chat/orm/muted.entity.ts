@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { User } from 'src/user/orm/user.entity';
+import { User } from 'src/users/orm/user.entity';
 import { Channel } from './channel.entity';
 
 @Entity()

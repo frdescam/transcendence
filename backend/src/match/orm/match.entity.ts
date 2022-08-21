@@ -1,12 +1,12 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { User } from 'src/user/orm/user.entity';
+import { User } from 'src/users/orm/user.entity';
 
 @Entity()
 export class Match extends BaseEntity {
     @PrimaryGeneratedColumn()
       id: number;
 
-    @Column()
+    @Column({type: 'varchar', nullable: false, default: 'classic'})
       map: string;
 
     @ManyToOne(() => User, (user) => user.matchesHome)

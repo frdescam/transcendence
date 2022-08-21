@@ -15,8 +15,7 @@ import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
     origin: '*',
   },
 })
-export class MainGateway
-implements OnGatewayDisconnect
+export class MainGateway implements OnGatewayDisconnect
 {
   constructor(private partyService: PartyService)
   {
@@ -152,7 +151,7 @@ implements OnGatewayDisconnect
     if (!party)
       return ({left: false});
     const slot = this.partyService.getSlotFromSocket(party, client);
-    if (slot == -1)
+    if (slot === -1)
       return ({left: false});
 
     this.partyService.admitDefeat(party, slot);

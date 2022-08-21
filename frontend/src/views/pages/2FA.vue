@@ -21,18 +21,18 @@ export default ({
 	{
 		const router = useRouter();
 		const disableInput = ref(false);
-		const inputColor = ref("blue");
+		const inputColor = ref('blue');
 
 		async function update (code: string)
 		{
 			if (code.length === 6)
 			{
 				disableInput.value = true;
-				const res = await api.post('/2FA/login', { code: code });
+				const res = await api.post('/2FA/login', { code });
 				if (res.data.two_factor_enabled === false)
 				{
 					disableInput.value = false;
-					inputColor.value = "red";
+					inputColor.value = 'red';
 				}
 				else
 					router.push('/');

@@ -10,14 +10,28 @@ import { User } from "../entities/user.entity";
 
 @Injectable({})
 export class UsersService {
-	constructor (
+    constructor (
         @InjectRepository(User)
         private readonly users_repo: Repository<User>,
         @InjectRepository(Friend)
-        private friends_repo: Repository<Friend>) {}
+        private readonly friends_repo: Repository<Friend>
+    ) {}
 
-	async turnOn2FA(userId: number): Promise<void> {
-		await this.users_repo.update(userId, {
+    async getFriends(userId : number): Promise<User[]> {
+        const friendRelations = await this.friends_repo.find({
+            where: {user: userId, isPending: false}
+        })
+        let friends: User[] = [];
+        friendRelations.forEach(friendRelation => {
+            friends.push(friendRelation.followedUser);
+        });
+        return friends;
+	}
+
+	// add return type!!!
+	async turnOn2FA(userId: number)//: Promise<void> {
+		{
+		    this.users_repo.update(userId, {
 			is2FActive: true,
 		});
 	  }
@@ -94,17 +108,6 @@ export class UsersService {
             isPending: false
         })
     }
-
-	async getFriends(userId : number): Promise<User[]> {
-        const friendRelations = await this.friends_repo.find({
-            where: {user: userId, isPending: false}
-        })
-        let friends: User[] = [];
-        friendRelations.forEach(friendRelation => {
-            friends.push(friendRelation.followedUser);
-        });
-        return friends;
-	}
 	
     async findOne(user_dto: AuthDto): Promise<User> {
         // print this when testing multiple pseudos

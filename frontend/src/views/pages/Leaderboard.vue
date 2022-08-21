@@ -8,11 +8,17 @@
 			v-model:pagination="pagination"
 			:loading="loading"
 			:filter="filter"
-			@request="onRequest"
+			@request="refreshData"
 			@row-click="onRowClick"
 			binary-state-sort
 		>
 			<template v-slot:top-right>
+				<q-toggle class="q-mr-lg"
+					label="Only friends"
+					color="blue"
+					@update:model-value="onFriendsOnlyChanged"
+					v-model="friendsOnly"
+				/>
 				<q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
 					<template v-slot:append>
 						<q-icon name="search" />
@@ -65,6 +71,7 @@ const columns = [
 		label: 'RATIO',
 		field: 'ratio',
 		required: true,
+		sortable: true,
 		align: 'left',
 		style: 'width: 10%'
 	},
@@ -73,6 +80,7 @@ const columns = [
 		label: 'LEVEL',
 		field: 'level',
 		required: true,
+		sortable: true,
 		align: 'left',
 		style: 'width: 10%'
 	}
@@ -82,22 +90,25 @@ export default {
 	name: 'LeaderboardPage',
 	setup ()
 	{
+		const friendsOnly = ref(false);
 		const router = useRouter();
 		const rows = ref([]);
 		const filter = ref('');
 		const loading = ref(false);
 		const pagination = ref({
-			sortBy: 'rank',
+			sortBy: 'level',
 			descending: false,
 			page: 1,
 			rowsPerPage: 4,
 			rowsNumber: 0
 		});
 
-		async function fetchFromServer (startRow, count, filter, sortBy, descending)
+		async function fetchFromServer (userId, friendsOnly, startRow, count, filter, sortBy, descending)
 		{
 			const res = await api.get('/leaderboard/getRows', {
 				params: {
+					userId,
+					friendsOnly,
 					startRow,
 					count,
 					filter,
@@ -108,16 +119,18 @@ export default {
 			return res.data;
 		}
 
-		async function onRequest (props)
+		async function refreshData (props, localFriendsOnly = friendsOnly.value)
 		{
 			const { page, rowsPerPage, sortBy, descending } = props.pagination;
 			const filter = props.filter;
+			// tmp for testing
+			const userId = 1;
 
 			loading.value = true;
 
 			const fetchCount = rowsPerPage;
 			const startRow = (page - 1) * rowsPerPage;
-			const returnedData = await fetchFromServer(startRow, fetchCount, filter, sortBy, descending);
+			const returnedData = await fetchFromServer(userId, localFriendsOnly, startRow, fetchCount, filter, sortBy, descending);
 			pagination.value.rowsNumber = returnedData.totalRowsNumber;
 			rows.value.splice(0, rows.value.length, ...returnedData.rows);
 
@@ -131,11 +144,22 @@ export default {
 
 		onMounted(() =>
 		{
-			onRequest({
+			refreshData({
 				pagination: pagination.value,
 				filter: undefined
 			});
 		});
+
+		async function onFriendsOnlyChanged (value)
+		{
+			refreshData(
+				{
+					pagination: pagination.value,
+					filter: filter.value
+				},
+				value
+			);
+		}
 
 		async function onRowClick (evt, row)
 		{
@@ -143,6 +167,7 @@ export default {
 		}
 
 		return {
+			friendsOnly,
 			filter,
 			loading,
 			pagination,
@@ -150,8 +175,9 @@ export default {
 			rows,
 			pagesNumber: computed(() => Math.ceil(rows.value.length / pagination.value.rowsPerPage)),
 
-			onRequest,
-			onRowClick
+			refreshData,
+			onRowClick,
+			onFriendsOnlyChanged
 		};
 	}
 };

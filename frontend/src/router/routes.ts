@@ -40,6 +40,12 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
+		path: '/friends',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/Friends.vue') }]
+	},
+
+	{
 		path: '/login',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', component: () => import('src/views/pages/LoginPage.vue') }]

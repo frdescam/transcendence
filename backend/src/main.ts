@@ -12,7 +12,11 @@ import { HttpExceptionFilter, NotFoundExceptionFilter } from './filter';
       ? false
       : ['log', 'error', 'warn', 'debug', 'verbose'],
   });
-  app.enableCors({origin: ["http://127.0.0.1:3000", "http://localhost:3000"], allowedHeaders: ['content-type'], credentials: true});
+  app.enableCors({
+    origin: ['http://127.0.0.1:3000', 'http://localhost:3000'],
+    allowedHeaders: ['content-type'],
+    credentials: true
+  });
   app.use(cookieParser());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new NotFoundExceptionFilter());

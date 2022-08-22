@@ -182,10 +182,37 @@ export class MainGateway implements NestGateway
   }
 
   @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('channel::change')
+  async change(channelId: number, sender: Socket) {
+    this.logger.log(`Client ${sender.id} change to channel ${channelId} at ${new Date().toDateString()}`);
+    this.server.emit('channel::receive::change', this.returnData(sender, await this.channelService.getOneNoMessages(channelId)));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('channel::get::mp')
+  async getMp(users: number[], sender: Socket) {
+    this.logger.log(`Client ${sender.id} get mp channel of users ${users[0]} & ${users[1]} at ${new Date().toDateString()}`);
+    this.server.emit('channel::receive::get::mp', this.returnData(sender, await this.channelService.mpIsExist(users[0], users[1])));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('channel::add')
   async newChannel(channel: receiveChannel, sender: Socket) {
     this.logger.log(`Client ${sender.id} create a channel at ${new Date().toDateString()}`);
+    
     const __owner = await this.userService.getOne(channel.creator);
+    const __users = [];
+    __users.push(__owner);
+    if (channel.type === channelTypesDTO.DIRECT)
+    {
+      channel.name = __owner.pseudo;
+      for (let id = 1; id < channel.users.length; id++)
+      {
+        __users.push(await this.userService.getOne(channel.users[id]));
+        channel.name += `, ${__users[id].pseudo}`;
+      }
+    }
+
     const __newChannel: ChannelDTO = {
       id: undefined,
       owner: __owner,
@@ -196,15 +223,24 @@ export class MainGateway implements NestGateway
       messages: null,
       bannedUsers: null,
       mutedUsers: null,
-      admins: [ __owner ],
-      users: [ __owner ]
+      admins: __users,
+      users: __users
     };
+
+    const retUsers = [];
     const retChannel = await this.channelService.create(__newChannel);
-    const retUser = await this.channelService.addUser(retChannel.data.id, __owner);
+
+    retUsers.push(await this.channelService.addUser(retChannel.data.id, __owner));
+    if (channel.type === channelTypesDTO.DIRECT)
+    {
+      for (let id = 1; id < __users.length; id++)
+        retUsers.push(await this.channelService.addUser(retChannel.data.id, __users[id]));
+    }
+
     this.server.emit('channel::receive::add', {
       socketId: sender.id,
       channel: retChannel,
-      user: retUser
+      users: retUsers
     });
   }
 

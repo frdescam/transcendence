@@ -5,6 +5,7 @@ import type { ShadowMapType } from 'three';
 type quality = {
 	pixelRatio: number | 'device';
 	critical?: boolean,
+	allowedEffects?: string[];
 	useShadowmap: boolean;
 	shadowmap?: ShadowMapType;
 	shadowmapSize?: number;
@@ -25,6 +26,7 @@ const qualities: quality[] = [
 	},
 	{
 		pixelRatio: 0.75,
+		allowedEffects: ['bloom'],
 		useShadowmap: true,
 		shadowmap: BasicShadowMap,
 		shadowmapSize: 256,
@@ -33,6 +35,7 @@ const qualities: quality[] = [
 	},
 	{
 		pixelRatio: 1,
+		allowedEffects: ['bloom'],
 		useShadowmap: true,
 		shadowmap: BasicShadowMap,
 		shadowmapSize: 512,
@@ -41,6 +44,7 @@ const qualities: quality[] = [
 	},
 	{
 		pixelRatio: 1,
+		allowedEffects: ['bloom', 'film'],
 		useShadowmap: true,
 		shadowmap: PCFSoftShadowMap,
 		shadowmapSize: 1024,
@@ -51,6 +55,7 @@ const qualities: quality[] = [
 	},
 	{
 		pixelRatio: 'device',
+		allowedEffects: ['bloom', 'film'],
 		useShadowmap: true,
 		shadowmap: PCFSoftShadowMap,
 		shadowmapSize: 1024,
@@ -61,6 +66,7 @@ const qualities: quality[] = [
 	},
 	{
 		pixelRatio: 'device',
+		allowedEffects: ['bloom', 'film'],
 		useShadowmap: true,
 		shadowmap: PCFSoftShadowMap,
 		shadowmapSize: 2048,

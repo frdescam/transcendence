@@ -4,14 +4,11 @@ import { ExtractJwt } from 'passport-jwt';
 import { Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/users/orm/user.entity';
 import { TokenPayload } from '../dto/tokenPayload.dto';
 import { AuthService } from '../services/auth.service';
 
- // request here is a socket
-import { Socket } from 'socket.io'; 
-
-const tokenizeCookies = (str: string): any => { // returns object with cookies make interface
+const tokenizeCookies = (str: string): any => {
 	let cookieObject = {};
 	if (str) {
 		const strToArray = str.split(';').map((str) => str.replace(/\s/g, ''));
@@ -21,36 +18,26 @@ const tokenizeCookies = (str: string): any => { // returns object with cookies m
 		});
 	}
 	return cookieObject;
-};
+}
 
 @Injectable()
 export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {
 	constructor(config: ConfigService, private readonly auth_svc: AuthService) {
 		super({
 			jwtFromRequest: ExtractJwt.fromExtractors([
-				(request: any) => { // request here is a socket
-					const cookies: any = tokenizeCookies( // returns object with cookies make interface
-						request.handshake.headers.cookie, // to test with requests change handshake here, req.headers.cookie shoudl exist and can then test if validate func works!
+				(request: any) => {
+					const cookies: any = tokenizeCookies(
+						request.handshake.headers.cookie,
 					);
 					return cookies.Authentication;
 				},
 			]),
 			secretOrKey: config.get('JWT_AUTH_SECRET'),
-			passReqToCallback: true,
 			ignoreExpiration: true,
 		});
 	}
 
-	async validate(request: Socket, payload: TokenPayload): Promise<User> { // request is socket
-		console.log(request);
-		if (request['user']) {
-			const cookies: any = tokenizeCookies(request.handshake.headers.cookie);
-			return this.auth_svc.login({
-				id: request['user']?.id,
-				refresh_token: cookies.Refresh,
-			});
-		}
-
+	async validate(payload: TokenPayload): Promise<User> {
 		return this.auth_svc.login({
 			id: payload.sub,
 		});

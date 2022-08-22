@@ -1,6 +1,7 @@
 #compiled output
 # env
 .auth.env
+TODO
 
 #upload
 upload/
@@ -56,3 +57,5 @@ data/
 
 # For pohl
 TODO.md
+
+backend/src/auth/auth.env

@@ -17,13 +17,17 @@ import { UsersModule } from './users/main.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ envFilePath: ['./src/auth/.auth.env'], isGlobal: true, }),
+    // ServeStaticModule.forRoot({
+    //   rootPath: (
+    //     (process.env.NODE_ENV === 'production') ?
+    //       path.join(__dirname, '..', 'frontend', 'dist') :
+    //       path.join(__dirname, '..', 'static_dev')
+    //   )
+    // }),
     ServeStaticModule.forRoot({
-      rootPath: (
-        (process.env.NODE_ENV === 'production') ?
-          path.join(__dirname, '..', 'frontend', 'dist') :
-          path.join(__dirname, '..', 'static_dev')
-      )
-    }),
+          rootPath: path.join(__dirname, '..', './upload/avatars/',),
+          serveRoot: '/public',
+        }),
     ScheduleModule.forRoot(),
     DatabaseModule,
 

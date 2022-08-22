@@ -175,11 +175,11 @@ export class AuthController {
 
         // if this fails 401 error, wrong 2FA code, for now erases cookie so user needs to log in again.
 		if (!isCodeValid) {
-            request.res.clearCookie("isSecondFactorAuthenticated", {maxAge: 0,
-                sameSite: 'strict',
-                httpOnly: true,
-                path: '/',
-            });
+            // request.res.clearCookie("isSecondFactorAuthenticated", {maxAge: 0,
+            //     sameSite: 'strict',
+            //     httpOnly: true,
+            //     path: '/',
+            // });
             return {error: "2FA code invalid."};
 			//throw new UnauthorizedException('Wrong authentication code');
 		}
@@ -227,7 +227,7 @@ export class AuthController {
         if (user.is2FActive === true) // use boolean in db instead of string?
         {
             const twoFA_token = this.cookies_svc.get2FAJwtTokenCookie(user,);
-            request.res.cookie("isSecondFactorAuthenticated", twoFA_token, {maxAge: 400 * 1000, // maxAge .env
+            request.res.cookie("isSecondFactorAuthenticated", twoFA_token, {maxAge: 300 * 1000, // maxAge .env
             sameSite: 'strict',
             httpOnly: true,
             path: '/',

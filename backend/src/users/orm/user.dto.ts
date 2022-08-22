@@ -5,7 +5,8 @@ import { Message } from 'src/chat/orm/message.entity';
 
 import { Match } from 'src/match/orm/match.entity';
 
-import { Invitation } from './invitation.entity';
+// import { Invitation } from './invitation.entity';
+import { Friend } from './friend.entity';
 import { User } from './user.entity';
 
 export interface UserDTO {
@@ -21,9 +22,10 @@ export interface UserDTO {
   xp: number;
   ratio: number;
   connected: boolean;
-  friends: UserDTO[];
-  receivedInvitations: Invitation[];
-  sentInvitations: Invitation[];
+  friends: Friend[];
+  followedBy: Friend[];
+  // receivedInvitations: Invitation[];
+  // sentInvitations: Invitation[];
   matchesHome: Match[];
   matchesForeign: Match[];
   matchesWon: Match[];

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import { User } from "../../users/entities/user.entity";
+import { User } from "src/users/orm/user.entity";
 
 interface cookiePayload {
 	sub: number,

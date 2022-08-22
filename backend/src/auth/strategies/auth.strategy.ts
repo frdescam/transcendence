@@ -38,7 +38,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, 'auth')
       headers: { Authorization: `Bearer ${accessToken}` },
     }).toPromise();
 
-y		const user: User = await this.authService.login({fortytwo_id: data.id});
+    const user: User = await this.authService.login({fortytwo_id: data.id});
 
 		if (user)
 			return (user);

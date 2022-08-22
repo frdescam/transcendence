@@ -1,34 +1,25 @@
-// clean half this imports
-
-import { ArgumentsHost, Catch, ExceptionFilter, NotFoundException, ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import * as process from 'process';
 import * as cookieParser from 'cookie-parser';
 
-// put this into its own file LULz
-// for 404!
-@Catch(NotFoundException)
-export class NotFoundExceptionFilter implements ExceptionFilter {
-    catch(exception: NotFoundException, host: ArgumentsHost) {
-        const ctx = host.switchToHttp();
-        const response = ctx.getResponse();
-        response.send("NOPE! this is my 404 BRUH");
-    }
-}
-//* put this into its own file LULz
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { HttpExceptionFilter, NotFoundExceptionFilter } from './filter';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  // use pipe to validate 42 data?
- // app.useGlobalPipes(new ValidationPipe({
-  //  whitelist: true,
-  //}))
-  app.enableCors();
-  // for cookies
+(async () =>
+{
+  const app = await NestFactory.create(AppModule, {
+    logger: (process.env.NODE_ENV === 'production')
+      ? false
+      : ['log', 'error', 'warn', 'debug', 'verbose'],
+  });
+  app.enableCors({
+    origin: ['http://127.0.0.1:3000', 'http://localhost:3000'],
+    allowedHeaders: ['content-type'],
+    credentials: true
+  });
   app.use(cookieParser());
-  // maybe not needed now? global filters
-  app.setGlobalPrefix('api');
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new NotFoundExceptionFilter());
-  await app.listen(8080);
-}
-bootstrap();
+  app.setGlobalPrefix('api');
+  await app.listen(process.env.BACK_PORT);
+})();

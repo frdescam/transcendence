@@ -21,16 +21,14 @@ const routes: RouteRecordRaw[] = [
 
 	{
 		path: '/play/matching',
-		name: 'matching',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/Matching.vue') }]
+		children: [{ path: '', name: 'matching', component: () => import('src/views/pages/Matching.vue') }]
 	},
 
 	{
 		path: '/game/:party',
-		name: 'party',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/Game.vue') }]
+		children: [{ path: '', name: 'party', component: () => import('src/views/pages/Game.vue') }]
 	},
 
 	{
@@ -46,21 +44,33 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
+		path: '/login/2FA',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/2FA.vue') }]
+	},
+
+	{
 		path: '/register',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', component: () => import('src/views/pages/RegisterPage.vue') }]
 	},
 
 	{
-		path: '/profile2',
-		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/Profile2.vue') }]
-	},
-
-	{
 		path: '/profile',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', component: () => import('src/views/pages/ProfilePage.vue') }]
+	},
+
+	{
+		path: '/welcome',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/WelcomePage.vue') }]
+	},
+
+	{
+		path: '/settings',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', component: () => import('src/views/pages/UserSettings.vue') }]
 	},
 
 	// Always leave this as last one,

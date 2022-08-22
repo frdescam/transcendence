@@ -25,6 +25,15 @@
 						<q-icon name="logout" />
 					</q-btn>
 				</div>
+				<q-select
+					v-model="locale"
+					:options="localeOptions"
+					dense
+					emit-value
+					map-options
+					options-dense
+					style="min-width: 150px"
+				/>
 			</q-toolbar>
 		</q-header>
 
@@ -47,14 +56,65 @@
 </style>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import options from 'src/i18n/options';
+import { useQuasar } from 'quasar';
+import languages from 'quasar/lang/index.json';
+
+// #region Quasar lang definition
+const defineLangs = options.map((el) => el.value);
+const defineLangsSplit = options.map((el) => el.value.split('-'));
+const isExist = (iso: string) =>
+{
+	const i = defineLangs.indexOf(iso);
+	if (i !== -1)
+		return defineLangs[i];
+	for (const lang of defineLangsSplit)
+	{
+		if (lang[0] === iso || lang[1] === iso)
+			return lang.join('-');
+	}
+	return undefined;
+};
+
+const quasarLangs = languages.filter((el) =>
+{
+	const ret = isExist(el.isoName);
+	return !(ret === undefined);
+}).map((lang) => (
+	{
+		label: lang.nativeName,
+		quasar: lang.isoName,
+		value: isExist(lang.isoName)
+	}
+));
+// #endregion Quasar lang definition
 
 export default defineComponent({
 	name: 'MainLayout',
-
 	setup ()
 	{
+		const $q = useQuasar();
+		const { locale } = useI18n({ useScope: 'global' });
+
+		watch(locale, (val) =>
+		{
+			for (const lang of quasarLangs)
+			{
+				if (lang.value === val)
+				{
+					import(
+						/* @vite-ignore */
+						`../../../node_modules/quasar/lang/${lang.quasar}`)
+						.then(lang => $q.lang.set(lang.default));
+				}
+			}
+		});
+
 		return {
+			locale,
+			localeOptions: options
 		};
 	}
 });

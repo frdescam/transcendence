@@ -56,3 +56,5 @@ data/
 
 # For pohl
 TODO.md
+
+backend/src/auth/auth.env

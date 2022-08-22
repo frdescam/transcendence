@@ -1,27 +1,25 @@
-import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from "@nestjs/common"; // post will be needed later, erase RES
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ConfigService } from "@nestjs/config";
+import { ConfigService } from '@nestjs/config';
 
-import { WsJwtGuard } from "../guards/ws-jwt.guard"; // erase WS strategy not needed here
-import { JwtAuthGuard } from "../guards/auth-jwt.guard";
-import { JwtAuth2FAGuard } from "../guards/auth-jwt-2fa.guard";
-import { JwtRefreshGuard } from "../guards/auth-jwt-refresh.guard";
-import { OAuthGuard } from "../guards/auth.guard";
-import { AuthService } from "../services/auth.service";
+import { JwtAuthGuard } from '../guards/auth-jwt.guard';
+import { JwtAuth2FAGuard } from '../guards/auth-jwt-2fa.guard';
+import { JwtRefreshGuard } from '../guards/auth-jwt-refresh.guard';
+import { OAuthGuard } from '../guards/auth.guard';
+import { AuthService } from '../services/auth.service';
 import { CookiesService } from '../services/cookies.service';
-import { AuthUser } from "../decorators/auth-user.decorator";
-import { User } from "src/users/entities/user.entity";
+import { AuthUser } from '../decorators/auth-user.decorator';
+import { User } from 'src/users/orm/user.entity';
 import { TwoFactorAuthService } from '../services/twoFactorAuth.service';
-import { AuthDto } from "../dto";
+import { AuthDto } from '../dto';
 
-// cant have mutiple ppl with same pseudo nick, nickname
 // add async to route and stuff
 
-interface twoFAPayload { // could just use { code } its easier...
+interface twoFAPayload {
 	code?: string;
 }
 
-@Controller() //api heres // for now its in the index if not logged // change to auth someday
+@Controller()
 export class AuthController {
         constructor(private auth_svc: AuthService, private auth2fa_svc: TwoFactorAuthService, private readonly cookies_svc: CookiesService, private config: ConfigService) { }
 

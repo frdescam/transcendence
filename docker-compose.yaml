@@ -1,46 +1,38 @@
 version: '3.3'
 
-# TODO use .env
-
 services:
   ################ Postgresql ################
   postgres:
-    container_name: postgres
+    container_name: ${DB_HOST}
     restart: unless-stopped
     image: postgres:14
-    ports:
-      - 5432:5432
     environment:
-      - POSTGRES_DB=transcendence
-      - POSTGRES_USER=transcendence
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8
+      PG_DATA: /var/lib/postgresql/data
     volumes:
-      - ./data/db:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
-    networks:
-      - webnet
+    env_file:
+      - .env
 
-  ################# Backend #################
-  backend:
-    container_name: backend
+  ################# Transcendence #################
+  transcendence:
+    container_name: transcendence
     restart: unless-stopped
     depends_on:
       - postgres
     ports:
-      - 8080:8080 # env
+      - ${BACK_PORT}:${BACK_PORT}
     build:
       context: .
-      dockerfile: ./docker/back.Dockerfile
+      dockerfile: ./docker/production.Dockerfile
       args:
-        NODE_ENV: developpement
-    command: yarn start:dev
+        NODE_ENV: production
     volumes:
-      - './backend/:/usr/src/app'
-    networks:
-      - webnet
+      - /etc/localtime:/etc/localtime:ro
 
-
-networks:
-  webnet:
-    driver: bridge
+volumes:
+  pgdata:
+    driver: local

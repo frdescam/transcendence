@@ -1,7 +1,7 @@
-import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { User } from "../../users/entities/user.entity";
-import { UsersService } from "../../users/services/users.service";
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { User } from '../../users/entities/user.entity';
+import { UserService } from 'src/users/user/user.service';
 import { authenticator } from 'otplib';
 import { toFileStream } from 'qrcode';
 import { Response } from 'express';
@@ -10,7 +10,7 @@ import { Response } from 'express';
 
 @Injectable({})
 export class TwoFactorAuthService {
-    constructor(private readonly users_svc: UsersService, private config: ConfigService,) {}
+    constructor(private readonly users_svc: UserService, private config: ConfigService,) {}
 
     async generate2FASecret(user: User) : Promise<string> {
         const secret : string = authenticator.generateSecret();
@@ -20,7 +20,6 @@ export class TwoFactorAuthService {
         return otpauthUrl;
     }
 
-    // change dis? response bad
     // what the return type of dis
     async pipeQrCodeStream(stream: Response, otpauthUrl: string) {
         return toFileStream(stream, otpauthUrl);

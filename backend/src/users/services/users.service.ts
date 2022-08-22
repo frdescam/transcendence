@@ -1,13 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Length } from "class-validator"; // what
-import { Match } from "src/match.entity";
 import { MatchDTO } from "src/match/orm/match.dto";
+import { Match } from "src/match/orm/match.entity";
 import { LessThan, LessThanOrEqual, Like, MoreThanOrEqual, Not, Repository } from "typeorm";
 
 import { AuthDto } from '../../auth/dto';
-import { Friend } from "../entities/friend.entity";
-import { User } from "../entities/user.entity";
+import { Friend } from "../orm/friend.entity";
+import { User } from "../orm/user.entity";
 
 
 @Injectable({})

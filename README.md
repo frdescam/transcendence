@@ -3,6 +3,7 @@
 - [Features](#features)
 - [Architecture](#architecture)
 - [Database](#database)
+- [Frontend](#frontend)
 - [Command](#command)
   - [Clean docker instance](#command_clean)
   - [Development mode](#command_dev)
@@ -13,7 +14,7 @@
 This is the last mandatory project of the 42 school.
 The goal is to create a complete, full featured website to organize a *Pong* competition.
 We have to use the NestJS backend framework.
-We were free to choose any typescript frontend framework, we choose Vue.js
+We were free to choose any typescript frontend framework, we choose Vue.js with Quasar
 
 Feel free to read the subject for more information
 
@@ -25,6 +26,9 @@ Feel free to read the subject for more information
 
 ## <a id="database">Database</a>
 ![database](.git-assets/database.png)
+
+## <a id="frontend">Frontend</a>
+![frontend](.git-assets/frontend.png)
 
 ## <a id="command">Command</a>
 

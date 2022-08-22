@@ -1,18 +1,30 @@
 <template>
-	<q-layout view="lHh Lpr lFf">
+	<q-layout view="hHh lpR fFf">
 		<q-header elevated>
-			<q-toolbar>
-				<q-btn
-					flat
-					dense
-					round
-					icon="menu"
-					aria-label="Menu"
-					@click="toggleLeftDrawer"
-				/>
-				<q-toolbar-title>
-					Transendance
-				</q-toolbar-title>
+			<q-toolbar id="header-contents" class="row justify-between">
+				<q-btn flat no-caps no-wrap no-ripple :to="{ path: '/' }">
+					<q-toolbar-title>
+						<q-icon class="q-mr-sm"
+							name="img:https://www.pinclipart.com/picdir/big/535-5355934_ping-pong-table-tennis-icon-png-clipart.png" />
+						Transcendance
+					</q-toolbar-title>
+				</q-btn>
+				<div class="row q-gutter-md no-wrap mobile-hide">
+					<q-btn flat rounded :to="{ path: '/play' }" label="Play" />
+					<q-btn flat rounded :to="{ path: '/chat' }" label="Chat" />
+					<q-btn flat rounded :to="{ path: '/leaderboard' }" label="Leaderboard" />
+				</div>
+				<div class="row q-ml-md no-wrap">
+					<q-btn flat rounded :to="{ path: '/settings' }">
+						<q-icon name="settings" />
+					</q-btn>
+					<q-btn flat rounded :to="{ path: '/login' }">
+						<q-icon name="person" />
+					</q-btn>
+					<q-btn flat rounded :to="{ path: '/logout' }">
+						<q-icon name="logout" />
+					</q-btn>
+				</div>
 				<q-select
 					v-model="locale"
 					:options="localeOptions"
@@ -25,25 +37,26 @@
 			</q-toolbar>
 		</q-header>
 
-		<q-drawer
-			v-model="leftDrawerOpen"
-			show-if-above
-			bordered
-		>
-			<q-list>
-				<div>Hello</div>
-				<router-link :to="{ path: '/chat' }"></router-link>
-			</q-list>
-		</q-drawer>
-
 		<q-page-container>
 			<router-view />
 		</q-page-container>
+		<q-footer class="mobile-only row justify-evenly">
+			<q-btn flat rounded :to="{ path: '/play' }" icon="sports_esports" />
+			<q-btn flat rounded :to="{ path: '/chat' }" icon="chat" />
+			<q-btn flat rounded :to="{ path: '/leaderboards' }" icon="leaderboards" />
+		</q-footer>
 	</q-layout>
 </template>
 
+<style lang="scss">
+#header-contents {
+	max-width: 1200px;
+	margin: auto;
+}
+</style>
+
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
+import { defineComponent, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import options from 'src/i18n/options';
 import { useQuasar } from 'quasar';
@@ -83,7 +96,6 @@ export default defineComponent({
 	setup ()
 	{
 		const $q = useQuasar();
-		const leftDrawerOpen = ref(false);
 		const { locale } = useI18n({ useScope: 'global' });
 
 		watch(locale, (val) =>
@@ -101,13 +113,8 @@ export default defineComponent({
 		});
 
 		return {
-			leftDrawerOpen,
 			locale,
-			localeOptions: options,
-			toggleLeftDrawer ()
-			{
-				leftDrawerOpen.value = !leftDrawerOpen.value;
-			}
+			localeOptions: options
 		};
 	}
 });

@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 
 import { ChannelDTO } from '../orm/channel.dto';
 import { Channel } from '../orm/channel.entity';
-import { UserDTO } from 'src/user/orm/user.dto';
+import { UserDTO } from 'src/users/orm/user.dto';
 import { channelTypesDTO } from '../orm/channelTypes.dto';
 
 @Injectable()

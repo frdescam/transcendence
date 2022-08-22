@@ -39,7 +39,8 @@ module.exports = configure(() =>
 		// https://github.com/quasarframework/quasar/tree/dev/extras
 		extras: [
 			'roboto-font-latin-ext',
-			'material-icons'
+			'material-icons',
+			'mdi-v6'
 		],
 
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
@@ -91,7 +92,9 @@ module.exports = configure(() =>
 			// components: [],
 			// directives: [],
 			plugins: [
-				'Notify'
+				'Notify',
+				'Dialog',
+				'AppFullscreen'
 			]
 		},
 

@@ -51,8 +51,10 @@ export class PartyController
         if (params.room !== party.room)
           return ({left: false});
 
-      this.partyService.admitDefeat(party, slot);
-      return ({left: true});
+      if (this.partyService.admitDefeat(party, slot))
+        return ({left: true});
+      else
+        return ({left: false});
     }
 
     @Get(':room')

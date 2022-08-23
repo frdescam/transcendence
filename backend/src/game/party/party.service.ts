@@ -160,7 +160,8 @@ export class PartyService
             },
             undefined
           );
-        }   
+        }
+        setTimeout(this.removeParty.bind(this, party), 10*1000);
       }
       else
       {
@@ -182,9 +183,9 @@ export class PartyService
           true,
           true
         );
+        this.removeParty(party);
       }
 
-      setTimeout(this.removeParty.bind(this, party), 10*1000);
     }
     catch (e)
     {
@@ -674,16 +675,18 @@ export class PartyService
       this.pause(party, pauseReason.Explicit);
     }
 
-    public admitDefeat (party: Party, slot: 0 | 1)
+    public admitDefeat (party: Party, slot: 0 | 1): boolean
     {
       if (party.status === partyStatus.Finish)
-        return ;
-        
+        return (false);
+
       if (party.status === partyStatus.AwaitingPlayer
             || (party.statusData.previousStatus === partyStatus.AwaitingPlayer && party.status === partyStatus.Paused))
         this.onFinish(party, undefined, undefined);
       else
         this.onFinish(party, slot === 0 ? 1 : 0, slot);
+
+      return (true);
     }
 
     public leaveAll (client: Socket)

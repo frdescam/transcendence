@@ -17,6 +17,7 @@ export class PartyController
     return (this.partyService.getAllAsJSON());
   }
 
+    @UseGuards(HTTPMockupAuthGuard)
     @Get('mine')
     findMine(
         @Request() req,
@@ -34,6 +35,7 @@ export class PartyController
     @Put('giveup')
     giveup(
         @Request() req,
+        @Param() params
     )
     {
       const user: any = req.user;
@@ -45,6 +47,9 @@ export class PartyController
       const slot = this.partyService.getSlotFromUser(party, himself);
       if (slot === -1)
         throw 'Unexpected state';
+      if (params.room)
+        if (params.room !== party.room)
+          return ({left: false});
 
       this.partyService.admitDefeat(party, slot);
       return ({left: true});

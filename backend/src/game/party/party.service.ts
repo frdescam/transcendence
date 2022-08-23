@@ -842,7 +842,7 @@ export class PartyService
       }
       else if (userIds[1] && this.findPartyWithUser(userIds[1]))
       {
-        throw new HttpException('Adversary is already involved in another party', HttpStatus.FORBIDDEN);
+        throw new HttpException('Adversary is already involved in another party', HttpStatus.BAD_REQUEST);
       }
       else
       {

@@ -1,8 +1,13 @@
 <template>
 	<q-form @submit="editProfilePicture">
-		<q-img :src="picture" class="profile-picture">
+		<q-img v-if="!newUploadedAvatar" :src="avatar" class="profile-picture">
 			<div class="absolute-full text-subtitle2 flex flex-center profile-picture-edit">
-				<q-file outlined bg-color="white" v-model="newProfilePicture" label="Change your picture"/>
+				<q-file outlined bg-color="white" v-model="newAvatar" @update:model-value="updateAvatarWithPickedOne" label="Change your picture"/>
+			</div>
+		</q-img>
+		<q-img v-if="newUploadedAvatar" :src="newUploadedAvatar" class="profile-picture">
+			<div class="absolute-full text-subtitle2 flex flex-center profile-picture-edit">
+				<q-file outlined bg-color="white" v-model="newAvatar" @update:model-value="updateAvatarWithPickedOne" label="Change your picture"/>
 			</div>
 		</q-img>
 		<q-btn type="submit" class="q-mt-md" label='Update' />
@@ -11,21 +16,40 @@
 
 <script>
 import { ref, defineComponent } from 'vue';
+import { api } from 'boot/axios';
 
 export default defineComponent({
 	props: [
-		'picture'
+		'avatar'
 	],
 	setup (props)
 	{
-		const newProfilePicture = ref('');
-		const editProfilePicture = function ()
+		const newAvatar = ref(null);
+		const newUploadedAvatar = ref(null);
+		function editProfilePicture ()
 		{
-			console.log(newProfilePicture.value);
-		};
+			const formData = new FormData();
+			formData.append('file', newAvatar.value);
+			api.post('/user/upload', formData, {
+				headers: {
+					'Content-Type': 'multipart/form-data'
+				}
+			});
+		}
+
+		function updateAvatarWithPickedOne (value)
+		{
+			console.log(value);
+			newUploadedAvatar.value = URL.createObjectURL(value);
+			console.log(newUploadedAvatar.value);
+		}
+
 		return {
 			props,
-			newProfilePicture,
+			newAvatar,
+			newUploadedAvatar,
+
+			updateAvatarWithPickedOne,
 			editProfilePicture
 		};
 	}

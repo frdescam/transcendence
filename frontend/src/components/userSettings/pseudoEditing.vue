@@ -1,12 +1,12 @@
 <template>
 	<div class="text-h6">
 		<span id="username-display">
-			{{ username }}
+			{{ pseudo }}
 			<q-btn @click="toggleNameEdit" flat round icon="edit" />
 		</span>
 		<span id="username-edit" style="display:none;">
 			<q-form @submit="editUsername">
-				<q-input style="display:inline;" v-model="newUsername" label="Change username" />
+				<q-input style="display:inline;" v-model="newPseudo" label="Change pseudo"/>
 				<q-btn type="submit" flat round icon="check_circle" />
 				<q-btn @click="toggleNameEdit" flat round icon="cancel" />
 			</q-form>
@@ -15,15 +15,19 @@
 </template>
 
 <script>
-import { ref, defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
+import { api } from 'boot/axios';
 
 export default defineComponent({
 	props: [
-		'username'
+		'pseudo'
 	],
-	setup (props)
+	emits: [
+		'update:pseudo'
+	],
+	setup (props, { emit })
 	{
-		const newUsername = ref('');
+		const newPseudo = ref('');
 		const toggleNameEdit = function ()
 		{
 			let element = document.getElementById('username-display');
@@ -48,11 +52,16 @@ export default defineComponent({
 		};
 		const editUsername = function ()
 		{
-			console.log(newUsername.value);
+			toggleNameEdit();
+			api.patch('/user/updatePseudo', { update_pseudo: newPseudo.value }).then((res) =>
+			{
+				emit('update:pseudo', res.data.pseudo);
+			});
 		};
 		return {
 			props,
-			newUsername,
+			newPseudo,
+
 			toggleNameEdit,
 			editUsername
 		};

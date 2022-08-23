@@ -4,7 +4,7 @@ import { ExtractJwt } from 'passport-jwt';
 import { Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/users/orm/user.entity';
 import { TokenPayload } from '../dto/tokenPayload.dto';
 import { AuthService } from '../services/auth.service';
 
@@ -18,7 +18,7 @@ const tokenizeCookies = (str: string): any => {
 		});
 	}
 	return cookieObject;
-};
+}
 
 @Injectable()
 export class WsJwtStrategy extends PassportStrategy(Strategy, 'ws-jwt') {

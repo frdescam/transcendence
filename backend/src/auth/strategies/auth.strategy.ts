@@ -7,38 +7,38 @@ import { stringify } from 'querystring';
 import { ConfigService } from '@nestjs/config';
 
 import { AuthDto } from '../dto';
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/users/orm/user.entity';
 
 @Injectable()
-export class FortyTwoStrategy extends PassportStrategy(Strategy, 'auth') // change to oauth?
+export class FortyTwoStrategy extends PassportStrategy(Strategy, 'auth')
 {
-	constructor(
-		config: ConfigService,
+  constructor(
+    config: ConfigService,
 		private authService: AuthService,
 		private http: HttpService,
-	) {
-		super({
-			authorizationURL: `https://api.intra.42.fr/oauth/authorize?${stringify({
-				client_id: config.get('CLIENT_ID'),
-				redirect_uri: config.get('CALLBACK_URL'),
-				response_type: 'code',
-			})}`,
-			tokenURL: 'https://api.intra.42.fr/oauth/token',
-			grant_type: 'authorization_code',
-			clientID : config.get('CLIENT_ID'),
-			clientSecret: config.get('CLIENT_SECRET'),
-			callbackURL: config.get('CALLBACK_URL'),
-		});
-	}
+  ) {
+    super({
+      authorizationURL: `https://api.intra.42.fr/oauth/authorize?${stringify({
+        client_id: config.get('CLIENT_ID'),
+        redirect_uri: config.get('CALLBACK_URL'),
+        response_type: 'code',
+      })}`,
+      tokenURL: 'https://api.intra.42.fr/oauth/token',
+      grant_type: 'authorization_code',
+      clientID : config.get('CLIENT_ID'),
+      clientSecret: config.get('CLIENT_SECRET'),
+      callbackURL: config.get('CALLBACK_URL'),
+    });
+  }
 
-	async validate(
-		accessToken: string,
-	): Promise<User> {
-		const { data } = await this.http.get('https://api.intra.42.fr/v2/me', {
-			headers: { Authorization: `Bearer ${accessToken}` },
-		}).toPromise();
+  async validate(
+    accessToken: string,
+  ): Promise<User> {
+    const { data } = await this.http.get('https://api.intra.42.fr/v2/me', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }).toPromise();
 
-		const user: User = await this.authService.login({fortytwo_id: data.id});
+    const user: User = await this.authService.login({fortytwo_id: data.id});
 
 		if (user)
 			return (user);

@@ -46,7 +46,7 @@
 import matchesList from 'src/components/profilePage/MatchesList.vue';
 import achievementsList from 'src/components/profilePage/AchievementsList.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
-import { onMounted, ref } from 'vue-demi';
+import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { api } from 'boot/axios';
 
@@ -167,11 +167,11 @@ export default {
 	},
 	setup ()
 	{
-        const route = useRoute();
-        const userId = route.params.id;
-        const user = ref({});
+		const route = useRoute();
+		const userId = route.params.id;
+		const user = ref({});
 
-		api.get('/users/' + userId).then((res) =>
+		api.get('/user/' + userId).then((res) =>
 		{
 			user.value = res.data;
 		});

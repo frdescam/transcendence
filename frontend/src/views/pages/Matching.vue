@@ -5,11 +5,11 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { gameSocket } from 'src/boot/socketio';
-import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
+import { onBeforeUnmount, onMounted, ref, computed, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { Socket } from 'socket.io-client';
 
-import type { partyQuery as query } from 'src/components/game/common/logic/common'; // @TODO: Move common folder anywhere else
+import type { partyQuery as query } from 'src/common/game/interfaces';
 
 enum State
 {
@@ -22,6 +22,7 @@ enum State
 const router = useRouter();
 const route = useRoute();
 
+const gameSocket: Socket = inject('socketGame') as Socket;
 const status = ref(State.Connecting);
 const map = computed(() => (route.query.map || null)); // @TODO: Manage change in the URL
 const message = computed(() =>
@@ -46,8 +47,7 @@ function onFound (room: string)
 {
 	status.value = State.Found;
 	router.push({
-		path: `/game/${room}`,
-		// name: 'party',
+		name: 'party',
 		params: {
 			party: room
 		}

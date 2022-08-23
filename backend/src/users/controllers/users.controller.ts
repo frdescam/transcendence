@@ -3,9 +3,9 @@ import { Express, Request, Response } from 'express';
 import { ConfigService } from "@nestjs/config";
 
 import { JwtAuthGuard } from 'src/auth/guards/auth-jwt.guard';
-import { UsersService } from "src/users/services/users.service";
+import { UserService } from 'src/users/user/user.service';
 import { AuthUser } from "src/auth/decorators/auth-user.decorator";
-import { User } from "src/users/entities/user.entity";
+import { User } from 'src/users/orm/user.entity';
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 
@@ -19,7 +19,7 @@ import path = require('path')
 @UseGuards(JwtAuthGuard)
 @Controller("users/")
 export class UsersController {
-        constructor(private readonly users_svc: UsersService,) { }
+  constructor(private readonly users_svc: UserService,) { }
 
   @Get('me')
 	async me(@AuthUser() user: User): Promise<User> {

@@ -505,7 +505,8 @@ export class PartyService
           {
             if (!user)
             {
-              this.sendError("Failed to retreive your avatar", party.playersSocket[slot]);
+              if (party.playersSocket[slot])
+                this.sendError("Failed to retreive your avatar", party.playersSocket[slot]);
               return ;
             }
             const avatars = party.state.avatars.slice() as [string, string];

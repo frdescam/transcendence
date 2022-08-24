@@ -47,7 +47,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, 'auth')
 			fortytwo_id: data.id,
 			pseudo: data.login,
 			email: data.email,
-			avatar: 'http://127.0.0.1:8080/public/no_avatar.png',
+			avatar: 'http://127.0.0.1:8080/api/user/avatar/no_avatar.png',
 		};
 
 		return this.authService.signup(user_dto);

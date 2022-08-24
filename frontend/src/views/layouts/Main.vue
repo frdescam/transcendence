@@ -4,8 +4,7 @@
 			<q-toolbar id="header-contents" class="row justify-between">
 				<q-btn flat no-caps no-wrap no-ripple :to="{ path: '/' }">
 					<q-toolbar-title>
-						<q-icon class="q-mr-sm"
-							name="img:https://www.pinclipart.com/picdir/big/535-5355934_ping-pong-table-tennis-icon-png-clipart.png" />
+						<q-icon class="q-mr-sm" name="mdi-table-tennis" />
 						Transcendance
 					</q-toolbar-title>
 				</q-btn>

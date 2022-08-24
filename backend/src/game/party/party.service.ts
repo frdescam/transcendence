@@ -161,6 +161,26 @@ export class PartyService
             undefined
           );
         }
+
+        try
+        {
+          await this.userService.updateUserStats(party.playersId[0]);
+          await this.userService.updateUserStats(party.playersId[1]);
+        }
+        catch (e)
+        {
+          this.patchState(
+            party,
+            {
+              text: 'Failed to update XP',
+              textSize: 0.8,
+              textColor: 0xff0000,
+            }
+          );
+          for (let index = 0; index < 2; index++)
+            party.playersSocket[index]?.emit('party::error', 'Failed to update XP');
+        }
+
         setTimeout(this.removeParty.bind(this, party), 10*1000);
       }
       else
@@ -198,6 +218,8 @@ export class PartyService
         }
       );
       setTimeout(this.removeParty.bind(this, party), 60*1000);
+      for (let index = 0; index < 2; index++)
+        party.playersSocket[index]?.emit('party::error', 'Failed to save the score');
     }
 
   }

@@ -4,6 +4,7 @@ import * as cookieParser from 'cookie-parser';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter, NotFoundExceptionFilter } from './filter';
+import { ValidationPipe } from '@nestjs/common';
 
 (async () =>
 {
@@ -21,5 +22,10 @@ import { HttpExceptionFilter, NotFoundExceptionFilter } from './filter';
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new NotFoundExceptionFilter());
   app.setGlobalPrefix('api');
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+    }),
+  );
   await app.listen(process.env.BACK_PORT);
 })();

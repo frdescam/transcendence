@@ -22,6 +22,7 @@ export interface UserDTO {
   secretOf2FA: string;
   xp: number;
   ratio: number;
+  rank: number;
   connected: boolean;
   friends: Friend[];
   followedBy: Friend[];

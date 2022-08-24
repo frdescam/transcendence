@@ -6,4 +6,5 @@ export interface AuthDto
     email?: string,
     avatar?: string,
     refresh_token?: string,
+    rank?: number,
 }

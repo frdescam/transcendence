@@ -8,6 +8,7 @@ import { Match } from 'src/match/orm/match.entity';
 // import { Invitation } from './invitation.entity';
 import { Friend } from './friend.entity';
 import { User } from './user.entity';
+import { Ignore } from './ignored.entity';
 
 export interface UserDTO {
   id: number;
@@ -33,5 +34,7 @@ export interface UserDTO {
   messages: Message[];
   bannedFrom: Banned[];
   mutedFrom: Muted[];
-  blockedUsers: User[];
+  // blockedUsers: User[];
+  blockedUsers: Ignore[];
+  blockedUsersBy: Ignore[];
 }

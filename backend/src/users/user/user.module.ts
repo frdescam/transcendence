@@ -7,7 +7,6 @@ import { Friend } from '../orm/friend.entity';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
-// Friend no longer needed herer
 @Module({
   imports: [TypeOrmModule.forFeature([User, Friend])],
   controllers: [UserController],

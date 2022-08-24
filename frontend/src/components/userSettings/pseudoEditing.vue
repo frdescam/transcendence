@@ -3,6 +3,12 @@
 		<span id="username-display">
 			{{ pseudo }}
 			<q-btn @click="toggleNameEdit" flat round icon="edit" />
+      <div class="inline-block">
+        <q-spinner v-if="LoadingPseudo"></q-spinner>
+        <q-icon v-if="success" name="check_circle" color="green"></q-icon>
+        <q-icon v-if="failure" name="error" color="red"></q-icon>
+        <span v-if="failure" class="q-pl-sm" style="color: red; font-size: 0.6em">{{ errorMessage }}</span>
+      </div>
 		</span>
 		<span id="username-edit" style="display:none;">
 			<q-form @submit="editUsername">
@@ -28,6 +34,10 @@ export default defineComponent({
 	setup (props, { emit })
 	{
 		const newPseudo = ref('');
+		const LoadingPseudo = ref(false);
+		const success = ref(false);
+		const failure = ref(false);
+		const errorMessage = ref('');
 		const toggleNameEdit = function ()
 		{
 			let element = document.getElementById('username-display');
@@ -53,14 +63,31 @@ export default defineComponent({
 		const editUsername = function ()
 		{
 			toggleNameEdit();
+			LoadingPseudo.value = true;
 			api.patch('/user/updatePseudo', { update_pseudo: newPseudo.value }).then((res) =>
 			{
-				emit('update:pseudo', res.data.pseudo);
+				if (res.data.error)
+				{
+					failure.value = true;
+					success.value = false;
+					errorMessage.value = res.data.error;
+				}
+				else
+				{
+					emit('update:pseudo', res.data.pseudo);
+					failure.value = false;
+					success.value = true;
+				}
+				LoadingPseudo.value = false;
 			});
 		};
 		return {
 			props,
 			newPseudo,
+			LoadingPseudo,
+			success,
+			failure,
+			errorMessage,
 
 			toggleNameEdit,
 			editUsername

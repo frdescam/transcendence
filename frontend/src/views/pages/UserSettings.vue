@@ -37,7 +37,7 @@
 				</q-card-section>
 			</q-card>
 
-			<q-card bordered style='width: 300px;' class="my-card q-ma-md">
+			<!-- <q-card bordered style='width: 300px;' class="my-card q-ma-md">
 				<q-card-section>
 					<div class="text-h6">Game options</div>
 				</q-card-section>
@@ -50,7 +50,7 @@
 						<q-btn type="submit" class="q-mt-md" label='Update' />
 					</q-form>
 				</q-card-section>
-			</q-card>
+			</q-card> -->
 
 			<q-card bordered style='width: 300px;' class="q-ma-md">
 				<q-card-section>
@@ -126,11 +126,6 @@ export default ({
 			me.value = res.data;
 			console.log('me.value (in get in setup) : ', me.value);
 		});
-
-		setInterval(() =>
-		{
-			console.log(me.value);
-		}, 1000);
 
 		return {
 			paddleSelected,

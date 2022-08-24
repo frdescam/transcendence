@@ -7,7 +7,7 @@ import { UserDTO } from '../orm/user.dto';
 import { Friend } from "../orm/friend.entity";
 import { User } from '../orm/user.entity';
 
-
+// friends_repo not needed anymore, delete getFriends and follow here
 @Injectable({})
 export class UserService {
   constructor(
@@ -23,7 +23,7 @@ export class UserService {
 		});
 	  }
 
-	  async turnOff2FA(userId: number): Promise<void> {
+	async turnOff2FA(userId: number): Promise<void> {
 		await this.userRepository.update(userId, {
 			is2FActive: false,
 			secretOf2FA: null,
@@ -36,30 +36,33 @@ export class UserService {
 		});
 	  }
 
-	// do we even need to return the user here?
+	// should add something if id fails?
 	async updateAvatar(filename: string, userId: number): Promise<User> {
 	// return await this.userRepository.update(userId, {
 	// 	avatar: filename,
 	// });
 
+	// should add something if id fails?
 	const result = await this.userRepository.createQueryBuilder() // raw sql type
     .update({
-		avatar: 'http://127.0.0.1:8080/public/'+filename,
+		avatar: 'http://127.0.0.1:8080/api/user/avatar/'+filename,
     })
     .where({
         id: userId,
     })
     .returning('*')
-    .execute()
+    .execute();
 
 	//console.log("result: ",result.raw[0]);
-	return result.raw[0];
+	// return result.raw[0];
+	return this.sanitizeUser(result.raw[0]);
 	//  return await this.userRepository.save({
 	// 	id: userId,
 	//  	avatar: filename,
 	//  });
 	}
   
+	// should add something if id fails?
 	async updatePseudo(new_pseudo: string, userId: number) : Promise<User | object> {
 		// change return here
 		const user: User = await this.userRepository.findOne({pseudo : new_pseudo});
@@ -67,7 +70,7 @@ export class UserService {
 		if (user)
 			return {error: "pseudo already taken!"}
 		
-		console.log("if undefined is good, user: ", user);
+		console.log("updatePseudo: if undefined is good, user: ", user);
 		
 		const result = await this.userRepository.createQueryBuilder()
 		.update({
@@ -77,11 +80,13 @@ export class UserService {
 			id: userId,
 		})
 		.returning('*')
-		.execute()
+		.execute();
+
+		// const user : User = result.raw[0];
 		
 		console.log("result: ",result.raw[0]);
 		//console.log(test_user, user, result.raw[0]);
-		return result.raw[0];
+		return this.sanitizeUser(result.raw[0]);
 	}
 
 	async follow(userId: number, follwedUserId: number) {
@@ -114,17 +119,30 @@ export class UserService {
 		return this.userRepository.findOne({where: user_dto}); // use where? // if auth breaks is this line
     }
 
+	async sanitizeUser(user: User): Promise<User>
+	{
+		if (user) {
+			delete user.fortytwo_id;
+			delete user.refresh_token;
+			//delete user.email; erase in entity
+			//delete user.password; erase in entity
+			//delete user.is2FActive;
+			delete user.secretOf2FA;
+		}
+		return user;
+	}
+
     async findOne(user_dto: AuthDto): Promise<User> {
 		const user: User = await this.userRepository.findOne({where: user_dto});
-
-		delete user.fortytwo_id;
-		delete user.refresh_token;
+		
+		// delete user.fortytwo_id;
+		// delete user.refresh_token;
 		//delete user.email; erase in entity
 		//delete user.password;
-		delete user.is2FActive;
-		delete user.secretOf2FA;
+		//delete user.is2FActive;
+		// delete user.secretOf2FA;
 
-		return user;
+		return await this.sanitizeUser(user);
     }
 
 	// async getOne(userId: number): Promise<User>

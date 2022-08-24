@@ -129,7 +129,7 @@ export default {
 		},
 		user: {
 			sendMessage: 'Send message',
-			invite: 'Send and invitation to play'
+			invite: 'Send an invitation to play'
 		},
 		editor: {
 			image: 'Image',

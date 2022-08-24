@@ -1,52 +1,53 @@
 <template>
-	<q-dialog
-		ref="dialog"
-		model="fixed"
-		square
-		@hide="reset"
-	>
-		<q-card>
-			<q-card-section class="row items-center q-pb-none">
-				<span class="text-h6">{{ $t('chat.channel.invitation.creator.title', { user: invitationName }) }}</span>
-				<q-space />
-				<q-btn icon="close" flat round dense v-close-popup />
-			</q-card-section>
-			<q-card-section v-if="!pendingInvitation">
-				<div class="column">
-					<q-banner v-if="errorType > 0" inline-actions class="text-white bg-red">
-						<template v-if="errorType === 1">
-							{{ $t('chat.channel.invitation.creator.error') }}
-						</template>
-						<template v-else>
-							{{ $t('chat.channel.invitation.creator.unknown') }}
-						</template>
-					</q-banner>
-					<q-spinner
-						v-if="isLoading"
-						color="primary"
-						size="3em"
-					/>
-					<span>{{ $t('chat.channel.invitation.creator.text') }}</span>
-					<q-select v-model="selectedMap" :options="selectOptions" :label="$t('chat.channel.invitation.creator.map')"/>
-					<div class="row justify-evenly">
-						<q-btn push color="red-7" round icon="close" @click="selected(false)" />
-						<q-btn push color="green-7" round icon="done" @click="selected(true)" />
+	<div class="q-pa-md q-gutter-sm">
+		<q-dialog
+			ref="dialog"
+			model="fixed"
+			square
+			persistent
+			@hide="reset"
+		>
+			<q-card style="width: 700px; max-width: 80vw;">
+				<q-card-section class="row items-center q-pb-none">
+					<span class="text-h6 row justify-center modal-creator-title">{{ $t('chat.channel.invitation.creator.title') }}</span>
+				</q-card-section>
+				<q-card-section v-if="!pendingInvitation">
+					<div class="column">
+						<q-banner v-if="errorType > 0" inline-actions class="text-white bg-red" style="margin-bottom: 1em;">
+							<template v-if="errorType === 1">
+								{{ $t('chat.channel.invitation.creator.error') }}
+							</template>
+							<template v-else>
+								{{ $t('chat.channel.invitation.creator.unknown') }}
+							</template>
+						</q-banner>
+						<div v-if="isLoading" class="row justify-center" style="margin-bottom: 1em">
+							<q-spinner color="primary" size="3em" />
+						</div>
+						<span style="text-align: center;">{{ $t('chat.channel.invitation.creator.text', { user: invitationName }) }}</span>
+						<q-select v-model="selectedMap" :options="selectOptions" :label="$t('chat.channel.invitation.creator.map')"/>
+						<div class="row justify-evenly modal-creator-button">
+							<q-btn push color="red-7" round icon="close" @click="selected(false)" />
+							<q-btn push color="green-7" round icon="done" @click="selected(true)" />
+						</div>
 					</div>
-				</div>
-			</q-card-section>
-			<q-card-section v-else>
-				<div class="column" v-if="isAccepted === null">
-					<span class="text-h6 center">{{ $t('chat.channel.invitation.creator.pending')}}</span>
-					<q-spinner-dots color="indigo" />
-				</div>
-				<div class="column" v-else>
-					<span v-if="isAccepted === true">{{ $t('chat.channel.invitation.creator.accepted') }}</span>
-					<span v-else>{{ $t('chat.channel.invitation.creator.refused') }}</span>
-					<q-btn align="around" class="btn-fixed-width" color="secondary" :label="$t('chat.channel.invitation.creator.close')" icon="close" @click="close"/>
-				</div>
-			</q-card-section>
-		</q-card>
-	</q-dialog>
+				</q-card-section>
+				<q-card-section v-else>
+					<div v-if="isAccepted === null" class="column" style="align-items: center">
+						<span class="text-h6 center">{{ $t('chat.channel.invitation.creator.pending', { user: invitationName })}}</span>
+						<q-spinner-dots color="blue" size="2.5em" />
+					</div>
+					<div class="column" v-else>
+						<span v-if="isAccepted === true" class="modal-creator-text-align">{{ $t('chat.channel.invitation.creator.accepted', { user: invitationName }) }}</span>
+						<span v-else class="modal-creator-text-align">{{ $t('chat.channel.invitation.creator.refused', { user: invitationName }) }}</span>
+						<div class="row justify-center" style="margin-top: 1em">
+							<q-btn class="btn-fixed-width" color="secondary" :label="$t('chat.channel.invitation.creator.close')" icon="close" @click="close"/>
+						</div>
+					</div>
+				</q-card-section>
+			</q-card>
+		</q-dialog>
+	</div>
 </template>
 
 <script lang="ts">
@@ -68,8 +69,9 @@ export default defineComponent({
 		invitationId: Number,
 		invitationName: String
 	},
+	emits: ['dialog-invitation-close'],
 	beforeUnmount: () => clearTimeout(timeout),
-	setup: (props) =>
+	setup: (props, { emit }) =>
 	{
 		const axios: AxiosInstance = inject('api') as AxiosInstance;
 		const socket: Socket = inject('socketChat') as Socket;
@@ -79,7 +81,7 @@ export default defineComponent({
 		const isLoading = ref(false);
 		const isError = ref(false);
 		const errorType = ref(0);
-		const selectedMap = ref(null);
+		const selectedMap = ref();
 		const selectOptions: string[] = [];
 		const gameLink = ref<string | null>();
 
@@ -88,6 +90,7 @@ export default defineComponent({
 
 		for (const key in maps)
 			selectOptions.push(key);
+		selectedMap.value = selectOptions[0];
 
 		const selected = (val: boolean) =>
 		{
@@ -96,6 +99,7 @@ export default defineComponent({
 				isError.value = false;
 				isLoading.value = true;
 				errorType.value = 0;
+
 				axios.post('party', {
 					adversary: props.invitationId,
 					map: selectedMap.value
@@ -103,33 +107,37 @@ export default defineComponent({
 				{
 					isLoading.value = false;
 					gameLink.value = String(ret);
-					socket.emit('invitation..send', {
+					socket.emit('invitation::send', {
 						creatorId: props.creatorId,
 						creatorName: props.creatorName,
 						invitationId: props.invitationId,
 						invitationName: props.invitationName,
-						gameLink: ret
+						gameLink: gameLink.value
 					});
 					pendingInvitation.value = true;
 				}).catch((err) =>
 				{
 					isLoading.value = false;
 					isError.value = true;
-					if (err.statusCode === 403)
+					if (err.response.status === 403)
 						errorType.value = 1;
 					else
 						errorType.value = 2;
 				});
 			}
+			else
+			{
+				emit('dialog-invitation-close', false);
+				dialog.value?.hide();
+			}
 		};
 		socket.on('invitation::receive::approval', (ret) =>
 		{
-			if (ret.creatorId === props.creatorId &&
-				ret.invitationId === props.invitationId &&
-				ret.gameLink === gameLink.value)
+			if (ret.data.creatorId === props.creatorId &&
+				ret.data.invitationId === props.invitationId &&
+				ret.data.gameLink === gameLink.value)
 			{
-				isAccepted.value = (ret.approvalFromInvitedUser && ret.approvalFromInvitedUser === true);
-				pendingInvitation.value = false;
+				isAccepted.value = (ret.data.approvalFromInvitedUser && ret.data.approvalFromInvitedUser === true);
 				timeout = setTimeout(() =>
 				{
 					close();
@@ -140,19 +148,20 @@ export default defineComponent({
 		const close = () =>
 		{
 			dialog.value?.hide();
+			emit('dialog-invitation-close', false);
 			if (isAccepted.value)
 				router.push(`play/${gameLink.value}`);
 		};
 
 		const reset = () =>
 		{
+			isLoading.value = false;
 			isError.value = false;
-			isLoading.value = true;
 			errorType.value = 0;
+			selectedMap.value = selectOptions[0];
+			gameLink.value = '';
 			pendingInvitation.value = false;
 			isAccepted.value = null;
-			gameLink.value = '';
-			selectedMap.value = null;
 		};
 
 		watch(() => props.dialogInvitationCreatorShow, (after, before) =>
@@ -179,3 +188,15 @@ export default defineComponent({
 	}
 });
 </script>
+
+<style>
+	.modal-creator-title {
+		width: 100%;
+	}
+	.modal-creator-button {
+		margin-top: 1.5em;
+	}
+	.modal-creator-text-align {
+		text-align: center;
+	}
+</style>

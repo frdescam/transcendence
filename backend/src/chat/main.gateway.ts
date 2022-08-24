@@ -43,7 +43,7 @@ const getType = (type: string) => {
   return temp;
 };
 
-@UseGuards(SocketMockupAuthGuard)
+//@UseGuards(SocketMockupAuthGuard)
 @WebSocketGateway({
   namespace: 'chat::',
   cors: {

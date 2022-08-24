@@ -2,20 +2,24 @@
 	<q-dialog
 		ref="dialog"
 		model="fixed"
+		persistent
 		square
 	>
-		<q-card>
+		<q-card style="width: 700px; max-width: 80vw;">
 			<q-card-section class="row items-center q-pb-none">
-				<span class="text-h6">{{ $t('chat.channel.invitation.player.title', { create: data?.creatorName }) }}</span>
-				<q-space />
-				<q-btn icon="close" flat round dense v-close-popup />
+				<span class="text-h6 modal-invite-user-title">{{ $t('chat.channel.invitation.player.title', { creator: info?.data.creatorName }) }}</span>
 			</q-card-section>
 			<q-card-section>
 				<div class="column">
-					<span>{{ $t('chat.channel.invitation.player.title') }}</span>
 					<div class="row justify-evenly">
-						<q-btn push color="red-7" round icon="close" @click="accept(false)" />
-						<q-btn push color="green-7" round icon="done" @click="accept(true)" />
+						<q-btn color="red-7" @click="accept(false)">
+							<q-icon left size="1.em" name="close"/>
+							<div>{{ $t('chat.channel.invitation.player.no') }}</div>
+						</q-btn>
+						<q-btn color="green-7" @click="accept(true)">
+							<q-icon left size="1.em" name="done"/>
+							<div>{{ $t('chat.channel.invitation.player.yes') }}</div>
+						</q-btn>
 					</div>
 				</div>
 			</q-card-section>
@@ -29,15 +33,6 @@ import { Socket } from 'socket.io-client';
 import { useRouter } from 'vue-router';
 import { defineComponent, ref, inject, watch } from 'vue';
 
-interface receiveInvitation {
-  creatorId: number,
-  creatorName: string,
-  invitationId: number,
-  invitationName: string,
-  gameLink: string,
-  approvalFromInvitedUser?: boolean
-}
-
 export default defineComponent({
 	name: 'chat_invitation_user',
 	props: {
@@ -49,38 +44,45 @@ export default defineComponent({
 		const router = useRouter();
 
 		const dialog = ref<QDialog | null>(null);
-		const data = ref<receiveInvitation>();
+		const info = ref();
 
 		const accept = (val: boolean) =>
 		{
 			socket.emit('invitation::approval', {
-				creatorId: data.value?.creatorId,
-				creatorName: data.value?.creatorName,
-				invitationId: data.value?.invitationId,
-				invitationName: data.value?.invitationName,
-				gameLink: data.value?.gameLink,
+				creatorId: info.value?.data.creatorId,
+				creatorName: info.value?.data.creatorName,
+				invitationId: info.value?.data.invitationId,
+				invitationName: info.value?.data.invitationName,
+				gameLink: info.value?.data.gameLink,
 				approvalFromInvitedUser: val
 			});
 			dialog.value?.hide();
 			if (val === true)
-				router.push(`play/${data.value?.gameLink}`);
+				router.push(`play/${info.value?.data.gameLink}`);
 		};
 
-		socket.on('invitation::receive::send', (ret: receiveInvitation) =>
+		socket.on('invitation::receive::send', (ret) =>
 		{
-			if (ret.invitationId === props.userId)
-				data.value = ret;
+			if (ret.data.invitationId === props.userId)
+				info.value = ret;
 		});
-		watch(() => data, () =>
+		watch(() => info, () =>
 		{
 			dialog.value?.show();
 		}, { deep: true });
 
 		return {
 			dialog,
-			data,
+			info,
 			accept
 		};
 	}
 });
 </script>
+
+<style>
+.modal-invite-user-title {
+	width: 100%;
+	text-align: center;
+}
+</style>

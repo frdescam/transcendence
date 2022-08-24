@@ -67,6 +67,7 @@
 		:creatorName="dialogCreatorName"
 		:invitationId="dialogInvitationId"
 		:invitationName="dialogInvitationName"
+    @dialog-invitation-close="dialogInvitationCreatorShow = false"
 	/>
 	<invitation-user
 		:userId="userId"

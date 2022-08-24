@@ -27,7 +27,7 @@
 				<h5 class="q-ma-md">You can edit your pseudo and profile picture right here:</h5>
 				<q-card bordered style='width: 300px;' class="q-ma-md">
 					<q-card-section>
-						<pseudoEditing :pseudo='user.pseudo' v-on:update:pseudo="me.pseudo = $event"></pseudoEditing>
+						<pseudoEditing :pseudo='user.pseudo' v-on:update:pseudo="user.pseudo = $event"></pseudoEditing>
 					</q-card-section>
 					<q-separator inset />
 					<q-card-section>

@@ -12,6 +12,8 @@ import {
   UseInterceptors,
   Patch,
   UploadedFile,
+  Res,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserDTO } from '../orm/user.dto';
@@ -20,6 +22,8 @@ import { JwtAuthGuard } from 'src/auth/guards/auth-jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from "multer";
 import { User } from '../orm/user.entity';
+import { Response } from 'express';
+// import { NotFoundError } from 'rxjs';
 
 @Controller('user')
 export class UserController {
@@ -29,14 +33,14 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
 	async me(@AuthUser() user: User): Promise<User> {
-    const sanitize_user: User = await this.channelService.findOne({
+    const sanitized_user: User = await this.channelService.findOne({
       id: user.id,
     });
 
-    if (!sanitize_user)
+    if (!sanitized_user)
       throw new BadRequestException('User not found.');
 
-		return sanitize_user;
+		return sanitized_user;
 	}
 
     @UseGuards(JwtAuthGuard)
@@ -82,11 +86,17 @@ export class UserController {
 
     // for testing erase later
     // test to show that we can send the avatar to the frontend
-  //   @Get('show')
-  //   display(@AuthUser() user: User, @Res() res: Response){
-  //   console.log(user, user.avatar);
-  //   res.sendFile(user.avatar, { /*headers: ,*/ root: './upload/avatars' })
-  // }
+    // add validation pipe for strings
+    @Get('avatar/:name')
+    async display(@Param('name') name: string, @Res() res: Response){
+    // const sanitized_user: User = await this.channelService.findOne({
+    //     id: id,
+    // });
+    // if (!sanitized_user)
+      // throw new NotFoundException('user doesn\'t exists'); 
+    // console.log(id, sanitized_user);
+    res.sendFile(name, { root: './upload/avatars/' })
+  }
 
   @UseGuards(JwtAuthGuard)
     @Patch('updatePseudo')
@@ -101,16 +111,16 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
     @Get(':id') // add ParseIntPipe to validate id // is this useful?
 	  async findOne(@Param('id') id: number): Promise<User> {
-      const sanitize_user: User = await this.channelService.findOne({
+      const sanitized_user: User = await this.channelService.findOne({
         id: id,
       });
 
-      if (!sanitize_user)
+      if (!sanitized_user)
         throw new BadRequestException('User not found.');
         //return undefined;
 
       // console.log(target);
-      return sanitize_user;
+      return sanitized_user;
 	  }
   
   

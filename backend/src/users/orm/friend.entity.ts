@@ -6,7 +6,9 @@ export class Friend extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => User, (user) => user.friends)
+    @ManyToOne(() => User, (user) => user.friends, {
+        eager: true
+    })
     user: User;
 
     @ManyToOne(() => User, (user) => user.followedBy, {
@@ -14,6 +16,9 @@ export class Friend extends BaseEntity {
     })
     followedUser: User;
 
-    @Column()
+    @Column({
+        type: 'boolean',
+		default: true,
+	})
     isPending: boolean;
 }

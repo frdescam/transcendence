@@ -13,24 +13,26 @@ import { GameModule } from './game/main.module';
 import { LeaderboardModule } from './leaderboard/main.module';
 import { MatchModule } from './match/main.module';
 import { UsersModule } from './users/main.module';
+import { FriendshipModule } from './users/friendship/friendship.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ envFilePath: ['./src/auth/.auth.env'], isGlobal: true, }),
-    // ServeStaticModule.forRoot({
-    //   rootPath: (
-    //     (process.env.NODE_ENV === 'production') ?
-    //       path.join(__dirname, '..', 'frontend', 'dist') :
-    //       path.join(__dirname, '..', 'static_dev')
-    //   )
-    // }),
     ServeStaticModule.forRoot({
-          rootPath: path.join(__dirname, '..', './upload/avatars/',),
-          serveRoot: '/public',
-        }),
+      rootPath: (
+        (process.env.NODE_ENV === 'production') ?
+          path.join(__dirname, '..', 'frontend', 'dist') :
+          path.join(__dirname, '..', 'static_dev')
+      )
+    }),
+    // ServeStaticModule.forRoot({
+    //       rootPath: path.join(__dirname, '..', './upload/avatars/',),
+    //       serveRoot: '/public',
+    //     }),
     ScheduleModule.forRoot(),
     DatabaseModule,
-
+    
+    FriendshipModule,
     AuthModule,
     ChatModule,
     GameModule,

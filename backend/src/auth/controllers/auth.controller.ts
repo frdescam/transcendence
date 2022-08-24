@@ -36,7 +36,7 @@ export class AuthController {
             fortytwo_id: id,
             pseudo: "sample" + id,
             email: "sample" + id,
-			avatar: 'http://127.0.0.1:8080/public/no_avatar.png',
+			avatar: 'http://127.0.0.1:8080/api/user/avatar/no_avatar.png',
         };
 
         return await this.auth_svc.signup(reg);
@@ -96,9 +96,7 @@ export class AuthController {
         });
 
         // return if 2FA or if logged to front end here! with a json obj
-        return {
-			two_factor_enabled: false,
-		};
+        return user;
     }
 
     @UseGuards(JwtAuthGuard)

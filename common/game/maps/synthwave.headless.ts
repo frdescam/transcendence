@@ -3,6 +3,7 @@ import { Vector3, Euler } from 'three';
 import type { mapConfig } from '../interfaces';
 
 const config: Partial<mapConfig> = {
+	name: 'Synthwave',
 	cameraClip: [1, 400],
 	fov: 56,
 	forceRotationRatio: 1.3,

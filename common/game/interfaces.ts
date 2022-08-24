@@ -2,6 +2,7 @@ import type { Euler, Color, Vector3 } from 'three';
 import type { Material, avatar, team, userId } from './types';
 
 interface mapConfig {
+	name: string,
 	cameraClip: [number, number],
 	fov: number,
 	forceRotationRatio: number,

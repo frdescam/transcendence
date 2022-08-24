@@ -9,13 +9,15 @@ import maps from './maps';
 import type { state as commonState, Ping, Pong } from 'src/common/game/interfaces';
 import type { controlsMode } from 'src/common/game/types';
 
+type qualityLevels = 0|1|2|3|4|5;
+
 export interface interfaceState {
 	error: string | null,
 	connected: boolean,
 	gamestate: boolean,
 	loaded: boolean,
 	accessibility: boolean,
-	graphics: 0|1|2|3|4|5,
+	graphics: qualityLevels,
 	can_join: boolean,
 	spectator: boolean,
 	paused: boolean,
@@ -208,6 +210,13 @@ function mountScene (config: mapConfig)
 			onReady: () =>
 			{
 				state.loaded = true;
+				scene?.setAccessibility(state.accessibility);
+				scene?.setQuality(state.graphics);
+				for (const control in ['wheel', 'keyboard', 'mouse'])
+				{
+					if (state.available_controls[control])
+						scene?.setControl(control, state.controls[control]);
+				}
 			},
 			onError
 		} as options
@@ -330,12 +339,14 @@ function admitDefeat ()
 
 function toggleAccessibility ()
 {
-	scene?.setAccessibility(state.accessibility = !state.accessibility);
+	state.accessibility = !state.accessibility;
+	scene?.setAccessibility(state.accessibility);
 }
 
-function setQuality (val: number)
+function setQuality (val: qualityLevels)
 {
 	scene?.setQuality(val);
+	state.graphics = val;
 }
 
 function toggleControl (control: controlsMode)
@@ -380,10 +391,11 @@ defineExpose({
 
 		<div class="game-container full-width row justify-center content-center progress" v-if="!state.loaded">
 			<div class="text-center" v-if="state.error">
-				<p class="text-h2 text-negative">
+				<p :class="clsx($q.screen.lt.sm ? 'text-h4' : 'text-h2', 'text-negative')">
 					{{state.error}}
 				</p>
 				<q-btn
+					:dense="$q.screen.lt.sm"
 					color="primary"
 					icon="refresh"
 					label="Refresh"

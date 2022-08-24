@@ -160,7 +160,8 @@ export class PartyService
             },
             undefined
           );
-        }   
+        }
+        setTimeout(this.removeParty.bind(this, party), 10*1000);
       }
       else
       {
@@ -182,9 +183,9 @@ export class PartyService
           true,
           true
         );
+        this.removeParty(party);
       }
 
-      setTimeout(this.removeParty.bind(this, party), 10*1000);
     }
     catch (e)
     {
@@ -446,6 +447,8 @@ export class PartyService
 
     private retake (party: Party)
     {
+      const { ballSpeedX, ballSpeedY, ballX, ballY, positions } = party.state;
+      
       if (party.statusData.previousStatus === partyStatus.IntroducingSleeve ||
         party.statusData.previousStatus === partyStatus.AwaitingPlayer)
       {
@@ -453,7 +456,6 @@ export class PartyService
       }
       else if (party.statusData.previousStatus === partyStatus.Running)
       {
-        const { ballSpeedX, ballSpeedY, ballX, ballY, positions } = party.state;
         this.patchState(
           party,
           {
@@ -673,16 +675,18 @@ export class PartyService
       this.pause(party, pauseReason.Explicit);
     }
 
-    public admitDefeat (party: Party, slot: 0 | 1)
+    public admitDefeat (party: Party, slot: 0 | 1): boolean
     {
       if (party.status === partyStatus.Finish)
-        return ;
-        
+        return (false);
+
       if (party.status === partyStatus.AwaitingPlayer
             || (party.statusData.previousStatus === partyStatus.AwaitingPlayer && party.status === partyStatus.Paused))
         this.onFinish(party, undefined, undefined);
       else
         this.onFinish(party, slot === 0 ? 1 : 0, slot);
+
+      return (true);
     }
 
     public leaveAll (client: Socket)
@@ -841,7 +845,7 @@ export class PartyService
       }
       else if (userIds[1] && this.findPartyWithUser(userIds[1]))
       {
-        throw new HttpException('Adversary is already involved in another party', HttpStatus.FORBIDDEN);
+        throw new HttpException('Adversary is already involved in another party', HttpStatus.BAD_REQUEST);
       }
       else
       {
@@ -901,6 +905,23 @@ export class PartyService
 
         this.handlePartyChange(party, {}, true);
         this.wireMatchingQuery(party);
+
+        if (userIds[1])
+        {
+          /*
+@TODO: Should send invitation to userIds[1]
+The room is defined in `room` and the link is:
+- On the client (vue-router): ```
+router.resolve({
+  name: 'party',
+  params: {
+    party: room
+  }
+}).href
+```
+- On the server, it had to be hardcoded: `/game/${room}`
+          */
+        }
 
         return (party);
       }

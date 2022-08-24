@@ -3,12 +3,15 @@ import clsx from 'clsx';
 import { AppFullscreen } from 'quasar';
 import { ref, Ref } from 'vue';
 import GameView from './game-view.vue';
+import ControlItem from './game-interface-control-item.vue';
 import type { interfaceState } from './game-view.vue';
 
 defineProps<{ party: string }>();
 
 const self = ref<Ref | null>(null);
 const pong = ref<Ref | null>(null);
+
+const qualityLevelsLabels = ['Minimum', 'Low', 'Average', 'Good', 'High', 'Ultra'];
 
 function toggleFullscreen ()
 {
@@ -52,6 +55,16 @@ function teamActionText (state: interfaceState): string
 		return 'You are playing';
 }
 
+function compactTeamActionText (state: interfaceState): string
+{
+	if (state.can_join)
+		return 'Join as player';
+	else if (state.spectator)
+		return 'Spectating';
+	else
+		return 'Playing';
+}
+
 </script>
 
 <template>
@@ -71,7 +84,13 @@ function teamActionText (state: interfaceState): string
 				:class="AppFullscreen.isActive && 'col col-auto'"
 			>
 
-				<q-btn-dropdown color="blue-grey-8" icon="settings" menu-anchor="bottom start" menu-self="top start">
+				<q-btn-dropdown
+          menu-anchor="bottom start"
+          menu-self="top start"
+          color="blue-grey-8"
+          icon="settings"
+          :dense="$q.screen.lt.sm"
+        >
 
 					<q-list>
 						<q-item clickable dense>
@@ -86,37 +105,32 @@ function teamActionText (state: interfaceState): string
 
               <q-menu anchor="top end" self="top start">
                 <q-list>
-                  <q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.wheel" :active="pong.state.controls.wheel" @click="pong.toggleControl('wheel')">
-                    <q-item-section side class="inherit_color">
-                      <q-icon name="mdi-mouse-move-down" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Mouse Wheel</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.keyboard" :active="pong.state.controls.keyboard" @click="pong.toggleControl('keyboard')">
-                    <q-item-section side class="inherit_color">
-                      <q-icon name="keyboard" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Keyboard</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable dense active-class="bg-blue-1 text-blue-8" :disable="!pong.state.available_controls.mouse" :active="pong.state.controls.mouse" @click="pong.toggleControl('mouse')">
-                    <q-item-section side class="inherit_color">
-                      <q-icon name="mdi-cursor-default" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Cursor</q-item-label>
-                    </q-item-section>
-                  </q-item>
+                  <ControlItem
+                    :state="pong ? pong.state : null"
+                    :action="pong.toggleControl"
+                    :label="$q.screen.lt.sm ? 'Wheel' : 'Mouse Wheel'"
+                    controlName="wheel"
+                    icon="mdi-mouse-move-down"
+                  />
+                  <ControlItem
+                    :state="pong ? pong.state : null"
+                    :action="pong.toggleControl"
+                    label="Keyboard"
+                    controlName="keyboard"
+                    icon="keyboard"
+                  />
+                  <ControlItem
+                    :state="pong ? pong.state : null"
+                    :action="pong.toggleControl"
+                    label="Cursor"
+                    controlName="mouse"
+                    icon="mdi-cursor-default"
+                  />
                 </q-list>
               </q-menu>
 
 						</q-item>
-					</q-list>
 
-					<q-list>
 						<q-item clickable dense>
 
 							<q-item-section side>
@@ -129,40 +143,41 @@ function teamActionText (state: interfaceState): string
 
               <q-menu anchor="top end" self="top start" auto-close>
                 <q-list>
-                  <q-item clickable @click="pong.setQuality(0)" dense>
+
+                  <q-item
+                    v-for='(qualityLabel, index) in qualityLevelsLabels'
+                    v-bind:key="index"
+                    dense
+                    clickable
+                    active-class="bg-blue-1 text-blue-8"
+                    @click="pong.setQuality(index)"
+                    :active="pong.state.graphics == index"
+                  >
                     <q-item-section>
-                      <q-item-label>Minimum</q-item-label>
+                      <q-item-label>{{qualityLabel}}</q-item-label>
                     </q-item-section>
                   </q-item>
-                  <q-item clickable @click="pong.setQuality(1)" dense>
-                    <q-item-section>
-                      <q-item-label>Low</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable @click="pong.setQuality(2)" dense>
-                    <q-item-section>
-                      <q-item-label>Average</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable @click="pong.setQuality(3)" dense>
-                    <q-item-section>
-                      <q-item-label>Good</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable @click="pong.setQuality(4)" dense>
-                    <q-item-section>
-                      <q-item-label>High</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable @click="pong.setQuality(5)" dense>
-                    <q-item-section>
-                      <q-item-label>Ultra</q-item-label>
-                    </q-item-section>
-                  </q-item>
+
                 </q-list>
               </q-menu>
 
 						</q-item>
+
+            <q-item
+              dense
+              class="lt-sm"
+              active-class="bg-amber-10 text-black"
+              v-close-popup
+              clickable
+              :active="pong && pong.state.accessibility"
+              @click="pong.toggleAccessibility()"
+            >
+							<q-item-section side>
+								<q-icon name="accessibility" />
+							</q-item-section>
+							<q-item-section>Accessibility</q-item-section>
+            </q-item>
+
 					</q-list>
 
 				</q-btn-dropdown>
@@ -170,6 +185,7 @@ function teamActionText (state: interfaceState): string
 				<q-btn
 					color="blue-7"
 					:icon="AppFullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
+          :dense="$q.screen.lt.sm"
 					@click="toggleFullscreen"
 				>
           <q-tooltip transition-duration="150" anchor="top middle" self="bottom middle">{{AppFullscreen.isActive ? 'Window' : 'Fullscreen'}}</q-tooltip>
@@ -177,8 +193,9 @@ function teamActionText (state: interfaceState): string
 
 				<q-btn
 					icon="accessibility"
-					:color="pong && pong.state.accessibility ? 'amber-10' : 'black'"
+					:color="(pong && pong.state.accessibility) ? 'amber-10' : 'black'"
 					@click="pong.toggleAccessibility()"
+          class="gt-xs"
 				>
           <q-tooltip transition-duration="150" anchor="top middle" self="bottom middle">Accessibility</q-tooltip>
         </q-btn>
@@ -187,8 +204,9 @@ function teamActionText (state: interfaceState): string
 
 				<q-btn
 					color="black"
-					:icon="pong && teamActionIcon(pong.state)"
-					:label="pong && teamActionText(pong.state)"
+					:icon="pong && $q.screen.gt.sm && teamActionIcon(pong.state) || undefined"
+					:label="pong && ($q.screen.lt.sm ? compactTeamActionText(pong.state) : teamActionText(pong.state))"
+          :dense="$q.screen.lt.sm"
 					:disable="pong && (!pong.state.can_join || pong.state.finish)"
 					@click="pong.join()"
 				/>
@@ -198,7 +216,8 @@ function teamActionText (state: interfaceState): string
 				<q-btn
 					color="green-7"
 					:icon="pong && pong.state.paused ? 'play_arrow' : 'pause'"
-					:label="pong && pong.state.paused ? 'Play' : 'Pause'"
+					:label="pong && $q.screen.gt.sm && (pong.state.paused ? 'Play' : 'Pause') || undefined"
+          :dense="$q.screen.lt.sm"
 					:disable="pong && (pong.state.spectator || pong.state.lobby)"
 					@click="pong.onClick()"
 				/>
@@ -206,7 +225,8 @@ function teamActionText (state: interfaceState): string
 				<q-btn
 					color="brown-7"
 					icon-right="flag"
-					label="Give up"
+					:label="$q.screen.gt.xs ? 'Give up' : undefined"
+          :dense="$q.screen.lt.sm"
 					:disable="pong && (pong.state.spectator || pong.state.finish)"
 					@click="pong.admitDefeat()"
 				/>
@@ -221,9 +241,5 @@ function teamActionText (state: interfaceState): string
 .fill_screen
 {
 	height: 100%;
-}
-.inherit_color
-{
-	color: inherit;
 }
 </style>

@@ -16,7 +16,8 @@ class HttpExceptionFilter implements ExceptionFilter {
       .json({
         statusCode: exception.getStatus(),
         timestamp: new Date().toISOString(),
-        path: ctx.getRequest().url
+        path: ctx.getRequest().url,
+        message: exception.message ?? 'Unexpected error'
       });
   }
 }

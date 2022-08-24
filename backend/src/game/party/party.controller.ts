@@ -77,11 +77,15 @@ export class PartyController
       this.partyService.checkUserObject(user);
       const himself: userId = user.id;
 
+      let adversaryId = null;
+      if (adversary && typeof adversary === 'string' && !isNaN(parseInt(adversary)))
+        adversaryId = parseInt(adversary);
       // @TODO: check adversary ID existence
+
       const party = this.partyService.createParty(
         room,
         map,
-        [himself, adversary]
+        [himself, adversaryId]
       );
       return (party.room);
     }

@@ -487,6 +487,40 @@ export class PartyService
       );
     }
 
+    private updateAvatars(party, avatars: [string | null, string | null])
+    {
+      this.patchState(
+        party,
+        {
+          avatars
+        }
+      );
+    }
+
+    private updateUserAvatar(party: Party, userId: userId, slot: 0 | 1)
+    {
+      this.userService.getOne(userId)
+        .then(
+          user =>
+          {
+            if (!user)
+            {
+              this.sendError("Failed to retreive your avatar", party.playersSocket[slot]);
+              return ;
+            }
+            const avatars = party.state.avatars.slice() as [string, string];
+            avatars[slot] = user.avatar;
+            this.updateAvatars(party, avatars);
+          }
+        )
+        .catch(
+          (e) =>
+          {
+            this.sendError(e, party.playersSocket[slot]);
+          }
+        );
+    }
+
     public play (party: Party)
     {
       party.status = partyStatus.Warmup;
@@ -782,7 +816,9 @@ export class PartyService
         false,
         true
       );
-        
+
+      this.updateUserAvatar(party, userId, slot);
+
       return (party);
     }
 
@@ -880,7 +916,7 @@ export class PartyService
             text: '',
             textSize: 0.5,
             textColor: 0xff0000,
-            avatars: [null, null],
+            avatars: [user?.avatar || null, null],
             presences: [!!client, false],
             readyStates: [false, false],
             finish: false
@@ -921,6 +957,8 @@ router.resolve({
 ```
 - On the server, it had to be hardcoded: `/game/${room}`
           */
+
+          this.updateUserAvatar(party, userIds[1], 1);
         }
 
         return (party);

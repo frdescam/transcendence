@@ -64,6 +64,7 @@ export default defineComponent({
 				failure.value = true;
 				success.value = false;
 				errorMessage.value = 'Only image files (jpg, jpeg, png) are supported';
+				newUploadedAvatar.value = null;
 			});
 			LoadingAvatar.value = false;
 		}

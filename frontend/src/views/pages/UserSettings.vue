@@ -29,7 +29,12 @@
 				</q-card-section>
 				<q-separator inset />
 				<q-card-section class="column justify-center items-center">
-                    <q-btn v-if="!TFAActivating" @click="on2FAClick">Activate</q-btn>
+					<div v-if="me.is2FActive">Two factor authentication is activated</div>
+					<div v-if="!me.is2FActive">Two factor authentication is not activated</div>
+					<q-icon v-if="me.is2FActive && !TFAActivating" name="check_circle" color="green" size="200px"></q-icon>
+					<q-icon v-if="!me.is2FActive && !TFAActivating" name="error" color="red" size="200px"></q-icon>
+                    <q-btn v-if="!TFAActivating && !me.is2FActive" @click="onActivate2FA">Activate</q-btn>
+                    <q-btn v-if="!TFAActivating && me.is2FActive" @click="onDeactivate2FA">Deactivate</q-btn>
 					<q-img v-if="TFAActivating" src="http://127.0.0.1:8080/api/2FA/generate" :ratio="1" style="width: 200px"/>
                     <q-form v-if="TFAActivating" class="column justify-evenly items-center full-height">
 						<q-input @update:model-value="update" :disable="disableInput" :color="inputColor" :autofocus=true mask="######" label="Enter 2FA code :"></q-input>
@@ -99,9 +104,15 @@ export default ({
 		const inputColor = ref('blue');
 		const me = ref({});
 
-		function on2FAClick ()
+		function onActivate2FA ()
 		{
 			TFAActivating.value = true;
+		}
+
+		function onDeactivate2FA ()
+		{
+			api.get('2FA/deactivate');
+			me.value.is2FActive = false;
 		}
 
 		async function update (code: string)
@@ -117,14 +128,16 @@ export default ({
 					inputColor.value = 'red';
 				}
 				else
-					console.log('ok');
+				{
+					me.value.is2FActive = true;
+					TFAActivating.value = false;
+				}
 			}
 		}
 
 		api.get('/user/me').then((res) =>
 		{
 			me.value = res.data;
-			console.log('me.value (in get in setup) : ', me.value);
 		});
 
 		return {
@@ -134,7 +147,8 @@ export default ({
 			inputColor,
 			me,
 
-			on2FAClick,
+			onActivate2FA,
+			onDeactivate2FA,
 			update,
 			GameOptionsSubmit ()
 			{

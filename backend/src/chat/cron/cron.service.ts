@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import cors from 'src/cors';
 
 import { BannedService } from '../banned/banned.service';
 import { ChannelService } from '../channel/channel.service';
@@ -11,9 +12,7 @@ import { Channel } from '../orm/channel.entity';
 
 @WebSocketGateway({
   namespace: 'chat::',
-  cors: {
-    origin: '*',
-  },
+  cors
 })
 @Injectable()
 export class ChatCron {

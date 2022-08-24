@@ -387,14 +387,11 @@ export class PartyService
       client.emit('party::error', message);
     }
 
-    private sendSocketState (client: Socket | null, state: Partial<serverState>, team: team | undefined)
+    private sendSocketState (client: Socket | null, state: Partial<serverState>, team: team | undefined, could_join?: boolean)
     {
       if (!client)
         return ;
-      if (typeof team !== 'undefined')
-        client.emit('party::state', (Object.assign({team}, state)));
-      else
-        client.emit('party::state', state);
+      client.emit('party::state', (Object.assign({team, could_join}, state)));
     }
 
     private sendState (party: Party, state: Partial<serverState>, sendFull = false, sendTeam = false)
@@ -848,7 +845,7 @@ export class PartyService
     public spectateParty (party: Party, client: Socket, user: any): Party
     {
       client.emit('party::mapinfo', party.map);
-      this.sendSocketState(client, party.state, undefined);
+      this.sendSocketState(client, party.state, undefined, !!user);  // @TODO: Check if is blocked
       if (user)
       {
         this.checkUserObject(user);

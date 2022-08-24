@@ -9,7 +9,7 @@ export class LeaderboardService {
     private userService: UserService,
   ) {}
 
-  async getRows(userId: number, friendsOnly: string, startRow: number, count: number, filter: string, sortBy: string, descending: string) {
+  async getRows(userId: number, friendsOnly: string, startRow: number, count: number, filter: string) {
     let allUsersAsEntity: User[];
     if (friendsOnly == 'true') {
         allUsersAsEntity = await this.userService.getFriends(userId);
@@ -18,17 +18,7 @@ export class LeaderboardService {
         allUsersAsEntity = await this.userService.findAll();
     }
     allUsersAsEntity.sort((a: User, b: User) => {
-        if (sortBy === 'ratio') {
-            if (descending == 'true')
-                return a.ratio - b.ratio;
-            else
-                return b.ratio - a.ratio;
-        } else {
-            if (descending == 'true')
-                return a.xp - b.xp;
-            else 
-                return b.xp - a.xp;
-        };
+      return a.rank - b.rank;
     });
 
     let allUsersAsDto = allUsersAsEntity.map((entity) => {

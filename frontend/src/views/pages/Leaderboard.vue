@@ -71,7 +71,6 @@ const columns = [
 		label: 'RATIO',
 		field: 'ratio',
 		required: true,
-		sortable: true,
 		align: 'left',
 		style: 'width: 10%'
 	},
@@ -80,7 +79,6 @@ const columns = [
 		label: 'LEVEL',
 		field: 'level',
 		required: true,
-		sortable: true,
 		align: 'left',
 		style: 'width: 10%'
 	}

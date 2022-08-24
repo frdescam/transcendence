@@ -31,9 +31,9 @@ export class LeaderboardService {
         };
     });
 
-    let allUsersAsDto = allUsersAsEntity.map((entity, index) => {
+    let allUsersAsDto = allUsersAsEntity.map((entity) => {
       const dto: leaderboardRowDto = {
-        rank: index + 1,
+        rank: entity.rank,
         avatar: entity.avatar,
         pseudo: entity.pseudo,
         ratio: entity.ratio,

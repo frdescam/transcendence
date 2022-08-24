@@ -104,7 +104,32 @@ export default {
 				error: 'Le mot de passe est obligatoire',
 				valid: 'Valider',
 				incorrect: 'Mot de passe invalide'
+			},
+			invitation: {
+				creator: {
+					title: 'Invitation',
+					text: 'Voulez-vous inviter {user} à jouer ?',
+					map: 'Sélectionnez la carte sur laquelle vous voulez jouer',
+
+					error: 'Apparemment, vous avez déjà demandé à une autre personne de faire une partie, mais elle n\'a pas répondu. Lorsque celle-ci aura accepté ou refusé, vous pourrez refaire votre demande',
+					unknown: 'Une erreur inconnue s\'est produite, veuillez réessayer dans quelques minutes.',
+
+					pending: 'En attente de la validation de {user}',
+
+					accepted: '{user} a accepté l\'invitation, vous serez redirigé dans 5 secondes. Sinon, cliquez sur le bouton ci-dessous',
+					refused: '{user} a refusé l\'invitation. La fenêtre se fermera dans 5 secondes. Sinon, cliquez sur le bouton ci-dessous',
+					close: 'Fermer la fenêtre'
+				},
+				player: {
+					title: 'Vous êtes invité par {creator} à jouer une partie',
+					yes: 'Commencer la partie',
+					no: 'Refuser la partie'
+				}
 			}
+		},
+		user: {
+			sendMessage: 'Envoyer un message',
+			invite: 'Envoyer une invitation à jouer'
 		},
 		editor: {
 			image: 'Image',

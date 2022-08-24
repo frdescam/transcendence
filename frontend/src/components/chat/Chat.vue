@@ -6,20 +6,12 @@
 		spellcheck="true"
 		@keydown.enter="handleCtrlEnter"
 	>
-		<!--
-			Une erreur apparait dans :definitions pour typescript même en suivant la doc officiel de quasar
-		-->
 		<q-editor
 			:placeholder="$t('chat.editor.placeholder')"
 			:disable="disableForm"
 			square
 			ref="editorRef"
 			:definitions="{
-				image: {
-					tip: $t('chat.editor.image'),
-					icon: 'image',
-					handler: insertImage
-				},
 				send: {
 					tip: $t('chat.editor.send'),
 					icon: 'send',
@@ -29,11 +21,12 @@
 			:toolbar="[
 				['bold', 'italic', 'strike', 'underline'],
 				['undo', 'redo'],
-				['image', 'send']
+				['send']
 			]"
 			v-model="editor"
 		/>
 	</form>
+
 	<template v-if="loading">
 		<div class="message-list">
 			<q-chat-message
@@ -114,7 +107,7 @@
 <script lang="ts">
 
 /* eslint-disable no-array-constructor */
-import { Timestamp, TimestampFunction, SanitizeMessage } from 'src/boot/libs';
+import { Timestamp, TimestampFunction } from 'src/boot/libs';
 import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, nextTick, watch } from 'vue';
 import { QMenu } from 'quasar';
@@ -146,7 +139,6 @@ export default defineComponent({
 	{
 		const socket: Socket = inject('socketChat') as Socket;
 		const timestamp: TimestampFunction = inject('timestamp') as TimestampFunction;
-		const sanitize: SanitizeMessage = inject('sanitizeMessage') as SanitizeMessage;
 
 		const contextmenu = ref<QMenu | null>(null);
 		const chat = ref<HTMLDivElement | null>(null);
@@ -181,30 +173,6 @@ export default defineComponent({
 			const hash = await crypto.subtle.digest('SHA-256', Uint8);
 			const hashArr = Array.from(new Uint8Array(hash));
 			return hashArr.map((el) => el.toString(16).padStart(2, '0')).join('');
-		};
-
-		const insertImage = () =>
-		{
-			if (disableForm.value === true)
-				return;
-			const input = document.createElement('input');
-			input.type = 'file';
-			input.accept = '.png, .jpg';
-			let file;
-			input.onchange = () =>
-			{
-				const files = Array.from(input.files as FileList);
-				file = files[0];
-				const reader = new FileReader();
-				let dataUrl:string;
-				reader.onloadend = () =>
-				{
-					dataUrl = String(reader.result);
-					editor.value += `<img src="${dataUrl}" />`;
-				};
-				reader.readAsDataURL(file);
-			};
-			input.click();
 		};
 
 		const imageError = (e: Event) =>
@@ -544,7 +512,6 @@ export default defineComponent({
 			messages,
 			openContextualMenu,
 			imageError,
-			insertImage,
 			handleCtrlEnter,
 			sendMessage,
 			generateTimestamp,

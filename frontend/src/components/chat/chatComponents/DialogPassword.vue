@@ -44,18 +44,22 @@
 
 <script lang="ts">
 import { QDialog } from 'quasar';
-import { defineComponent, ref, watch } from 'vue';
+import { Socket } from 'socket.io-client';
+import { defineComponent, ref, inject, watch } from 'vue';
 
 export default defineComponent({
 	name: 'dialog_password',
 	props: {
 		dialogPasswordShow: Boolean,
+		channelId: Number,
 		channelName: String,
-		channelPassword: String
+		userId: Number
 	},
 	emits: ['dialog-password-hide', 'dialog-password-ok'],
 	setup (props, { emit })
 	{
+		const socket: Socket = inject('socketChat') as Socket;
+
 		const dialog = ref<QDialog | null>(null);
 		const error = ref<boolean>();
 		const password = ref();
@@ -68,9 +72,13 @@ export default defineComponent({
 			emit('dialog-password-hide', isSet.value);
 		};
 
-		const verify = () =>
+		const verify = () => socket.emit('channel::check', {
+			channelId: props.channelId,
+			password: password.value
+		});
+		socket.on('channel::receive::check', (ret) =>
 		{
-			if (password.value !== props.channelPassword)
+			if (!ret.data)
 				error.value = true;
 			else
 			{
@@ -79,7 +87,7 @@ export default defineComponent({
 				dialog.value?.hide();
 				isSet.value = false;
 			}
-		};
+		});
 
 		watch(() => props.dialogPasswordShow, (after, before) =>
 		{

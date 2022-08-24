@@ -47,33 +47,39 @@
 					<q-item-section avatar>
 						<q-icon name="send"></q-icon>
 					</q-item-section>
-					<q-item-section>Send message</q-item-section>
+					<q-item-section>{{ $t('chat.user.sendMessage') }}</q-item-section>
+				</q-item>
+				<q-item
+					clickable
+					@click="dialogInvitationCreatorShow = true; mpMemu?.hide(); "
+				>
+					<q-item-section avatar>
+						<q-icon name="videogame_asset"></q-icon>
+					</q-item-section>
+					<q-item-section>{{ $t('chat.user.invite') }}</q-item-section>
 				</q-item>
 			</q-list>
 		</q-menu>
 	</div>
-	<q-dialog
-		ref="errorDialog"
-		square
-	>
-		<q-card>
-			<q-card-section>
-				<div class="text-h6">Alert</div>
-			</q-card-section>
-
-			<q-card-section class="q-pt-none">toto</q-card-section>
-
-			<q-card-actions align="right">
-				<q-btn flat label="OK" color="primary" v-close-popup />
-			</q-card-actions>
-		</q-card>
-	</q-dialog>
+	<invitation-creator
+		:dialogInvitationCreatorShow="dialogInvitationCreatorShow"
+		:creatorId="userId"
+		:creatorName="dialogCreatorName"
+		:invitationId="dialogInvitationId"
+		:invitationName="dialogInvitationName"
+	/>
+	<invitation-user
+		:userId="userId"
+	/>
 </template>
 
 <script lang="ts">
-import { QDialog, QMenu } from 'quasar';
+import { QMenu } from 'quasar';
 import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, watch } from 'vue';
+
+import InvitationCreator from './chatComponents/InvitationCreator.vue';
+import InvitationUser from './chatComponents/InvitationUser.vue';
 
 export default defineComponent({
 	name: 'user_channel',
@@ -81,6 +87,10 @@ export default defineComponent({
 		'selectedChannel',
 		'userId'
 	],
+	components: {
+		InvitationCreator,
+		InvitationUser
+	},
 	setup (props)
 	{
 		const socket: Socket = inject('socketChat') as Socket;
@@ -91,7 +101,21 @@ export default defineComponent({
 
 		const mpMemu = ref<QMenu | null>(null);
 		const userSelected = ref<number>(-1);
-		const errorDialog = ref<QDialog | null>(null);
+
+		const dialogInvitationCreatorShow = ref(false);
+		const dialogCreatorName = ref();
+		const dialogInvitationId = ref(0);
+		const dialogInvitationName = ref();
+
+		const findIndex = (id: number) =>
+		{
+			for (const i in users.value)
+			{
+				if (users.value[i].id === id)
+					return Number(i);
+			}
+			return -1;
+		};
 
 		const imageError = (e: Event) =>
 		{
@@ -116,9 +140,9 @@ export default defineComponent({
 			socket.emit('channel::get', props.selectedChannel.id);
 		};
 
-		socket.on('channel::receive::delete', (ret) =>
+		socket.on('channel::receive::delete', () =>
 		{
-			console.log(ret);
+			users.value = [];
 		});
 
 		socket.on('channel::receive::get', (ret) =>
@@ -144,6 +168,15 @@ export default defineComponent({
 					Number(target.getAttribute('data-id')) !== props.userId)
 				{
 					userSelected.value = Number(target.getAttribute('data-id'));
+					const iCreator = findIndex(props.userId);
+					const iInvite = findIndex(userSelected.value);
+					if (iCreator !== -1)
+						dialogCreatorName.value = users.value[iCreator].pseudo;
+					if (iInvite !== -1)
+					{
+						dialogInvitationId.value = users.value[iInvite].id;
+						dialogInvitationName.value = users.value[iInvite].pseudo;
+					}
 					return;
 				}
 			}
@@ -186,16 +219,6 @@ export default defineComponent({
 
 		socket.on('channel::user::receive::remove', (ret) =>
 		{
-			const findIndex = (id: number) =>
-			{
-				for (const i in users.value)
-				{
-					if (users.value[i].id === id)
-						return Number(i);
-				}
-				return -1;
-			};
-
 			if (!users.value || !ret.data.deleted || ret.data.channel !== props.selectedChannel.id)
 				return;
 			const i = findIndex(ret.data.data.id);
@@ -223,9 +246,13 @@ export default defineComponent({
 			noError,
 			users,
 
+			dialogInvitationCreatorShow,
+			dialogCreatorName,
+			dialogInvitationId,
+			dialogInvitationName,
+
 			mpMemu,
 			userSelected,
-			errorDialog,
 			openMpMenu,
 			sendMP,
 

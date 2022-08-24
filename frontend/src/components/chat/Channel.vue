@@ -119,8 +119,9 @@
 	/>
 	<dialog-password
 		:dialogPasswordShow="dialogPasswordShow"
+		:channelId="selectedChannelId"
 		:channelName="selectedChannelName"
-		:channelPassword="selectedChannelPasswordValue"
+		:userId="userId"
 		@dialog-password-hide="hideDialogPassword"
 		@dialog-password-ok="openDialogPasswordOk"
 	/>

@@ -6,11 +6,20 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { NestGateway } from '@nestjs/websockets/interfaces/nest-gateway.interface';
-import { Bind, Logger } from '@nestjs/common';
+import { Bind, Logger, UseGuards } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import * as crypto from 'crypto';
 import * as sanitizeHtml from 'sanitize-html';
-import { admBanMut, receiveChannel, receiveMessage, updateMessage, channelUser } from './interface';
+import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
+import {
+  admBanMut,
+  receiveChannel,
+  passwordCompare,
+  receiveInvitation,
+  receiveMessage,
+  updateMessage,
+  channelUser
+} from './interface';
 
 import { BannedService } from './banned/banned.service';
 import { ChannelService } from './channel/channel.service';
@@ -25,18 +34,16 @@ import { MessageDTO } from './orm/message.dto';
 import { MutedDTO } from './orm/muted.dto';
 
 const getType = (type: string) => {
-  switch (type) {
-  case 'public':
-    return channelTypesDTO.PUBLIC;
-  case 'protected':
-    return channelTypesDTO.PROTECTED;
-  case 'private':
-    return channelTypesDTO.PRIVATE;
-  default:
+  const temp = type.toLowerCase();
+  if (temp !== channelTypesDTO.PUBLIC &&
+    temp !== channelTypesDTO.PROTECTED &&
+    temp !== channelTypesDTO.PRIVATE
+  )
     return channelTypesDTO.DIRECT;
-  }
+  return temp;
 };
 
+@UseGuards(SocketMockupAuthGuard)
 @WebSocketGateway({
   namespace: 'chat::',
   cors: {
@@ -47,7 +54,6 @@ export class MainGateway implements NestGateway
 {
   constructor(
     private readonly userService: UserService,
-
     private readonly bannedService: BannedService,
     private readonly channelService: ChannelService,
     private readonly messageService: MessageService,
@@ -62,12 +68,13 @@ export class MainGateway implements NestGateway
   }
   handleConnection(client: Socket) {
     this.logger.log(`Client ${client.id} is connected`);
-    this.server.emit('clientConnect', client.id);
+    this.server.emit('client::connect', client.id);
   }
   handleDisconnect(client: Socket) {
     this.logger.log(`Client ${client.id} is disconnected`);
-    this.server.emit('clientDisconnect', client.id);
+    this.server.emit('client::disconnect', client.id);
   }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   returnData(sender: Socket, data: any) {
     return {
@@ -75,6 +82,22 @@ export class MainGateway implements NestGateway
       data
     };
   }
+
+  //#region Invitation
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('invitation::send')
+  invitation(invit: receiveInvitation, sender: Socket) {
+    this.logger.log(`Client ${sender.id} invite ${invit.invitationId} to a party`);
+    this.server.emit('invitation::receive::send', this.returnData(sender, invit));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('invitation::approval')
+  approval(approval: receiveInvitation, sender: Socket) {
+    this.logger.log(`Client ${sender.id} ${(approval.approvalFromInvitedUser) ? 'approval' : 'refused'} invitation of ${approval.invitationId} to a party`);
+    this.server.emit('invitation::receive::approval', this.returnData(sender, approval));
+  }
+  //#endregion
 
   //#region Admin
   @Bind(MessageBody(), ConnectedSocket())
@@ -179,6 +202,13 @@ export class MainGateway implements NestGateway
   async getChannel(channelId: number, sender: Socket) {
     this.logger.log(`Client ${sender.id} get channel ${channelId} at ${new Date().toDateString()}`);
     this.server.emit('channel::receive::get', this.returnData(sender, await this.channelService.getOneNoMessages(channelId)));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('channel::check')
+  async checkPassword(pass: passwordCompare, sender: Socket) {
+    this.logger.log(`Client ${sender.id} check password of ${pass.channelId} at ${new Date().toDateString()}`);
+    this.server.emit('channel::receive::check', this.returnData(sender, await this.channelService.checkPassword(pass)));
   }
 
   @Bind(MessageBody(), ConnectedSocket())

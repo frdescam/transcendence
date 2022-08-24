@@ -104,7 +104,32 @@ export default {
 				error: 'Password is required',
 				valid: 'Validate',
 				incorrect: 'Incorrect password'
+			},
+			invitation: {
+				creator: {
+					title: 'Invitation',
+					text: 'Would you like to invite {user} to play ?',
+					map: 'Select the map you want to play on',
+
+					error: 'Apparently you have already asked someone else to do a party, but they did not respond. When this one will have accepted or refused, you will be able to redo your request',
+					unknown: 'An unknown error has occurred, please try again in a few minutes',
+
+					pending: 'Waiting for validation from {user}',
+
+					accepted: '{user} has accepted the invitation, you will be redirected in 5 seconds. Otherwise click on the button below',
+					refused: '{user} refused the invitation. The window will close in 5 seconds. Otherwise click on the button below',
+					close: 'Close window'
+				},
+				player: {
+					title: 'You are invited by {creator} to play a party',
+					yes: 'Start the game',
+					no: 'Refuse the game'
+				}
 			}
+		},
+		user: {
+			sendMessage: 'Send message',
+			invite: 'Send and invitation to play'
 		},
 		editor: {
 			image: 'Image',

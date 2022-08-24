@@ -14,6 +14,20 @@ interface receiveChannel {
   users?: Array<number>
 }
 
+interface passwordCompare {
+  channelId: number,
+  password: string
+}
+
+interface receiveInvitation {
+  creatorId: number,
+  creatorName: string,
+  invitationId: number,
+  invitationName: string,
+  gameLink: string,
+  approvalFromInvitedUser?: boolean
+}
+
 interface receiveMessage {
   id: number,
   channel: number,
@@ -51,6 +65,8 @@ interface timestamp {
 export { 
   admBanMut,
   receiveChannel,
+  passwordCompare,
+  receiveInvitation,
   receiveMessage,
   updateMessage,
   channelUser,

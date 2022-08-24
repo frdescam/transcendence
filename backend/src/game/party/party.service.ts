@@ -848,7 +848,7 @@ export class PartyService
       return (party);
     }
     
-    public createParty (room: string | null, map: map | null = 'classic', userIds: [userId, userId | null], client?: Socket, user?: any): Party
+    public createParty (room: string | null, map: map | null = 'classic', userIds: [userId, userId | null], client?: Socket, user?: any, disableInvitation?: boolean): Party
     {
       let party = room && this.findParty(room);
       const involvedParty = this.findPartyWithUser(userIds[0]);
@@ -942,7 +942,7 @@ export class PartyService
         this.handlePartyChange(party, {}, true);
         this.wireMatchingQuery(party);
 
-        if (userIds[1])
+        if (userIds[1] && (typeof disableInvitation === "undefined" || disableInvitation === false))
         {
           /*
 @TODO: Should send invitation to userIds[1]
@@ -1046,7 +1046,7 @@ router.resolve({
     {
       const map = query1.map || query2.map || null;
 
-      const party = this.createParty(null, map, [query1.requester, query2.requester]);
+      const party = this.createParty(null, map, [query1.requester, query2.requester], undefined, undefined, true);
 
       return (party);
     }

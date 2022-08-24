@@ -160,7 +160,10 @@ export class PartyService
             },
             undefined
           );
-        }   
+        }
+
+        this.userService.updateUserStats(party.playersId[0]);
+        this.userService.updateUserStats(party.playersId[1]);
       }
       else
       {

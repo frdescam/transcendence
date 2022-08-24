@@ -67,7 +67,6 @@ export class PartyController
     
     @UseGuards(HTTPMockupAuthGuard)
     @Post()
-    @UsePipes(new ValidationPipe({ transform: true, transformOptions: {enableImplicitConversion: true} }))
     create(
         @Body() {room = null, map = 'classic', adversary = null}: CreatePartyDto,
         @Request() req

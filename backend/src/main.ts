@@ -2,6 +2,7 @@ import * as process from 'process';
 import * as cookieParser from 'cookie-parser';
 
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter, NotFoundExceptionFilter } from './filter';
 
@@ -20,6 +21,13 @@ import { HttpExceptionFilter, NotFoundExceptionFilter } from './filter';
   app.use(cookieParser());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new NotFoundExceptionFilter());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      enableDebugMessages: process.env.NODE_ENV !== 'production',
+      disableErrorMessages: false,
+      transform: true,
+    })
+  );
   app.setGlobalPrefix('api');
   await app.listen(process.env.BACK_PORT);
 })();

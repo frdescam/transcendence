@@ -1,6 +1,7 @@
-import { Body, Request, Controller, Get, Param, Post, Put, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Body, Request, Controller, Get, Param, Post, Put, UsePipes, ValidationPipe, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
 import { PartyService } from './party.service';
 import { userId } from 'src/common/game/types';
+import { IgnoreService } from 'src/users/ignored/ignore.service';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import { CreatePartyDto } from '../orm/createParty.dto';
 import { HTTPMockupAuthGuard } from 'src/usermockup/auth.guard';
@@ -8,7 +9,10 @@ import { HTTPMockupAuthGuard } from 'src/usermockup/auth.guard';
 @Controller('party')
 export class PartyController
 {
-  constructor (private partyService: PartyService)
+  constructor (
+    private partyService: PartyService,
+    private readonly ignoreService: IgnoreService
+  )
   {}
     
   @Get()
@@ -68,10 +72,10 @@ export class PartyController
   @UseGuards(HTTPMockupAuthGuard)
   @Post()
   @UsePipes(new ValidationPipe({ transform: true, transformOptions: {enableImplicitConversion: true} }))
-  create(
+  async create(
     @Body() {room = null, map = 'classic', adversary = null}: CreatePartyDto,
     @Request() req
-  ): string
+  ): Promise<string>
   {
     const user: any = req.user;
     this.partyService.checkUserObject(user);
@@ -81,6 +85,9 @@ export class PartyController
     if (adversary && typeof adversary === 'string' && !isNaN(parseInt(adversary)))
       adversaryId = parseInt(adversary);
     // @TODO: check adversary ID existence
+
+    if (himself && adversaryId && !(await this.ignoreService.compatible(himself, adversaryId)))
+      throw new HttpException('You cannot start a game with ignored user', HttpStatus.I_AM_A_TEAPOT);
 
     const party = this.partyService.createParty(
       room,

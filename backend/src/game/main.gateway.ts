@@ -42,39 +42,6 @@ export class MainGateway implements OnGatewayDisconnect
   }
 
   @UseGuards(SocketMockupAuthGuard)
-  @SubscribeMessage('party::create')
-  create(
-    @MessageBody('room') room: string,
-    @MessageBody('map') map: map,
-    @ConnectedSocket() client: Socket,
-    @Request() req,
-  ): void
-  {
-    const user: any = req.user;
-    this.partyService.checkUserObject(user);
-    try
-    {
-      const userId: userId = user.id;
-      this.partyService.createParty(
-        room,
-        map,
-        [userId, null],
-        client,
-        user
-      );
-    }
-    catch (error)
-    {
-      let message;
-      if ('message' in error)
-        message = error.message;
-      else
-        message = error;
-      this.partyService.sendError(message, client);
-    }
-  }
-
-  @UseGuards(SocketMockupAuthGuard)
   @SubscribeMessage('party::join')
   join(
     @MessageBody('room') room: string,

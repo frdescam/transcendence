@@ -11,5 +11,6 @@ import { IgnoreService } from './ignore.service';
   imports: [TypeOrmModule.forFeature([Ignore]), forwardRef(() => UsersModule)], // maybe change
   controllers: [IgnoreController],
   providers: [IgnoreService],
+  exports: [IgnoreService],
 })
 export class IgnoreModule {}

@@ -281,7 +281,7 @@ function onStateChange (gameState: commonState)
 	state.paused = gameState.paused;
 	state.lobby = gameState.lobby;
 	state.spectator = gameState.team === -1;
-	state.can_join = state.spectator && gameState.lobby && (!gameState.avatars[0] || !gameState.avatars[1]);
+	state.can_join = state.spectator && gameState.lobby && (!gameState.avatars[0] || !gameState.avatars[1]) && gameState.could_join;
 	state.finish = gameState.finish;
 }
 

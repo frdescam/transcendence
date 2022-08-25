@@ -4,6 +4,7 @@ import { DeleteResult, Repository } from 'typeorm';
 
 import { Ignore } from '../orm/ignored.entity';
 import { User } from '../orm/user.entity';
+import type { userId } from 'src/common/game/types';
 
 @Injectable({})
 export class IgnoreService {
@@ -51,6 +52,27 @@ export class IgnoreService {
             return true;
         return false;
     }
+
+  // badam start
+  async ignoredBy(user: userId, by: userId): Promise<boolean>
+  {
+    const ignore: Ignore[] = await this.ignoreRepository.find({
+      where: [
+        { user: user, target: by },
+      ],
+      take: 1
+    });
+    return (!!ignore.length);
+  }
+
+  async compatible(user1: userId, user2: userId): Promise<boolean>
+  {
+    return (!(
+      await this.ignoredBy(user1, user2) ||
+      await this.ignoredBy(user2, user1)
+    ));
+  }
+  // badam end
 
 	async findAll(user: User): Promise<Ignore[]> {
         const ignore: Ignore[] = await this.ignoreRepository.find({

@@ -128,6 +128,8 @@ export default {
 			}
 		},
 		user: {
+			profile: 'Voir le profil',
+			xp: 'xp',
 			sendMessage: 'Envoyer un message',
 			invite: 'Envoyer une invitation à jouer'
 		},

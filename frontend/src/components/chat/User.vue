@@ -42,6 +42,15 @@
 			<q-list bordered padding>
 				<q-item
 					clickable
+					@click="seeUserProfile(); mpMemu?.hide(); "
+				>
+					<q-item-section avatar>
+						<q-icon name="account_circle"></q-icon>
+					</q-item-section>
+					<q-item-section>{{ $t('chat.user.profile') }}</q-item-section>
+				</q-item>
+				<q-item
+					clickable
 					@click="sendMP(); mpMemu?.hide();"
 				>
 					<q-item-section avatar>
@@ -72,6 +81,11 @@
 	<invitation-user
 		:userId="userId"
 	/>
+	<dialog-profile
+		:user="dialogProfilUser"
+		:dialogProfilShow="dialogProfilShow"
+		@dialog-profil-close="dialogProfilShow = false"
+	/>
 </template>
 
 <script lang="ts">
@@ -81,6 +95,7 @@ import { defineComponent, onMounted, ref, inject, watch } from 'vue';
 
 import InvitationCreator from './chatComponents/InvitationCreator.vue';
 import InvitationUser from './chatComponents/InvitationUser.vue';
+import DialogProfile from './chatComponents/DialogProfile.vue';
 
 export default defineComponent({
 	name: 'user_channel',
@@ -91,7 +106,8 @@ export default defineComponent({
 	],
 	components: {
 		InvitationCreator,
-		InvitationUser
+		InvitationUser,
+		DialogProfile
 	},
 	setup (props)
 	{
@@ -253,6 +269,21 @@ export default defineComponent({
 		}, { deep: true });
 		// #endregion Check user update
 
+		// #region User profil
+		const dialogProfilShow = ref(false);
+		const dialogProfilUser = ref();
+
+		const seeUserProfile = () =>
+		{
+			const i = findIndex(userSelected.value);
+			if (i !== -1)
+			{
+				dialogProfilUser.value = users.value[i];
+				dialogProfilShow.value = true;
+			}
+		};
+		// #endregion
+
 		onMounted(() =>
 		{
 			watch(() => props.selectedChannel, () =>
@@ -281,6 +312,10 @@ export default defineComponent({
 			userSelected,
 			openMpMenu,
 			sendMP,
+
+			dialogProfilShow,
+			dialogProfilUser,
+			seeUserProfile,
 
 			imageError
 		};

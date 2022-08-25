@@ -2,7 +2,6 @@ import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Friend } from '../orm/friend.entity';
-// import { User } from '../orm/user.entity';
 import { UsersModule } from '../main.module';
 
 import { FriendshipController } from './friendship.controller';

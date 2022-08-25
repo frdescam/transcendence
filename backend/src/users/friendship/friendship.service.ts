@@ -19,16 +19,12 @@ export class FriendshipService {
                 const user: User = friend.user;
                 delete user.fortytwo_id;
                 delete user.refresh_token;
-                //delete user.email; erase in entity
-                //delete user.password; erase in entity
                 delete user.secretOf2FA;
             }
             if (friend.followedUser) {
                 const user: User = friend.followedUser;
                 delete user.fortytwo_id;
                 delete user.refresh_token;
-                //delete user.email; erase in entity
-                //delete user.password; erase in entity
                 delete user.secretOf2FA;
             }
         }
@@ -54,7 +50,6 @@ export class FriendshipService {
 			],
 		}));
         friends.forEach(elem => this.sanitizeFriend(elem));
-        // console.log(friends);
 		return friends;
 	}
 
@@ -79,7 +74,6 @@ export class FriendshipService {
                followedUser: followedUser,
            }));
 
-        // console.log(result);
         if (result.affected != 0)
            return true;
         else

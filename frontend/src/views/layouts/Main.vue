@@ -1,60 +1,86 @@
 <template>
 	<q-layout view="hHh lpR fFf">
 		<q-header elevated>
-			<q-toolbar id="header-contents" class="row justify-between">
-				<q-btn flat no-caps no-wrap no-ripple :to="{ path: '/' }">
-					<q-toolbar-title>
-						<q-icon class="q-mr-sm" name="mdi-table-tennis" />
-						Transcendance
-					</q-toolbar-title>
-				</q-btn>
-				<div class="row q-gutter-md no-wrap mobile-hide">
-					<q-btn flat rounded :to="{ path: '/play' }" label="Play" />
-					<q-btn flat rounded :to="{ path: '/chat' }" label="Chat" />
-					<q-btn flat rounded :to="{ path: '/leaderboard' }" label="Leaderboard" />
+			<q-toolbar class="justify-between">
+
+				<q-toolbar-title shrink class="gt-sm">
+					<q-btn flat round dense size="lg" icon="mdi-table-tennis" :to="{ path: '/' }"/>
+					Transcendance
+				</q-toolbar-title>
+
+				<div :class="clsx('row no-wrap', $q.screen.gt.xs ? 'q-gutter-md' : 'q-gutter-sm')">
+					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ path: '/play' }" :label="$q.screen.gt.xs ? 'Play' : undefined" icon="sports_esports" />
+					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ path: '/chat' }" :label="$q.screen.gt.xs ? 'Chat' : undefined" icon="chat" />
+					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ path: '/leaderboard' }" :label="$q.screen.gt.xs ? 'Leaderboard' : undefined" icon="leaderboard" />
 				</div>
-				<div class="row q-ml-md no-wrap">
-					<q-btn flat rounded :to="{ path: '/settings' }">
-						<q-icon name="settings" />
-					</q-btn>
-					<q-btn flat rounded :to="{ path: '/login' }">
-						<q-icon name="person" />
-					</q-btn>
-					<q-btn flat rounded :to="{ path: '/logout' }">
-						<q-icon name="logout" />
-					</q-btn>
-				</div>
+
+				<!--
+					@TODO: Find a place for that menu
 				<q-select
 					v-model="locale"
 					:options="localeOptions"
 					dense
+					dark
 					emit-value
 					map-options
 					options-dense
-					style="min-width: 150px"
+					:options-dark="false"
+					style="min-width: 90px"
 				/>
+				-->
+
+				<!--
+				<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ path: '/login' }">
+					<q-icon name="login" />
+				</q-btn>
+				-->
+
+				<q-btn-dropdown stretch flat no-caps no-wrap label="Username" icon="img:https://cdn.quasar.dev/logo-v2/svg/logo.svg">
+					<q-list>
+
+						<q-item clickable :to="{path: 'settings'}">
+							<q-item-section side class="inherit_color">
+								<q-icon name="settings" />
+							</q-item-section>
+							<q-item-section>
+								<q-item-label>Account settings</q-item-label>
+							</q-item-section>
+						</q-item>
+
+						<q-item clickable disable>
+							<q-item-section side class="inherit_color">
+								<q-icon name="sports_esports" />
+							</q-item-section>
+							<q-item-section>
+								<q-item-label>Retake the game</q-item-label>
+							</q-item-section>
+						</q-item>
+
+						<q-separator inset />
+
+						<q-item clickable :to="{path: 'logout'}">
+							<q-item-section side class="inherit_color">
+								<q-icon name="logout" />
+							</q-item-section>
+							<q-item-section>
+								<q-item-label>Disconnect</q-item-label>
+							</q-item-section>
+						</q-item>
+
+					</q-list>
+				</q-btn-dropdown>
+
 			</q-toolbar>
 		</q-header>
 
 		<q-page-container>
 			<router-view />
 		</q-page-container>
-		<q-footer class="mobile-only row justify-evenly">
-			<q-btn flat rounded :to="{ path: '/play' }" icon="sports_esports" />
-			<q-btn flat rounded :to="{ path: '/chat' }" icon="chat" />
-			<q-btn flat rounded :to="{ path: '/leaderboard' }" icon="leaderboards" />
-		</q-footer>
 	</q-layout>
 </template>
 
-<style lang="scss">
-#header-contents {
-	max-width: 1200px;
-	margin: auto;
-}
-</style>
-
 <script lang="ts">
+import clsx from 'clsx';
 import { defineComponent, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import options from 'src/i18n/options';
@@ -112,9 +138,17 @@ export default defineComponent({
 		});
 
 		return {
+			clsx,
 			locale,
 			localeOptions: options
 		};
 	}
 });
 </script>
+
+<style scoped>
+.inherit_color
+{
+	color: inherit;
+}
+</style>

@@ -365,14 +365,11 @@ export class PartyService
       client.emit('party::error', message);
     }
 
-    private sendSocketState (client: Socket | null, state: Partial<serverState>, team: team | undefined)
+    private sendSocketState (client: Socket | null, state: Partial<serverState>, team: team | undefined, could_join?: boolean)
     {
       if (!client)
         return ;
-      if (typeof team !== 'undefined')
-        client.emit('party::state', (Object.assign({team}, state)));
-      else
-        client.emit('party::state', state);
+      client.emit('party::state', (Object.assign({team, could_join}, state)));
     }
 
     private sendState (party: Party, state: Partial<serverState>, sendFull = false, sendTeam = false)
@@ -485,6 +482,41 @@ export class PartyService
             || party.statusData.previousStatus === partyStatus.Running
             || party.status === partyStatus.Finish
       );
+    }
+
+    private updateAvatars(party, avatars: [string | null, string | null])
+    {
+      this.patchState(
+        party,
+        {
+          avatars
+        }
+      );
+    }
+
+    private updateUserAvatar(party: Party, userId: userId, slot: 0 | 1)
+    {
+      this.userService.getOne(userId)
+        .then(
+          user =>
+          {
+            if (!user)
+            {
+              if (party.playersSocket[slot])
+                this.sendError("Failed to retreive your avatar", party.playersSocket[slot]);
+              return ;
+            }
+            const avatars = party.state.avatars.slice() as [string, string];
+            avatars[slot] = user.avatar;
+            this.updateAvatars(party, avatars);
+          }
+        )
+        .catch(
+          (e) =>
+          {
+            this.sendError(e, party.playersSocket[slot]);
+          }
+        );
     }
 
     public play (party: Party)
@@ -782,14 +814,16 @@ export class PartyService
         false,
         true
       );
-        
+
+      this.updateUserAvatar(party, userId, slot);
+
       return (party);
     }
 
     public spectateParty (party: Party, client: Socket, user: any): Party
     {
       client.emit('party::mapinfo', party.map);
-      this.sendSocketState(client, party.state, undefined);
+      this.sendSocketState(client, party.state, undefined, !!user);  // @TODO: Check if is blocked
       if (user)
       {
         this.checkUserObject(user);
@@ -812,7 +846,7 @@ export class PartyService
       return (party);
     }
     
-    public createParty (room: string | null, map: map | null = 'classic', userIds: [userId, userId | null], client?: Socket, user?: any): Party
+    public createParty (room: string | null, map: map | null = 'classic', userIds: [userId, userId | null], client?: Socket, user?: any, disableInvitation?: boolean): Party
     {
       let party = room && this.findParty(room);
       const involvedParty = this.findPartyWithUser(userIds[0]);
@@ -880,7 +914,7 @@ export class PartyService
             text: '',
             textSize: 0.5,
             textColor: 0xff0000,
-            avatars: [null, null],
+            avatars: [user?.avatar || null, null],
             presences: [!!client, false],
             readyStates: [false, false],
             finish: false
@@ -906,7 +940,7 @@ export class PartyService
         this.handlePartyChange(party, {}, true);
         this.wireMatchingQuery(party);
 
-        if (userIds[1])
+        if (userIds[1] && (typeof disableInvitation === "undefined" || disableInvitation === false))
         {
           /*
 @TODO: Should send invitation to userIds[1]
@@ -921,6 +955,8 @@ router.resolve({
 ```
 - On the server, it had to be hardcoded: `/game/${room}`
           */
+
+          this.updateUserAvatar(party, userIds[1], 1);
         }
 
         return (party);
@@ -1008,7 +1044,7 @@ router.resolve({
     {
       const map = query1.map || query2.map || null;
 
-      const party = this.createParty(null, map, [query1.requester, query2.requester]);
+      const party = this.createParty(null, map, [query1.requester, query2.requester], undefined, undefined, true);
 
       return (party);
     }

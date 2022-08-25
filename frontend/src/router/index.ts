@@ -5,6 +5,7 @@ import {
 	createWebHashHistory,
 	createWebHistory
 } from 'vue-router';
+import { api } from 'boot/axios';
 
 import routes from './routes';
 
@@ -31,6 +32,18 @@ export default route(function (/* { store, ssrContext } */)
 		// quasar.conf.js -> build -> vueRouterMode
 		// quasar.conf.js -> build -> publicPath
 		history: createHistory(process.env.VUE_ROUTER_BASE)
+	});
+
+	Router.beforeEach(async (to, from) =>
+	{
+		let isLogged = true;
+		await api.get('/logged').catch(() =>
+		{
+			if (to.path !== '/login')
+				isLogged = false;
+		});
+		if (!isLogged)
+			return { path: '/login' };
 	});
 
 	return Router;

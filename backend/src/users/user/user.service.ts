@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { LessThanOrEqual, Like, Not, Repository } from 'typeorm';
 
 import { AuthDto } from '../../auth/dto';
 import { UserDTO } from '../orm/user.dto';
 import { Friend } from "../orm/friend.entity";
 import { User } from '../orm/user.entity';
+import { Match } from 'src/match/orm/match.entity';
 
 // friends_repo not needed anymore, delete getFriends and follow here
 @Injectable({})
@@ -13,6 +14,8 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Match)
+    private readonly matchRepository: Repository<Match>,
     @InjectRepository(Friend)
     private friends_repo: Repository<Friend>
   ) {}
@@ -190,6 +193,7 @@ export class UserService {
     async signup(user_dto: AuthDto): Promise<User> {
         user_dto.pseudo = await this.getUniquePseudo(user_dto.pseudo);
         console.log("new user: " ,user_dto);
+        user_dto.rank = await this.userRepository.count({}) + 1;
         const user: User = this.userRepository.create({
 			...user_dto,
 		});
@@ -203,17 +207,82 @@ export class UserService {
 		});
 	}
 
+  private computeXp(nbWon: number, nbLost: number): number {
+    return nbWon * 0.1 + nbLost * 0.0075;
+}
+
+private computeRatio(nbWon: number, nbLost: number): number {
+    const ratio :number = (nbWon / (nbWon + nbLost)) * 100;
+    console.log(ratio);
+    if (isNaN(ratio) || !isFinite(ratio))
+        return 0;
+    return parseInt(ratio.toString());
+}
+
+async updateRanks(userId: number) {
+    const user = await this.findOne({ id: userId });
+    const usersToUpdate = await this.userRepository.find({
+        where: {
+            rank: LessThanOrEqual(user.rank),
+            xp: LessThanOrEqual(user.xp)
+        }
+    });
+    usersToUpdate.sort((a: User, b: User) => {
+        if (a.rank > b.rank)
+            return 1;
+        else
+            return -1;
+    });
+    console.log("usersToUpdate : ", usersToUpdate);
+    const newRank = usersToUpdate[0].rank;
+    usersToUpdate.forEach((user) => {
+        if (user.id == userId) {
+            this.userRepository.update(userId, {
+                rank: newRank
+            });
+        } else {
+            this.userRepository.update(user.id, {
+                rank: user.rank + 1
+            });
+        }
+    })
+}
+
+async updateUserStats(userId: number) {
+    const nbWon = await this.matchRepository.count({
+        where: {
+            winner: userId
+        }
+    });
+
+    const nbLost = await this.matchRepository.count({
+        where: [
+            { userForeign: userId, winner: Not(userId) },
+            { userHome: userId, winner: Not(userId) }
+        ],
+    });
+
+    console.log("user : ", userId, "nbWon : ", nbWon, "nbLost : ", nbLost);
+
+    await this.userRepository.update(userId, {
+        xp: this.computeXp(nbWon, nbLost),
+        ratio: this.computeRatio(nbWon, nbLost),
+    });
+
+    this.updateRanks(userId);
+}
   
   //#region Part Clément
   getAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.userRepository.find({ relations: ['blockedUsers', 'blockedUsersBy'] });
   }
 
   getOne(id: number): Promise<User> {
     return this.userRepository.findOne({
       where: {
         id: id,
-      }
+      },
+      relations: ['blockedUsers', 'blockedUsersBy']
     });
   }
 

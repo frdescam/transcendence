@@ -84,7 +84,8 @@ interface serverState {
 interface state extends serverState {
 	team: team,
 	spectator: boolean,
-	can_join: boolean
+	can_join: boolean,
+	could_join: boolean
 }
 
 // @TODO: also save adversary criteria

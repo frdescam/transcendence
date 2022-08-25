@@ -26,6 +26,12 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
+		path: '/listgames',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', name: 'matching', component: () => import('src/views/pages/List.vue') }]
+	},
+
+	{
 		path: '/game/:party',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', name: 'party', component: () => import('src/views/pages/Game.vue') }]
@@ -46,19 +52,13 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/login',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/LoginPage.vue') }]
+		children: [{ path: '', name: 'login', component: () => import('src/views/pages/LoginPage.vue') }]
 	},
 
 	{
 		path: '/login/2FA',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/2FA.vue') }]
-	},
-
-	{
-		path: '/register',
-		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/RegisterPage.vue') }]
+		children: [{ path: '', name: '2FA', component: () => import('src/views/pages/2FA.vue') }]
 	},
 
 	{

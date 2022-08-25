@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import List from '../../components/games/list-view.vue';
+import List from 'src/components/games/list-view.vue';
 </script>
 
 <template>

@@ -170,6 +170,7 @@ defineExpose({
 
 <template>
 	<q-table
+		no-data-label="No games happening at the moment"
     class="q-mx-md"
 		row-key="room"
 		color="primary"
@@ -179,7 +180,6 @@ defineExpose({
 		:pagination="tablePagination"
 		:rows-per-page-options="tablePaginationPerPage"
 	>
-
 		<template v-slot:body="props">
 			<q-tr :props="props" :class="clsx(props.row.finish && 'disabled')" @click="joinRoom(props.row.room)">
 

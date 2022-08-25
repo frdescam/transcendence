@@ -14,7 +14,6 @@ import List from '../../components/games/list-view.vue';
 			<List/>
 		</div>
 	</q-page>
-	<!-- Go to the top FAB -->
 </template>
 
 <style scoped>

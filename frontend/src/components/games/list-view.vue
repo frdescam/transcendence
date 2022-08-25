@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import clsx from 'clsx';
-import { onBeforeUnmount, onMounted, reactive, readonly } from 'vue';
+import { onBeforeUnmount, onMounted, reactive, readonly, inject } from 'vue';
+import { Socket } from 'socket.io-client';
 import { useRouter } from 'vue-router';
 import { useQuasar, copyToClipboard } from 'quasar';
-import { gameSocket } from 'src/boot/socketio';
-import type { getPartyDto } from 'src/common/game/logic/getParty.dto';
-import type { userId } from 'src/common/game/logic/common';
+import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
+import type { userId } from 'src/common/game/types';
 
 type usersArray = [userId | null, userId | null];
 type partyListObject = {[key: string]: getPartyDto};
 
+const gameSocket: Socket = inject('socketGame') as Socket;
 const $q = useQuasar();
 const router = useRouter();
 const state = reactive<{ connected: boolean }>({ connected: false });

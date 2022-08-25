@@ -20,6 +20,12 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
+		path: '/play/list',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', name: 'gamelist', component: () => import('src/views/pages/List.vue') }]
+	},
+
+	{
 		path: '/play/matching',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', name: 'matching', component: () => import('src/views/pages/Matching.vue') }]
@@ -41,13 +47,6 @@ const routes: RouteRecordRaw[] = [
 		path: '/friends',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', name: 'friends', component: () => import('src/views/pages/Friends.vue') }]
-	},
-
-	{
-		path: '/list',
-		name: 'list',
-		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/List.vue') }]
 	},
 
 	{

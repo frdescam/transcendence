@@ -162,6 +162,7 @@ export default defineComponent({
 					return;
 				}
 			}
+
 			socket.emit('channel::add', {
 				id: null,
 				creator: props.userId,
@@ -169,9 +170,21 @@ export default defineComponent({
 				type: sanitizeHtml(type.value),
 				password: passwordOne.value
 			});
+
 			dialog.value?.hide();
 			resetDialog();
 		};
+
+		socket.on('channel::receive::add', (ret) =>
+		{
+			if (ret.socketId === socket.id && ret.channel.created)
+			{
+				socket.emit('admin::set', {
+					channelId: ret.channel.data.id,
+					userId: props.userId
+				});
+			}
+		});
 
 		watch(() => props.dialogCreationShow, (after, before) =>
 		{

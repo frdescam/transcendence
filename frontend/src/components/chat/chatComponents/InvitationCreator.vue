@@ -100,6 +100,17 @@ export default defineComponent({
 				isLoading.value = true;
 				errorType.value = 0;
 
+				isLoading.value = false;
+				gameLink.value = String('toto');
+				socket.emit('invitation::send', {
+					creatorId: props.creatorId,
+					creatorName: props.creatorName,
+					invitationId: props.invitationId,
+					invitationName: props.invitationName,
+					gameLink: gameLink.value
+				});
+				pendingInvitation.value = true;
+			/*
 				axios.post('party', {
 					adversary: props.invitationId,
 					map: selectedMap.value
@@ -124,6 +135,7 @@ export default defineComponent({
 					else
 						errorType.value = 2;
 				});
+				*/
 			}
 			else
 			{

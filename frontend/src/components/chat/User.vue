@@ -67,7 +67,7 @@
 		:creatorName="dialogCreatorName"
 		:invitationId="dialogInvitationId"
 		:invitationName="dialogInvitationName"
-    @dialog-invitation-close="dialogInvitationCreatorShow = false"
+		@dialog-invitation-close="dialogInvitationCreatorShow = false"
 	/>
 	<invitation-user
 		:userId="userId"
@@ -85,6 +85,7 @@ import InvitationUser from './chatComponents/InvitationUser.vue';
 export default defineComponent({
 	name: 'user_channel',
 	props: [
+		'selectedChannelBanMut',
 		'selectedChannel',
 		'userId'
 	],
@@ -227,6 +228,27 @@ export default defineComponent({
 				users.value.splice(i, 1);
 		});
 		// #endregion Users
+
+		// #region Check user update
+		watch(() => props.selectedChannelBanMut, () =>
+		{
+			if (props.userId === props.selectedChannelBanMut.user &&
+				props.selectedChannel.id > 0 &&
+				props.selectedChannel.id === props.selectedChannelBanMut.channel)
+			{
+				if (props.selectedChannelBanMut.ban !== null)
+				{
+					if (props.selectedChannelBanMut.ban === true)
+						reset();
+					else
+					{
+						noError.value = true;
+						getData();
+					}
+				}
+			}
+		}, { deep: true });
+		// #endregion Check user update
 
 		onMounted(() =>
 		{

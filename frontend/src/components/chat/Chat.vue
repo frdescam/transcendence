@@ -131,6 +131,7 @@ interface messageInterface {
 export default defineComponent({
 	name: 'chat_channel',
 	props: [
+		'selectedChannelBanMut',
 		'selectedChannel',
 		'userUpdate',
 		'userId'
@@ -149,6 +150,7 @@ export default defineComponent({
 		const messages = ref(new Array<messageInterface>());
 		const messageEditId = ref(-1);
 
+		// #region Libs
 		const getBottomOfChat = () =>
 		{
 			nextTick(() =>
@@ -190,13 +192,20 @@ export default defineComponent({
 			return `${messageDate.day}/${messageDate.month}/${messageDate.year} - ${messageDate.hour}h${messageDate.minute}`;
 		};
 
+		const handleCtrlEnter = (event: KeyboardEvent) =>
+		{
+			if (event.ctrlKey)
+				sendMessage();
+		};
+		// #endregion Libs
+
+		// #region Get messages
 		const getMessages = (channelId: string) =>
 		{
 			loading.value = true;
 			noError.value = true;
 			socket.emit('messages::get', channelId);
 		};
-
 		socket.on('messages::receive::get', (res) =>
 		{
 			if (res.socketId !== socket.id)
@@ -245,13 +254,9 @@ export default defineComponent({
 				messages.value.push(JSON.parse(JSON.stringify(temp)));
 			getBottomOfChat();
 		});
+		// #endregion Get messages
 
-		const handleCtrlEnter = (event: KeyboardEvent) =>
-		{
-			if (event.ctrlKey)
-				sendMessage();
-		};
-
+		// #region Send message
 		const sendMessage = async () =>
 		{
 			if (disableForm.value === true || editor.value.length <= 0)
@@ -287,6 +292,7 @@ export default defineComponent({
 			editor.value = '';
 			messageEditId.value = -1;
 		};
+		// #endregion Send message
 
 		// #region User data change
 		watch(() => props.userUpdate, () =>
@@ -294,12 +300,35 @@ export default defineComponent({
 			if (props.userUpdate.user !== props.userId)
 				return;
 			disableForm.value = props.userUpdate.value;
-			if (props.userUpdate.banned)
+			if (props.userUpdate.banned === true)
 			{
 				disableForm.value = true;
 				messages.value.length = 0;
 				loading.value = false;
 				noError.value = true;
+			}
+		}, { deep: true });
+
+		watch(() => props.selectedChannelBanMut, () =>
+		{
+			if (props.userId === props.selectedChannelBanMut.user &&
+				props.selectedChannel.id > 0 &&
+				props.selectedChannel.id === props.selectedChannelBanMut.channel)
+			{
+				if (props.selectedChannelBanMut.ban !== null)
+				{
+					if (props.selectedChannelBanMut.ban === true)
+						reset();
+					else
+					{
+						loading.value = true;
+						noError.value = true;
+						disableForm.value = false;
+						getMessages(props.selectedChannel.id);
+					}
+				}
+				if (props.selectedChannelBanMut.mute !== null)
+					disableForm.value = Boolean(props.selectedChannelBanMut.mute);
 			}
 		}, { deep: true });
 		// #endregion

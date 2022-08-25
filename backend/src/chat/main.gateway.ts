@@ -210,11 +210,10 @@ export class MainGateway implements NestGateway
     this.logger.log(`Client ${sender.id} check password of ${pass.channelId} at ${new Date().toDateString()}`);
     this.server.emit('channel::receive::check', this.returnData(sender, await this.channelService.checkPassword(pass)));
   }
-
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('channel::change')
   async change(channelId: number, sender: Socket) {
-    this.logger.log(`Client ${sender.id} change to channel ${channelId} at ${new Date().toDateString()}`);
+    this.logger.log(`Client ${sender.id} change channel ${channelId} at ${new Date().toDateString()}`);
     this.server.emit('channel::receive::change', this.returnData(sender, await this.channelService.getOneNoMessages(channelId)));
   }
 

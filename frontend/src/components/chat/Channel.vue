@@ -149,6 +149,7 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { truncate } from 'fs';
 import { QMenu } from 'quasar';
 import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, watch } from 'vue';
@@ -187,7 +188,8 @@ export default defineComponent({
 	props: ['userId'],
 	emits: [
 		'channel-is-selected',
-		'channel-user-update'
+		'channel-user-update',
+		'channel-ban-mute'
 	],
 	components: {
 		dialogAlert,
@@ -287,6 +289,37 @@ export default defineComponent({
 		let emitFromChannel = false;
 		let saveEmitChannelId = -1;
 		let userIsExistChannel = false;
+
+		const getLinkColor = (channelId: number) =>
+		{
+			const __colors = ['#ffc93c', '#ff9a3c', '#ff6f3c', '#49beb7', '#35bcbf', '#c5d86d'];
+			const n = (channelId / (__colors.length - 1));
+			const m = n % 1;
+
+			const extract = () =>
+			{
+				if (n <= 1)
+					return channelId;
+				if (m === 0 && n <= (__colors.length - 1))
+					return n;
+				let i = Number(m.toFixed(1)[2]);
+				if (i > (__colors.length - 1))
+					i -= (__colors.length - 1);
+				return i;
+			};
+			return __colors[extract()];
+		};
+
+		const getChannel = (channelId: number) =>
+		{
+			for (const i in channels.value)
+			{
+				if (channels.value[i].id === channelId)
+					return Number(i);
+			}
+			return -1;
+		};
+
 		const changeChannel = (channelId: number, channelType: string) =>
 		{
 			if (!selectedChannelId.value ||
@@ -346,11 +379,96 @@ export default defineComponent({
 		});
 		// #endregion Channel selection
 
-		// #region Update user of channel
-		socket.on('channel::data::change', (channelId, ret) =>
+		// #region Update channel
+		const banMutChange = (user: number, channel: number, ban: boolean|null, mute: boolean|null) =>
 		{
-			console.log('log', channelId, ret);
+			emit('channel-ban-mute', {
+				user,
+				channel,
+				ban,
+				mute
+			});
+		};
+
+		socket.on('admin::receive::set', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			if (i !== -1)
+				channels.value[i].admins.push(ret.data.user);
 		});
+		socket.on('admin::receive::delete', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			const x = channels.value[i].admins.indexOf(ret.data.user);
+			if (i !== -1 && x !== -1)
+			{
+				channels.value[i].admins.splice(x, 1);
+				if (props.userId === ret.data.user && dialogEditionShow.value === true)
+					dialogEditionShow.value = false;
+			}
+		});
+
+		socket.on('banned::receive::set', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			if (i !== -1)
+			{
+				channels.value[i].banned.push(ret.data.user);
+				banMutChange(ret.data.user, ret.data.channel, true, null);
+				if (selectedChannelId.value === ret.data.channel)
+					openDialogAlert(ret.data.id, props.userId, 'banned', true, true);
+			}
+		});
+		socket.on('banned::receive::delete', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			const x = channels.value[i].banned.indexOf(ret.data.user);
+			if (i !== -1 && x !== -1)
+			{
+				channels.value[i].banned.splice(x, 1);
+				banMutChange(ret.data.user, ret.data.channel, false, null);
+				if (selectedChannelId.value === ret.data.channel)
+					openDialogAlert(ret.data.id, props.userId, 'banned', false, true);
+			}
+		});
+
+		socket.on('muted::receive::set', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			if (i !== -1)
+			{
+				channels.value[i].muted.push(ret.data.user);
+				banMutChange(ret.data.user, ret.data.channel, null, true);
+				if (selectedChannelId.value === ret.data.channel)
+					openDialogAlert(ret.data.id, props.userId, 'muted', true, true);
+			}
+		});
+		socket.on('muted::receive::delete', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			const x = channels.value[i].muted.indexOf(ret.data.user);
+			if (i !== -1 && x !== -1)
+			{
+				channels.value[i].muted.splice(x, 1);
+				banMutChange(ret.data.user, ret.data.channel, null, false);
+				if (selectedChannelId.value === ret.data.channel)
+					openDialogAlert(ret.data.id, props.userId, 'muted', false, true);
+			}
+		});
+
+		socket.on('channel::receive::update', (ret) =>
+		{
+			if (ret.data.updated)
+			{
+				const i = getChannel(ret.data.data.id);
+				if (i === -1)
+					return;
+				channels.value[i].name = ret.data.data.name;
+				channels.value[i].password = ret.data.data.newPassword;
+				channels.value[i].type = ret.data.data.type;
+			}
+		});
+
 		const updateUser = (channelId: number, user: updateUserInterface) =>
 		{
 			const setVal = (compare: boolean, arr: number[], hideEdition = false, hideOnInsert = true) =>
@@ -381,9 +499,12 @@ export default defineComponent({
 					channels.value.splice(i, 1);
 					return;
 				}
-				setVal(user.admin, channels.value[i].admins, true, false);
-				setVal(user.banned, channels.value[i].banned, true);
-				setVal(user.muted, channels.value[i].muted);
+				if (user.admin)
+					setVal(user.admin, channels.value[i].admins, true, false);
+				if (user.banned)
+					setVal(user.banned, channels.value[i].banned, true);
+				if (user.muted)
+					setVal(user.muted, channels.value[i].muted);
 				emit('channel-user-update', {
 					user: user.userId,
 					admin: user.admin,
@@ -489,25 +610,6 @@ export default defineComponent({
 		// #region Socket
 		const generateData = (channel: any) =>
 		{
-			const getLinkColor = (channelId: number) =>
-			{
-				const __colors = ['#ffc93c', '#ff9a3c', '#ff6f3c', '#49beb7', '#35bcbf', '#c5d86d'];
-				const n = (channelId / (__colors.length - 1));
-				const m = n % 1;
-
-				const extract = () =>
-				{
-					if (n <= 1)
-						return channelId;
-					if (m === 0 && n <= (__colors.length - 1))
-						return n;
-					let i = Number(m.toFixed(1)[2]);
-					if (i > (__colors.length - 1))
-						i -= (__colors.length - 1);
-					return i;
-				};
-				return __colors[extract()];
-			};
 			const ret: channelInterface = {
 				id: channel.id,
 				owner: channel.owner.id,

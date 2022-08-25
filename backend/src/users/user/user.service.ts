@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThanOrEqual, Like, Not, Repository } from 'typeorm';
+import { DeleteResult, LessThanOrEqual, Like, Not, Repository } from 'typeorm';
 
 import { AuthDto } from '../../auth/dto';
 import { UserDTO } from '../orm/user.dto';
@@ -171,6 +171,13 @@ export class UserService {
       connected: status,
     });
   }
+
+  async remove(user: User): Promise<boolean> {
+    const result: DeleteResult = (await this.userRepository.delete(user));
+    if (result.affected > 0)
+      return true;
+    return false;
+	}
 
 //#region Franco
   private computeXp(nbWon: number, nbLost: number): number {

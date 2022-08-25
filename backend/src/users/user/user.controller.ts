@@ -138,7 +138,8 @@ export class UserController {
       return sanitized_user;
 	  }
 
-  @UseGuards(JwtAuthGuard)
+  
+    @UseGuards(JwtAuthGuard)
     @Get(':id') // add ParseIntPipe to validate id // is this useful?
 	  async findOne(@Param('id') id: number): Promise<User> {
       const sanitized_user: User = await this.channelService.findOne({
@@ -151,6 +152,12 @@ export class UserController {
 
       // console.log(target);
       return sanitized_user;
+	  }
+
+  @UseGuards(JwtAuthGuard)
+    @Delete('remove') // add ParseIntPipe to validate id // is this useful?
+	  async remove(@AuthUser() user: User): Promise<boolean> {
+      return this.channelService.remove(user);
 	  }
 
   //# end of Leo's part

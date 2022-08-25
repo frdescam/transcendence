@@ -51,7 +51,7 @@ export class AuthController {
     {
         let user : User = await this.auth_svc.login({id: id});
 
-        console.log(user);
+        console.log(user, id);
         if (!user)
         {
             const reg : AuthDto = {
@@ -61,8 +61,7 @@ export class AuthController {
                 email: "sample" + id,
                 avatar: 'http://127.0.0.1:8080/api/user/avatar/no_avatar.png',
             };
-    2
-            return await this.auth_svc.signup(reg);
+            user = await this.auth_svc.signup(reg);
         }
             //user = await this.auth_svc.signup({id: id});
 

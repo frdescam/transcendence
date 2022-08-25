@@ -153,7 +153,10 @@ export default defineComponent({
 				return;
 			socketComingFromUserVue = false;
 			loading.value = false;
-			users.value = ret.data.users;
+			if (ret.data === undefined)
+				reset();
+			else
+				users.value = ret.data.users;
 		});
 		// #endregion Channel
 

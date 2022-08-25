@@ -154,7 +154,7 @@
 								</q-btn>
 							</div>
 						</div>
-						<q-list class="user-list-users" v-if="loading === false">
+						<q-list class="user-list-users" v-if="loading === false" ref="userList">
 							<template v-for="user in channel.users" v-bind:key="user.id">
 								<DialogEditionUserListVue
 									v-if="(searchUser && search(user.pseudo)) || !searchUser"
@@ -223,7 +223,7 @@
 
 <script lang="ts">
 import { Socket } from 'socket.io-client';
-import { QInput, QDialog } from 'quasar';
+import { QInput, QDialog, QList } from 'quasar';
 import { Timestamp, TimestampFunction } from 'src/boot/libs';
 import { defineComponent, ref, reactive, inject, watch } from 'vue';
 
@@ -472,6 +472,8 @@ export default defineComponent({
 				loading.value = false;
 				channel.value = ret.data;
 				usersOptions.length = 0;
+				if (channel.value === undefined)
+					return;
 				for (const i in channel.value.users)
 					addUserOption(channel.value.users[i]);
 			}
@@ -564,47 +566,60 @@ export default defineComponent({
 		// #endregion
 
 		// #region Delete user
+		const userList = ref<QList | null>(null);
 		const deleteUser = (id: number) =>
 		{
-			socket.emit('channel::user::remove', {
-				userId: id,
-				channelId: props.channelId
-			});
+			const __node = [...userList.value?.$el.childNodes];
+			for (const el of __node)
+			{
+				if (el.nodeName === 'DIV' && Number(el.getAttribute('data-userid')) === id)
+				{
+					el.remove();
+					socket.emit('channel::user::remove', {
+						userId: id,
+						channelId: props.channelId
+					});
+					return;
+				}
+			}
 		};
 		socket.on('channel::user::receive::remove', (ret) =>
 		{
 			if (ret.data.channel !== props.channelId)
 				return;
+			if (channel.value === undefined)
+				return;
+
 			for (const i in channel.value.users)
 			{
-				if (channel.value.users[i].id === ret.data.id)
+				if (channel.value.users[i].id === ret.data.data.id)
 				{
-					channel.value.users[i].splice(i, 1);
-					return;
+					channel.value.users.splice(i, 1);
+					break;
 				}
 			}
 			for (const i in channel.value.admins)
 			{
-				if (channel.value.admins[i].id === ret.data.id)
+				if (channel.value.admins[i].id === ret.data.data.id)
 				{
-					channel.value.admins[i].splice(i, 1);
-					return;
+					channel.value.admins.splice(i, 1);
+					break;
 				}
 			}
 			for (const i in channel.value.mutedUsers)
 			{
-				if (channel.value.mutedUsers[i].user.id === ret.data.id)
+				if (channel.value.mutedUsers[i].user.id === ret.data.data.id)
 				{
-					channel.value.mutedUsers[i].splice(i, 1);
-					return;
+					channel.value.mutedUsers.splice(i, 1);
+					break;
 				}
 			}
 			for (const i in channel.value.bannedUsers)
 			{
-				if (channel.value.bannedUsers[i].user.id === ret.data.id)
+				if (channel.value.bannedUsers[i].user.id === ret.data.data.id)
 				{
-					channel.value.bannedUsers[i].splice(i, 1);
-					return;
+					channel.value.bannedUsers.splice(i, 1);
+					break;
 				}
 			}
 		});
@@ -802,6 +817,7 @@ export default defineComponent({
 			// #endregion
 
 			// #region Delete user
+			userList,
 			deleteUser,
 			// #endregion
 

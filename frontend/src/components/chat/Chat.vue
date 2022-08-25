@@ -216,7 +216,6 @@ export default defineComponent({
 				noError.value = false;
 				return;
 			}
-			disableForm.value = false;
 			loading.value = false;
 			const temp: messageInterface = {
 				user: {
@@ -507,6 +506,23 @@ export default defineComponent({
 			}
 		};
 
+		// #region Check user mute
+		const checkMute = (channel: number) =>
+		{
+			socket.emit('muted::check', {
+				id: 0,
+				userId: props.userId,
+				channelId: channel,
+				until: new Date()
+			});
+		};
+		socket.on('muted::receive::check', (ret) =>
+		{
+			if (ret && ret.socketId === socket.id)
+				disableForm.value = ret.data.isMuted;
+		});
+		// #endregion
+
 		onMounted(() =>
 		{
 			watch(() => props.selectedChannel, () =>
@@ -515,6 +531,7 @@ export default defineComponent({
 				{
 					loading.value = true;
 					noError.value = true;
+					checkMute(props.selectedChannel.id);
 					getMessages(props.selectedChannel.id);
 				}
 				else if (props.selectedChannel.id === -1)
@@ -524,7 +541,7 @@ export default defineComponent({
 			{
 				loading.value = true;
 				noError.value = true;
-				disableForm.value = false;
+				checkMute(props.selectedChannel.id);
 				getMessages(props.selectedChannel.id);
 			}
 			else

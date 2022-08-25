@@ -149,7 +149,6 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { truncate } from 'fs';
 import { QMenu } from 'quasar';
 import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, watch } from 'vue';
@@ -379,6 +378,42 @@ export default defineComponent({
 		});
 		// #endregion Channel selection
 
+		// #region Cron task for remove ban/mute user
+		socket.on('banned::cron::delete', (ret) =>
+		{
+			if (!ret)
+				return;
+			const i = getChannel(ret.channel);
+			if (i === -1)
+				return;
+			const x = channels.value[i].banned.indexOf(ret.user);
+			if (x !== -1)
+			{
+				channels.value[i].banned.splice(x, 1);
+				banMutChange(ret.user, ret.channel, false, null);
+				if (selectedChannelId.value === ret.channel)
+					openDialogAlert(ret.id, props.userId, 'banned', false, true);
+			}
+		});
+
+		socket.on('muted::cron::delete', (ret) =>
+		{
+			if (!ret || (ret && ret.deleted === false))
+				return;
+			const i = getChannel(ret.channel);
+			if (i === -1)
+				return;
+			const x = channels.value[i].muted.indexOf(ret.user);
+			if (x !== -1)
+			{
+				channels.value[i].muted.splice(x, 1);
+				banMutChange(ret.user, ret.channel, null, false);
+				if (selectedChannelId.value === ret.channel)
+					openDialogAlert(ret.id, props.userId, 'muted', false, true);
+			}
+		});
+		// #endregion Cron task for remove ban or mute user
+
 		// #region Update channel
 		const banMutChange = (user: number, channel: number, ban: boolean|null, mute: boolean|null) =>
 		{
@@ -389,6 +424,42 @@ export default defineComponent({
 				mute
 			});
 		};
+
+		socket.on('channel::user::receive::remove', (ret) =>
+		{
+			if (!ret.data.deleted || ret.data.data.id !== props.userId)
+				return;
+
+			if (ret.data.channel !== selectedChannelId.value)
+				selectedChannelId.value = 0;
+
+			const i = getChannel(ret.data.channel);
+
+			let x = channels.value[i].admins.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].admins.splice(x, 1);
+
+			x = channels.value[i].banned.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].banned.splice(x, 1);
+
+			x = channels.value[i].muted.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].muted.splice(x, 1);
+
+			x = channels.value[i].muted.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].muted.splice(x, 1);
+
+			x = channels.value[i].users.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].users.splice(x, 1);
+
+			if (dialogEditionShow.value === true)
+				dialogEditionShow.value = false;
+
+			sendEvent(-1, true);
+		});
 
 		socket.on('admin::receive::set', (ret) =>
 		{
@@ -402,9 +473,9 @@ export default defineComponent({
 			const x = channels.value[i].admins.indexOf(ret.data.user);
 			if (i !== -1 && x !== -1)
 			{
-				channels.value[i].admins.splice(x, 1);
 				if (props.userId === ret.data.user && dialogEditionShow.value === true)
 					dialogEditionShow.value = false;
+				channels.value[i].admins.splice(x, 1);
 			}
 		});
 

@@ -31,6 +31,13 @@ export class UserController {
   
   //#Leo's part
   @UseGuards(JwtAuthGuard)
+  @Get('new')
+	async new_user(@AuthUser() user: User): Promise<void> {
+    this.channelService.setNewUser(user);
+	}
+
+
+  @UseGuards(JwtAuthGuard)
   @Get('me')
 	async me(@AuthUser() user: User): Promise<User> {
     const sanitized_user: User = await this.channelService.findOne({

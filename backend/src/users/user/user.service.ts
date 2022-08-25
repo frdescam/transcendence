@@ -7,7 +7,6 @@ import { UserDTO } from '../orm/user.dto';
 import { User } from '../orm/user.entity';
 import { Match } from 'src/match/orm/match.entity';
 
-// friends_repo not needed anymore, delete getFriends and follow here
 @Injectable({})
 export class UserService {
   constructor(
@@ -169,6 +168,12 @@ export class UserService {
    async setStatus(user: User, status: boolean): Promise<void> {
     this.userRepository.update(user.id, {
       connected: status,
+    });
+  }
+
+  async setNewUser(user: User): Promise<void> {
+    this.userRepository.update(user, {
+      new_user: false,
     });
   }
 

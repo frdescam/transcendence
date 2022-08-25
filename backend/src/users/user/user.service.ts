@@ -206,14 +206,15 @@ export class UserService {
   
   //#region Part Clément
   getAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.userRepository.find({ relations: ['blockedUsers', 'blockedUsersBy'] });
   }
 
   getOne(id: number): Promise<User> {
     return this.userRepository.findOne({
       where: {
         id: id,
-      }
+      },
+      relations: ['blockedUsers', 'blockedUsersBy']
     });
   }
 

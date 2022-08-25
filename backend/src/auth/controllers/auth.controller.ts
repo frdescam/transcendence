@@ -23,6 +23,7 @@ interface twoFAPayload {
 export class AuthController {
         constructor(private auth_svc: AuthService, private auth2fa_svc: TwoFactorAuthService, private readonly cookies_svc: CookiesService, private config: ConfigService) { }
 
+    // deprecated now
     @Post("auto_reg")
     async auto_reg(@Body() {id}, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
     {
@@ -50,9 +51,18 @@ export class AuthController {
     {
         let user : User = await this.auth_svc.login({id: id});
 
-        console.log(user);
+        console.log(user, id);
         if (!user)
-            return null;
+        {
+            const reg : AuthDto = {
+                id: id,
+                fortytwo_id: id,
+                pseudo: "sample" + id,
+                email: "sample" + id,
+                avatar: 'http://127.0.0.1:8080/api/user/avatar/no_avatar.png',
+            };
+            user = await this.auth_svc.signup(reg);
+        }
             //user = await this.auth_svc.signup({id: id});
 
         // if 2FA activated return obj to frontend to display 2FA to user, else set cookies with jwt (if logged in) and return to frontend obj two_factor_enabled: false.
@@ -81,6 +91,7 @@ export class AuthController {
 
         // here call function that will update the status in our db to online, and update the refresh_token for the token
 		this.auth_svc.refresh(user, refresh_token);
+        this.auth_svc.status(user, true);
 
         // Add cookies here if not 2FA
         request.res.cookie("Authentication", auth_token, {maxAge: 86400 * 1000, // in ms // use env for maxAge
@@ -190,6 +201,7 @@ export class AuthController {
 		);
 
 		this.auth_svc.refresh(user, refresh_token);
+        this.auth_svc.status(user, true);
 
         request.res.cookie("Authentication", auth_token, {maxAge: this.config.get('JWT_AUTH_LIFETIME') * 1000, // in ms // use env for maxAge
             sameSite: 'strict',
@@ -253,6 +265,7 @@ export class AuthController {
 
         // here call function that will update the status in our db to online, and update the refresh_token for the token
 		this.auth_svc.refresh(user, refresh_token);
+        this.auth_svc.status(user, true);
 
         request.res.cookie("Authentication", auth_token, {maxAge: this.config.get('JWT_AUTH_LIFETIME') * 1000, // in ms // use env for maxAge
             sameSite: 'strict',
@@ -311,6 +324,8 @@ export class AuthController {
     {
         // here call function that will update the status in our db to offline, and update the refresh_token for the token (this case token null)
 		this.auth_svc.refresh(user, null);
+        this.auth_svc.status(user, false);
+
 
         // just clear cookies
         // maybe second parameter not needed.

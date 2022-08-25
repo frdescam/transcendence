@@ -11,5 +11,6 @@ import { FriendshipService } from './friendship.service';
   imports: [TypeOrmModule.forFeature([Friend]), forwardRef(() => UsersModule)], // maybe change
   controllers: [FriendshipController],
   providers: [FriendshipService],
+  exports: [FriendshipService]
 })
 export class FriendshipModule {}

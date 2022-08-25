@@ -20,10 +20,5 @@ import { ValidationPipe } from '@nestjs/common';
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new NotFoundExceptionFilter());
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-    }),
-  );
   await app.listen(process.env.BACK_PORT);
 })();

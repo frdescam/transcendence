@@ -5,6 +5,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import cors from 'src/cors';
 import { NestGateway } from '@nestjs/websockets/interfaces/nest-gateway.interface';
 import { Bind, Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
@@ -39,9 +40,7 @@ const getType = (type: string) => {
 
 @WebSocketGateway({
   namespace: 'chat::',
-  cors: {
-    origin: '*',
-  },
+  cors
 })
 export class MainGateway implements NestGateway
 {

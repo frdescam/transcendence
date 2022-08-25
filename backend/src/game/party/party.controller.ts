@@ -4,7 +4,7 @@ import { userId } from 'src/common/game/types';
 import { IgnoreService } from 'src/users/ignored/ignore.service';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import { CreatePartyDto } from '../orm/createParty.dto';
-import { HTTPMockupAuthGuard } from 'src/usermockup/auth.guard';
+import { JwtAuthGuard } from "src/auth/guards/auth-jwt.guard";
 
 @Controller('party')
 export class PartyController
@@ -21,7 +21,7 @@ export class PartyController
     return (this.partyService.getAllAsJSON());
   }
 
-  @UseGuards(HTTPMockupAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('mine')
   findMine(
     @Request() req,
@@ -35,7 +35,7 @@ export class PartyController
     return (party ? party.room : null);        
   }
 
-  @UseGuards(HTTPMockupAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Put('giveup')
   giveup(
     @Request() req,
@@ -69,7 +69,7 @@ export class PartyController
     return (partyArr.length ? this.partyService.partyToPublicJson(partyArr[0]) : null);
   }
   
-  @UseGuards(HTTPMockupAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   @UsePipes(new ValidationPipe({ transform: true, transformOptions: {enableImplicitConversion: true} }))
   async create(

@@ -23,7 +23,7 @@
 				</div>
 				<profileHeader :user="user"></profileHeader>
 			</div>
-			<q-item class="full-width row justify-around">
+			<q-item v-if="!isUserConsultingOwnPage" class="full-width row justify-around">
 				<q-btn @click="onDeleteFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
 					label="add friend" />
 				<q-btn :href="'chat/' + user.pseudo" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
@@ -170,16 +170,23 @@ export default {
 		const route = useRoute();
 		const userId = route.params.id;
 		const user = ref({});
+		const isUserConsultingOwnPage = ref(false);
 
 		api.get('/user/' + userId).then((res) =>
 		{
 			user.value = res.data;
 		});
 
+		api.get('/user/me').then((res) =>
+		{
+			isUserConsultingOwnPage.value = (res.data.id === user.value.id);
+		});
+
 		return {
 			user,
 			matches,
-			achievements
+			achievements,
+			isUserConsultingOwnPage
 		};
 	}
 };

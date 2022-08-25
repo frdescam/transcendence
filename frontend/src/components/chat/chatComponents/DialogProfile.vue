@@ -2,11 +2,12 @@
 	<q-dialog
 		ref="dialog"
 		model="square"
+    persistent
 		square
 	>
 		<q-card style="width: 450px; max-width: 60vw;">
 			<q-card-section class="row justify-end q-pb-none" style="position: fixed; width: inherit; z-index: 2">
-        <q-btn icon="close" flat round dense v-close-popup @click="close" />
+        <q-btn icon="close" flat round dense @click="close" />
       </q-card-section>
 			<q-item>
 				<q-item-section avatar>
@@ -17,7 +18,7 @@
 				<q-item-section class="column">
           <span class="text-h6">{{ user.pseudo }}</span>
           <div class="row">
-            <q-badge :label="$t('chat.user.xp').toUpperCase()" />
+            <q-badge :label="$t('chat.user.xp').toUpperCase()" style="margin-right: .5em;" />
             <span>{{ user.xp }}</span>
           </div>
 				</q-item-section>
@@ -36,7 +37,7 @@ export default defineComponent({
 		'user',
 		'dialogProfilShow'
 	],
-	emits: ['dialog_profil_close'],
+	emits: ['dialog-profil-close'],
 	setup: (props, { emit }) =>
 	{
 		const dialog = ref<QDialog | null>(null);
@@ -51,7 +52,7 @@ export default defineComponent({
 		const close = () =>
 		{
 			dialog.value?.hide();
-			emit('dialog_profil_close');
+			emit('dialog-profil-close');
 		};
 
 		watch(() => props.dialogProfilShow, (after, before) =>

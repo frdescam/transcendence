@@ -4,14 +4,14 @@
 			<q-toolbar class="justify-between">
 
 				<q-toolbar-title shrink class="gt-sm">
-					<q-btn flat round dense size="lg" icon="mdi-table-tennis" :to="{ path: '/' }"/>
+					<q-btn flat round dense size="lg" icon="mdi-table-tennis" :to="{ name: 'home' }"/>
 					Transcendance
 				</q-toolbar-title>
 
 				<div :class="clsx('row no-wrap', $q.screen.gt.xs ? 'q-gutter-md' : 'q-gutter-sm')">
-					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ path: '/play' }" :label="$q.screen.gt.xs ? 'Play' : undefined" icon="sports_esports" />
-					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ path: '/chat' }" :label="$q.screen.gt.xs ? 'Chat' : undefined" icon="chat" />
-					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ path: '/leaderboard' }" :label="$q.screen.gt.xs ? 'Leaderboard' : undefined" icon="leaderboard" />
+					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'play' }" :label="$q.screen.gt.xs ? 'Play' : undefined" icon="sports_esports" />
+					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'chat' }" :label="$q.screen.gt.xs ? 'Chat' : undefined" icon="chat" />
+					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'leaderboard' }" :label="$q.screen.gt.xs ? 'Leaderboard' : undefined" icon="leaderboard" />
 				</div>
 
 				<!--
@@ -30,7 +30,7 @@
 				-->
 
 				<!--
-				<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ path: '/login' }">
+				<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'login' }">
 					<q-icon name="login" />
 				</q-btn>
 				-->
@@ -38,7 +38,7 @@
 				<q-btn-dropdown stretch flat no-caps no-wrap label="Username" icon="img:https://cdn.quasar.dev/logo-v2/svg/logo.svg">
 					<q-list>
 
-						<q-item clickable :to="{path: 'settings'}">
+						<q-item clickable :to="{name: 'settings'}">
 							<q-item-section side class="inherit_color">
 								<q-icon name="settings" />
 							</q-item-section>
@@ -58,7 +58,7 @@
 
 						<q-separator inset />
 
-						<q-item clickable :to="{path: 'logout'}">
+						<q-item clickable :to="{name: 'logout'}">
 							<q-item-section side class="inherit_color">
 								<q-icon name="logout" />
 							</q-item-section>

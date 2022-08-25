@@ -4,19 +4,19 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/WelcomePage.vue') }]
+		children: [{ path: '', name: 'home', component: () => import('src/views/pages/WelcomePage.vue') }]
 	},
 
 	{
 		path: '/chat',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/Chat.vue') }]
+		children: [{ path: '', name: 'chat', component: () => import('src/views/pages/Chat.vue') }]
 	},
 
 	{
 		path: '/play',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/GameCreation.vue') }]
+		children: [{ path: '', name: 'play', component: () => import('src/views/pages/GameCreation.vue') }]
 	},
 
 	{
@@ -34,37 +34,37 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/leaderboard',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/Leaderboard.vue') }]
+		children: [{ path: '', name: 'leaderboard', component: () => import('src/views/pages/Leaderboard.vue') }]
 	},
 
 	{
 		path: '/friends',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/Friends.vue') }]
+		children: [{ path: '', name: 'friends', component: () => import('src/views/pages/Friends.vue') }]
 	},
 
 	{
 		path: '/login',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/LoginPage.vue') }]
+		children: [{ path: '', name: 'login', component: () => import('src/views/pages/LoginPage.vue') }]
 	},
 
 	{
 		path: '/login/2FA',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/2FA.vue') }]
+		children: [{ path: '', name: '2fa', component: () => import('src/views/pages/2FA.vue') }]
 	},
 
 	{
 		path: '/profile/:id',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/ProfilePage.vue') }]
+		children: [{ path: '', name: 'profile', component: () => import('src/views/pages/ProfilePage.vue') }]
 	},
 
 	{
 		path: '/settings',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/UserSettings.vue') }]
+		children: [{ path: '', name: 'settings', component: () => import('src/views/pages/UserSettings.vue') }]
 	},
 
 	// Always leave this as last one,

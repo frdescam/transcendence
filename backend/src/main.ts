@@ -5,7 +5,6 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter, NotFoundExceptionFilter } from './filter';
-import { ValidationPipe } from '@nestjs/common';
 
 (async () =>
 {
@@ -30,10 +29,5 @@ import { ValidationPipe } from '@nestjs/common';
     })
   );
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-    }),
-  );
   await app.listen(process.env.BACK_PORT);
 })();

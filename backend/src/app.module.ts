@@ -14,6 +14,7 @@ import { LeaderboardModule } from './leaderboard/main.module';
 import { MatchModule } from './match/main.module';
 import { UsersModule } from './users/main.module';
 import { FriendshipModule } from './users/friendship/friendship.module';
+import { IgnoreModule } from './users/ignored/ignore.module';
 
 @Module({
   imports: [
@@ -25,14 +26,11 @@ import { FriendshipModule } from './users/friendship/friendship.module';
           path.join(__dirname, '..', 'static_dev')
       )
     }),
-    // ServeStaticModule.forRoot({
-    //       rootPath: path.join(__dirname, '..', './upload/avatars/',),
-    //       serveRoot: '/public',
-    //     }),
     ScheduleModule.forRoot(),
     DatabaseModule,
-    
+
     FriendshipModule,
+    IgnoreModule,
     AuthModule,
     ChatModule,
     GameModule,

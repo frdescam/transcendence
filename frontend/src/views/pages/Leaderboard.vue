@@ -71,7 +71,6 @@ const columns = [
 		label: 'RATIO',
 		field: 'ratio',
 		required: true,
-		sortable: true,
 		align: 'left',
 		style: 'width: 10%'
 	},
@@ -80,7 +79,6 @@ const columns = [
 		label: 'LEVEL',
 		field: 'level',
 		required: true,
-		sortable: true,
 		align: 'left',
 		style: 'width: 10%'
 	}
@@ -96,14 +94,14 @@ export default {
 		const filter = ref('');
 		const loading = ref(false);
 		const pagination = ref({
-			sortBy: 'level',
+			sortBy: 'rank',
 			descending: false,
 			page: 1,
-			rowsPerPage: 4,
+			rowsPerPage: 10,
 			rowsNumber: 0
 		});
 
-		async function fetchFromServer (userId, friendsOnly, startRow, count, filter, sortBy, descending)
+		async function fetchFromServer (userId, friendsOnly, startRow, count, filter)
 		{
 			const res = await api.get('/leaderboard/getRows', {
 				params: {
@@ -111,9 +109,7 @@ export default {
 					friendsOnly,
 					startRow,
 					count,
-					filter,
-					sortBy,
-					descending
+					filter
 				}
 			});
 			return res.data;
@@ -130,7 +126,7 @@ export default {
 
 			const fetchCount = rowsPerPage;
 			const startRow = (page - 1) * rowsPerPage;
-			const returnedData = await fetchFromServer(userId, localFriendsOnly, startRow, fetchCount, filter, sortBy, descending);
+			const returnedData = await fetchFromServer(userId, localFriendsOnly, startRow, fetchCount, filter);
 			pagination.value.rowsNumber = returnedData.totalRowsNumber;
 			rows.value.splice(0, rows.value.length, ...returnedData.rows);
 
@@ -163,7 +159,7 @@ export default {
 
 		async function onRowClick (evt, row)
 		{
-			router.push('/profile/' + row.pseudo);
+			router.push('/profile/' + row.pseudo); // TODO : replace by id
 		}
 
 		return {

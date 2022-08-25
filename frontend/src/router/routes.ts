@@ -58,7 +58,7 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/login/2FA',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', name: '2fa', component: () => import('src/views/pages/2FA.vue') }]
+		children: [{ path: '', name: '2FA', component: () => import('src/views/pages/2FA.vue') }]
 	},
 
 	{

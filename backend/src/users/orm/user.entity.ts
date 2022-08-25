@@ -5,6 +5,7 @@ import { Banned } from 'src/chat/orm/banned.entity';
 import { Muted } from 'src/chat/orm/muted.entity';
 import { Match } from 'src/match/orm/match.entity';
 import { Friend } from './friend.entity';
+import { Ignore } from './ignored.entity';
 
 @Entity()
 export class User extends BaseEntity {
@@ -42,6 +43,9 @@ export class User extends BaseEntity {
     @Column({type: 'int4', default: 0})
       ratio: number;
 
+    @Column({type: 'int4'})
+      rank: number;
+
     @Column({ type: 'boolean', default: () => 'false'})
       connected: boolean;
 
@@ -72,6 +76,9 @@ export class User extends BaseEntity {
     @OneToMany(() => Muted, (mutedUser) => mutedUser.user)
       mutedFrom: Muted[];
 
-    @ManyToMany(() => User)
-      blockedUsers: User[];
+    @OneToMany(() => Ignore, (ignore) => ignore.user)
+      blockedUsers: Ignore[];
+
+    @OneToMany(() => Ignore, (ignore) => ignore.target)
+      blockedUsersBy: Ignore[];
 }

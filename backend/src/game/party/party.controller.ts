@@ -1,16 +1,18 @@
 import { Body, Request, Controller, Get, Param, Post, Put, UsePipes, ValidationPipe, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
 import { PartyService } from './party.service';
-import { userId } from 'src/common/game/types';
+import { UserService } from 'src/users/user/user.service';
 import { IgnoreService } from 'src/users/ignored/ignore.service';
-import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import { CreatePartyDto } from '../orm/createParty.dto';
 import { HTTPMockupAuthGuard } from 'src/usermockup/auth.guard';
+import { getPartyDto } from 'src/common/game/orm/getParty.dto';
+import type { userId } from 'src/common/game/types';
 
 @Controller('party')
 export class PartyController
 {
   constructor (
     private partyService: PartyService,
+    private userService: UserService,
     private readonly ignoreService: IgnoreService
   )
   {}
@@ -80,18 +82,19 @@ export class PartyController
     this.partyService.checkUserObject(user);
     const himself: userId = user.id;
 
-    let adversaryId = null;
-    if (adversary && typeof adversary === 'string' && !isNaN(parseInt(adversary)))
-      adversaryId = parseInt(adversary);
-    // @TODO: check adversary ID existence
+    if (adversary && !(await this.userService.getOne(adversary)))
+      throw new HttpException('Adversary not found', HttpStatus.NOT_FOUND);
 
-    if (himself && adversaryId && !(await this.ignoreService.compatible(himself, adversaryId)))
+    if (himself && adversary && himself == adversary)
+      throw new HttpException('You cannot start a game against yourself', HttpStatus.I_AM_A_TEAPOT);
+
+    if (himself && adversary && !(await this.ignoreService.compatible(himself, adversary)))
       throw new HttpException('You cannot start a game with ignored user', HttpStatus.I_AM_A_TEAPOT);
 
     const party = this.partyService.createParty(
       room,
       map,
-      [himself, adversaryId]
+      [himself, adversary]
     );
     return (party.room);
   }

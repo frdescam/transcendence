@@ -22,7 +22,7 @@ export class AuthService {
 
   //erase later
   async test_users(user_dto: AuthDto) {
-      this.users_svc.getFriends(user_dto.id);
+      // this.users_svc.
   }
   //erase later
 
@@ -32,6 +32,10 @@ export class AuthService {
 
   async refresh(user: User, token: string): Promise<void> {
 		await this.users_svc.setRefreshToken(user, token);
+	}
+
+  async status(user: User, status: boolean): Promise<void> {
+		await this.users_svc.setStatus(user, status);
 	}
 
   async logout(user: User): Promise<void> {

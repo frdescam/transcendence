@@ -32,12 +32,9 @@ export class FriendshipController {
 		@AuthUser() user: User,
 		@Body() friendDto: friendDto,
 	): Promise<Friend> {
-		// console.log(friendDto, friendDto['id']);
 		const target: User = await this.userService.findOneComplete({
 			id: friendDto.id,
 		});
-
-		// console.log(target);
 
 		if (!target)
 			throw new NotFoundException('User not found.');
@@ -50,19 +47,14 @@ export class FriendshipController {
 			target,
 		);
 
-		// console.log('after friendship', friendship);
-
 		if (!friendship)
 			return this.friendshipService.add(user, target);
 
-		// console.log('after if friend', friendship);
 
 		if (friendship.user.id === user.id)
 			return this.friendshipService.sanitizeFriend(friendship);
 
 		friendship.isPending = false;
-
-		// console.log('end', friendship);
 
 		return this.friendshipService.update(friendship);
 	}
@@ -86,7 +78,6 @@ export class FriendshipController {
 		@AuthUser() user: User,
 		@Body() friendDto: friendDto,
 	): Promise<boolean> {
-		// console.log(friendDto, friendDto['id']);
 		const target: User = await this.userService.findOneComplete({
 			id: friendDto.id,
 		});

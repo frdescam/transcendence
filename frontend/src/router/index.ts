@@ -36,10 +36,11 @@ export default route(function (/* { store, ssrContext } */)
 
 	Router.beforeEach(async (to, from) =>
 	{
+		console.log(to);
 		let isLogged = true;
 		await api.get('/logged').catch(() =>
 		{
-			if (to.path !== '/login')
+			if (to.name !== 'login' && to.name !== '2FA' && to.name !== 'party')
 				isLogged = false;
 		});
 		if (!isLogged)

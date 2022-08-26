@@ -21,7 +21,7 @@
 					<q-btn flat rounded :to="{ path: '/login' }">
 						<q-icon name="person" />
 					</q-btn>
-					<q-btn flat rounded :to="{ path: '/logout' }">
+					<q-btn flat rounded @click="onLogout" :to="{ path: '/login' }">
 						<q-icon name="logout" />
 					</q-btn>
 				</div>
@@ -61,6 +61,7 @@ import { useI18n } from 'vue-i18n';
 import options from 'src/i18n/options';
 import { useQuasar } from 'quasar';
 import languages from 'quasar/lang/index.json';
+import { api } from 'boot/axios';
 
 // #region Quasar lang definition
 const defineLangs = options.map((el) => el.value);
@@ -112,9 +113,16 @@ export default defineComponent({
 			}
 		});
 
+		function onLogout ()
+		{
+			api.get('/logout');
+		}
+
 		return {
 			locale,
-			localeOptions: options
+			localeOptions: options,
+
+			onLogout
 		};
 	}
 });

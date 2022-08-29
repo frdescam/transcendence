@@ -1,3 +1,4 @@
+import { api } from 'src/boot/axios';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
@@ -52,13 +53,41 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/login',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', name: 'login', component: () => import('src/views/pages/LoginPage.vue') }]
+		children: [{
+			path: '',
+			name: 'login',
+			component: () => import('src/views/pages/LoginPage.vue'),
+			beforeEnter: async () =>
+			{
+				let isLogged = true;
+				await api.get('/logged').catch(() =>
+				{
+					isLogged = false;
+				});
+				if (isLogged)
+					return { path: '/' };
+			}
+		}]
 	},
 
 	{
 		path: '/login/2FA',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', name: '2FA', component: () => import('src/views/pages/2FA.vue') }]
+		children: [{
+			path: '',
+			name: '2FA',
+			component: () => import('src/views/pages/2FA.vue'),
+			beforeEnter: async () =>
+			{
+				let isLogged = true;
+				await api.get('/logged').catch(() =>
+				{
+					isLogged = false;
+				});
+				if (isLogged)
+					return { path: '/' };
+			}
+		}]
 	},
 
 	{

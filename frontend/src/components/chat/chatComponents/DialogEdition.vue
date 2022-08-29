@@ -229,6 +229,7 @@ import { defineComponent, ref, reactive, inject, watch } from 'vue';
 
 import DialogEditionUserListVue from './DialogEditionUserList.vue';
 import DialogEditionAddUser from './DialogEditionAddUser.vue';
+import UserSettingsVue from 'src/views/pages/UserSettings.vue';
 
 interface usersOptionsInterface {
 	id: number,
@@ -564,6 +565,38 @@ export default defineComponent({
 				dialogEditionAddUserError.value = true;
 		});
 		// #endregion
+
+		// #region Cron task for remove ban/mute user
+		socket.on('banned::cron::delete', (ret) =>
+		{
+			if (!ret || props.dialogEditionShow === false || props.channelId !== ret.channel)
+				return;
+			for (const i in usersOptions)
+			{
+				if (usersOptions[i].id === ret.user)
+				{
+					usersOptions[i].bannedKey = -1;
+					usersOptions[i].isBanned = false;
+					break;
+				}
+			}
+		});
+
+		socket.on('muted::cron::delete', (ret) =>
+		{
+			if (!ret || props.dialogEditionShow === false || props.channelId !== ret.channel)
+				return;
+			for (const i in usersOptions)
+			{
+				if (usersOptions[i].id === ret.user)
+				{
+					usersOptions[i].mutedKey = -1;
+					usersOptions[i].isMuted = false;
+					break;
+				}
+			}
+		});
+		// #endregion Cron task for remove ban or mute user
 
 		// #region Delete user
 		const userList = ref<QList | null>(null);

@@ -1,5 +1,5 @@
 <template>
-	<q-layout view="hHh lpR fFf" class="background" :style="{'background-image': `url(${$route.meta.background})`}">
+	<q-layout view="hHh lpR fFf" class="background" :style="{'background-image': `url(${$route.meta.background})`, 'background-color': $route.meta.backgroundColor}">
 		<q-header elevated>
 			<Menu />
 		</q-header>

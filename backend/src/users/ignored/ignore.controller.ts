@@ -19,7 +19,7 @@ class ignoreDto {
 }
 
 @UseGuards(JwtAuthGuard)
-@UsePipes(new ValidationPipe({ whitelist: true })) // if this is global then can erase
+@UsePipes(new ValidationPipe({ whitelist: true }))
 @Controller('ignore')
 export class IgnoreController {
 	constructor(

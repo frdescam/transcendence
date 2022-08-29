@@ -39,6 +39,17 @@ export class FriendshipService {
 		return this.frienships_repo.save(Friend);
 	}
 
+    async getFriends(userId : number): Promise<User[]> {
+        const friendRelations = await this.frienships_repo.find({
+            where: {user: userId, isPending: false}
+        })
+        let friends: User[] = [];
+        friendRelations.forEach(friendRelation => {
+            friends.push(friendRelation.followedUser);
+        });
+        return friends;
+	}
+
 	async findAllOrWithAccepted(
 		user: User,
 		pending: boolean,

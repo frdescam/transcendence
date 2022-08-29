@@ -1,67 +1,108 @@
 <template>
 	<q-layout view="hHh lpR fFf">
 		<q-header elevated>
-			<q-toolbar id="header-contents" class="row justify-between">
-				<q-btn flat no-caps no-wrap no-ripple :to="{ path: '/' }">
-					<q-toolbar-title>
-						<q-icon class="q-mr-sm"
-							name="img:https://www.pinclipart.com/picdir/big/535-5355934_ping-pong-table-tennis-icon-png-clipart.png" />
-						Transcendance
-					</q-toolbar-title>
-				</q-btn>
-				<div class="row q-gutter-md no-wrap mobile-hide">
-					<q-btn flat rounded :to="{ path: '/play' }" label="Play" />
-					<q-btn flat rounded :to="{ path: '/chat' }" label="Chat" />
-					<q-btn flat rounded :to="{ path: '/leaderboard' }" label="Leaderboard" />
+			<q-toolbar class="q-pr-none">
+
+				<q-toolbar-title shrink class="gt-sm">
+					<q-btn flat round dense size="lg" icon="mdi-table-tennis" :to="{ name: 'home' }"/>
+					Transcendance
+				</q-toolbar-title>
+
+				<div :class="clsx('col-grow row no-wrap', $q.screen.gt.xs ? 'q-gutter-md' : 'q-gutter-sm', $q.screen.gt.xs && 'justify-center')">
+					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'play' }" :label="$q.screen.gt.xs ? 'Play' : undefined" icon="sports_esports" />
+					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'chat' }" :label="$q.screen.gt.xs ? 'Chat' : undefined" icon="chat" />
+					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'leaderboard' }" :label="$q.screen.gt.xs ? 'Leaderboard' : undefined" icon="leaderboard" />
 				</div>
-				<div class="row q-ml-md no-wrap">
-					<q-btn flat rounded :to="{ path: '/settings' }">
-						<q-icon name="settings" />
-					</q-btn>
-					<q-btn flat rounded :to="{ path: '/login' }">
-						<q-icon name="person" />
-					</q-btn>
-					<q-btn flat rounded @click="onLogout" :to="{ path: '/login' }">
-						<q-icon name="logout" />
-					</q-btn>
-				</div>
+
 				<q-select
-					v-model="locale"
-					:options="localeOptions"
+					rounded
+					borderless
 					dense
+					options-dense
+					:options-dark="false"
+					:hide-selected="$q.screen.lt.lg"
+					dark
 					emit-value
 					map-options
-					options-dense
-					style="min-width: 150px"
-				/>
+					v-model="locale"
+					:options="localeOptions"
+					:class="clsx($q.screen.gt.md && 'lang_allocated_space')"
+				>
+					<template v-slot:prepend v-if="$q.screen.gt.md">
+						<q-icon name="translate" />
+					</template>
+					<template v-slot:append v-if="$q.screen.lt.lg">
+						<q-icon name="translate" />
+					</template>
+				</q-select>
+
+				<!--
+				<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'login' }">
+					<q-icon name="login" />
+				</q-btn>
+				-->
+
+				<q-btn-dropdown
+						no-caps
+						no-wrap
+						stretch
+						flat
+						:dense="$q.screen.lt.md"
+						:label="$q.screen.gt.md ? 'Username' : undefined"
+						icon="img:https://cdn.quasar.dev/logo-v2/svg/logo.svg"
+					>
+					<q-list>
+
+						<q-item clickable :to="{name: 'settings'}">
+							<q-item-section side class="inherit_color">
+								<q-icon name="settings" />
+							</q-item-section>
+							<q-item-section>
+								<q-item-label>Account settings</q-item-label>
+							</q-item-section>
+						</q-item>
+
+						<q-item clickable disable>
+							<q-item-section side class="inherit_color">
+								<q-icon name="sports_esports" />
+							</q-item-section>
+							<q-item-section>
+								<q-item-label>Retake the game</q-item-label>
+							</q-item-section>
+						</q-item>
+
+						<q-separator inset />
+
+						<q-item clickable @click="onLogout">
+							<q-item-section side class="inherit_color">
+								<q-icon name="logout" />
+							</q-item-section>
+							<q-item-section>
+								<q-item-label>Disconnect</q-item-label>
+							</q-item-section>
+						</q-item>
+
+					</q-list>
+				</q-btn-dropdown>
+
 			</q-toolbar>
 		</q-header>
 
 		<q-page-container>
 			<router-view />
 		</q-page-container>
-		<q-footer class="mobile-only row justify-evenly">
-			<q-btn flat rounded :to="{ path: '/play' }" icon="sports_esports" />
-			<q-btn flat rounded :to="{ path: '/chat' }" icon="chat" />
-			<q-btn flat rounded :to="{ path: '/leaderboard' }" icon="leaderboards" />
-		</q-footer>
 	</q-layout>
 </template>
 
-<style lang="scss">
-#header-contents {
-	max-width: 1200px;
-	margin: auto;
-}
-</style>
-
 <script lang="ts">
+import clsx from 'clsx';
 import { defineComponent, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import options from 'src/i18n/options';
 import { useQuasar } from 'quasar';
 import languages from 'quasar/lang/index.json';
 import { api } from 'boot/axios';
+import { useRouter } from 'vue-router';
 
 // #region Quasar lang definition
 const defineLangs = options.map((el) => el.value);
@@ -98,6 +139,7 @@ export default defineComponent({
 	{
 		const $q = useQuasar();
 		const { locale } = useI18n({ useScope: 'global' });
+		const router = useRouter();
 
 		watch(locale, (val) =>
 		{
@@ -116,9 +158,11 @@ export default defineComponent({
 		function onLogout ()
 		{
 			api.get('/logout');
+			router.push('/login');
 		}
 
 		return {
+			clsx,
 			locale,
 			localeOptions: options,
 
@@ -127,3 +171,14 @@ export default defineComponent({
 	}
 });
 </script>
+
+<style scoped>
+.inherit_color
+{
+	color: inherit;
+}
+.lang_allocated_space
+{
+	min-width: 120px;
+}
+</style>

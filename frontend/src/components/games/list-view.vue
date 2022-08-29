@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import clsx from 'clsx';
 import { onBeforeUnmount, onMounted, reactive, readonly, inject } from 'vue';
+import { Socket } from 'socket.io-client';
 import { useRouter } from 'vue-router';
 import { useQuasar, copyToClipboard } from 'quasar';
-import { Socket } from 'socket.io-client';
-const gameSocket: Socket = inject('socketGame') as Socket;
 import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
-import type { userId } from 'src/common/game/logic/common';
+import type { userId } from 'src/common/game/types';
 
 type usersArray = [userId | null, userId | null];
 type partyListObject = {[key: string]: getPartyDto};
 
+const gameSocket: Socket = inject('socketGame') as Socket;
 const $q = useQuasar();
 const router = useRouter();
 const state = reactive<{ connected: boolean }>({ connected: false });
@@ -170,10 +170,10 @@ defineExpose({
 
 <template>
 	<q-table
-		no-data-label="No games happening at the moment"
-    class="q-mx-md"
 		row-key="room"
 		color="primary"
+		dark
+		dense
 		:rows="Object.keys(partiesListObject).map((key)=>(partiesListObject[key]))"
 		:columns="columns"
 		:loading="!state.connected"
@@ -230,3 +230,6 @@ defineExpose({
 
 	</q-table>
 </template>
+
+<style scoped>
+</style>

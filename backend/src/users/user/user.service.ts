@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThanOrEqual, Like, Not, Repository } from 'typeorm';
+import { DeleteResult, LessThanOrEqual, Like, Not, Repository } from 'typeorm';
 
 import { AuthDto } from '../../auth/dto';
 import { UserDTO } from '../orm/user.dto';
-import { Friend } from "../orm/friend.entity";
 import { User } from '../orm/user.entity';
 import { Match } from 'src/match/orm/match.entity';
 
-// friends_repo not needed anymore, delete getFriends and follow here
 @Injectable({})
 export class UserService {
   constructor(
@@ -16,8 +14,6 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Match)
     private readonly matchRepository: Repository<Match>,
-    @InjectRepository(Friend)
-    private friends_repo: Repository<Friend>
   ) {}
   //#region Part Leo
   async turnOn2FA(userId: number): Promise<void> {
@@ -92,44 +88,18 @@ export class UserService {
 		return this.sanitizeUser(result.raw[0]);
 	}
 
-	async follow(userId: number, follwedUserId: number) {
-		const user : User = await this.userRepository.findOne({id: userId});
-		const followedUser : User = await this.userRepository.findOne({id: follwedUserId});
-		if (!user)
-			return ;
-        this.friends_repo.create({
-            user: user,
-            followedUser: followedUser,
-            isPending: false
-        })
-    }
-
-	async getFriends(userId : number): Promise<User[]> {
-        const friendRelations = await this.friends_repo.find({
-            where: {user: userId, isPending: false}
-        })
-        let friends: User[] = [];
-        friendRelations.forEach(friendRelation => {
-            friends.push(friendRelation.followedUser);
-        });
-        return friends;
-	}
-
 	async findOneComplete(user_dto: AuthDto): Promise<User> {
         // print this when testing multiple pseudos
         //console.log(await this.getUniquePseudo(user_dto.pseudo));
-		//console.log(user_dto, await this.userRepository.findOne({where: user_dto}));
-		return this.userRepository.findOne({where: user_dto}); // use where? // if auth breaks is this line
+		return this.userRepository.findOne({where: user_dto});
     }
 
+	// add sanitize to relations? like friends, ignore?
 	async sanitizeUser(user: User): Promise<User>
 	{
 		if (user) {
 			delete user.fortytwo_id;
 			delete user.refresh_token;
-			//delete user.email; erase in entity
-			//delete user.password; erase in entity
-			//delete user.is2FActive;
 			delete user.secretOf2FA;
 		}
 		return user;
@@ -137,35 +107,23 @@ export class UserService {
 
     async findOne(user_dto: AuthDto): Promise<User> {
 		const user: User = await this.userRepository.findOne({where: user_dto});
-		
-		// delete user.fortytwo_id;
-		// delete user.refresh_token;
-		//delete user.email; erase in entity
-		//delete user.password;
-		//delete user.is2FActive;
-		// delete user.secretOf2FA;
-
 		return await this.sanitizeUser(user);
     }
 
-	// async getOne(userId: number): Promise<User>
-	// {
-	// 	const user: User = await this.userRepository.findOne({id: userId});
-
-	// 	delete user.fortytwo_id;
-	// 	delete user.refresh_token;
-	// 	//delete user.email; erase in entity
-	// 	//delete user.password;
-	// 	delete user.is2FActive;
-	// 	delete user.secretOf2FA;
-
-	// 	return user;
-	// }
-
-	// this is broken
     async findAll(): Promise<User[]> {
-        return this.userRepository.find();
+		const users: User[] = await this.userRepository.find();
+		users.forEach(elem => this.sanitizeUser(elem));
+        return users;
     }
+
+	async getMatches(id: number): Promise<User> {
+		return this.userRepository.findOne({
+			where: {
+				id: id,
+			},
+			relations: ['matchesHome', 'matchesForeign']
+		});
+	}
 
     // need to test more!
     // and use this when changing pseudo too not just register
@@ -207,6 +165,26 @@ export class UserService {
 		});
 	}
 
+   async setStatus(user: User, status: boolean): Promise<void> {
+    this.userRepository.update(user.id, {
+      connected: status,
+    });
+  }
+
+  async setNewUser(user: User): Promise<void> {
+    this.userRepository.update(user, {
+      new_user: false,
+    });
+  }
+
+  async remove(user: User): Promise<boolean> {
+    const result: DeleteResult = (await this.userRepository.delete(user));
+    if (result.affected > 0)
+      return true;
+    return false;
+	}
+
+//#region Franco
   private computeXp(nbWon: number, nbLost: number): number {
     return nbWon * 0.1 + nbLost * 0.0075;
 }

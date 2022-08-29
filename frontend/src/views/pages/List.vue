@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import List from 'src/components/games/list-view.vue';
+import List from '../../components/games/list-view.vue';
 </script>
 
 <template>
@@ -14,5 +14,7 @@ import List from 'src/components/games/list-view.vue';
 			<List/>
 		</div>
 	</q-page>
-	<!-- Go to the top FAB -->
 </template>
+
+<style scoped>
+</style>

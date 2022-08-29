@@ -49,6 +49,9 @@ export class User extends BaseEntity {
     @Column({ type: 'boolean', default: () => 'false'})
       connected: boolean;
 
+    @Column({ type: 'boolean', default: () => 'true'})
+      new_user: boolean;
+
     @OneToMany(() => Friend, (friend) => friend.user)
       friends: Friend[];
 

@@ -31,6 +31,13 @@ export class UserController {
   
   //#Leo's part
   @UseGuards(JwtAuthGuard)
+  @Get('new')
+	async new_user(@AuthUser() user: User): Promise<void> {
+    this.channelService.setNewUser(user);
+	}
+
+
+  @UseGuards(JwtAuthGuard)
   @Get('me')
 	async me(@AuthUser() user: User): Promise<User> {
     const sanitized_user: User = await this.channelService.findOne({
@@ -77,6 +84,7 @@ export class UserController {
         },
         
       }))
+    // change to docker volume
     async uploadFile(@AuthUser() user: User, @UploadedFile() file) {
         //console.log(file, file.filename, file.mimetype.includes('image'), path.parse(file.originalname).name.replace(/\s/g, ''));
         //await this.channelService.setAvatar(file.filename, user.id);
@@ -108,7 +116,37 @@ export class UserController {
       return this.channelService.updatePseudo(update_pseudo, user.id,);
     }
 
-  @UseGuards(JwtAuthGuard)
+    // exception is useful?
+    @UseGuards(JwtAuthGuard)
+    @Get('all')
+	  async getAll(): Promise<User[]> {
+      const sanitized_user: User[] = await this.channelService.findAll();
+
+      // console.log(sanitized_user);
+      if (!sanitized_user)
+        throw new BadRequestException('User not found.');
+        //return undefined;
+
+      // console.log(target);
+      return sanitized_user;
+	  }
+
+    // use POST and validation pipes
+    @UseGuards(JwtAuthGuard)
+    @Get('match/:id') // add ParseIntPipe to validate id // is this useful?
+	  async getMatches(@Param('id') id: number): Promise<User> {
+      const sanitized_user: User = await this.channelService.getMatches(id);
+
+      if (!sanitized_user)
+        throw new BadRequestException('User not found.');
+        //return undefined;
+
+      // console.log(target);
+      return sanitized_user;
+	  }
+
+  
+    @UseGuards(JwtAuthGuard)
     @Get(':id') // add ParseIntPipe to validate id // is this useful?
 	  async findOne(@Param('id') id: number): Promise<User> {
       const sanitized_user: User = await this.channelService.findOne({
@@ -122,8 +160,13 @@ export class UserController {
       // console.log(target);
       return sanitized_user;
 	  }
-  
-  
+
+  @UseGuards(JwtAuthGuard)
+    @Delete('remove') // add ParseIntPipe to validate id // is this useful?
+	  async remove(@AuthUser() user: User): Promise<boolean> {
+      return this.channelService.remove(user);
+	  }
+
   //# end of Leo's part
   @Get('get/:id')
   async getChannel(@Param('id') id: number) {

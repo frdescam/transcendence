@@ -7,7 +7,7 @@
 			<q-list class="column q-mt-md">
 				<q-btn class="q-mb-md" :to="{ path: '/play' }" color="primary">Start a game</q-btn>
 				<q-btn class="q-mb-md" :to="{ path: '/chat' }" color="primary">Chat with your friends</q-btn>
-				<q-btn class="q-mb-md" :to="{ path: '/listgames' }" color="primary">Check out live games</q-btn>
+				<q-btn class="q-mb-md" :to="{ path: '/play/list' }" color="primary">Check out live games</q-btn>
 			</q-list>
 			<q-list class="column q-mt-md">
 				<q-btn class="q-mb-md" :to="{ path: '/leaderboard' }" color="primary">Checkout the leaderboard</q-btn>

@@ -91,7 +91,7 @@ const routes: RouteRecordRaw[] = [
 
 	{
 		path: '/game/:party',
-		component: () => import('src/views/layouts/None.vue'),
+		component: () => import('src/views/layouts/Standard.vue'),
 		children: [{ path: '', name: 'party', component: () => import('src/views/pages/Game.vue') }],
 		meta: {
 			...(backgrounds.rainy_street)

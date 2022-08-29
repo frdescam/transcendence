@@ -100,7 +100,7 @@ const routes: RouteRecordRaw[] = [
 
 	{
 		path: '/leaderboard',
-		component: () => import('src/views/layouts/None.vue'),
+		component: () => import('src/views/layouts/Standard.vue'),
 		children: [{ path: '', name: 'leaderboard', component: () => import('src/views/pages/Leaderboard.vue') }],
 		meta: {
 			...(backgrounds.leaderboard)

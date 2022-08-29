@@ -73,7 +73,7 @@ const routes: RouteRecordRaw[] = [
 
 	{
 		path: '/play/list',
-		component: () => import('src/views/layouts/None.vue'),
+		component: () => import('src/views/layouts/Standard.vue'),
 		children: [{ path: '', name: 'gamelist', component: () => import('src/views/pages/List.vue') }],
 		meta: {
 			...(backgrounds.gaming_alt)

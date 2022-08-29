@@ -1,33 +1,40 @@
 <template>
 	<q-layout view="hHh lpR fFf">
 		<q-header elevated>
-			<q-toolbar class="justify-between">
+			<q-toolbar class="q-pr-none">
 
 				<q-toolbar-title shrink class="gt-sm">
 					<q-btn flat round dense size="lg" icon="mdi-table-tennis" :to="{ name: 'home' }"/>
 					Transcendance
 				</q-toolbar-title>
 
-				<div :class="clsx('row no-wrap', $q.screen.gt.xs ? 'q-gutter-md' : 'q-gutter-sm')">
+				<div :class="clsx('col-grow row no-wrap', $q.screen.gt.xs ? 'q-gutter-md' : 'q-gutter-sm', $q.screen.gt.xs && 'justify-center')">
 					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'play' }" :label="$q.screen.gt.xs ? 'Play' : undefined" icon="sports_esports" />
 					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'chat' }" :label="$q.screen.gt.xs ? 'Chat' : undefined" icon="chat" />
 					<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'leaderboard' }" :label="$q.screen.gt.xs ? 'Leaderboard' : undefined" icon="leaderboard" />
 				</div>
 
-				<!--
-					@TODO: Find a place for that menu
 				<q-select
-					v-model="locale"
-					:options="localeOptions"
+					rounded
+					borderless
 					dense
+					options-dense
+					:options-dark="false"
+					:hide-selected="$q.screen.lt.lg"
 					dark
 					emit-value
 					map-options
-					options-dense
-					:options-dark="false"
-					style="min-width: 90px"
-				/>
-				-->
+					v-model="locale"
+					:options="localeOptions"
+					:class="clsx($q.screen.gt.md && 'lang_allocated_space')"
+				>
+					<template v-slot:prepend v-if="$q.screen.gt.md">
+						<q-icon name="translate" />
+					</template>
+					<template v-slot:append v-if="$q.screen.lt.lg">
+						<q-icon name="translate" />
+					</template>
+				</q-select>
 
 				<!--
 				<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'login' }">
@@ -35,7 +42,15 @@
 				</q-btn>
 				-->
 
-				<q-btn-dropdown stretch flat no-caps no-wrap label="Username" icon="img:https://cdn.quasar.dev/logo-v2/svg/logo.svg">
+				<q-btn-dropdown
+						no-caps
+						no-wrap
+						stretch
+						flat
+						:dense="$q.screen.lt.md"
+						:label="$q.screen.gt.md ? 'Username' : undefined"
+						icon="img:https://cdn.quasar.dev/logo-v2/svg/logo.svg"
+					>
 					<q-list>
 
 						<q-item clickable :to="{name: 'settings'}">
@@ -150,5 +165,9 @@ export default defineComponent({
 .inherit_color
 {
 	color: inherit;
+}
+.lang_allocated_space
+{
+	min-width: 120px;
 }
 </style>

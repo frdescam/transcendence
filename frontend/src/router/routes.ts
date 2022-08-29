@@ -4,19 +4,25 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/WelcomePage.vue') }]
+		children: [{ path: '', name: 'home', component: () => import('src/views/pages/WelcomePage.vue') }]
 	},
 
 	{
 		path: '/chat',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/Chat.vue') }]
+		children: [{ path: '', name: 'chat', component: () => import('src/views/pages/Chat.vue') }]
 	},
 
 	{
 		path: '/play',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/GameCreation.vue') }]
+		children: [{ path: '', name: 'play', component: () => import('src/views/pages/GameCreation.vue') }]
+	},
+
+	{
+		path: '/play/list',
+		component: () => import('src/views/layouts/Main.vue'),
+		children: [{ path: '', name: 'gamelist', component: () => import('src/views/pages/List.vue') }]
 	},
 
 	{
@@ -34,13 +40,13 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/leaderboard',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/Leaderboard.vue') }]
+		children: [{ path: '', name: 'leaderboard', component: () => import('src/views/pages/Leaderboard.vue') }]
 	},
 
 	{
 		path: '/friends',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/Friends.vue') }]
+		children: [{ path: '', name: 'friends', component: () => import('src/views/pages/Friends.vue') }]
 	},
 
 	{
@@ -56,21 +62,15 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
-		path: '/register',
-		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/RegisterPage.vue') }]
-	},
-
-	{
 		path: '/profile/:id',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/ProfilePage.vue') }]
+		children: [{ path: '', name: 'profile', component: () => import('src/views/pages/ProfilePage.vue') }]
 	},
 
 	{
 		path: '/settings',
 		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', component: () => import('src/views/pages/UserSettings.vue') }]
+		children: [{ path: '', name: 'settings', component: () => import('src/views/pages/UserSettings.vue') }]
 	},
 
 	// Always leave this as last one,

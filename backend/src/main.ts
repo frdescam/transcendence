@@ -13,9 +13,8 @@ import { ValidationPipe } from '@nestjs/common';
     logger: (process.env.NODE_ENV === 'production')
       ? false
       : ['log', 'error', 'warn', 'debug', 'verbose'],
-      cors: true
+      cors
   });
-  app.enableCors(cors);
   app.use(cookieParser());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new NotFoundExceptionFilter());

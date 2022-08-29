@@ -7,17 +7,17 @@
 					class="q-my-lg row full-height items-center justify-around col-md-2 col-12">
 					<q-avatar class="q-my-auto" size=150px>
 						<img :src='user.avatar'>
-						<q-badge v-if="user.status == 'online'" class="absolute-bottom-right"
+						<q-badge v-if="user.connected" class="absolute-bottom-right"
 							style="width: 30px; height: 30px" color="light-green-14" rounded>
-							<q-tooltip>{{ user.status }}</q-tooltip>
+							<q-tooltip>{{ user.connected }}</q-tooltip>
 						</q-badge>
-						<q-badge v-if="user.status == 'offline'" class="absolute-bottom-right"
+						<q-badge v-if="!user.connected" class="absolute-bottom-right"
 							style="width: 30px; height: 30px" color="red" rounded>
-							<q-tooltip>{{ user.status }}</q-tooltip>
+							<q-tooltip>{{ user.connected }}</q-tooltip>
 						</q-badge>
-						<q-badge v-if="user.status == 'playing'" class="absolute-bottom-right"
+						<q-badge v-if="user.connected == 'playing'" class="absolute-bottom-right"
 							style="width: 30px; height: 30px" color="orange" rounded>
-							<q-tooltip>{{ user.status }}</q-tooltip>
+							<q-tooltip>{{ user.connected }}</q-tooltip>
 						</q-badge>
 					</q-avatar>
 				</div>
@@ -176,10 +176,25 @@ export default {
 			user.value = res.data;
 		});
 
+		async function onDeleteFriend ()
+		{
+			console.log('removing friend!');
+		}
+
+		async function onBlockUser ()
+		{
+			api.post('/ignore', {
+				id: user.value.id
+			});
+		}
+
 		return {
 			user,
 			matches,
-			achievements
+			achievements,
+
+			onDeleteFriend,
+			onBlockUser
 		};
 	}
 };

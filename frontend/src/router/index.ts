@@ -36,7 +36,6 @@ export default route(function (/* { store, ssrContext } */)
 
 	Router.beforeEach(async (to, from) =>
 	{
-		console.log(to);
 		let isLogged = true;
 		await api.get('/logged').catch(() =>
 		{

@@ -73,7 +73,7 @@
 
 						<q-separator inset />
 
-						<q-item clickable :to="{name: 'logout'}">
+						<q-item clickable @click="onLogout">
 							<q-item-section side class="inherit_color">
 								<q-icon name="logout" />
 							</q-item-section>
@@ -101,6 +101,8 @@ import { useI18n } from 'vue-i18n';
 import options from 'src/i18n/options';
 import { useQuasar } from 'quasar';
 import languages from 'quasar/lang/index.json';
+import { api } from 'boot/axios';
+import { useRouter } from 'vue-router';
 
 // #region Quasar lang definition
 const defineLangs = options.map((el) => el.value);
@@ -137,6 +139,7 @@ export default defineComponent({
 	{
 		const $q = useQuasar();
 		const { locale } = useI18n({ useScope: 'global' });
+		const router = useRouter();
 
 		watch(locale, (val) =>
 		{
@@ -152,10 +155,18 @@ export default defineComponent({
 			}
 		});
 
+		function onLogout ()
+		{
+			api.get('/logout');
+			router.push('/login');
+		}
+
 		return {
 			clsx,
 			locale,
-			localeOptions: options
+			localeOptions: options,
+
+			onLogout
 		};
 	}
 });

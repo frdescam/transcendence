@@ -229,7 +229,6 @@ import { defineComponent, ref, reactive, inject, watch } from 'vue';
 
 import DialogEditionUserListVue from './DialogEditionUserList.vue';
 import DialogEditionAddUser from './DialogEditionAddUser.vue';
-import UserSettingsVue from 'src/views/pages/UserSettings.vue';
 
 interface usersOptionsInterface {
 	id: number,

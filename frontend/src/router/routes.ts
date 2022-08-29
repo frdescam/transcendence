@@ -33,12 +33,6 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
-		path: '/listgames',
-		component: () => import('src/views/layouts/Main.vue'),
-		children: [{ path: '', name: 'matching', component: () => import('src/views/pages/List.vue') }]
-	},
-
-	{
 		path: '/game/:party',
 		component: () => import('src/views/layouts/Main.vue'),
 		children: [{ path: '', name: 'party', component: () => import('src/views/pages/Game.vue') }]

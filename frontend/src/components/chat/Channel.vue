@@ -119,7 +119,7 @@
 	/>
 	<dialog-password
 		:dialogPasswordShow="dialogPasswordShow"
-		:channelId="selectedChannelId"
+		:channelId="saveEmitChannelId"
 		:channelName="selectedChannelName"
 		:userId="userId"
 		@dialog-password-hide="hideDialogPassword"
@@ -286,7 +286,7 @@ export default defineComponent({
 
 		// #region Channel selection
 		let emitFromChannel = false;
-		let saveEmitChannelId = -1;
+		const saveEmitChannelId = ref(-1);
 		let userIsExistChannel = false;
 
 		const getLinkColor = (channelId: number) =>
@@ -325,7 +325,7 @@ export default defineComponent({
 				(selectedChannelId.value && selectedChannelId.value !== channelId))
 			{
 				emitFromChannel = true;
-				saveEmitChannelId = channelId;
+				saveEmitChannelId.value = channelId;
 				selectedChannelType.value = channelType;
 				socket.emit('channel::get', channelId);
 			}
@@ -335,12 +335,12 @@ export default defineComponent({
 			if (!userIsExistChannel)
 			{
 				socket.emit('channel::user::add', {
-					channelId: saveEmitChannelId,
+					channelId: saveEmitChannelId.value,
 					userId: props.userId
 				});
 			}
 			userIsExistChannel = false;
-			sendEvent(saveEmitChannelId);
+			sendEvent(saveEmitChannelId.value);
 		};
 		socket.on('channel::receive::get', (ret) =>
 		{
@@ -352,7 +352,7 @@ export default defineComponent({
 			{
 				if (banned.user.id === props.userId)
 				{
-					saveEmitChannelId = -1;
+					saveEmitChannelId.value = -1;
 					openDialogAlert(ret.data.id, props.userId, 'banned', true, true);
 					return;
 				}
@@ -624,13 +624,13 @@ export default defineComponent({
 		{
 			dialogPasswordShow.value = false;
 			if (isSet === false)
-				saveEmitChannelId = -1;
+				saveEmitChannelId.value = -1;
 		};
 		const openDialogPasswordOk = (isSet: boolean) =>
 		{
 			sendEventChangeChannel();
 			if (isSet === false)
-				saveEmitChannelId = -1;
+				saveEmitChannelId.value = -1;
 		};
 
 		const dialogEditionShow = ref(false);
@@ -847,6 +847,8 @@ export default defineComponent({
 			selectedChannelPassword,
 			selectedChannelPasswordValue,
 			selectedChannelName,
+
+			saveEmitChannelId,
 
 			sendEvent,
 			changeChannel,

@@ -78,6 +78,8 @@ export default defineComponent({
 		});
 		socket.on('channel::receive::check', (ret) =>
 		{
+			if (ret.socketId !== socket.id)
+				return;
 			if (!ret.data)
 				error.value = true;
 			else

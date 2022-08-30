@@ -216,6 +216,8 @@ export class ChannelService {
 
   async checkPassword(pass: passwordCompare) {
     try {
+      if (pass.channelId <= 0)
+        throw new Error();
       const channel = await this.getOne(pass.channelId);
       return await password.compare(channel.password, pass.password);
     } catch (err) {

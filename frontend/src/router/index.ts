@@ -44,8 +44,10 @@ export default route(function (/* { store, ssrContext } */)
 			if (to.name !== 'login' && to.name !== '2FA' && to.name !== 'party')
 				isLogged = false;
 		});
-		if (!isLogged)
+		/*
+    if (!isLogged)
 			return { path: '/login' };
+    */
 	});
 
 	return Router;

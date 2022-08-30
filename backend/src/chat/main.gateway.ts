@@ -25,6 +25,7 @@ import {
 
 import { BannedService } from './banned/banned.service';
 import { ChannelService } from './channel/channel.service';
+import { IgnoreService } from 'src/users/ignored/ignore.service';
 import { MessageService } from './message/message.service';
 import { MutedService } from './muted/muted.service';
 import { UserService } from 'src/users/user/user.service';
@@ -53,11 +54,12 @@ const getType = (type: string) => {
 export class MainGateway implements NestGateway
 {
   constructor(
-    private readonly userService: UserService,
     private readonly bannedService: BannedService,
     private readonly channelService: ChannelService,
+    private readonly ignoreService: IgnoreService,
     private readonly messageService: MessageService,
     private readonly mutedService: MutedService,
+    private readonly userService: UserService,
   ) {}
 
   @WebSocketServer() server: Server;
@@ -101,16 +103,26 @@ export class MainGateway implements NestGateway
   @SubscribeMessage('blocked')
   async blockedUser(blocked: blockedUser, sender: Socket) {
     this.logger.log(`Client ${sender.id} block ${blocked.blockedId}`);
-    const ret = {};
-    this.server.emit('blocked::receive', this.returnData(sender, ret));
+    const users = [await this.userService.getOne(blocked.id), await this.userService.getOne(blocked.blockedId)];
+    if (await this.ignoreService.alreadyIgnored(users[0], users[1]))
+    {
+      this.server.emit('blocked::receive', this.returnData(sender, {alreadyIgnore: true}));
+      return;
+    }
+    this.server.emit('blocked::receive', this.returnData(sender, await this.ignoreService.create(users[0], users[1])));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('unblocked')
   async unblockedUser(blocked: blockedUser, sender: Socket) {
     this.logger.log(`Client ${sender.id} unblock ${blocked.blockedId}`);
-    const ret = {};
-    this.server.emit('unblocked::receive', this.returnData(sender, ret));
+    const users = [await this.userService.getOne(blocked.id), await this.userService.getOne(blocked.blockedId)];
+    if (!await this.ignoreService.alreadyIgnored(users[0], users[1]))
+    {
+      this.server.emit('unblocked::receive', this.returnData(sender, {notIgnored: true}));
+      return;
+    }
+    this.server.emit('unblocked::receive', this.returnData(sender, await this.ignoreService.remove(users[0], users[1])));
   }
   //#endregion Blocked user
 

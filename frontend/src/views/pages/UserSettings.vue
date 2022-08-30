@@ -97,7 +97,7 @@ export default ({
 	setup ()
 	{
 		const TFAActivating = ref(false);
-		const paddleSelected = ref('Normal');
+		// const paddleSelected = ref('Normal');
 		const disableInput = ref(false);
 		const inputColor = ref('blue');
 		const me = ref({});
@@ -105,6 +105,8 @@ export default ({
 		function onActivate2FA ()
 		{
 			TFAActivating.value = true;
+			disableInput.value = false;
+			inputColor.value = 'blue';
 		}
 
 		function onDeactivate2FA ()
@@ -139,7 +141,7 @@ export default ({
 		});
 
 		return {
-			paddleSelected,
+			// paddleSelected,
 			TFAActivating,
 			disableInput,
 			inputColor,
@@ -148,10 +150,10 @@ export default ({
 			onActivate2FA,
 			onDeactivate2FA,
 			update,
-			GameOptionsSubmit ()
-			{
-				console.log(paddleSelected.value);
-			},
+			// GameOptionsSubmit ()
+			// {
+			// console.log(paddleSelected.value);
+			// },
 			deleteAccount ()
 			{
 				console.log('User deleted their account');

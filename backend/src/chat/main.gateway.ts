@@ -93,36 +93,46 @@ export class MainGateway implements NestGateway
     this.logger.log(`Client ${sender.id} ask for his user id`);
     this.server.emit('pong', {
       socketId: sender.id,
-      id: req.user.id
+      id: (req.user) ? req.user.id : 0
     });
   }
   //#endregion Handshake
 
   //#region Blocked user
   @Bind(MessageBody(), ConnectedSocket())
-  @SubscribeMessage('blocked')
+  @SubscribeMessage('blocked::add')
   async blockedUser(blocked: blockedUser, sender: Socket) {
     this.logger.log(`Client ${sender.id} block ${blocked.blockedId}`);
     const users = [await this.userService.getOne(blocked.id), await this.userService.getOne(blocked.blockedId)];
     if (await this.ignoreService.alreadyIgnored(users[0], users[1]))
     {
-      this.server.emit('blocked::receive', this.returnData(sender, {alreadyIgnore: true}));
+      this.server.emit('blocked::receive::add', this.returnData(sender, { alreadyBlocked: true }));
       return;
     }
-    this.server.emit('blocked::receive', this.returnData(sender, await this.ignoreService.create(users[0], users[1])));
+    this.server.emit('blocked::receive::add', this.returnData(sender, await this.ignoreService.create(users[0], users[1])));
   }
 
   @Bind(MessageBody(), ConnectedSocket())
-  @SubscribeMessage('unblocked')
+  @SubscribeMessage('blocked::remove')
   async unblockedUser(blocked: blockedUser, sender: Socket) {
-    this.logger.log(`Client ${sender.id} unblock ${blocked.blockedId}`);
+    this.logger.log(`Client ${sender.id} remove ${blocked.blockedId}`);
     const users = [await this.userService.getOne(blocked.id), await this.userService.getOne(blocked.blockedId)];
     if (!await this.ignoreService.alreadyIgnored(users[0], users[1]))
     {
-      this.server.emit('unblocked::receive', this.returnData(sender, {notIgnored: true}));
+      this.server.emit('blocked::receive::remove', this.returnData(sender, { notBlocked: true }));
       return;
     }
-    this.server.emit('unblocked::receive', this.returnData(sender, await this.ignoreService.remove(users[0], users[1])));
+    this.server.emit('blocked::receive::remove', this.returnData(sender, {
+      deleted: await this.ignoreService.remove(users[0], users[1]),
+      target: users[1]
+    }));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('blocked::get')
+  async getBlocked(userId: number, sender: Socket) {
+    this.logger.log(`Client ${sender.id} get blocked user(s)`);
+    this.server.emit('blocked::receive::get', this.returnData(sender, await this.ignoreService.findAll(await this.userService.getOne(userId))));
   }
   //#endregion Blocked user
 

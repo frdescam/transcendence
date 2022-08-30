@@ -52,6 +52,7 @@
 				v-bind:key="message.id"
 			>
 				<q-chat-message
+					v-if="!blockedUser.includes(message.user.id)"
 					:sent="userId === message.user.id"
 					text-color="white"
 					:bg-color="(userId === message.user.id) ? 'cyan-8' : 'blue-8'"
@@ -118,6 +119,7 @@ interface arrayInterface {
 	timestamp: string,
 	modified: Date
 }
+
 interface messageInterface {
 	user: {
 		id: number,
@@ -133,6 +135,7 @@ export default defineComponent({
 	props: [
 		'selectedChannelBanMut',
 		'selectedChannel',
+		'blockedUser',
 		'userUpdate',
 		'userId'
 	],
@@ -525,6 +528,8 @@ export default defineComponent({
 
 		onMounted(() =>
 		{
+			if (props.userId > 0)
+				socket.emit('blocked::get', props.userId);
 			watch(() => props.selectedChannel, () =>
 			{
 				if (!props.selectedChannel.isDeleted)

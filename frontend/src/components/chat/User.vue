@@ -58,6 +58,19 @@
 					</q-item-section>
 					<q-item-section>{{ $t('chat.user.sendMessage') }}</q-item-section>
 				</q-item>
+
+				<q-item
+					clickable
+					@click="blocked(); mpMemu?.hide();"
+				>
+					<q-item-section avatar>
+						<q-icon v-if="!userIsBlocked" name="person_add" />
+						<q-icon v-else name="person_remove" />
+					</q-item-section>
+					<q-item-section v-if="!userIsBlocked">{{ $t('chat.user.block') }}</q-item-section>
+					<q-item-section v-else>{{ $t('chat.user.unblock') }}</q-item-section>
+				</q-item>
+
 				<q-item
 					clickable
 					@click="dialogInvitationCreatorShow = true; mpMemu?.hide(); "
@@ -102,6 +115,7 @@ export default defineComponent({
 	props: [
 		'selectedChannelBanMut',
 		'selectedChannel',
+		'blockedUser',
 		'userId'
 	],
 	components: {
@@ -119,6 +133,7 @@ export default defineComponent({
 
 		const mpMemu = ref<QMenu | null>(null);
 		const userSelected = ref<number>(-1);
+		const userIsBlocked = ref<boolean>(false);
 
 		const dialogInvitationCreatorShow = ref(false);
 		const dialogCreatorName = ref();
@@ -189,6 +204,7 @@ export default defineComponent({
 					Number(target.getAttribute('data-id')) !== props.userId)
 				{
 					userSelected.value = Number(target.getAttribute('data-id'));
+					userIsBlocked.value = props.blockedUser.includes(userSelected.value);
 					const iCreator = findIndex(props.userId);
 					const iInvite = findIndex(userSelected.value);
 					if (iCreator !== -1)
@@ -229,6 +245,26 @@ export default defineComponent({
 			});
 		};
 		// #endregion
+
+		// #region Blocked
+		const blocked = () =>
+		{
+			if (props.blockedUser.includes(userSelected.value))
+			{
+				socket.emit('blocked::remove', {
+					id: props.userId,
+					blockedId: userSelected.value
+				});
+			}
+			else
+			{
+				socket.emit('blocked::add', {
+					id: props.userId,
+					blockedId: userSelected.value
+				});
+			}
+		};
+		// #endregion Blocked
 
 		// #region Users
 		socket.on('channel::user::receive::add', (ret) =>
@@ -310,8 +346,11 @@ export default defineComponent({
 
 			mpMemu,
 			userSelected,
+			userIsBlocked,
 			openMpMenu,
 			sendMP,
+
+			blocked,
 
 			dialogProfilShow,
 			dialogProfilUser,

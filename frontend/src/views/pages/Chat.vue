@@ -17,6 +17,7 @@
 			<chatChannel
 				:selectedChannelBanMut="selectedChannelBanMut"
 				:selectedChannel="selectedChannel"
+				:blockedUser="blockedUser"
 				:userUpdate="userUpdate"
 				:userId="user"
 			></chatChannel>
@@ -25,6 +26,7 @@
 			<userChannel
 				:selectedChannelBanMut="selectedChannelBanMut"
 				:selectedChannel="selectedChannel"
+				:blockedUser="blockedUser"
 				:userId="user"
 			></userChannel>
 		</div>
@@ -36,7 +38,7 @@ import channelChannel from 'src/components/chat/Channel.vue';
 import userChannel from 'src/components/chat/User.vue';
 import chatChannel from 'src/components/chat/Chat.vue';
 import { Socket } from 'socket.io-client';
-import { defineComponent, inject, onBeforeMount, ref } from 'vue';
+import { defineComponent, inject, onBeforeMount, ref, watch } from 'vue';
 
 interface channelMutBan {
 	user: number,
@@ -84,6 +86,7 @@ export default defineComponent({
 			value: false
 		});
 		const user = ref(0);
+		const blockedUser = ref<number[]>([]);
 
 		const mutBanChannel = (ret: channelMutBan) =>
 		{
@@ -97,6 +100,49 @@ export default defineComponent({
 		{
 			userUpdate.value = ret;
 		};
+
+		// #region Check if error with socket
+		socket.on('connect_error', () =>
+		{
+			console.log('erreur, au secours !');
+		});
+		// #endregion  Check if error with socket
+
+		// #region Blocked user
+		watch(() => user.value, () => socket.emit('blocked::get', user.value));
+
+		socket.on('blocked::receive::get', (ret) =>
+		{
+			if (!ret || ret.socketId !== socket.id)
+				return;
+			blockedUser.value.length = 0;
+			if (ret.data.length)
+			{
+				for (const el of ret.data)
+					blockedUser.value.push(el.target.id);
+			}
+		});
+
+		socket.on('blocked::receive::add', (ret) =>
+		{
+			if (!ret || ret.socketId !== socket.id)
+				return;
+			if (Object.prototype.hasOwnProperty.call(ret.data, 'alreadyBlocked'))
+				return;
+			blockedUser.value.push(ret.data.target.id);
+		});
+
+		socket.on('blocked::receive::remove', (ret) =>
+		{
+			if (!ret || ret.socketId !== socket.id)
+				return;
+			if (Object.prototype.hasOwnProperty.call(ret.data, 'notBlocked') || ret.data.deleted === false)
+				return;
+			const i = blockedUser.value.indexOf(ret.data.target.id);
+			if (i !== -1)
+				blockedUser.value.splice(i, 1);
+		});
+		// #endregion
 
 		// #region Get user id
 		onBeforeMount(() => socket.emit('ping'));
@@ -112,6 +158,7 @@ export default defineComponent({
 			selectedChannelBanMut,
 			user,
 			userUpdate,
+			blockedUser,
 
 			mutBanChannel,
 			channelChanged,

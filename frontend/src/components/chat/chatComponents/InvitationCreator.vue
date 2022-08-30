@@ -89,7 +89,7 @@ export default defineComponent({
 		const isAccepted = ref<boolean | null>(null);
 
 		for (const key in maps)
-			selectOptions.push(key);
+			selectOptions.push(maps[key].name);
 		selectedMap.value = selectOptions[0];
 
 		const selected = (val: boolean) =>

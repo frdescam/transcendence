@@ -131,7 +131,9 @@ export default {
 			profile: 'Voir le profil',
 			xp: 'xp',
 			sendMessage: 'Envoyer un message',
-			invite: 'Envoyer une invitation à jouer'
+			invite: 'Envoyer une invitation à jouer',
+			block: 'Bloquer l\'utilisateur',
+			unblock: 'Débloquer l\'utilisateur'
 		},
 		editor: {
 			image: 'Image',

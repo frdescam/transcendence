@@ -51,7 +51,7 @@ export class AuthController {
     {
         let user : User = await this.auth_svc.login({id: id});
 
-        console.log(user, id);
+        // console.log(user, id);
         if (!user)
         {
             const reg : AuthDto = {

@@ -132,6 +132,7 @@ export class UserController {
 	  }
 
     // use POST and validation pipes
+    // THIS WILL BREAK CHANGE BACK TO match/get/:id
     @UseGuards(JwtAuthGuard)
     @Get('match/:id') // add ParseIntPipe to validate id // is this useful?
 	  async getMatches(@Param('id') id: number): Promise<User> {
@@ -145,7 +146,7 @@ export class UserController {
       return sanitized_user;
 	  }
 
-  
+    // test for matches
     @UseGuards(JwtAuthGuard)
     @Get(':id') // add ParseIntPipe to validate id // is this useful?
 	  async findOne(@Param('id') id: number): Promise<User> {
@@ -159,6 +160,20 @@ export class UserController {
 
       // console.log(target);
       return sanitized_user;
+	  }
+
+    // this could be problematic
+    @UseGuards(JwtAuthGuard)
+    @Post('match/create')
+	  async matches(@AuthUser() user: User, @Body() obj: any,){
+      return this.channelService.createMockupMatch(user, obj);
+	  }
+
+    // this could be problematic
+    @UseGuards(JwtAuthGuard)
+    @Get('match/achievs') // add ParseIntPipe to validate id // is this useful?
+	  async checkmatches(@AuthUser() user: User){
+      return this.channelService.checkAchievement(user.id);
 	  }
 
   @UseGuards(JwtAuthGuard)

@@ -6,6 +6,7 @@ import { AuthDto } from '../../auth/dto';
 import { UserDTO } from '../orm/user.dto';
 import { User } from '../orm/user.entity';
 import { Match } from 'src/match/orm/match.entity';
+import { AchievementsEnumName, Achievements} from '../orm/achievements.dto';
 
 @Injectable({})
 export class UserService {
@@ -121,9 +122,96 @@ export class UserService {
 			where: {
 				id: id,
 			},
-			relations: ['matchesHome', 'matchesForeign']
+			relations: ['matchesHome', 'matchesForeign', 'matchesWon'] // should we add matches won?
 		});
 	}
+
+  //#region achievements
+  async createMockupMatch(user: User, obj: any) {
+    const enemy : User = await this.findOne({id : obj.ene});
+    const winner : User = await this.findOne({id : obj.win});
+    const match = this.matchRepository.create({
+      map : 'classic',
+      userHome : user,
+      userForeign : enemy,
+      winner : winner,
+      ...obj,
+      timestamp : new Date(Date.now()).toLocaleString(),
+    });
+    await this.matchRepository.save(match);
+    // this.checkAchievement(user);
+    // console.log(match);
+    return match;
+  }
+
+  async checkAchievement(userId: number) { // add return type
+    // add achievements -> $10 games played, $7 - 0  zapatero (win without taking a goal), $play 100 games, $win 10 games, $win 11 - 10, get to lv 1?, completionist
+    // check if user already has the achiev (in db), if he has stop, check if he has all of em then stop
+    const user : User = (await this.userRepository.findOne(userId, {relations: ['matchesHome', 'matchesForeign', 'matchesWon']}));
+    // console.log(await this.matchRepository.find({where: [
+    //   { userForeign: user},
+    //   { userHome: user}
+    // ], relations: ['userHome', 'userForeign', 'winner']}));
+    // this.userRepository.update(user, {achievements : []});
+    // user.achievements.splice(user.achievements.indexOf(AchievementsEnumName.COMPLETE), 1);
+    // console.log(user.matchesForeign && user.matchesForeign.length >= 0);
+    if ((user.matchesForeign && user.matchesForeign.length === 0 && user.matchesHome && user.matchesHome.length === 0) || (user.achievements && user.achievements.includes(AchievementsEnumName.COMPLETE)))
+      return ; // stop checking for achievs no games played no achievs
+    // console.log(user.matchesForeign && user.matchesForeign.length >= 0);
+    const wins : Match[] = user.matchesWon;
+    const home : Match[] = user.matchesHome;
+    const foreign : Match[] = user.matchesForeign;
+    if (!user.achievements.includes(AchievementsEnumName.ZAPATERO) || !user.achievements.includes(AchievementsEnumName.CLOSE))
+    {
+      for (let index = 0; index < wins.length; index++) {
+        const element = wins[index];
+        if ((!user.achievements.includes(AchievementsEnumName.ZAPATERO)) && element.userHomeScore === 11 && element.userForeignScore === 0 || element.userHomeScore === 0 && element.userForeignScore === 11)
+        {
+          // console.log('achiev 11 - 0 win');
+          user.achievements.push(AchievementsEnumName.ZAPATERO);
+          this.userRepository.save(user);
+        }
+        if ((!user.achievements.includes(AchievementsEnumName.CLOSE)) && element.userHomeScore === 11 && element.userForeignScore === 10 || element.userHomeScore === 10 && element.userForeignScore === 11)
+        {
+          // console.log('achiev 11 - 10 win');
+          user.achievements.push(AchievementsEnumName.CLOSE);
+          this.userRepository.save(user);
+        }
+      }
+    }
+    if ((!user.achievements.includes(AchievementsEnumName.TEN_GAMES)) && home.length + foreign.length >= 10)
+    {
+      // console.log('achiev play 10 games');
+      user.achievements.push(AchievementsEnumName.TEN_GAMES);
+      this.userRepository.save(user);
+    }
+    if ((!user.achievements.includes(AchievementsEnumName.TEN_WINS)) && wins.length >= 10)
+    {
+      // console.log('achiev win 10 games');
+      user.achievements.push(AchievementsEnumName.TEN_WINS);
+      this.userRepository.save(user);
+    }
+    if ((!user.achievements.includes(AchievementsEnumName.HUNDRED_GAMES)) && home.length + foreign.length >= 100)
+    {
+      // console.log('achiev play 100 games');
+      user.achievements.push(AchievementsEnumName.HUNDRED_GAMES);
+      this.userRepository.save(user);
+    }
+    if ((!user.achievements.includes(AchievementsEnumName.LEVEL_ONE)) && user.xp >= 10)
+    {
+      // console.log('achiev lv 1');
+      user.achievements.push(AchievementsEnumName.LEVEL_ONE);
+      this.userRepository.save(user);
+    }
+    if ((!user.achievements.includes(AchievementsEnumName.COMPLETE)) && user.achievements.length >= 6)
+    {
+      // console.log('achiev complete');
+      user.achievements.push(AchievementsEnumName.COMPLETE);
+      this.userRepository.save(user);
+    }
+    return user;
+  }
+  //#endregion
 
     // need to test more!
     // and use this when changing pseudo too not just register
@@ -248,6 +336,8 @@ async updateUserStats(userId: number) {
     });
 
     this.updateRanks(userId);
+    this.checkAchievement(userId);
+    // here call checkAchievs
 }
   
   //#region Part Clément

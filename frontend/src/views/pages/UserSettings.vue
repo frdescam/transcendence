@@ -1,5 +1,5 @@
 <template>
-  <q-list class="row justify-evenly shadow-2 rounded-borders">
+  <q-list class="row justify-evenly shadow-2 rounded-borders bg-white">
     <q-toolbar>
       <q-toolbar-title class="q-ml-lg q-mt-md">Settings:</q-toolbar-title>
     </q-toolbar>

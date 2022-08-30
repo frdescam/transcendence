@@ -149,7 +149,7 @@ const routes: RouteRecordRaw[] = [
 
 	{
 		path: '/settings',
-		component: () => import('src/views/layouts/None.vue'),
+		component: () => import('src/views/layouts/Standard.vue'),
 		children: [{ path: '', name: 'settings', component: () => import('src/views/pages/UserSettings.vue') }],
 		meta: {
 			...(backgrounds.dj_tweak)

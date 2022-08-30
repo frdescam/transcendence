@@ -1,7 +1,7 @@
 <template>
 	<None>
 		<q-page class="row items-center justify-center" padding>
-      <router-view />
+			<router-view />
 		</q-page>
 	</None>
 </template>

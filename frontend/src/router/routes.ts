@@ -40,6 +40,10 @@ const backgrounds = {
 	gaming: {
 		background: '/bg/alexey-savchenko-k4Akpt5-Sfk-unsplash.jpg',
 		backgroundColor: '#26262e'
+	},
+	ft_login: {
+		background: '/bg/42-login.png',
+		backgroundColor: '#2e849b'
 	}
 };
 
@@ -119,13 +123,19 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/login',
 		component: () => import('src/views/layouts/None.vue'),
-		children: [{ path: '', name: 'login', component: () => import('src/views/pages/LoginPage.vue') }]
+		children: [{ path: '', name: 'login', component: () => import('src/views/pages/LoginPage.vue') }],
+		meta: {
+			...(backgrounds.ft_login)
+		}
 	},
 
 	{
 		path: '/login/2FA',
 		component: () => import('src/views/layouts/None.vue'),
-		children: [{ path: '', name: '2FA', component: () => import('src/views/pages/2FA.vue') }]
+		children: [{ path: '', name: '2FA', component: () => import('src/views/pages/2FA.vue') }],
+		meta: {
+			...(backgrounds.ft_login)
+		}
 	},
 
 	{

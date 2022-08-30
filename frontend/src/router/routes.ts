@@ -109,7 +109,7 @@ const routes: RouteRecordRaw[] = [
 
 	{
 		path: '/friends',
-		component: () => import('src/views/layouts/None.vue'),
+		component: () => import('src/views/layouts/Standard.vue'),
 		children: [{ path: '', name: 'friends', component: () => import('src/views/pages/Friends.vue') }],
 		meta: {
 			...(backgrounds.cactus)

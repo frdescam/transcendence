@@ -1,5 +1,5 @@
 <template>
-  <q-list class="row justify-evenly shadow-2 rounded-borders">
+  <q-list class="row justify-evenly shadow-2 rounded-borders bg-white">
     <q-toolbar class="row justify-evenly q-my-lg">
       <profileHeader :user="user"></profileHeader>
     </q-toolbar>

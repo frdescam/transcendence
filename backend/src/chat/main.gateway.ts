@@ -7,11 +7,11 @@ import {
 } from '@nestjs/websockets';
 import cors from 'src/cors';
 import { NestGateway } from '@nestjs/websockets/interfaces/nest-gateway.interface';
-import { Bind, Logger, UseGuards } from '@nestjs/common';
+import { Bind, Logger, Request, UseGuards } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import * as crypto from 'crypto';
 import * as sanitizeHtml from 'sanitize-html';
-import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
+import { WsJwtGuard } from 'src/auth/guards/ws-jwt.guard';
 import {
   admBanMut,
   blockedUser,
@@ -45,7 +45,7 @@ const getType = (type: string) => {
   return temp;
 };
 
-//@UseGuards(SocketMockupAuthGuard)
+// @UseGuards(WsJwtGuard)
 @WebSocketGateway({
   namespace: 'chat::',
   cors
@@ -82,6 +82,19 @@ export class MainGateway implements NestGateway
       data
     };
   }
+
+  //#region Handshake
+  @Bind(ConnectedSocket(), Request())
+  @SubscribeMessage('ping')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async handshake(sender: Socket, req: any) {
+    this.logger.log(`Client ${sender.id} ask for his user id`);
+    this.server.emit('pong', {
+      socketId: sender.id,
+      id: req.user.id
+    });
+  }
+  //#endregion Handshake
 
   //#region Blocked user
   @Bind(MessageBody(), ConnectedSocket())

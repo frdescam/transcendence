@@ -1,9 +1,8 @@
 <template>
-	{{ socketid }}
 	<div>
 		<q-radio v-model="user" :val="Number(1)">Clément user</q-radio>
-		<q-radio v-model="user" :val="Number(3)">John user</q-radio>
-		<q-radio v-model="user" :val="Number(4)">Titi user</q-radio>
+		<q-radio v-model="user" :val="Number(2)">John user</q-radio>
+		<q-radio v-model="user" :val="Number(3)">Titi user</q-radio>
 	</div>
 	<q-page class="row no-wrap justify-between items-stretch content-stretch">
 		<div class="col-3 channel">
@@ -37,7 +36,7 @@ import channelChannel from 'src/components/chat/Channel.vue';
 import userChannel from 'src/components/chat/User.vue';
 import chatChannel from 'src/components/chat/Chat.vue';
 import { Socket } from 'socket.io-client';
-import { defineComponent, ref, inject } from 'vue';
+import { defineComponent, inject, onBeforeMount, ref } from 'vue';
 
 interface channelMutBan {
 	user: number,
@@ -68,8 +67,6 @@ export default defineComponent({
 	setup ()
 	{
 		const socket: Socket = inject('socketChat') as Socket;
-
-		const socketid = ref(socket.id);
 		const selectedChannel = ref<channelInterface>({
 			id: 0,
 			socketId: '',
@@ -86,26 +83,31 @@ export default defineComponent({
 			user: -1,
 			value: false
 		});
-
-		const user = ref(1);
+		const user = ref(0);
 
 		const mutBanChannel = (ret: channelMutBan) =>
 		{
 			selectedChannelBanMut.value = ret;
 		};
-
 		const channelChanged = (ret: channelInterface) =>
 		{
 			selectedChannel.value = ret;
 		};
-
 		const channelUpdate = (ret: userUpdateInterface) =>
 		{
 			userUpdate.value = ret;
 		};
 
+		// #region Get user id
+		onBeforeMount(() => socket.emit('ping'));
+		socket.on('pong', (ret) =>
+		{
+			if (ret.socketId === socket.id)
+				user.value = ret.id;
+		});
+		// #endregion Get user id
+
 		return {
-			socketid,
 			selectedChannel,
 			selectedChannelBanMut,
 			user,

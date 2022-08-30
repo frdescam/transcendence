@@ -14,15 +14,15 @@ export class AuthService {
     if (!user)
       return undefined;
 
-	  if (user_dto.refresh_token && !(user_dto.refresh_token === user.refresh_token))
-	 	  return undefined;
+    if (user_dto.refresh_token && !(user_dto.refresh_token === user.refresh_token))
+      return undefined;
 
     return user;
   }
 
   //erase later
   async test_users(user_dto: AuthDto) {
-      // this.users_svc.
+    // this.users_svc.
   }
   //erase later
 
@@ -31,12 +31,12 @@ export class AuthService {
   }
 
   async refresh(user: User, token: string): Promise<void> {
-		await this.users_svc.setRefreshToken(user, token);
-	}
+    await this.users_svc.setRefreshToken(user, token);
+  }
 
   async status(user: User, status: boolean): Promise<void> {
-		await this.users_svc.setStatus(user, status);
-	}
+    await this.users_svc.setStatus(user, status);
+  }
 
   async logout(user: User): Promise<void> {
     return this.users_svc.setRefreshToken(user, null);

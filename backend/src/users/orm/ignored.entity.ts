@@ -5,17 +5,17 @@ import { User } from 'src/users/orm/user.entity';
 @Entity()
 export class Ignore extends BaseEntity {
     @PrimaryGeneratedColumn()
-    id: number;
+      id: number;
 
 	@ManyToOne(() => User, (user) => user.blockedUsers, {
-		// nullable: false,
-		eager: true,
+	  // nullable: false,
+	  eager: true,
 	})
-	user: User;
+	  user: User;
 
 	@ManyToOne(() => User, (user) => user.blockedUsersBy, {
-		// nullable: false,
-		eager: true,
+	  // nullable: false,
+	  eager: true,
 	})
-	target: User;
+	  target: User;
 }

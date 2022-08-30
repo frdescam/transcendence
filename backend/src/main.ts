@@ -5,7 +5,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cors from './cors';
 import { HttpExceptionFilter, NotFoundExceptionFilter } from './filter';
-import { ValidationPipe } from '@nestjs/common';
 
 (async () =>
 {
@@ -13,7 +12,7 @@ import { ValidationPipe } from '@nestjs/common';
     logger: (process.env.NODE_ENV === 'production')
       ? false
       : ['log', 'error', 'warn', 'debug', 'verbose'],
-      cors
+    cors
   });
   app.use(cookieParser());
   app.useGlobalFilters(new HttpExceptionFilter());

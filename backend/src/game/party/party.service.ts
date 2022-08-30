@@ -525,7 +525,7 @@ export class PartyService
             if (!user)
             {
               if (party.playersSocket[slot])
-                this.sendError("Failed to retreive your avatar", party.playersSocket[slot]);
+                this.sendError('Failed to retreive your avatar', party.playersSocket[slot]);
               return ;
             }
             const avatars = party.state.avatars.slice() as [string, string];
@@ -962,7 +962,7 @@ export class PartyService
         this.handlePartyChange(party, {}, true);
         this.wireMatchingQuery(party);
 
-        if (userIds[1] && (typeof disableInvitation === "undefined" || disableInvitation === false))
+        if (userIds[1] && (typeof disableInvitation === 'undefined' || disableInvitation === false))
         {
           /*
 @TODO: Should send invitation to userIds[1]

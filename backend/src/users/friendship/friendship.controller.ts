@@ -15,62 +15,62 @@ class friendDto {
 	@IsNotEmpty()
 	@IsPositive()
 	@IsInt()
-	id?: number;
+	  id?: number;
 }
 
 @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe({ whitelist: true }))
 @Controller('friends')
 export class FriendshipController {
-	constructor(
+  constructor(
 		private readonly friendshipService: FriendshipService,
 		private readonly userService: UserService,
-	) {}
+  ) {}
 
 	@Post()
-	async create(
+  async create(
 		@AuthUser() user: User,
 		@Body() friendDto: friendDto,
-	): Promise<Friend> {
-		const target: User = await this.userService.findOneComplete({
-			id: friendDto.id,
-		});
+  ): Promise<Friend> {
+    const target: User = await this.userService.findOneComplete({
+      id: friendDto.id,
+    });
 
-		if (!target)
-			throw new NotFoundException('User not found.');
+    if (!target)
+      throw new NotFoundException('User not found.');
 
-		if (user.id === target.id)
-			throw new ForbiddenException('You can\'t add yourself.');
+    if (user.id === target.id)
+      throw new ForbiddenException('You can\'t add yourself.');
 
-		const friendship: Friend = await this.friendshipService.findOneOr(
-			user,
-			target,
-		);
+    const friendship: Friend = await this.friendshipService.findOneOr(
+      user,
+      target,
+    );
 
-		if (!friendship)
-			return this.friendshipService.add(user, target);
+    if (!friendship)
+      return this.friendshipService.add(user, target);
 
 
-		if (friendship.user.id === user.id)
-			return this.friendshipService.sanitizeFriend(friendship);
+    if (friendship.user.id === user.id)
+      return this.friendshipService.sanitizeFriend(friendship);
 
-		friendship.isPending = false;
+    friendship.isPending = false;
 
-		return this.friendshipService.update(friendship);
-	}
+    return this.friendshipService.update(friendship);
+  }
 
 	@Get('accepted')
 	async findAllAccepted(
 		@AuthUser() user: User,
 	) {
-		return this.friendshipService.findAllOrWithAccepted(user, false);
+	  return this.friendshipService.findAllOrWithAccepted(user, false);
 	}
 
 	@Get('pending')
 	async findAllPending(
 		@AuthUser() user: User,
 	) {
-		return this.friendshipService.findAllOrWithAccepted(user, true);
+	  return this.friendshipService.findAllOrWithAccepted(user, true);
 	}
 
 	@Delete('delete')
@@ -78,13 +78,13 @@ export class FriendshipController {
 		@AuthUser() user: User,
 		@Body() friendDto: friendDto,
 	): Promise<boolean> {
-		const target: User = await this.userService.findOneComplete({
-			id: friendDto.id,
-		});
+	  const target: User = await this.userService.findOneComplete({
+	    id: friendDto.id,
+	  });
 
-		if (!target)
-			throw new NotFoundException('User not found.');
+	  if (!target)
+	    throw new NotFoundException('User not found.');
 
-		return this.friendshipService.remove(user, target);
+	  return this.friendshipService.remove(user, target);
 	}
 }

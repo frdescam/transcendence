@@ -3,7 +3,7 @@
 .fade-right-enter-active,
 .fade-right-leave-active
 {
-	transition: opacity 400ms linear, transform 400ms ease-in-out;
+	transition: opacity $animate-duration linear, transform $animate-duration ease-in-out;
 }
 .fade-left-enter-from,
 .fade-left-leave-to,

@@ -1,39 +1,37 @@
 <template>
-	<div class="q-pa-md">
-		<q-table
-			title="Leaderboard"
-			:rows="rows"
-			:columns="columns"
-			row-key="rank"
-			v-model:pagination="pagination"
-			:loading="loading"
-			:filter="filter"
-			@request="refreshData"
-			@row-click="onRowClick"
-			binary-state-sort
-		>
-			<template v-slot:top-right>
-				<q-toggle class="q-mr-lg"
-					label="Only friends"
-					color="blue"
-					@update:model-value="onFriendsOnlyChanged"
-					v-model="friendsOnly"
-				/>
-				<q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
-					<template v-slot:append>
-						<q-icon name="search" />
-					</template>
-				</q-input>
-			</template>
-			<template #body-cell-avatar="props">
-				<q-td :props="props">
-					<q-avatar :props="props">
-						<img :src=props.value>
-					</q-avatar>
-				</q-td>
-		</template>
-		</q-table>
-	</div>
+  <q-table
+    title="Leaderboard"
+    :rows="rows"
+    :columns="columns"
+    row-key="rank"
+    v-model:pagination="pagination"
+    :loading="loading"
+    :filter="filter"
+    @request="refreshData"
+    @row-click="onRowClick"
+    binary-state-sort
+  >
+    <template v-slot:top-right>
+      <q-toggle class="q-mr-lg"
+        label="Only friends"
+        color="blue"
+        @update:model-value="onFriendsOnlyChanged"
+        v-model="friendsOnly"
+      />
+      <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
+        <template v-slot:append>
+          <q-icon name="search" />
+        </template>
+      </q-input>
+    </template>
+    <template #body-cell-avatar="props">
+      <q-td :props="props">
+        <q-avatar :props="props">
+          <img :src=props.value>
+        </q-avatar>
+      </q-td>
+  </template>
+  </q-table>
 </template>
 
 <script>

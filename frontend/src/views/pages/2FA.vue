@@ -1,5 +1,5 @@
 <template>
-	<q-page class="row items-center justify-center" style="background-image: url(/background.png); background-position: center; background-size: cover; background-repeat: no-repeat;">
+	<q-page class="row items-center justify-center">
 		<q-card style="width: 300px; height: 200px" class="justify-center items-center">
 			<q-form class="column justify-evenly items-center full-height">
 				<q-input @update:model-value="update" :disable="disableInput" :color="inputColor" :autofocus=true mask="######" label="Enter 2FA code :"></q-input>

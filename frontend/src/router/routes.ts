@@ -1,5 +1,6 @@
 import { api } from 'src/boot/axios';
 import { RouteRecordRaw } from 'vue-router';
+import type { LayoutTabs } from 'src/views/layouts/Tabs';
 
 const backgrounds = {
 	cactus: {
@@ -69,19 +70,31 @@ const routes: RouteRecordRaw[] = [
 
 	{
 		path: '/play',
-		component: () => import('src/views/layouts/None.vue'),
-		children: [{ path: '', name: 'play', component: () => import('src/views/pages/GameCreation.vue') }],
+		component: () => import('src/views/layouts/Tabs.vue'),
+		children: [
+			{ path: '', name: 'play', component: () => import('src/views/pages/GameCreation.vue') },
+			{ path: 'create', name: 'play-create', component: () => import('src/views/pages/GameCreation.vue') },
+			{ path: 'list', name: 'play-list', component: () => import('src/views/pages/List.vue') }
+		],
 		meta: {
-			...(backgrounds.gaming)
-		}
-	},
-
-	{
-		path: '/play/list',
-		component: () => import('src/views/layouts/Standard.vue'),
-		children: [{ path: '', name: 'gamelist', component: () => import('src/views/pages/List.vue') }],
-		meta: {
-			...(backgrounds.gaming_alt)
+			...(backgrounds.gaming),
+			tabs: [
+				{
+					icon: 'sports_esports',
+					label: 'Matching',
+					route: { name: 'play' }
+				},
+				{
+					icon: 'add_circle',
+					label: 'Create',
+					route: { name: 'play-create' }
+				},
+				{
+					icon: 'list',
+					label: 'Explore',
+					route: { name: 'play-list' }
+				}
+			] as LayoutTabs
 		}
 	},
 

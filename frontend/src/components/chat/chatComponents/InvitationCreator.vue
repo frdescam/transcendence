@@ -52,7 +52,7 @@
 
 <script lang="ts">
 import { QDialog } from 'quasar';
-import { AxiosInstance } from 'axios';
+// import { AxiosInstance } from 'axios';
 import { Socket } from 'socket.io-client';
 import { useRouter } from 'vue-router';
 import { defineComponent, ref, inject, watch } from 'vue';
@@ -73,7 +73,7 @@ export default defineComponent({
 	beforeUnmount: () => clearTimeout(timeout),
 	setup: (props, { emit }) =>
 	{
-		const axios: AxiosInstance = inject('api') as AxiosInstance;
+		// const axios: AxiosInstance = inject('api') as AxiosInstance;
 		const socket: Socket = inject('socketChat') as Socket;
 		const router = useRouter();
 

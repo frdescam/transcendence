@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { route } from 'quasar/wrappers';
 import {
 	createMemoryHistory,

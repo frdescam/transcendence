@@ -72,7 +72,7 @@ const routes: RouteRecordRaw[] = [
 		path: '/play',
 		component: () => import('src/views/layouts/Tabs.vue'),
 		children: [
-			{ path: '', name: 'play', component: () => import('src/views/pages/GameCreation.vue') },
+			{ path: '', name: 'play', component: () => import('src/views/pages/GameMatching.vue') },
 			{ path: 'create', name: 'play-create', component: () => import('src/views/pages/GameCreation.vue') },
 			{ path: 'list', name: 'play-list', component: () => import('src/views/pages/List.vue') }
 		],

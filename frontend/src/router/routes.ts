@@ -46,7 +46,7 @@ const backgrounds = {
 const routes: RouteRecordRaw[] = [
 	{
 		path: '/',
-		component: () => import('src/views/layouts/None.vue'),
+		component: () => import('src/views/layouts/Standard.vue'),
 		children: [{ path: '', name: 'home', component: () => import('src/views/pages/WelcomePage.vue') }],
 		meta: {
 			...(backgrounds.sunset_tree)

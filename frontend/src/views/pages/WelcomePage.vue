@@ -1,54 +1,52 @@
 <template>
-	<q-page class="row items-start justify-evenly">
-		<q-list class="row q-ma-md justify-evenly shadow-2 rounded-borders">
-			<q-toolbar class="row justify-evenly q-my-lg">
-				<profileHeader :user="user"></profileHeader>
-			</q-toolbar>
-			<q-list bordered class="rounded-borders">
-				<q-item clickable v-ripple>
-					<q-item-section>
-						friend one
-					</q-item-section>
-				</q-item>
+  <q-list class="row justify-evenly shadow-2 rounded-borders">
+    <q-toolbar class="row justify-evenly q-my-lg">
+      <profileHeader :user="user"></profileHeader>
+    </q-toolbar>
+    <q-list bordered class="rounded-borders">
+      <q-item clickable v-ripple>
+        <q-item-section>
+          friend one
+        </q-item-section>
+      </q-item>
 
-				<q-item clickable v-ripple>
-					<q-item-section>
-						Friend two
-					</q-item-section>
-				</q-item>
+      <q-item clickable v-ripple>
+        <q-item-section>
+          Friend two
+        </q-item-section>
+      </q-item>
 
-				<q-item clickable v-ripple>
-					<q-item-section>
-						Friend three
-					</q-item-section>
-				</q-item>
-			</q-list>
-			<q-list class="column q-mt-md">
-				<q-btn class="q-mb-md" :to="{ path: '/play' }" color="primary">Start a game</q-btn>
-				<q-btn class="q-mb-md" :to="{ path: '/chat' }" color="primary">Chat with your friends</q-btn>
-			</q-list>
-			<q-list class="column q-mt-md">
-				<q-btn class="q-mb-md" :to="{ path: '/leaderboard' }" color="primary">Checkout your score on the
-					leaderboard</q-btn>
-				<q-btn class="q-mb-xs" :to="{ path: '/settings' }" color="primary">Edit your settings</q-btn>
-			</q-list>
-		</q-list>
-		<q-dialog v-model="firstConnection">
-			<div class="column items-center q-pa-md" style="background-color: white; max-width: 400px;">
-				<h5 class="q-ma-md">You can edit your pseudo and profile picture right here:</h5>
-				<q-card bordered style='width: 300px;' class="q-ma-md">
-					<q-card-section>
-						<pseudoEditing :username='user.pseudo'></pseudoEditing>
-					</q-card-section>
-					<q-separator inset />
-					<q-card-section>
-						<pictureEditing :picture='user.avatar'></pictureEditing>
-					</q-card-section>
-				</q-card>
-				<q-btn flat v-close-popup>Dismiss</q-btn>
-			</div>
-		</q-dialog>
-	</q-page>
+      <q-item clickable v-ripple>
+        <q-item-section>
+          Friend three
+        </q-item-section>
+      </q-item>
+    </q-list>
+    <q-list class="column q-mt-md">
+      <q-btn class="q-mb-md" :to="{ path: '/play' }" color="primary">Start a game</q-btn>
+      <q-btn class="q-mb-md" :to="{ path: '/chat' }" color="primary">Chat with your friends</q-btn>
+    </q-list>
+    <q-list class="column q-mt-md">
+      <q-btn class="q-mb-md" :to="{ path: '/leaderboard' }" color="primary">Checkout your score on the
+        leaderboard</q-btn>
+      <q-btn class="q-mb-xs" :to="{ path: '/settings' }" color="primary">Edit your settings</q-btn>
+    </q-list>
+  </q-list>
+  <q-dialog v-model="firstConnection">
+    <div class="column items-center q-pa-md" style="background-color: white; max-width: 400px;">
+      <h5 class="q-ma-md">You can edit your pseudo and profile picture right here:</h5>
+      <q-card bordered style='width: 300px;' class="q-ma-md">
+        <q-card-section>
+          <pseudoEditing :username='user.pseudo'></pseudoEditing>
+        </q-card-section>
+        <q-separator inset />
+        <q-card-section>
+          <pictureEditing :picture='user.avatar'></pictureEditing>
+        </q-card-section>
+      </q-card>
+      <q-btn flat v-close-popup>Dismiss</q-btn>
+    </div>
+  </q-dialog>
 </template>
 
 <script lang="ts">

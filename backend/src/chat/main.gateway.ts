@@ -13,6 +13,7 @@ import * as sanitizeHtml from 'sanitize-html';
 import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
 import {
   admBanMut,
+  blockedUser,
   receiveChannel,
   passwordCompare,
   receiveInvitation,
@@ -82,6 +83,24 @@ export class MainGateway implements NestGateway
       data
     };
   }
+
+  //#region Blocked user
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('blocked')
+  async blockedUser(blocked: blockedUser, sender: Socket) {
+    this.logger.log(`Client ${sender.id} block ${blocked.blockedId}`);
+    const ret = {};
+    this.server.emit('blocked::receive', this.returnData(sender, ret));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('unblocked')
+  async unblockedUser(blocked: blockedUser, sender: Socket) {
+    this.logger.log(`Client ${sender.id} unblock ${blocked.blockedId}`);
+    const ret = {};
+    this.server.emit('unblocked::receive', this.returnData(sender, ret));
+  }
+  //#endregion Blocked user
 
   //#region Invitation
   @Bind(MessageBody(), ConnectedSocket())

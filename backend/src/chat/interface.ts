@@ -5,6 +5,11 @@ interface admBanMut {
   until: Date
 }
 
+interface blockedUser {
+  id: number,
+  blockedId: number
+}
+
 interface receiveChannel {
   id: number,
   creator: number,
@@ -64,6 +69,7 @@ interface timestamp {
 
 export { 
   admBanMut,
+  blockedUser,
   receiveChannel,
   passwordCompare,
   receiveInvitation,

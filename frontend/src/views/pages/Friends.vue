@@ -1,5 +1,5 @@
 <template>
-  <q-list class="row justify-evenly shadow-2 rounded-borders">
+  <q-list class="row justify-evenly shadow-2 rounded-borders bg-white">
     <q-toolbar>
       <q-toolbar-title class="q-pa-md">Your friends :</q-toolbar-title>
       <q-input borderless dense debounce="300" v-model="filter" @update:model-value="onFilterChange" placeholder="Search">

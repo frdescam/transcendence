@@ -1,5 +1,5 @@
 <template>
-	<q-list class="q-mb-md q-pb-sm rounded-borders shadow-2">
+	<q-list class="q-mb-md q-pb-sm rounded-borders shadow-2 bg-white">
 		<q-toolbar>
 			<q-toolbar-title>Achievements</q-toolbar-title>
 				<div>

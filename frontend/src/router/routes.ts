@@ -123,7 +123,7 @@ const routes: RouteRecordRaw[] = [
 
 	{
 		path: '/login',
-		component: () => import('src/views/layouts/None.vue'),
+		component: () => import('src/views/layouts/Centered.vue'),
 		children: [{
 			path: '',
 			name: 'login',
@@ -146,7 +146,7 @@ const routes: RouteRecordRaw[] = [
 
 	{
 		path: '/login/2FA',
-		component: () => import('src/views/layouts/None.vue'),
+		component: () => import('src/views/layouts/Centered.vue'),
 		children: [{
 			path: '',
 			name: '2FA',

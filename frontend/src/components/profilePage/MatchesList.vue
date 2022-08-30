@@ -1,5 +1,5 @@
 <template>
-	<q-list class="q-mb-md q-pb-sm shadow-2 rounded-borders">
+	<q-list class="q-mb-md q-pb-sm shadow-2 rounded-borders bg-white">
 		<q-toolbar>
 			<q-toolbar-title>Matches</q-toolbar-title>
 			<div>

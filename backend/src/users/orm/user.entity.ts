@@ -1,12 +1,11 @@
 import { BaseEntity, Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-
 import { Channel } from 'src/chat/orm/channel.entity';
 import { Message } from 'src/chat/orm/message.entity';
 import { Banned } from 'src/chat/orm/banned.entity';
 import { Muted } from 'src/chat/orm/muted.entity';
 import { Match } from 'src/match/orm/match.entity';
-
-import { Invitation } from './invitation.entity';
+import { Friend } from './friend.entity';
+import { Ignore } from './ignored.entity';
 
 @Entity()
 export class User extends BaseEntity {
@@ -24,12 +23,12 @@ export class User extends BaseEntity {
       refresh_token: string;
 
     @Column({type: 'varchar', length: 50, nullable: true}) // is email even useful here? could erase mosty likely
-      email: string;
+      email: string; // erase email
 
     @Column({type: 'varchar', length: 60, nullable: true}) // nullable, optional?
-      password: string;
+      password: string; // erase password
 
-    @Column({type: 'varchar', length: 50, nullable: true})
+    @Column({type: 'varchar', length: 70, nullable: true})
       avatar: string;
 
     @Column({type: 'boolean', default: false})
@@ -44,17 +43,20 @@ export class User extends BaseEntity {
     @Column({type: 'int4', default: 0})
       ratio: number;
 
+    @Column({type: 'int4'})
+      rank: number;
+
     @Column({ type: 'boolean', default: () => 'false'})
       connected: boolean;
 
-    @ManyToMany(() => User, (user) => user.friends)
-      friends: User[];
+    @Column({ type: 'boolean', default: () => 'true'})
+      new_user: boolean;
 
-    @OneToMany(() => Invitation, (pendingInvitation) => pendingInvitation.userSending)
-      receivedInvitations: Invitation[];
+    @OneToMany(() => Friend, (friend) => friend.user)
+      friends: Friend[];
 
-    @OneToMany(() => Invitation, (pendingInvitation) => pendingInvitation.userReceiving)
-      sentInvitations: Invitation[];
+    @OneToMany(() => Friend, (friend) => friend.followedUser)
+      followedBy: Friend[];
 
     @OneToMany(() => Match, (match) => match.userHome)
       matchesHome: Match[];
@@ -77,6 +79,9 @@ export class User extends BaseEntity {
     @OneToMany(() => Muted, (mutedUser) => mutedUser.user)
       mutedFrom: Muted[];
 
-    @ManyToMany(() => User)
-      blockedUsers: User[];
+    @OneToMany(() => Ignore, (ignore) => ignore.user)
+      blockedUsers: Ignore[];
+
+    @OneToMany(() => Ignore, (ignore) => ignore.target)
+      blockedUsersBy: Ignore[];
 }

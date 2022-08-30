@@ -1,5 +1,6 @@
 import { UseGuards, Request } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import cors from 'src/cors';
 import { map } from './interface';
 import { PartyService } from './party/party.service';
 import type { Socket, Server } from 'socket.io';
@@ -7,13 +8,12 @@ import type { userId } from 'src/common/game/types';
 import type { Pong, partyQuery } from 'src/common/game/interfaces';
 import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import type { getUserPartyDto } from 'src/common/game/orm/getUserParty.dto';
-import { SocketMockupAuthGuard } from 'src/usermockup/auth.guard';
+import { WsJwtGuard } from 'src/auth/guards/ws-jwt.guard';
+import { WsJwtSpectateGuard } from 'src/auth/guards/ws-jwt-spectate.guard';
 
 @WebSocketGateway({
   namespace: 'game',
-  cors: {
-    origin: '*',
-  },
+  cors
 })
 export class MainGateway implements OnGatewayDisconnect
 {
@@ -41,40 +41,7 @@ export class MainGateway implements OnGatewayDisconnect
     client.volatile.emit('party::pong', {cdate, sdate: (new Date()).toISOString()} as Pong);
   }
 
-  @UseGuards(SocketMockupAuthGuard)
-  @SubscribeMessage('party::create')
-  create(
-    @MessageBody('room') room: string,
-    @MessageBody('map') map: map,
-    @ConnectedSocket() client: Socket,
-    @Request() req,
-  ): void
-  {
-    const user: any = req.user;
-    this.partyService.checkUserObject(user);
-    try
-    {
-      const userId: userId = user.id;
-      this.partyService.createParty(
-        room,
-        map,
-        [userId, null],
-        client,
-        user
-      );
-    }
-    catch (error)
-    {
-      let message;
-      if ('message' in error)
-        message = error.message;
-      else
-        message = error;
-      this.partyService.sendError(message, client);
-    }
-  }
-
-  @UseGuards(SocketMockupAuthGuard)
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('party::join')
   join(
     @MessageBody('room') room: string,
@@ -92,7 +59,7 @@ export class MainGateway implements OnGatewayDisconnect
       this.partyService.sendError('Party not found', client);
   }
 
-  @UseGuards(SocketMockupAuthGuard)
+  @UseGuards(WsJwtSpectateGuard)
   @SubscribeMessage('party::spectate')
   spectate(
     @MessageBody('room') room: string,
@@ -158,7 +125,7 @@ export class MainGateway implements OnGatewayDisconnect
     return ({left: true});
   }
 
-  @UseGuards(SocketMockupAuthGuard)
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('game::query::find')
   query(
     @ConnectedSocket() client: Socket,

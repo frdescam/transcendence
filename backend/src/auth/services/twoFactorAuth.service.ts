@@ -1,58 +1,44 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { User } from 'src/users/orm/user.entity';
+import { User } from "src/users/orm/user.entity";
 import { UserService } from 'src/users/user/user.service';
 import { authenticator } from 'otplib';
 import { toFileStream } from 'qrcode';
 import { Response } from 'express';
 
-// TODO here add types to payloads, adn to returns
-// create dtos
+// TODO here add types to payloads, add returns
 
 @Injectable({})
 export class TwoFactorAuthService {
-  constructor(private readonly users_svc: UserService, private config: ConfigService) {}
+    constructor(private readonly users_svc: UserService, private config: ConfigService,) {}
 
-  async generate2FASecret(user: User) {
-    const secret = authenticator.generateSecret();
-    const otpauthUrl = authenticator.keyuri(user.email, this.config.get('TWO_FACTOR_AUTHENTICATION_APP_NAME'), secret);
-    await this.users_svc.set2FASecret(secret, user.id);
-        
-    // why return secret here?
-    /*
-        return {
-            secret,
-            otpauthUrl
-          }
-        */
-        
-    return otpauthUrl;
-  }
+    async generate2FASecret(user: User) : Promise<string> {
+        const secret : string = authenticator.generateSecret();
+        const otpauthUrl : string = authenticator.keyuri(user.email, this.config.get('TWO_FACTOR_AUTHENTICATION_APP_NAME'), secret);
+        await this.users_svc.set2FASecret(secret, user.id);
+        console.log(secret);
+        return otpauthUrl;
+    }
 
-  async pipeQrCodeStream(stream: Response, otpauthUrl: string) {
-    return toFileStream(stream, otpauthUrl);
-  }
+    // what the return type of dis
+    async pipeQrCodeStream(stream: Response, otpauthUrl: string) {
+        return toFileStream(stream, otpauthUrl);
+      }
 
-  // if user.secretOf2FA is null then this return error 500. care
-  public is2FACodeValid(twoFACode: string, user: User) {
-    if (user.secretOf2FA === null)
-      return false;
-    return authenticator.verify({
-      token: twoFACode,
-      secret: user.secretOf2FA,
-    });
-  }
+    is2FACodeValid(twoFACode: string, user: User) : boolean {
+        if (user.secretOf2FA === null)
+                return false;
+        return authenticator.verify({
+          token: twoFACode,
+          secret: user.secretOf2FA,
+        })
+    }
     
-  // could be void cant fail
-  async turnOn2FA(userId: number)//: Promise<void> {
-  {
-    // change return here
-    return this.users_svc.turnOn2FA(userId);
-  }
+    async turnOn2FA(userId: number): Promise<void> {
+      await this.users_svc.turnOn2FA(userId);
+	  }
 
-  // could be void cant fail
-  async turnOff2FA(userId: number) { //: Promise<void> {
-    // change return here
-    return this.users_svc.turnOff2FA(userId);
-  }
+	  async turnOff2FA(userId: number) : Promise<void> {
+		  await this.users_svc.turnOff2FA(userId);
+	  }
 }

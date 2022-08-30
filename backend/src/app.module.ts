@@ -13,6 +13,8 @@ import { GameModule } from './game/main.module';
 import { LeaderboardModule } from './leaderboard/main.module';
 import { MatchModule } from './match/main.module';
 import { UsersModule } from './users/main.module';
+import { FriendshipModule } from './users/friendship/friendship.module';
+import { IgnoreModule } from './users/ignored/ignore.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { UsersModule } from './users/main.module';
     ScheduleModule.forRoot(),
     DatabaseModule,
 
+    FriendshipModule,
+    IgnoreModule,
     AuthModule,
     ChatModule,
     GameModule,

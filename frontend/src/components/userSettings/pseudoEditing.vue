@@ -1,12 +1,18 @@
 <template>
 	<div class="text-h6">
 		<span id="username-display">
-			{{ username }}
+			{{ pseudo }}
 			<q-btn @click="toggleNameEdit" flat round icon="edit" />
+      <div class="inline-block">
+        <q-spinner v-if="LoadingPseudo"></q-spinner>
+        <q-icon v-if="success" name="check_circle" color="green"></q-icon>
+        <q-icon v-if="failure" name="error" color="red"></q-icon>
+        <span v-if="failure" class="q-pl-sm" style="color: red; font-size: 0.6em">{{ errorMessage }}</span>
+      </div>
 		</span>
 		<span id="username-edit" style="display:none;">
 			<q-form @submit="editUsername">
-				<q-input style="display:inline;" v-model="newUsername" label="Change username" />
+				<q-input style="display:inline;" v-model="newPseudo" label="Change pseudo"/>
 				<q-btn type="submit" flat round icon="check_circle" />
 				<q-btn @click="toggleNameEdit" flat round icon="cancel" />
 			</q-form>
@@ -15,15 +21,23 @@
 </template>
 
 <script>
-import { ref, defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
+import { api } from 'boot/axios';
 
 export default defineComponent({
 	props: [
-		'username'
+		'pseudo'
 	],
-	setup (props)
+	emits: [
+		'update:pseudo'
+	],
+	setup (props, { emit })
 	{
-		const newUsername = ref('');
+		const newPseudo = ref('');
+		const LoadingPseudo = ref(false);
+		const success = ref(false);
+		const failure = ref(false);
+		const errorMessage = ref('');
 		const toggleNameEdit = function ()
 		{
 			let element = document.getElementById('username-display');
@@ -48,11 +62,33 @@ export default defineComponent({
 		};
 		const editUsername = function ()
 		{
-			console.log(newUsername.value);
+			toggleNameEdit();
+			LoadingPseudo.value = true;
+			api.patch('/user/updatePseudo', { update_pseudo: newPseudo.value }).then((res) =>
+			{
+				if (res.data.error)
+				{
+					failure.value = true;
+					success.value = false;
+					errorMessage.value = res.data.error;
+				}
+				else
+				{
+					emit('update:pseudo', res.data.pseudo);
+					failure.value = false;
+					success.value = true;
+				}
+				LoadingPseudo.value = false;
+			});
 		};
 		return {
 			props,
-			newUsername,
+			newPseudo,
+			LoadingPseudo,
+			success,
+			failure,
+			errorMessage,
+
 			toggleNameEdit,
 			editUsername
 		};

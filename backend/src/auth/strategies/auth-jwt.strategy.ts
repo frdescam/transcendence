@@ -5,16 +5,10 @@ import { Strategy } from 'passport-jwt';
 import { ExtractJwt } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 
-import { AuthDto } from '../dto'; // not needed for now
+import { TokenPayload } from '../dto/tokenPayload.dto';
 import { User } from 'src/users/orm/user.entity';
-import { AuthService } from '../services/auth.service'; // update later
+import { AuthService } from '../services/auth.service';
 
-// Create token dto! 
-// into its own file
-export interface TokenPayload {
-	sub: number;
-	isSecondFactorAuthenticated?: boolean; // most likely not needed
-}
 
 @Injectable()
 export class JwtAuthStrategy extends PassportStrategy(Strategy, 'auth-jwt') {

@@ -11,7 +11,7 @@ import { JwtAuthStrategy } from './strategies/auth-jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/auth-jwt-refresh.strategy';
 import { JwtAuth2FAStrategy } from './strategies/auth-jwt-2fa.strategy';
 import { WsJwtStrategy } from './strategies/ws-jwt.strategy';
-
+import { WsJwtSpectateStrategy } from './strategies/ws-jwt-spectate.strategy';
 
 @Module({
   imports: [
@@ -28,7 +28,8 @@ import { WsJwtStrategy } from './strategies/ws-jwt.strategy';
     JwtAuthStrategy,
     JwtRefreshStrategy,
     JwtAuth2FAStrategy,
-    WsJwtStrategy
+    WsJwtStrategy,
+    WsJwtSpectateStrategy,
   ],
 })
 export class AuthModule { }

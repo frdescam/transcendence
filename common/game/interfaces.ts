@@ -2,6 +2,7 @@ import type { Euler, Color, Vector3 } from 'three';
 import type { Material, avatar, team, userId } from './types';
 
 interface mapConfig {
+	name: string,
 	cameraClip: [number, number],
 	fov: number,
 	forceRotationRatio: number,
@@ -83,7 +84,8 @@ interface serverState {
 interface state extends serverState {
 	team: team,
 	spectator: boolean,
-	can_join: boolean
+	can_join: boolean,
+	could_join: boolean
 }
 
 // @TODO: also save adversary criteria

@@ -1,6 +1,6 @@
 <template>
 	<q-page class="row items-center justify-center">
-		<q-form action="/play/matching" method="get" @submit="onSubmit" class="dark q-pa-md shadow-box shadow-8"
+		<q-form action="/play/matching" method="get" @submit="onSubmit" class="dark q-pa-md shadow-box shadow-8 bg-white"
 			autofocus>
 			<div class="q-ma-md">
 				<h3>Game creation</h3>

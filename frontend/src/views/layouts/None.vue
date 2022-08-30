@@ -29,6 +29,6 @@ export default defineComponent({
 {
 	background-position: center center;
 	background-size: cover;
-	background-attachment: local;
+	background-attachment: fixed;
 }
 </style>

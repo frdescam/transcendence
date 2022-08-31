@@ -2,13 +2,8 @@
 	<q-card class="overflow-hidden q-pa-md">
 		<ControlledForm
 			:setLoading="setLoading"
-			:action="createGame"
+			:action="queryMatch"
 		>
-			<PartyRoomNameInput
-				filled
-				v-model="room"
-			/>
-
 			<MapSelect
 				filled
 				v-model="map"
@@ -16,12 +11,13 @@
 
 			<AdversarySelect
 				filled
+				hint="If selected, you will be queued to play with that person particularly"
 				v-model="adversary"
 			/>
 
 			<div>
 				<SubmitButton
-					label="Create my party"
+					label="Place a query"
 					:loading="loading"
 				/>
 			</div>
@@ -32,24 +28,19 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { api } from 'src/boot/axios';
 import ControlledForm from 'src/components/inputs/ControlledForm.vue';
 import SubmitButton from 'src/components/inputs/SubmitButton.vue';
-import PartyRoomNameInput from 'src/components/inputs/PartyRoomNameInput.vue';
 import MapSelect from 'src/components/inputs/MapSelect.vue';
 import AdversarySelect from 'src/components/inputs/AdversarySelect.vue';
-import type { AxiosError } from 'axios';
 
-const room = ref<string | null>(null);
 const map = ref<string | null>(null);
 const adversary = ref<string | null>(null);
 
 export default defineComponent({
-	name: 'GameCreation',
+	name: 'GameMatching',
 	components: {
 		ControlledForm,
 		SubmitButton,
-		PartyRoomNameInput,
 		MapSelect,
 		AdversarySelect
 	},
@@ -63,47 +54,23 @@ export default defineComponent({
 			loading.value = state;
 		}
 
-		async function createGame ()
+		async function queryMatch ()
 		{
-			return api.post('/party', {
-				room: room.value ?? undefined,
-				map: map.value ?? undefined,
-				adversary: adversary.value ?? undefined
-			})
-				.then(({ data }) =>
-				{
-					const partyRoom = data as string;
-
-					router.push({
-						name: 'party',
-						params: {
-							party: partyRoom
-						}
-					});
-				})
-				.catch((err: AxiosError) =>
-				{
-					if (err.response?.data.message)
-					{
-						throw new Error(
-							err.response?.data.message,
-							{
-								cause: err
-							}
-						);
-					}
-					else
-						throw err;
-				});
+			router.push({
+				name: 'matching',
+				query: {
+					map: map.value ?? undefined,
+					adversary: adversary.value ?? undefined
+				}
+			});
 		}
 
 		return {
 			loading,
-			setLoading,
-			room,
 			map,
 			adversary,
-			createGame
+			setLoading,
+			queryMatch
 		};
 	}
 });

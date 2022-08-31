@@ -21,7 +21,7 @@
       </q-item>
     </q-list>
   </q-list>
-  <q-dialog v-model="firstConnection">
+  <q-dialog v-model="user.new_user">
     <div class="q-pa-md" style="background-color: white; max-width: 400px;">
       <h5 class="q-ma-md">You can edit your pseudo and profile picture right here:</h5>
       <q-card bordered style='width: 300px;' class="q-ma-md">
@@ -33,7 +33,7 @@
           <pictureEditing :avatar='user.avatar'></pictureEditing>
         </q-card-section>
       </q-card>
-      <q-btn flat v-close-popup>Dismiss</q-btn>
+      <q-btn @click="onDimmissPopup" flat v-close-popup>Dismiss</q-btn>
     </div>
   </q-dialog>
 </template>
@@ -55,7 +55,6 @@ export default ({
 
 	setup ()
 	{
-		const firstConnection = ref(true);
 		const user = ref({});
 		const friendList = ref([]);
 
@@ -72,6 +71,11 @@ export default ({
 			friendList.value = res.data;
 		}
 
+		async function onDimmissPopup ()
+		{
+			api.get('/user/new');
+		}
+
 		onMounted(() =>
 		{
 			fetchUserInfo();
@@ -80,8 +84,9 @@ export default ({
 
 		return {
 			user,
-			firstConnection,
-			friendList
+			friendList,
+
+			onDimmissPopup
 		};
 	}
 });

@@ -1,103 +1,108 @@
 <template>
 	<q-card class="overflow-hidden q-pa-md">
-		<q-form
-			@submit="createGame"
-			class="q-gutter-md"
+		<ControlledForm
+			:setLoading="setLoading"
+			:action="createGame"
 		>
-			<q-input
+			<PartyRoomNameInput
+				filled
 				v-model="room"
-				filled
-				label="Room name"
-				hint="The name of the party, which will be in the URL"
 			/>
 
-			<q-select
+			<MapSelect
+				filled
 				v-model="map"
-				filled
-				label="Map"
-				hint="The map affect ball's speed and allowed controls"
-				:options="mapOptions"
 			/>
 
-			<q-select
-				v-model="adversary"
+			<AdversarySelect
 				filled
-				label="Adversary"
-				hint="If selected, an invitation would be sent"
-				:options="adversaryOptions"
-				@filter="getFriendList"
+				v-model="adversary"
 			/>
 
 			<div>
-				<q-btn
-					type="submit"
-					label="Create the game"
-					color="primary"
-					class="full-width"
+				<SubmitButton
+					label="Create my party"
+					:loading="loading"
 				/>
 			</div>
-		</q-form>
+		</ControlledForm>
 	</q-card>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import maps from 'src/common/game/maps';
-import type { QSelect } from 'quasar';
+import { useRouter } from 'vue-router';
+import { api } from 'src/boot/axios';
+import ControlledForm from 'src/components/inputs/ControlledForm.vue';
+import SubmitButton from 'src/components/inputs/SubmitButton.vue';
+import PartyRoomNameInput from 'src/components/inputs/PartyRoomNameInput.vue';
+import MapSelect from 'src/components/inputs/MapSelect.vue';
+import AdversarySelect from 'src/components/inputs/AdversarySelect.vue';
+import type { AxiosError } from 'axios';
 
-interface selectOption
-{
-	label: string,
-	value: string
-}
-
-const room = ref(null);
-const map = ref(null);
-const adversary = ref(null);
-
-const mapOptions = Object.keys(maps).map(
-	(mapKey) => ({
-		label: maps[mapKey].name,
-		value: mapKey
-	}) as selectOption
-);
-const adversaryOptions = ref<selectOption[] | null>(null);
-
-function getFriendList (inputValue: string, doneFn: (callbackFn: () => void, afterFn?: ((ref: QSelect) => void) | undefined) => void): void
-{
-	if (adversaryOptions.value !== null)
-		doneFn();
-	else
-	{
-		doneFn(() =>
-		{
-      // AXIOS
-			adversaryOptions.value = [{ label: 'test', value: 'ok' }];
-		});
-	}
-}
-
-function createGame ()
-{
-	console.log({
-		room: room.value,
-		map: map.value?.value,
-		adversary: adversary.value?.value
-	});
-}
+const room = ref<string | null>(null);
+const map = ref<string | null>(null);
+const adversary = ref<string | null>(null);
 
 export default defineComponent({
 	name: 'GameCreation',
-	components: {},
+	components: {
+		ControlledForm,
+		SubmitButton,
+		PartyRoomNameInput,
+		MapSelect,
+		AdversarySelect
+	},
 	setup ()
 	{
+		const router = useRouter();
+		const loading = ref<boolean>(false);
+
+		function setLoading (state: boolean)
+		{
+			loading.value = state;
+		}
+
+		async function createGame ()
+		{
+			return api.post('/party', {
+				room: room.value ?? undefined,
+				map: map.value ?? undefined,
+				adversary: adversary.value ?? undefined
+			})
+				.then(({ data }) =>
+				{
+					const partyRoom = data as string;
+
+					router.push({
+						name: 'party',
+						params: {
+							party: partyRoom
+						}
+					});
+				})
+				.catch((err: AxiosError) =>
+				{
+					if (err.response?.data.message)
+					{
+						throw new Error(
+							err.response?.data.message,
+							{
+								cause: err
+							}
+						);
+					}
+					else
+						throw err;
+				});
+		}
+
 		return {
+			loading,
+			setLoading,
 			room,
 			map,
 			adversary,
-			mapOptions,
-			adversaryOptions,
-			getFriendList,
 			createGame
 		};
 	}

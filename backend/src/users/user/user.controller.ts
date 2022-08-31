@@ -23,6 +23,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from "multer";
 import { User } from '../orm/user.entity';
 import { Response } from 'express';
+import { AchievementsDto } from '../orm/achievements.dto';
 // import { NotFoundError } from 'rxjs';
 
 @Controller('user')
@@ -134,7 +135,7 @@ export class UserController {
     // use POST and validation pipes
     // THIS WILL BREAK CHANGE BACK TO match/get/:id
     @UseGuards(JwtAuthGuard)
-    @Get('match/:id') // add ParseIntPipe to validate id // is this useful?
+    @Get('match/get/:id') // add ParseIntPipe to validate id // is this useful?
 	  async getMatches(@Param('id') id: number): Promise<User> {
       const sanitized_user: User = await this.channelService.getMatches(id);
 
@@ -146,6 +147,14 @@ export class UserController {
       return sanitized_user;
 	  }
 
+    @UseGuards(JwtAuthGuard)
+    @Get('achievements') // add ParseIntPipe to validate id // is this useful?
+    async getAchievements(@AuthUser() user: User) : Promise<AchievementsDto[]> {
+      // this.channelService.resetAchievement(user.id);
+      return this.channelService.getAchievements(user.id);
+    }
+
+    // this could be problematic
     // test for matches
     @UseGuards(JwtAuthGuard)
     @Get(':id') // add ParseIntPipe to validate id // is this useful?
@@ -167,13 +176,6 @@ export class UserController {
     @Post('match/create')
 	  async matches(@AuthUser() user: User, @Body() obj: any,){
       return this.channelService.createMockupMatch(user, obj);
-	  }
-
-    // this could be problematic
-    @UseGuards(JwtAuthGuard)
-    @Get('match/achievs') // add ParseIntPipe to validate id // is this useful?
-	  async checkmatches(@AuthUser() user: User){
-      return this.channelService.checkAchievement(user.id);
 	  }
 
   @UseGuards(JwtAuthGuard)

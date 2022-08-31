@@ -6,42 +6,48 @@ export enum AchievementsEnumName {
     LEVEL_ONE = 'Level 1',
     HUNDRED_GAMES = 'Play 100 games',
     COMPLETE = 'Completionist',
-  };
+};
 
-export const Achievements = [
+export interface AchievementsDto {
+	name : AchievementsEnumName,
+	description : string,
+	image : string
+}
+
+export const Achievements : AchievementsDto[] = [
 	{
 		name: AchievementsEnumName.ZAPATERO,
 		description: 'You won without taking a goal',
-		// image: AchievementsImage.DEFENSE_MASTER,
+		image: 'http://127.0.0.1:3000/achievements/zapatero.png',
 	},
 	{
 		name: AchievementsEnumName.TEN_WINS,
 		description: 'You won 10 games',
-		// image: AchievementsImage.TEN_WINS,
+		image: 'http://127.0.0.1:3000/achievements/wins_ten.png',
 	},
 	{
 		name: AchievementsEnumName.TEN_GAMES,
 		description: 'Play 10 games',
-		// image: AchievementsImage.THIRTY_WINS,
+		image: 'http://127.0.0.1:3000/achievements/play_ten.png',
 	},
 	{
 		name: AchievementsEnumName.CLOSE,
 		description: 'Win a match with a score of 11 - 10',
-		// image: AchievementsImage.SEVENTY_WINS,
+		image: 'http://127.0.0.1:3000/achievements/close.png',
 	},
 	{
 		name: AchievementsEnumName.LEVEL_ONE,
 		description: 'Reach level one',
-		// image: AchievementsImage.HUNDRED_WINS,
+		image: 'http://127.0.0.1:3000/achievements/level_one.png',
 	},
 	{
 		name: AchievementsEnumName.HUNDRED_GAMES,
 		description: 'Play 100 games',
-		// image: AchievementsImage.TWO_HUNDRED_WINS,
+		image: 'http://127.0.0.1:3000/achievements/play_hundred.png',
 	},
 	{
 		name: AchievementsEnumName.COMPLETE,
 		description: 'Finish every game achievement',
-		// image: AchievementsImage.ALL_TERRAIN,
+		image: 'http://127.0.0.1:3000/achievements/completionist.png',
 	},
 ];

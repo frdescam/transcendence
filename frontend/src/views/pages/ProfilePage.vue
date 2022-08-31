@@ -22,7 +22,7 @@
 				</div>
 				<profileHeader :user="user"></profileHeader>
 			</div>
-			<q-item class="full-width row justify-around">
+			<q-item v-if="!ownPage" class="full-width row justify-around">
 				<q-btn @click="onDeleteFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
 					label="add friend" />
 				<q-btn :href="'chat/' + user.pseudo" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
@@ -169,10 +169,15 @@ export default {
 		const route = useRoute();
 		const userId = route.params.id;
 		const user = ref({});
+		const ownPage = ref(false);
 
 		api.get('/user/' + userId).then((res) =>
 		{
 			user.value = res.data;
+			api.get('/user/me').then((res) =>
+			{
+				ownPage.value = (res.data.id === user.value.id);
+			});
 		});
 
 		async function onDeleteFriend ()
@@ -191,6 +196,7 @@ export default {
 			user,
 			matches,
 			achievements,
+			ownPage,
 
 			onDeleteFriend,
 			onBlockUser

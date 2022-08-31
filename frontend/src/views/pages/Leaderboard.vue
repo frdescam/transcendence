@@ -157,7 +157,7 @@ export default {
 
 		async function onRowClick (evt, row)
 		{
-			router.push('/profile/' + row.pseudo); // TODO : replace by id
+			router.push('/profile/' + row.id);
 		}
 
 		return {

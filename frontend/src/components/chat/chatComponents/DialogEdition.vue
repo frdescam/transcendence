@@ -123,9 +123,26 @@
 								</div>
 							</div>
 							<div class="row justify-end content-between">
-								<q-btn :label="$t('chat.channel.menu.edit.tabs.reset')" color="secondary" @click="generalReset" style="margin-right: 2em"/>
+								<q-btn
+									:disable="generalCheck"
+									:label="$t('chat.channel.menu.edit.tabs.reset')"
+									color="secondary"
+									@click="generalReset"
+									style="margin-right: 2em"
+								/>
 								<div style="width:2em"></div>
-								<q-btn :label="$t('chat.channel.menu.edit.tabs.apply')" type="submit" color="primary"/>
+								<q-btn
+									type="submit"
+									color="primary"
+									:disable="generalCheck"
+								>
+								<template v-if="!generalCheck">
+									{{ $t('chat.channel.menu.edit.tabs.apply') }}
+								</template>
+								<template v-else>
+									<q-spinner-dots color="gray-2" />
+								</template>
+							</q-btn>
 							</div>
 						</q-form>
 					</q-tab-panel>
@@ -289,6 +306,7 @@ export default defineComponent({
 		const generallNewPasswordVisible = ref(true);
 		const generalNameError = ref();
 		const generalSuccess = ref(false);
+		const generalCheck = ref(false);
 
 		const generalReset = () =>
 		{
@@ -304,49 +322,71 @@ export default defineComponent({
 
 		const editGeneral = () =>
 		{
-			if (!generalName.value)
+			const setError = (error: string) =>
 			{
-				generalNameError.value = 'name';
-				return;
-			}
+				generalNameError.value = error;
+				generalCheck.value = false;
+			};
+
+			const madeChange = () =>
+			{
+				socket.emit('channel::update', {
+					id: props.channelId,
+					creator: props.userId,
+					type: generalType.value,
+					name: generalName.value,
+					password: (generalNewPassword.value && generalType.value === 'protected')
+						? generalNewPassword.value
+						: null
+				});
+			};
+
+			generalCheck.value = true;
+			generalNameError.value = null;
+			if (!generalName.value)
+				return setError('name');
 
 			if (props.channelType !== 'protected' &&
 				generalType.value === 'protected' &&
 				!generalNewPassword.value)
-			{
-				generalNameError.value = 'toProtected';
-				return;
-			}
+				return setError('toProtected');
 
-			if (generalType.value === 'protected' && generalOldPassword.value)
+			if (generalType.value === 'protected' &&
+				(generalOldPassword.value || generalNewPassword.value))
 			{
-				if (!generalOldPassword.value || (generalOldPassword.value !== props.channelPassword))
-				{
-					generalNameError.value = 'pass';
-					return;
-				}
+				if (!generalOldPassword.value)
+					return setError('emptyOld');
 				if (!generalNewPassword.value)
-				{
-					generalNameError.value = 'passNew';
-					return;
-				}
+					return setError('emptyNew');
 				if (generalOldPassword.value === generalNewPassword.value)
-				{
-					generalNameError.value = 'same';
-					return;
-				}
+					return setError('same');
+				socket.emit('channel::check', {
+					channelId: props.channelId,
+					password: generalOldPassword.value
+				});
 			}
-			socket.emit('channel::update', {
-				id: props.channelId,
-				creator: props.userId,
-				type: generalType.value,
-				name: generalName.value,
-				password: (generalNewPassword.value && generalType.value === 'protected')
-					? generalNewPassword.value
-					: null
+			else
+				madeChange();
+
+			socket.on('channel::receive::check', (ret) =>
+			{
+				if (ret.socketId !== socket.id)
+					return;
+				if (!ret.data)
+					return setError('passCheck');
+				madeChange();
 			});
-			generalNameError.value = null;
-			generalSuccess.value = true;
+
+			socket.on('channel::receive::update', (ret) =>
+			{
+				if (ret.socketId !== socket.id)
+					return;
+				if (ret.data.updated === false)
+					return setError('update');
+				generalCheck.value = false;
+				generalNameError.value = null;
+				generalSuccess.value = true;
+			});
 		};
 		// #endregion
 
@@ -837,6 +877,7 @@ export default defineComponent({
 			generallNewPasswordVisible,
 			generalNameError,
 			generalSuccess,
+			generalCheck,
 			editGeneral,
 			// #endregion
 

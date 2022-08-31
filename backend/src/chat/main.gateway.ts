@@ -85,6 +85,13 @@ export class MainGateway implements NestGateway
     };
   }
 
+  cleanHtml(str: string) {
+    return sanitizeHtml(str, {
+      allowedTags: [],
+      allowedAttributes: {}
+    });
+  }
+
   //#region Handshake
   @Bind(ConnectedSocket(), Request())
   @SubscribeMessage('ping')
@@ -312,7 +319,7 @@ export class MainGateway implements NestGateway
     const __newChannel: ChannelDTO = {
       id: undefined,
       owner: __owner,
-      name: channel.name,
+      name: this.cleanHtml(channel.name),
       type: getType(channel.type),
       password: channel.password,
       creationDate: undefined,
@@ -347,7 +354,7 @@ export class MainGateway implements NestGateway
     const ret = await this.channelService.update({
       id: channel.id,
       owner: await this.userService.getOne(channel.creator),
-      name: channel.name,
+      name: this.cleanHtml(channel.name),
       type: getType(channel.type),
       password: channel.password,
       creationDate: undefined,

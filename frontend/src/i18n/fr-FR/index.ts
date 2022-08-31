@@ -18,10 +18,12 @@ export default {
 							success: 'Les modifications ont été effectuées',
 							error: {
 								name: 'Le canal doit avoir un nom',
-								pass: 'L\'ancien mot de passe ne correspond pas',
-								passNew: 'Le nouveau mot de passe ne doit pas être vide',
+								emptyOld: 'L\'ancien mot de passe ne doit pas être vide',
+								emptyNew: 'Le nouveau mot de passe ne doit pas être vide',
 								toProtected: 'Un canal protégé nécessite un mot de passe',
-								same: 'Le nouveau mot de passe est le même que l\'ancien'
+								same: 'Le nouveau mot de passe est le même que l\'ancien',
+								passCheck: 'L\'ancien mot de passe ne correspond pas',
+								update: 'Une erreur s\'est produite avec le serveur, veuillez réessayer plus tard'
 							}
 						},
 						user: {
@@ -151,6 +153,7 @@ export default {
 		quit: {
 			info: 'Voulez-vous quitter le canal ?',
 			creator: 'Vous êtes le créateur du canal, il sera immédiatement supprimé lorsque vous le quitterez. Voulez-vous le quitter ?'
-		}
+		},
+		socket: 'La connexion a été interrompu, reconnexion en cours'
 	}
 };

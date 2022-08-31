@@ -31,14 +31,28 @@
 			></userChannel>
 		</div>
 	</q-page>
+	<q-dialog
+		ref="dialog"
+		persistent
+		position="bottom"
+		square
+	>
+    <q-card style="width: 350px">
+      <q-card-section class="row items-center justify-evenly no-wrap">
+        <q-spinner-radio color="teal-7" size="3em" />
+				<span class="dialog-socket-error">{{ $t('chat.socket') }}</span>
+       </q-card-section>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script lang="ts">
+import { QDialog } from 'quasar';
+import { Socket } from 'socket.io-client';
+import { defineComponent, inject, onBeforeMount, ref, watch } from 'vue';
 import channelChannel from 'src/components/chat/Channel.vue';
 import userChannel from 'src/components/chat/User.vue';
 import chatChannel from 'src/components/chat/Chat.vue';
-import { Socket } from 'socket.io-client';
-import { defineComponent, inject, onBeforeMount, ref, watch } from 'vue';
 
 interface channelMutBan {
 	user: number,
@@ -102,9 +116,15 @@ export default defineComponent({
 		};
 
 		// #region Check if error with socket
-		socket.on('connect_error', () =>
+		const dialog = ref<QDialog | null>(null);
+
+		socket.on('connect_error', () => dialog.value?.show());
+		socket.on('connect', () => dialog.value?.hide());
+		socket.on('disconnect', (reason) =>
 		{
-			console.log('erreur, au secours !');
+			if (reason === 'io server disconnect' ||
+				reason === 'io client disconnect')
+				socket.connect();
 		});
 		// #endregion  Check if error with socket
 
@@ -160,6 +180,8 @@ export default defineComponent({
 			userUpdate,
 			blockedUser,
 
+			dialog,
+
 			mutBanChannel,
 			channelChanged,
 			channelUpdate
@@ -167,3 +189,11 @@ export default defineComponent({
 	}
 });
 </script>
+
+<style>
+	.dialog-socket-error {
+		font-size: large;
+		width: 75%;
+		text-align: center;
+	}
+</style>

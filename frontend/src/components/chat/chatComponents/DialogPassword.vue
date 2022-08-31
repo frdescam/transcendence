@@ -3,7 +3,7 @@
 		ref="dialog"
 		model="fixed"
 		square
-		@hide="reset"
+		@before-hide="reset"
 	>
 		<q-card>
 			<q-card-section class="row items-center bg-primary text-white">

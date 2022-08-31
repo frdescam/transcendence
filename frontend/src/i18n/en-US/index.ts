@@ -18,10 +18,12 @@ export default {
 							success: 'The modifications have been made',
 							error: {
 								name: 'The channel must have a name',
-								pass: 'The old password does not match',
-								passNew: 'The new password must not be empty',
+								emptyOld: 'The old password must not be empty',
+								emptyNew: 'The new password must not be empty',
 								toProtected: 'A protected channel requires a password',
-								same: 'The new password is the same as the old one'
+								same: 'The new password is the same as the old one',
+								passCheck: 'The old password does not match',
+								update: 'An error with the server occurred, please try again later'
 							}
 						},
 						user: {
@@ -151,6 +153,7 @@ export default {
 		quit: {
 			info: 'Do you want to leave the channel ?',
 			creator: 'You are the creator of the channel, this one will be immediately deleted when you leave. Do you want to leave it ?'
-		}
+		},
+		socket: 'The connection has been lost, reconnection in progress'
 	}
 };

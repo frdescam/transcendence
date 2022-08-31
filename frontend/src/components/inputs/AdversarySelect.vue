@@ -48,9 +48,9 @@ export default defineComponent({
 					doneFn(() =>
 					{
 						adversaryOptions.value = data.map(
-							({ id, username }: { id: number, username: string }) =>
+							({ id, pseudo }: { id: number, pseudo: string }) =>
 								({
-									label: username,
+									label: pseudo,
 									value: id
 								})
 						);

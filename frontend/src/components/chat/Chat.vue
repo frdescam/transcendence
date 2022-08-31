@@ -58,7 +58,7 @@
 					:bg-color="(userId === message.user.id) ? 'cyan-8' : 'blue-8'"
 				>
 					<template v-slot:name>{{ (userId !== message.user.id) ? message.user.pseudo: $t('chat.message.me') }}</template>
-					<template v-slot:stamp>{{ generateTimestamp(message.messages[message.messages.length - 1].timestamp) }}</template>
+					<template v-slot:stamp>{{ $t('chat.channel.dateFormat', generateTimestamp(message.messages[message.messages.length - 1].timestamp)) }}</template>
 					<template v-slot:avatar>
 						<img
 							:class="(userId === message.user.id) ? 'q-message-avatar q-message-avatar--sent' : 'q-message-avatar q-message-avatar--received'"
@@ -189,10 +189,16 @@ export default defineComponent({
 
 		const generateTimestamp = (time: string) =>
 		{
+			const pf = (n: number) => (n < 10) ? `0${n}` : String(n);
+
 			const messageDate: Timestamp = timestamp(time);
-			if (!messageDate)
-				return '';
-			return `${messageDate.day}/${messageDate.month}/${messageDate.year} - ${messageDate.hour}h${messageDate.minute}`;
+			return {
+				year: pf(messageDate.year),
+				month: pf(messageDate.month),
+				day: pf(messageDate.day),
+				hour: pf(messageDate.hour),
+				minute: pf(messageDate.minute)
+			};
 		};
 
 		const handleCtrlEnter = (event: KeyboardEvent) =>

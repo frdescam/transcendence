@@ -127,7 +127,8 @@ export default {
 					yes: 'Commencer la partie',
 					no: 'Refuser la partie'
 				}
-			}
+			},
+			dateFormat: '{day}/{month}/{year} - {hour}h{minute}'
 		},
 		user: {
 			profile: 'Voir le profil',

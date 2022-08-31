@@ -697,6 +697,17 @@ export default defineComponent({
 			return ret;
 		};
 
+		let getPrivateChannel = false;
+		const index = (id: number) =>
+		{
+			for (const i in channels.value)
+			{
+				if (channels.value[i].id === id)
+					return Number(i);
+			}
+			return -1;
+		};
+
 		onMounted(() => socket.emit('channel::gets'));
 		socket.on('channel::receive::gets', (ret) =>
 		{
@@ -770,38 +781,63 @@ export default defineComponent({
 			{
 				if (channels.value[i].id === ret.data.data.id)
 				{
-					channels.value[i].name = ret.data.data.name;
-					channels.value[i].type = ret.data.data.type;
-					channels.value[i].owner = ret.data.data.owner.id;
-					channels.value[i].password = ret.data.data.password;
+					if (ret.data.data.type === 'private' &&
+						!channels.value[i].users.includes(props.userId))
+					{
+						channels.value.splice(Number(i), 1);
+						if (selectedChannelId.value === ret.data.data.id)
+							sendEvent(-1, false);
+					}
+					else
+					{
+						channels.value[i].name = ret.data.data.name;
+						channels.value[i].type = ret.data.data.type;
+						channels.value[i].owner = ret.data.data.owner.id;
+						channels.value[i].password = ret.data.data.password;
+					}
 					return;
 				}
 			}
+			if (ret.data.data.type !== 'private')
+				channels.value.push(generateData(ret.data.data));
 		});
 
 		socket.on('channel::user::receive::add', (ret) =>
 		{
-			for (const channel of channels.value)
+			const i = index(ret.data.channel);
+
+			getPrivateChannel = false;
+			if (i !== -1)
+				channels.value[i].users.push(ret.data.data.id);
+			else if (ret.data.data.id === props.userId)
 			{
-				if (channel.id === ret.data.channel)
-				{
-					channel.users.push(ret.data.data.id);
-					return;
-				}
+				// Is private channel
+				getPrivateChannel = true;
+				socket.emit('channel::get', ret.data.channel);
 			}
 		});
 
-		socket.on('channel::user::receive::delete', (ret) =>
+		socket.on('channel::receive::get', (ret) =>
 		{
-			for (const channel of channels.value)
+			if (!getPrivateChannel || ret.socketId !== socket.id)
+				return;
+			channels.value.push(generateData(ret.data));
+			getPrivateChannel = false;
+		});
+
+		socket.on('channel::user::receive::remove', (ret) =>
+		{
+			const i = index(ret.data.channel);
+			if (i === -1)
+				return;
+			const x = channels.value[i].users.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].users.splice(x, 1);
+			if (channels.value[i].type === 'private' && ret.data.data.id === props.userId)
 			{
-				if (channel.id === ret.data.channel)
-				{
-					const i = channel.users.findIndex(ret.data.data.id);
-					if (i !== -1)
-						channel.users.splice(i, 1);
-					return;
-				}
+				if (selectedChannelId.value === channels.value[i].id)
+					sendEvent(-1, false);
+				channels.value.splice(i, 1);
 			}
 		});
 

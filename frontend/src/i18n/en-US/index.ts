@@ -127,7 +127,8 @@ export default {
 					yes: 'Start the game',
 					no: 'Refuse the game'
 				}
-			}
+			},
+			dateFormat: '{month}/{day}/{year} - {hour}h{minute}'
 		},
 		user: {
 			profile: 'See profile',

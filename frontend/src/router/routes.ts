@@ -158,6 +158,15 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
+		path: '/logout',
+		component: () => import('src/views/layouts/Centered.vue'),
+		children: [{ path: '', name: 'logout', component: () => import('src/views/pages/LogoutPage.vue') }],
+		meta: {
+			...(backgrounds.ft_login)
+		}
+	},
+
+	{
 		path: '/login/2FA',
 		component: () => import('src/views/layouts/Centered.vue'),
 		children: [{

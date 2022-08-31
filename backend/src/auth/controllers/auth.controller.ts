@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 
@@ -114,7 +114,7 @@ export class AuthController {
 	@Get('2FA/reset')
 	async reset2FA(@Res() response: Response, @AuthUser() user: User): Promise<void> {
         await this.deactivate2FA(user);
-        return await this.generate(response, user);
+        return await this.generate("", response, user);
 	}
 
     // this shoudlnt return null? cant fail so could be, but frontend wont knwo if dis worked
@@ -129,7 +129,7 @@ export class AuthController {
     // using response is bad, change this
     @UseGuards(JwtAuthGuard)
     @Get('2FA/generate')
-    async generate(@Res() response: Response, @AuthUser() user: User) {
+    async generate(@Query('time') time: string, @Res() response: Response, @AuthUser() user: User) {
         if (user.is2FActive === true) {
             response.send({error: "2FA already active, on this account."});
             return ;
@@ -158,6 +158,7 @@ export class AuthController {
         return {error: "2FA code invalid."};
       
       await this.auth2fa_svc.turnOn2FA(user.id);
+
 
       // return if 2FA activated?
       return {

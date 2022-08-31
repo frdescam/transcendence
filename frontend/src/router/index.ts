@@ -39,7 +39,7 @@ export default route(function (/* { store, ssrContext } */)
 		let isLogged = true;
 		await api.get('/logged').catch(() =>
 		{
-			if (to.name !== 'login' && to.name !== '2FA' && to.name !== 'party')
+			if (to.name !== 'login' && to.name !== '2FA' && to.name !== 'party' && to.name !== 'play-list')
 				isLogged = false;
 		});
 		if (!isLogged)

@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import Menu from 'src/components/partials/Menu.vue';
+import Menu from 'src/components/partials/Menu/Menu.vue';
 
 export default defineComponent({
 	name: 'NoneLayout',

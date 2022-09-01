@@ -845,7 +845,7 @@ export class PartyService
     public spectateParty (party: Party, client: Socket, user: any): Party
     {
       client.emit('party::mapinfo', party.map);
-      this.sendSocketState(client, party.state, undefined, !!user);  // @TODO: Check if is blocked
+      this.sendSocketState(client, party.state, this.getSlotFromSocket(party, client), !!user);
       if (user)
       {
         this.checkUserObject(user);
@@ -859,6 +859,8 @@ export class PartyService
             this.joinParty(party, client, userId);
             return (party);
           }
+          else if (party.playersSocket[slot].id == client.id)
+            return (party);
         }
       }
         

@@ -7,8 +7,8 @@ import {
 	createWebHashHistory,
 	createWebHistory
 } from 'vue-router';
-import { api } from 'boot/axios';
 
+import { state } from 'src/boot/state';
 import routes from './routes';
 
 /*
@@ -38,16 +38,11 @@ export default route(function (/* { store, ssrContext } */)
 
 	Router.beforeEach(async (to, from) =>
 	{
-		let isLogged = true;
-		await api.get('/logged').catch(() =>
+		if (!state.loggedIn)
 		{
-			if (to.name !== 'login' && to.name !== '2FA' && to.name !== 'party')
-				isLogged = false;
-		});
-		/*
-    if (!isLogged)
-			return { path: '/login' };
-    */
+			if (to.name !== 'login' && to.name !== '2FA' && to.name !== 'party' && to.name !== 'play-list')
+				return { path: '/login' };
+		}
 	});
 
 	return Router;

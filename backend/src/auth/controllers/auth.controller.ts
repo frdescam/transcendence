@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 
@@ -49,7 +49,7 @@ export class AuthController {
     @Post('auto_login')
     async auto_login(@Body() {id}, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
     {
-      let user : User = await this.auth_svc.login({id: id});
+        let user : User = await this.auth_svc.login({fortytwo_id: id});
 
       console.log(user, id);
       if (!user)
@@ -158,6 +158,7 @@ export class AuthController {
         return {error: '2FA code invalid.'};
       
       await this.auth2fa_svc.turnOn2FA(user.id);
+
 
       // return if 2FA activated?
       return {
@@ -281,7 +282,7 @@ export class AuthController {
 
       // return if 2FA or if logged to front end here! with a json obj
 
-      res.redirect('http://127.0.0.1:3000/');
+      res.redirect('http://127.0.0.1:3000/?logged');
 
       return {
         two_factor_enabled: false,

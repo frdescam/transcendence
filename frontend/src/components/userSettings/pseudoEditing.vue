@@ -24,6 +24,7 @@
 import { defineComponent, inject, ref } from 'vue';
 import { Capitalize } from 'src/boot/libs';
 import { api } from 'boot/axios';
+import type { RefreshUserState } from 'src/boot/state';
 
 export default defineComponent({
 	props: [
@@ -34,6 +35,8 @@ export default defineComponent({
 	],
 	setup (props, { emit })
 	{
+		const refreshUserState = inject('refreshUserState') as RefreshUserState;
+
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 
 		const newPseudo = ref('');
@@ -80,6 +83,7 @@ export default defineComponent({
 					emit('update:pseudo', res.data.pseudo);
 					failure.value = false;
 					success.value = true;
+					refreshUserState();
 				}
 				LoadingPseudo.value = false;
 			});

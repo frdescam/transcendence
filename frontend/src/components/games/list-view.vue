@@ -96,6 +96,13 @@ function roomUrlToClipboard (room: string, e: MouseEvent)
 
 	const link = location.protocol + '//' + location.host + routeFor(room);
 	copyToClipboard(link)
+		.then(() =>
+		{
+			$q.notify({
+				type: 'positive',
+				message: 'Link copied'
+			});
+		})
 		.catch(() =>
 		{
 			$q.notify({
@@ -228,10 +235,10 @@ defineExpose({
 		:rows-per-page-options="tablePaginationPerPage"
 	>
 		<template v-slot:body="props">
-			<q-tr :props="props" :class="clsx(props.row.finish && 'disabled')" @click="joinRoom(props.row.room)">
+			<q-tr :props="props" :class="clsx(props.row.finish ? 'disabled' : 'cursor-pointer')" @click="joinRoom(props.row.room)">
 
 				<q-td key="room" :props="props">
-					<q-chip clickable icon-right="link" color="primary" @click="(e) => {roomUrlToClipboard(props.row.room, e)}">
+					<q-chip clickable icon-right="link" color="secondary" text-color="white" @click="(e) => {roomUrlToClipboard(props.row.room, e)}">
 						{{ props.row.room }}
 					</q-chip>
 				</q-td>

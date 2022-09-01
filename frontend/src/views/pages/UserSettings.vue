@@ -34,7 +34,7 @@
 				<q-icon v-if="!me.is2FActive && !TFAActivating" name="error" color="red" size="200px"></q-icon>
 				<q-btn v-if="!TFAActivating && !me.is2FActive" @click="onActivate2FA">{{ capitalize($t('setting.twoFactor.activate')) }}</q-btn>
 				<q-btn v-if="!TFAActivating && me.is2FActive" @click="onDeactivate2FA">{{ capitalize($t('setting.twoFactor.desactivate')) }}</q-btn>
-				<q-img v-if="TFAActivating" src="http://127.0.0.1:8080/api/2FA/generate" :ratio="1" style="width: 200px"/>
+				<q-img v-if="TFAActivating" :src='("http://127.0.0.1:8080/api/2FA/generate?time=" + new Date().getTime())' :ratio="1" style="width: 200px"/>
 				<q-form v-if="TFAActivating" class="column justify-evenly items-center full-height">
 					<q-input @update:model-value="update" :disable="disableInput" :color="inputColor" :autofocus=true mask="######" label="Enter 2FA code :"></q-input>
 				</q-form>

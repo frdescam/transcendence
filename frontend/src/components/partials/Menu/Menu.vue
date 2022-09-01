@@ -34,54 +34,7 @@
 			</template>
 		</q-select>
 
-		<!--
-		<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'login' }">
-			<q-icon name="login" />
-		</q-btn>
-		-->
-
-		<q-btn-dropdown
-				no-caps
-				no-wrap
-				stretch
-				flat
-				:dense="$q.screen.lt.md"
-				:label="$q.screen.gt.md ? 'Username' : undefined"
-				icon="img:https://cdn.quasar.dev/logo-v2/svg/logo.svg"
-			>
-			<q-list>
-
-				<q-item clickable :to="{name: 'settings'}">
-					<q-item-section side class="inherit_color">
-						<q-icon name="settings" />
-					</q-item-section>
-					<q-item-section no-wrap>
-						<q-item-label>{{ capitalize($t('menu.setting')) }}</q-item-label>
-					</q-item-section>
-				</q-item>
-
-				<q-item clickable disable>
-					<q-item-section side class="inherit_color">
-						<q-icon name="sports_esports" />
-					</q-item-section>
-					<q-item-section no-wrap>
-						<q-item-label>{{ capitalize($t('menu.retake')) }}</q-item-label>
-					</q-item-section>
-				</q-item>
-
-				<q-separator inset />
-
-				<q-item clickable @click="onLogout">
-					<q-item-section side class="inherit_color">
-						<q-icon name="logout" />
-					</q-item-section>
-					<q-item-section no-wrap>
-						<q-item-label>{{ capitalize($t('menu.disconnect')) }}</q-item-label>
-					</q-item-section>
-				</q-item>
-
-			</q-list>
-		</q-btn-dropdown>
+    <MenuUser/>
 
 	</q-toolbar>
 </template>
@@ -96,6 +49,8 @@ import { useQuasar } from 'quasar';
 import languages from 'quasar/lang/index.json';
 import { api } from 'boot/axios';
 import { useRouter } from 'vue-router';
+
+import MenuUser from '../Menu/MenuUser.vue';
 
 // #region Quasar lang definition
 const defineLangs = options.map((el) => el.value);
@@ -128,6 +83,9 @@ const quasarLangs = languages.filter((el) =>
 
 export default defineComponent({
 	name: 'PartialMenu',
+	components: {
+		MenuUser
+	},
 	setup ()
 	{
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;

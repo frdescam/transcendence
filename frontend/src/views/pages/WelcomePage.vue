@@ -1,29 +1,40 @@
 <template>
-	<q-list class="row q-ma-md justify-evenly shadow-2 rounded-borders bg-white">
-		<q-toolbar class="row justify-evenly q-my-lg">
-			<profileHeader :user="user"></profileHeader>
+  <q-list class="row q-ma-md justify-evenly shadow-2 rounded-borders bg-white">
+    <q-toolbar class="row justify-evenly q-my-lg">
+      <profileHeader :user="user"></profileHeader>
+    </q-toolbar>
+    <q-list class="column q-mt-md">
+      <q-btn class="q-mb-md" :to="{ path: '/play' }" color="primary">Start a game</q-btn>
+      <q-btn class="q-mb-md" :to="{ path: '/chat' }" color="primary">Chat with your friends</q-btn>
+      <q-btn class="q-mb-md" :to="{ path: '/play/list' }" color="primary">Check out live games</q-btn>
+    </q-list>
+    <q-list class="column q-mt-md">
+      <q-btn class="q-mb-md" :to="{ path: '/leaderboard' }" color="primary">Checkout the leaderboard</q-btn>
+      <q-btn class="q-mb-xs" :to="{ path: '/settings' }" color="primary">Edit your settings</q-btn>
+    </q-list>
+	<q-list class="rounded-borders shadow-2 q-my-md scroll" style="width: 300px; height: 300px">
+		<q-toolbar>
+		<q-toolbar-title :hidden="!hideSearch">Your Friends : </q-toolbar-title>
+			<q-input :hidden="hideSearch" ref="input" borderless dense debounce="300" v-model="filter" @update:model-value="onFilterChange" placeholder="Search"/>
+			<q-btn flat rounded class="q-ml-auto" icon="search" @click="toggleSearch"/>
 		</q-toolbar>
-    <div class="row no-wrap justify-evenly item-stretch" style="width: 100%">
-      <q-list class="column q-mt-md">
-        <q-btn class="q-mb-md" :to="{ path: '/play' }" color="primary">{{ $t('index.buttons.start') }}</q-btn>
-        <q-btn class="q-mb-md" :to="{ path: '/chat' }" color="primary">{{ $t('index.buttons.chat') }}</q-btn>
-        <q-btn class="q-mb-md" :to="{ path: '/play/list' }" color="primary">{{ $t('index.buttons.checkoutGame') }}</q-btn>
-      </q-list>
-      <q-list class="column q-mt-md">
-        <q-btn class="q-mb-md" :to="{ path: '/leaderboard' }" color="primary">{{ $t('index.buttons.checkoutLeader') }}</q-btn>
-        <q-btn class="q-mb-xs" :to="{ path: '/settings' }" color="primary">{{ $t('index.buttons.edit') }}</q-btn>
-      </q-list>
-      <q-list bordered class="rounded-borders q-my-md">
-        <q-item v-if="friendList.length == 0">{{ capitalize($t('index.noFriends')) }}</q-item>
-        <q-item v-else clickable v-ripple v-for="friend in friendList" v-bind:key="friend.id">
-          <q-item-section>
-            {{friend}}
-          </q-item-section>
-        </q-item>
-      </q-list>
-    </div>
-  </q-list>
-	<q-dialog v-model="firstConnection">
+		<q-item v-for="friend in filteredFriendList" v-bind:key="friend.id" clickable v-ripple @click="onFriendClick(friend.user.id)" class="q-ma-md q-pa-md rounded-borders shadow-2 row items-center" style="width: 260px">
+				<q-avatar>
+					<img :src='friend.user.avatar'>
+				</q-avatar>
+				<div class="q-ml-md">{{ friend.user.pseudo }}</div>
+		</q-item>
+			<div v-if="filteredFriendList.length == 0 && filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
+			<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
+			No matching records found
+		</div>
+		<div v-if="filteredFriendList.length == 0 && !filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
+			<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
+			No data available
+		</div>
+	</q-list>
+
+	<q-dialog v-model="user.new_user">
 		<div class="q-pa-md" style="background-color: white; max-width: 400px;">
 			<h5 class="q-ma-md">{{ capitalize($t('setting.profilPictureModal.title')) }}</h5>
 			<q-card bordered style='width: 300px;' class="q-ma-md">
@@ -35,7 +46,7 @@
 					<pictureEditing :avatar='user.avatar'></pictureEditing>
 				</q-card-section>
 			</q-card>
-			<q-btn flat v-close-popup>{{ $t('setting.profilPictureModal.dismiss') }}</q-btn>
+			<q-btn flat v-close-popup  @click="onDimmissPopup">{{ $t('setting.profilPictureModal.dismiss') }}</q-btn>
 		</div>
 	</q-dialog>
 </template>
@@ -44,9 +55,11 @@
 import pictureEditing from 'src/components/userSettings/pictureEditing.vue';
 import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
-import { inject, ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { Capitalize } from 'src/boot/libs';
 import { api } from 'boot/axios';
+import type { RefreshUserState } from 'src/boot/state';
 
 export default ({
 	name: 'WelcomePage',
@@ -60,9 +73,15 @@ export default ({
 	{
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 
-		const firstConnection = ref(true);
+		const route = useRoute();
+		const refreshUserState = inject('refreshUserState') as RefreshUserState;
 		const user = ref({});
+		const router = useRouter();
 		const friendList = ref([]);
+		const filteredFriendList = ref([]);
+		const hideSearch = ref(true);
+		const filter = ref('');
+		const input = ref();
 
 		async function fetchUserInfo ()
 		{
@@ -75,20 +94,55 @@ export default ({
 			const res = await api.get('/friends/accepted');
 			console.log(res.data);
 			friendList.value = res.data;
+			onFilterChange(filter.value);
+		}
+
+		async function onDimmissPopup ()
+		{
+			api.get('/user/new');
+		}
+
+		async function onFriendClick (friendPseudo)
+		{
+			router.push('/profile/' + friendPseudo);
+		}
+
+		async function toggleSearch ()
+		{
+			hideSearch.value = !hideSearch.value;
+			setTimeout(() =>
+			{
+				input.value.focus();
+			}, 100);
+		}
+
+		async function onFilterChange (value: string)
+		{
+			filteredFriendList.value = friendList.value.filter(friend => friend.user.pseudo.toLowerCase().includes(value.toLowerCase()));
 		}
 
 		onMounted(() =>
 		{
 			fetchUserInfo();
 			fetchFriendList();
+			if ('logged' in route.query)
+				refreshUserState();
 		});
 
 		return {
 			capitalize,
 
 			user,
-			firstConnection,
-			friendList
+			friendList,
+			hideSearch,
+			filter,
+			filteredFriendList,
+			input,
+
+			toggleSearch,
+			onDimmissPopup,
+			onFilterChange,
+			onFriendClick
 		};
 	}
 });

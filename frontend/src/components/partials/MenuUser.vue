@@ -1,12 +1,12 @@
 <template>
 	<q-spinner
-		v-if="loading"
+		v-if="state.loading"
 		size="2em"
 		class="q-mx-md"
 	/>
 
 	<q-btn
-		v-if="!loading && !loggedIn"
+		v-if="!state.loading && !state.loggedIn"
 		flat
 		:rounded="$q.screen.gt.xs"
 		:round="$q.screen.lt.sm"
@@ -16,7 +16,7 @@
 	</q-btn>
 
 	<q-btn-dropdown
-		v-if="!loading && loggedIn"
+		v-if="!state.loading && state.loggedIn"
 		no-caps
 		no-wrap
 		stretch
@@ -25,10 +25,10 @@
 	>
 		<template v-slot:label>
 			<q-avatar :class="clsx($q.screen.gt.md && 'on-left')">
-				<img :src="myself.avatar">
+				<img :src="`${state.myself.avatar}?${state.userStateUpdatedAt}`">
 			</q-avatar>
 			<span class="block" v-if="$q.screen.gt.md">
-				{{myself.username}}
+				{{state.myself.username}}
 			</span>
 		</template>
 		<q-list>
@@ -68,66 +68,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue';
-import { useQuasar } from 'quasar';
+import { defineComponent, inject } from 'vue';
 import clsx from 'clsx';
-import { api } from 'src/boot/axios';
-import type { AxiosError } from 'axios';
-
-interface myself
-{
-	id?: number,
-	username?: string,
-	avatar?: string
-}
+import type { State } from 'src/boot/state';
 
 export default defineComponent({
 	name: 'PartialMenuUser',
 	setup ()
 	{
-		const $q = useQuasar();
-
-		const loading = ref<boolean>(true);
-		const loggedIn = ref<boolean>(false);
-		const myself = ref<myself>({});
-
-		onMounted(() =>
-		{
-			loading.value = true;
-			api.get('/logged')
-				.then(({ data: { id, pseudo, avatar } }) =>
-				{
-					myself.value = {
-						id,
-						username: pseudo,
-						avatar
-					};
-					loggedIn.value = true;
-				})
-				.catch((err: AxiosError) =>
-				{
-					loggedIn.value = false;
-					myself.value = {};
-					if (typeof err.response === 'undefined' || err.response.status !== 401)
-					{
-						$q.notify({
-							type: 'negative',
-							message: 'Failed to check login status',
-							caption: err.message || (err + '')
-						});
-					}
-				})
-				.finally(() =>
-				{
-					loading.value = false;
-				});
-		});
+		const state = inject('state') as State;
 
 		return {
 			clsx,
-			loading,
-			loggedIn,
-			myself
+			state
 		};
 	}
 });

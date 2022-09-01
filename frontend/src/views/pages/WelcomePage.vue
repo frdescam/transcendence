@@ -42,8 +42,10 @@
 import pictureEditing from 'src/components/userSettings/pictureEditing.vue';
 import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
+import { useRoute } from 'vue-router';
 import { api } from 'boot/axios';
+import type { RefreshUserState } from 'src/boot/state';
 
 export default ({
 	name: 'WelcomePage',
@@ -55,6 +57,8 @@ export default ({
 
 	setup ()
 	{
+		const route = useRoute();
+		const refreshUserState = inject('refreshUserState') as RefreshUserState;
 		const user = ref({});
 		const friendList = ref([]);
 
@@ -80,6 +84,8 @@ export default ({
 		{
 			fetchUserInfo();
 			fetchFriendList();
+			if ('logged' in route.query)
+				refreshUserState();
 		});
 
 		return {

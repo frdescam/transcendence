@@ -20,9 +20,10 @@
 	</div>
 </template>
 
-<script>
-import { defineComponent, ref } from 'vue';
+<script lang="ts">
+import { defineComponent, ref, inject } from 'vue';
 import { api } from 'boot/axios';
+import type { RefreshUserState } from 'src/boot/state';
 
 export default defineComponent({
 	props: [
@@ -33,6 +34,8 @@ export default defineComponent({
 	],
 	setup (props, { emit })
 	{
+		const refreshUserState = inject('refreshUserState') as RefreshUserState;
+
 		const newPseudo = ref('');
 		const LoadingPseudo = ref(false);
 		const success = ref(false);
@@ -77,6 +80,7 @@ export default defineComponent({
 					emit('update:pseudo', res.data.pseudo);
 					failure.value = false;
 					success.value = true;
+					refreshUserState();
 				}
 				LoadingPseudo.value = false;
 			});

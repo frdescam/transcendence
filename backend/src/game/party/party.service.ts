@@ -777,7 +777,7 @@ export class PartyService
     {
       {
         let otherParty = this.findPartyWithUser(userId);
-        if (otherParty.room !== party.room)
+        if (otherParty && otherParty.room !== party.room)
         {
           this.sendError('You are already playing in another party', client);
           return (null);

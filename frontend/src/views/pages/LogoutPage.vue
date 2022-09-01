@@ -7,11 +7,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from 'vue';
+import { defineComponent, onMounted, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 import type { AxiosError } from 'axios';
+import type { RefreshUserState } from 'src/boot/state';
 
 export default defineComponent({
 	name: 'LogoutPage',
@@ -20,6 +21,7 @@ export default defineComponent({
 	{
 		const $q = useQuasar();
 		const router = useRouter();
+		const refreshUserState = inject('refreshUserState') as RefreshUserState;
 
 		function fail (message: string, caption: string | undefined)
 		{
@@ -53,6 +55,7 @@ export default defineComponent({
 							'Unexpected server answer'
 						);
 					}
+					refreshUserState();
 				})
 				.catch((err: AxiosError) =>
 				{

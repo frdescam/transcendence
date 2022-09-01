@@ -22,9 +22,10 @@
 	</q-form>
 </template>
 
-<script>
-import { ref, defineComponent } from 'vue';
+<script lang="ts">
+import { ref, defineComponent, inject } from 'vue';
 import { api } from 'boot/axios';
+import type { RefreshUserState } from 'src/boot/state';
 
 export default defineComponent({
 	props: [
@@ -32,6 +33,8 @@ export default defineComponent({
 	],
 	setup (props)
 	{
+		const refreshUserState = inject('refreshUserState') as RefreshUserState;
+
 		const newAvatar = ref(null);
 		const newUploadedAvatar = ref(null);
 		const success = ref(false);
@@ -53,6 +56,7 @@ export default defineComponent({
 				{
 					success.value = true;
 					failure.value = false;
+					refreshUserState();
 				}
 				else
 				{

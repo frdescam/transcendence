@@ -48,7 +48,7 @@ import { useI18n } from 'vue-i18n';
 import clsx from 'clsx';
 import options from 'src/i18n/options';
 import languages from 'quasar/lang/index.json';
-import MenuUser from './MenuUser.vue';
+import MenuUser from '../Menu/MenuUser.vue';
 
 // #region Quasar lang definition
 const defineLangs = options.map((el) => el.value);

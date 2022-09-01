@@ -775,6 +775,15 @@ export class PartyService
 
     public joinParty (party: Party, client: Socket, userId: userId): Party | null
     {
+      {
+        let otherParty = this.findPartyWithUser(userId);
+        if (otherParty.room !== party.room)
+        {
+          this.sendError('You are already playing in another party', client);
+          return (null);
+        }
+      }
+
       let slot;
       if (party.playersId[0] && party.playersId[0] !== userId)
       {
@@ -1018,8 +1027,9 @@ router.resolve({
 
     public queryFoundParty(client: Socket, party: Party, userId: userId)
     {
-      if (!party || !this.joinParty(party, client, userId))
+      if (!party)
         return (false);
+      this.joinParty(party, client, userId);
       client.emit('game::query::found', party.room);
       return (true);
     }
@@ -1038,8 +1048,12 @@ router.resolve({
       return (true);
     }
 
-    public find (query: partyQuery): Party | null
+    public find (userId: userId, query: partyQuery): Party | null
     {
+      const involvedIn = this.findPartyWithUser(userId);
+      if (involvedIn)
+        return (involvedIn);
+
       const candidates = this.parties.filter(
         (party) => this.isPartyCompatibleWithQuery(party, query)
       );

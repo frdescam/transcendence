@@ -75,7 +75,7 @@ const columns = [
 	{
 		name: 'level',
 		label: 'LEVEL',
-		field: 'level',
+		field: 'xp',
 		required: true,
 		align: 'left',
 		style: 'width: 10%'

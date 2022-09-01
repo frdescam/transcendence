@@ -22,9 +22,15 @@
 		stretch
 		flat
 		:dense="$q.screen.lt.md"
-		:label="$q.screen.gt.md ? myself.username : undefined"
-		:icon="myself.avatar ? `img:${myself.avatar}` : undefined"
 	>
+		<template v-slot:label>
+			<q-avatar :class="clsx($q.screen.gt.md && 'on-left')">
+				<img :src="myself.avatar">
+			</q-avatar>
+			<span class="block" v-if="$q.screen.gt.md">
+				{{myself.username}}
+			</span>
+		</template>
 		<q-list>
 
 			<q-item clickable :to="{name: 'settings'}">
@@ -64,6 +70,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue';
 import { useQuasar } from 'quasar';
+import clsx from 'clsx';
 import { api } from 'src/boot/axios';
 import type { AxiosError } from 'axios';
 
@@ -117,6 +124,7 @@ export default defineComponent({
 		});
 
 		return {
+			clsx,
 			loading,
 			loggedIn,
 			myself

@@ -10,11 +10,11 @@ export class LeaderboardService {
     private FriendshipService: FriendshipService,
   ) {}
 
-  async getRows(userId: number, friendsOnly: string, startRow: number, count: number, filter: string) {
+  async getRows(user: User, friendsOnly: string, startRow: number, count: number, filter: string) {
     let allUsers: User[];
     if (friendsOnly == 'true') {
-        allUsers = await this.FriendshipService.getFriends(userId);
-        allUsers.push(await this.userService.findOne({id: userId}));
+        allUsers = await this.FriendshipService.getFriends(user.id);
+        allUsers.push(await this.userService.findOne({id: user.id}));
     } else {
         allUsers = await this.userService.findAll();
     }

@@ -41,14 +41,14 @@
 		</div>
 	</div>
 </template>
-<script>
-
+<script lang="ts">
 import matchesList from 'src/components/profilePage/MatchesList.vue';
 import achievementsList from 'src/components/profilePage/AchievementsList.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
-import { ref } from 'vue';
+import { inject, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { api } from 'boot/axios';
+import { Socket } from 'socket.io-client';
 
 const matches = [
 	{
@@ -167,15 +167,16 @@ export default {
 	},
 	setup ()
 	{
+		const socket: Socket = inject('socketChat') as Socket;
 		const route = useRoute();
 		const userId = route.params.id;
 		const user = ref({});
+		const me = ref({});
 		const ownPage = ref(false);
 		const isUserIgnored = ref(false);
 		const isUserFriend = ref(false);
 		const isUserPendingFriend = ref(false);
 		const isUserInvited = ref(false);
-		let ignoreId;
 		let friendId;
 		let pendingFriendId;
 
@@ -185,6 +186,7 @@ export default {
 			api.get('/user/me').then((res) =>
 			{
 				ownPage.value = (res.data.id === user.value.id);
+				me.value = res.data;
 			});
 		});
 
@@ -198,7 +200,6 @@ export default {
 					if (ignoredUser.target.id === user.value.id)
 					{
 						isUserIgnored.value = true;
-						ignoreId = ignoredUser.target.id;
 						return;
 					}
 				}
@@ -212,23 +213,37 @@ export default {
 		{
 			if (isUserIgnored.value)
 			{
-				api.delete('/ignore/delete', {
-					data: { id: ignoreId }
-				}).then(() =>
-				{
-					fetchIgnore();
+				socket.emit('blocked::remove', {
+					id: me.value.id,
+					blockedId: user.value.id
 				});
 			}
 			else
 			{
-				api.post('/ignore', {
-					id: user.value.id
-				}).then(() =>
-				{
-					fetchIgnore();
+				socket.emit('blocked::add', {
+					id: me.value.id,
+					blockedId: user.value.id
 				});
 			}
 		}
+
+		socket.on('blocked::receive::add', (ret) =>
+		{
+			if (!ret || ret.socketId !== socket.id)
+				return;
+			if (Object.prototype.hasOwnProperty.call(ret.data, 'alreadyBlocked'))
+				return;
+			isUserIgnored.value = true;
+		});
+
+		socket.on('blocked::receive::remove', (ret) =>
+		{
+			if (!ret || ret.socketId !== socket.id)
+				return;
+			if (Object.prototype.hasOwnProperty.call(ret.data, 'notBlocked') || ret.data.deleted === false)
+				return;
+			isUserIgnored.value = false;
+		});
 
 		async function fetchFriends ()
 		{

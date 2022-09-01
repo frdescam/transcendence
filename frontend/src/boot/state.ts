@@ -21,7 +21,7 @@ export interface State
 
 export type RefreshUserState = () => void;
 
-const state = reactive<State>({
+export const state = reactive<State>({
 	loading: true,
 	loggedIn: false,
 	userStateUpdatedAt: '',

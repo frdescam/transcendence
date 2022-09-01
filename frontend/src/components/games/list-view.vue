@@ -174,7 +174,55 @@ defineExpose({
 		color="primary"
 		dense
 		:rows="Object.keys(partiesListObject).map((key)=>(partiesListObject[key]))"
-		:columns="columns"
+		:columns="[
+      {
+        name: 'room',
+        required: true,
+        label: $t('game.listView.columns.room').toUpperCase(),
+        field: 'room',
+        sortable: true,
+        align: 'left'
+      },
+      {
+        name: 'map',
+        label: $t('game.listView.columns.map').toUpperCase(),
+        field: 'map',
+        sortable: true,
+        align: 'left'
+      },
+      {
+        name: 'scores',
+        label: $t('game.listView.columns.scores').toUpperCase(),
+        field: 'scores',
+        align: 'center'
+      },
+      {
+        name: 'players',
+        label: $t('game.listView.columns.players').toUpperCase(),
+        field: 'players',
+        sortable: true,
+        sort: (a: usersArray, b: usersArray) => (
+          (countPlayers(b)) - (countPlayers(a))
+        ),
+        align: 'center'
+      },
+      {
+        name: 'status',
+        label: $t('game.listView.columns.status').toUpperCase(),
+        field: 'status',
+        align: 'center'
+      },
+      {
+        name: 'createdAt',
+        label: $t('game.listView.columns.creation').toUpperCase(),
+        field: 'createdAt',
+        sortable: true,
+        sort: (a: string, b: string) => (
+          (new Date(b).getTime()) - (new Date(a).getTime())
+        ),
+        align: 'right'
+      }
+    ]"
 		:loading="!state.connected"
 		:pagination="tablePagination"
 		:rows-per-page-options="tablePaginationPerPage"
@@ -207,7 +255,7 @@ defineExpose({
 							<q-avatar square>
 								<img :src="props.row.avatars[0] ? props.row.avatars[0] : '/imgs/chat/default.webp'" v-if="props.row.players[0]">
 							</q-avatar>
-							vs
+							{{ $t('game.listView.vs').toUpperCase() }}
 							<q-avatar square>
 								<img :src="props.row.avatars[1] ? props.row.avatars[1] : '/imgs/chat/default.webp'" v-if="props.row.players[1]">
 							</q-avatar>

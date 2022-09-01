@@ -1,4 +1,14 @@
 export default {
+	menu: {
+		title: 'transcendance',
+		play: 'play',
+		chat: 'chat',
+		leaderboard: 'leaderboard',
+		setting: 'account setting',
+		retake: 'retake the game',
+		disconnect: 'disconnect'
+	},
+	// pages
 	chat: {
 		channel: {
 			createTooltip: 'Create a new channel',
@@ -156,5 +166,90 @@ export default {
 			creator: 'You are the creator of the channel, this one will be immediately deleted when you leave. Do you want to leave it ?'
 		},
 		socket: 'The connection has been lost, reconnection in progress'
+	},
+	error: {
+		404: '404',
+		title: 'Oops, nothing here...',
+		label: 'Go home'
+	},
+	game: {
+		creation: {
+			title: 'game creation',
+			mapSelection: 'map selection',
+			play: {
+				anyone: 'play with anyone',
+				friend: 'play with a friend',
+				button: 'play'
+			},
+			opponent: 'opponent selection'
+		},
+		listView: {
+			columns: {
+				room: 'room id',
+				map: 'map',
+				scores: 'scores',
+				players: 'players',
+				status: 'status',
+				creation: 'creation date'
+			},
+			vs: 'vs'
+		}
+	},
+	index: {
+		exp: 'xp',
+		noFriends: 'no friends to display yet',
+		level: 'level',
+		nextLevel: 'next level :',
+		ratio: 'ratio',
+		buttons: {
+			chat: 'chat with your friends',
+			checkoutGame: 'checkout live games',
+			checkoutLeader: 'checkout the leaderboard',
+			edit: 'edit your settings',
+			start: 'start a game'
+		}
+	},
+	leaderboard: {
+		rank: 'rank',
+		player: 'player',
+		ratio: 'ratio',
+		level: 'level',
+		friends: 'only friends',
+		search: 'search'
+	},
+	login: {
+		button: 'Login with'
+	},
+	matching: {
+		look: 'Looking for party',
+		with: 'with map {map}',
+		messages: {
+			awaiting: 'Awaiting such party to be created...',
+			querying: 'Querying the server...',
+			found: 'Redirecting to the party...',
+			default: 'Connecting...'
+		}
+	},
+	setting: {
+		title: 'settings :',
+		twoFactor: {
+			title: 'two factor authentication',
+			subtitleOn: 'two factor authentication is activate',
+			subtitleOff: 'two factor authentication is desactivate',
+			activate: 'activate',
+			desactivate: 'desactivate'
+		},
+		delete: {
+			title: 'delete your account',
+			subtitleOne: 'are you sure ?',
+			subtitleTwo: 'you will lose all progress'
+		},
+		profilPictureModal: {
+			title: 'you can edit your pseudo and profile picture right here :',
+			pseudo: 'change pseudo',
+			picture: 'change picture',
+			update: 'update',
+			dismiss: 'dismiss'
+		}
 	}
 };

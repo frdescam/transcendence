@@ -1,4 +1,14 @@
 export default {
+	menu: {
+		title: 'transcendance',
+		play: 'jouer',
+		chat: 'chat',
+		leaderboard: 'classement',
+		setting: 'paramètre du compte',
+		retake: 'reprendre la partie',
+		disconnect: 'déconnexion'
+	},
+	// pages
 	chat: {
 		channel: {
 			createTooltip: 'Créer un nouveau canal',
@@ -156,5 +166,90 @@ export default {
 			creator: 'Vous êtes le créateur du canal, il sera immédiatement supprimé lorsque vous le quitterez. Voulez-vous le quitter ?'
 		},
 		socket: 'La connexion a été interrompu, reconnexion en cours'
+	},
+	error: {
+		404: '404',
+		title: 'Oups, rien ici...',
+		label: 'Aller à la page d\'accueil'
+	},
+	game: {
+		creation: {
+			title: 'création d\'une partie',
+			mapSelection: 'sélection de la carte',
+			play: {
+				anyone: 'jouer avec n\'importe qui',
+				friend: 'jouer avec un ami',
+				button: 'jouer'
+			},
+			opponent: 'sélection d\'un adversaire'
+		},
+		listView: {
+			columns: {
+				room: 'identifiant de la chambre',
+				map: 'carte',
+				scores: 'scores',
+				players: 'joueurs',
+				status: 'status',
+				creation: 'date de création'
+			},
+			vs: 'vs'
+		}
+	},
+	index: {
+		exp: 'xp',
+		noFriends: 'aucun ami à afficher pour le moment',
+		level: 'niveau',
+		nextLevel: 'niveau suivant :',
+		ratio: 'ratio',
+		buttons: {
+			chat: 'discuter avec vos amis',
+			checkoutGame: 'consultez les jeux en direct',
+			checkoutLeader: 'consultez le classement',
+			edit: 'modifier vos paramètres',
+			start: 'démarrer une partie'
+		}
+	},
+	leaderboard: {
+		rank: 'rang',
+		player: 'joueur',
+		ratio: 'ratio',
+		level: 'niveau',
+		friends: 'seulement mes amis',
+		search: 'rechercher'
+	},
+	login: {
+		button: 'Connectez-vous avec'
+	},
+	matching: {
+		look: 'Rechercher une partie',
+		with: 'avec la carte {map}',
+		messages: {
+			awaiting: 'En attente de la création de cette partie...',
+			querying: 'Demande au serveur...',
+			found: 'Réorientation vers la partie...',
+			default: 'Connexion...'
+		}
+	},
+	setting: {
+		title: 'paramètres :',
+		twoFactor: {
+			title: 'authentification à double facteur',
+			subtitleOn: 'l\'authentification à double facteurs est activée',
+			subtitleOff: 'l\'authentification à double facteurs est désactivée',
+			activate: 'activer',
+			desactivate: 'désactiver'
+		},
+		delete: {
+			title: 'supprimer votre compte',
+			subtitleOne: 'êtes-vous sûr ?',
+			subtitleTwo: 'vous perdrez toute votre progression'
+		},
+		profilPictureModal: {
+			title: 'Vous pouvez modifier votre pseudo et votre photo de profil ici même :',
+			pseudo: 'Modifier le pseudo',
+			picture: 'Changement d\'image',
+			update: 'mettre à jour',
+			dismiss: 'fermer'
+		}
 	}
 };

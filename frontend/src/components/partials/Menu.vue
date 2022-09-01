@@ -1,94 +1,95 @@
 <template>
-  <q-toolbar class="q-pr-none">
+	<q-toolbar class="q-pr-none">
 
-    <q-toolbar-title shrink class="gt-sm">
-      <q-btn flat round dense size="lg" icon="mdi-table-tennis" :to="{ name: 'home' }"/>
-      Transcendance
-    </q-toolbar-title>
+		<q-toolbar-title shrink class="gt-sm">
+			<q-btn flat round dense size="lg" icon="mdi-table-tennis" :to="{ name: 'home' }"/>
+			{{ $t('menu.title') }}
+		</q-toolbar-title>
 
-    <div :class="clsx('col-grow row no-wrap', $q.screen.gt.xs ? 'q-gutter-md' : 'q-gutter-sm', $q.screen.gt.xs && 'justify-center')">
-      <q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'play' }" :label="$q.screen.gt.xs ? 'Play' : undefined" icon="sports_esports" />
-      <q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'chat' }" :label="$q.screen.gt.xs ? 'Chat' : undefined" icon="chat" />
-      <q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'leaderboard' }" :label="$q.screen.gt.xs ? 'Leaderboard' : undefined" icon="leaderboard" />
-    </div>
+		<div :class="clsx('col-grow row no-wrap', $q.screen.gt.xs ? 'q-gutter-md' : 'q-gutter-sm', $q.screen.gt.xs && 'justify-center')">
+			<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'play' }" :label="$q.screen.gt.xs ? $t('menu.play') : undefined" icon="sports_esports" />
+			<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'chat' }" :label="$q.screen.gt.xs ? $t('menu.chat') : undefined" icon="chat" />
+			<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'leaderboard' }" :label="$q.screen.gt.xs ? $t('menu.leaderboard') : undefined" icon="leaderboard" />
+		</div>
 
-    <q-select
-      rounded
-      borderless
-      dense
-      options-dense
-      :options-dark="false"
-      :hide-selected="$q.screen.lt.lg"
-      dark
-      emit-value
-      map-options
-      v-model="locale"
-      :options="localeOptions"
-      :class="clsx($q.screen.gt.md && 'lang_allocated_space')"
-    >
-      <template v-slot:prepend v-if="$q.screen.gt.md">
-        <q-icon name="translate" />
-      </template>
-      <template v-slot:append v-if="$q.screen.lt.lg">
-        <q-icon name="translate" />
-      </template>
-    </q-select>
+		<q-select
+			rounded
+			borderless
+			dense
+			options-dense
+			:options-dark="false"
+			:hide-selected="$q.screen.lt.lg"
+			dark
+			emit-value
+			map-options
+			v-model="locale"
+			:options="localeOptions"
+			:class="clsx($q.screen.gt.md && 'lang_allocated_space')"
+		>
+			<template v-slot:prepend v-if="$q.screen.gt.md">
+				<q-icon name="translate" />
+			</template>
+			<template v-slot:append v-if="$q.screen.lt.lg">
+				<q-icon name="translate" />
+			</template>
+		</q-select>
 
-    <!--
-    <q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'login' }">
-      <q-icon name="login" />
-    </q-btn>
-    -->
+		<!--
+		<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'login' }">
+			<q-icon name="login" />
+		</q-btn>
+		-->
 
-    <q-btn-dropdown
-        no-caps
-        no-wrap
-        stretch
-        flat
-        :dense="$q.screen.lt.md"
-        :label="$q.screen.gt.md ? 'Username' : undefined"
-        icon="img:https://cdn.quasar.dev/logo-v2/svg/logo.svg"
-      >
-      <q-list>
+		<q-btn-dropdown
+				no-caps
+				no-wrap
+				stretch
+				flat
+				:dense="$q.screen.lt.md"
+				:label="$q.screen.gt.md ? 'Username' : undefined"
+				icon="img:https://cdn.quasar.dev/logo-v2/svg/logo.svg"
+			>
+			<q-list>
 
-        <q-item clickable :to="{name: 'settings'}">
-          <q-item-section side class="inherit_color">
-            <q-icon name="settings" />
-          </q-item-section>
-          <q-item-section no-wrap>
-            <q-item-label>Account settings</q-item-label>
-          </q-item-section>
-        </q-item>
+				<q-item clickable :to="{name: 'settings'}">
+					<q-item-section side class="inherit_color">
+						<q-icon name="settings" />
+					</q-item-section>
+					<q-item-section no-wrap>
+						<q-item-label>{{ capitalize($t('menu.setting')) }}</q-item-label>
+					</q-item-section>
+				</q-item>
 
-        <q-item clickable disable>
-          <q-item-section side class="inherit_color">
-            <q-icon name="sports_esports" />
-          </q-item-section>
-          <q-item-section no-wrap>
-            <q-item-label>Retake the game</q-item-label>
-          </q-item-section>
-        </q-item>
+				<q-item clickable disable>
+					<q-item-section side class="inherit_color">
+						<q-icon name="sports_esports" />
+					</q-item-section>
+					<q-item-section no-wrap>
+						<q-item-label>{{ capitalize($t('menu.retake')) }}</q-item-label>
+					</q-item-section>
+				</q-item>
 
-        <q-separator inset />
+				<q-separator inset />
 
-        <q-item clickable @click="onLogout">
-          <q-item-section side class="inherit_color">
-            <q-icon name="logout" />
-          </q-item-section>
-          <q-item-section no-wrap>
-            <q-item-label>Disconnect</q-item-label>
-          </q-item-section>
-        </q-item>
+				<q-item clickable @click="onLogout">
+					<q-item-section side class="inherit_color">
+						<q-icon name="logout" />
+					</q-item-section>
+					<q-item-section no-wrap>
+						<q-item-label>{{ capitalize($t('menu.disconnect')) }}</q-item-label>
+					</q-item-section>
+				</q-item>
 
-      </q-list>
-    </q-btn-dropdown>
+			</q-list>
+		</q-btn-dropdown>
 
-  </q-toolbar>
+	</q-toolbar>
 </template>
 
 <script lang="ts">
 import clsx from 'clsx';
-import { defineComponent, watch } from 'vue';
+import { defineComponent, inject, watch } from 'vue';
+import { Capitalize } from 'src/boot/libs';
 import { useI18n } from 'vue-i18n';
 import options from 'src/i18n/options';
 import { useQuasar } from 'quasar';
@@ -129,6 +130,7 @@ export default defineComponent({
 	name: 'PartialMenu',
 	setup ()
 	{
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const $q = useQuasar();
 		const { locale } = useI18n({ useScope: 'global' });
 		const router = useRouter();
@@ -158,7 +160,8 @@ export default defineComponent({
 			locale,
 			localeOptions: options,
 
-			onLogout
+			onLogout,
+			capitalize
 		};
 	}
 });

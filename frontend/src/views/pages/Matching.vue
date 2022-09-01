@@ -8,6 +8,7 @@ export default {
 import { onBeforeUnmount, onMounted, ref, computed, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Socket } from 'socket.io-client';
+import { useI18n } from 'vue-i18n';
 
 import type { partyQuery as query } from 'src/common/game/interfaces';
 
@@ -22,6 +23,7 @@ enum State
 const router = useRouter();
 const route = useRoute();
 
+const { t } = useI18n();
 const gameSocket: Socket = inject('socketGame') as Socket;
 const status = ref(State.Connecting);
 const map = computed(() => (route.query.map || null)); // @TODO: Manage change in the URL
@@ -30,16 +32,13 @@ const message = computed(() =>
 	switch (status.value)
 	{
 	case State.Awaiting:
-		return 'Awaiting such party to be created ...';
-
+		return t('matching.messages.awaiting');
 	case State.Querying:
-		return 'Querying the server ...';
-
+		return t('matching.messages.querying');
 	case State.Found:
-		return 'Redirecting to the party ...';
-
+		return t('matching.messages.found');
 	default:
-		return 'Connecting ...';
+		return t('matching.messages.default');
 	}
 });
 
@@ -101,9 +100,9 @@ onBeforeUnmount(() =>
 	<q-page class="page text-white text-center q-pa-md flex flex-center">
 		<div class="container">
 			<h1 class="text-h1">
-				Looking for party{{map && (" with map " + map)}}...
+				{{ $t('matching.look') }} {{ (map) && $t('matching.with', { map: map }) }}
 			</h1>
-			<p class="text-h2">{{message}}</p>
+			<p class="text-h2">{{ message }}</p>
 			<q-linear-progress
 				rounded track-color="grey-7" color="white"
 				:indeterminate="status != State.Connecting"

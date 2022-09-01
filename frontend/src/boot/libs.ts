@@ -28,12 +28,17 @@ export interface SanitizeMessage {
 	(message: string): string[];
 }
 
+export interface Capitalize {
+  (str: string): string;
+}
+
 declare module '@vue/runtime-core' {
 	interface ComponentCustomProperties {
 		$typeofObject: TypeOfObject;
 		$timestamp: TimestampFunction;
 		$objDiff: ObjDiff,
-		$sanitizeMessage: SanitizeMessage
+		$sanitizeMessage: SanitizeMessage,
+		$capitalize: Capitalize
 	}
 }
 
@@ -168,6 +173,13 @@ const sanitizeUserMessage = (message: string) =>
 	return ret;
 };
 
+/**
+ * Capitalize first letter of string
+ * @param str string to capitalize
+ * @return string
+ */
+const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);
+
 export default boot(({ app }) =>
 {
 	app.config.globalProperties.$typeofObject = typeofObject;
@@ -178,4 +190,6 @@ export default boot(({ app }) =>
 	app.provide('objDiff', app.config.globalProperties.$objDiff);
 	app.config.globalProperties.$sanitizeMessage = sanitizeUserMessage;
 	app.provide('sanitizeMessage', app.config.globalProperties.$sanitizeMessage);
+	app.config.globalProperties.$capitalize = capitalize;
+	app.provide('capitalize', app.config.globalProperties.$capitalize);
 });

@@ -119,7 +119,8 @@ onBeforeUnmount(() =>
 </script>
 
 <template>
-	<q-page class="page text-white text-center q-pa-md flex flex-center">
+	<q-page class="text-white text-center q-pa-md flex flex-center">
+		<div class="page-bg" />
 		<div class="container">
 			<h1 class="text-h1">
 				Looking for party{{map && (" with map " + map)}}...
@@ -162,8 +163,13 @@ onBeforeUnmount(() =>
 		background-color: $orange-10
 	100%
 		background-color: $red-10
-.page
+.page-bg
+	position: absolute
+	height: 100%
+	width: 100%
 	animation: colorfull 60s linear infinite
+	mix-blend-mode: hue
 .container
+	z-index: 20
 	min-width: 80vw
 </style>

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { User } from 'src/users/orm/user.entity';
 import { UserService } from 'src/users/user/user.service';
 import { FriendshipService } from 'src/users/friendship/friendship.service';
-import { leaderboardRowDto } from '../orm/leaderboardRow.dto';
 
 @Injectable()
 export class LeaderboardService {
@@ -11,41 +10,31 @@ export class LeaderboardService {
     private FriendshipService: FriendshipService,
   ) {}
 
-  async getRows(userId: number, friendsOnly: string, startRow: number, count: number, filter: string) {
-    let allUsersAsEntity: User[];
-    if (friendsOnly === 'true') {
-      allUsersAsEntity = await this.FriendshipService.getFriends(userId);
-      allUsersAsEntity.push(await this.userService.findOne({id: userId}));
+  async getRows(user: User, friendsOnly: string, startRow: number, count: number, filter: string) {
+    let allUsers: User[];
+    if (friendsOnly == 'true') {
+        allUsers = await this.FriendshipService.getFriends(user.id);
+        allUsers.push(await this.userService.findOne({id: user.id}));
     } else {
-      allUsersAsEntity = await this.userService.findAll();
+        allUsers = await this.userService.findAll();
     }
-    allUsersAsEntity.sort((a: User, b: User) => {
+
+    allUsers.sort((a: User, b: User) => {
       return a.rank - b.rank;
     });
 
-    let allUsersAsDto = allUsersAsEntity.map((entity) => {
-      const dto: leaderboardRowDto = {
-        rank: entity.rank,
-        avatar: entity.avatar,
-        pseudo: entity.pseudo,
-        ratio: entity.ratio,
-        level: entity.xp
-      };
-      return dto;
-    });
-
     if (filter)
-      allUsersAsDto = allUsersAsDto.filter(row => row.pseudo.toLowerCase().includes(filter.toLowerCase()));
+      allUsers = allUsers.filter(row => row.pseudo.toLowerCase().includes(filter.toLowerCase()));
 
-    const totalRowsNumber = allUsersAsDto.length;
+    const totalRowsNumber = allUsers.length;
 
     if (count === 0)
-      allUsersAsDto = allUsersAsDto.slice(startRow, allUsersAsDto.length);
+      allUsers = allUsers.slice(startRow, allUsers.length);
     else
-      allUsersAsDto = allUsersAsDto.slice(startRow, parseInt(startRow.toString()) + parseInt(count.toString()));
+      allUsers = allUsers.slice(startRow, parseInt(startRow.toString()) + parseInt(count.toString()));
     return {
       totalRowsNumber,
-      rows: allUsersAsDto
+      rows: allUsers
     };
   }
 }

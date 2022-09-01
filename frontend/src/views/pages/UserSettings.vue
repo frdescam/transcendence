@@ -34,7 +34,7 @@
         <q-icon v-if="!me.is2FActive && !TFAActivating" name="error" color="red" size="200px"></q-icon>
                   <q-btn v-if="!TFAActivating && !me.is2FActive" @click="onActivate2FA">Activate</q-btn>
                   <q-btn v-if="!TFAActivating && me.is2FActive" @click="onDeactivate2FA">Deactivate</q-btn>
-        <q-img v-if="TFAActivating" src="http://127.0.0.1:8080/api/2FA/generate" :ratio="1" style="width: 200px"/>
+        <q-img v-if="TFAActivating" :src='("http://127.0.0.1:8080/api/2FA/generate?time=" + new Date().getTime())' :ratio="1" style="width: 200px"/>
                   <q-form v-if="TFAActivating" class="column justify-evenly items-center full-height">
           <q-input @update:model-value="update" :disable="disableInput" :color="inputColor" :autofocus=true mask="######" label="Enter 2FA code :"></q-input>
         </q-form>
@@ -97,7 +97,7 @@ export default ({
 	setup ()
 	{
 		const TFAActivating = ref(false);
-		const paddleSelected = ref('Normal');
+		// const paddleSelected = ref('Normal');
 		const disableInput = ref(false);
 		const inputColor = ref('blue');
 		const me = ref({});
@@ -105,6 +105,8 @@ export default ({
 		function onActivate2FA ()
 		{
 			TFAActivating.value = true;
+			disableInput.value = false;
+			inputColor.value = 'blue';
 		}
 
 		function onDeactivate2FA ()
@@ -139,7 +141,7 @@ export default ({
 		});
 
 		return {
-			paddleSelected,
+			// paddleSelected,
 			TFAActivating,
 			disableInput,
 			inputColor,
@@ -148,10 +150,10 @@ export default ({
 			onActivate2FA,
 			onDeactivate2FA,
 			update,
-			GameOptionsSubmit ()
-			{
-				console.log(paddleSelected.value);
-			},
+			// GameOptionsSubmit ()
+			// {
+			// console.log(paddleSelected.value);
+			// },
 			deleteAccount ()
 			{
 				console.log('User deleted their account');

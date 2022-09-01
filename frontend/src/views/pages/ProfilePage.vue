@@ -22,12 +22,13 @@
 				</div>
 				<profileHeader :user="user"></profileHeader>
 			</div>
-			<q-item class="full-width row justify-around">
-				<q-btn @click="onDeleteFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
-					label="add friend" />
+			<q-item v-if="!ownPage" class="full-width row justify-around">
+				<q-btn @click="onToggleFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
+					:label="isUserFriend ? 'remove friend' : isUserPendingFriend ? 'cancel invitation' : isUserInvited ? 'accept invitation' : 'add friend'" /> <!-- Yeah very dirty i know, it works don't touch! -->
 				<q-btn :href="'chat/' + user.pseudo" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
 					label="send a message" />
-				<q-btn @click="onBlockUser()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="block user" />
+				<q-btn @click="onToggleBlockUser()" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
+					:label="isUserIgnored ? 'unblock user' : 'block user'" />
 			</q-item>
 		</div>
 		<div class="row justify-evenly">
@@ -169,31 +170,149 @@ export default {
 		const route = useRoute();
 		const userId = route.params.id;
 		const user = ref({});
+		const ownPage = ref(false);
+		const isUserIgnored = ref(false);
+		const isUserFriend = ref(false);
+		const isUserPendingFriend = ref(false);
+		const isUserInvited = ref(false);
+		let ignoreId;
+		let friendId;
+		let pendingFriendId;
 
 		api.get('/user/' + userId).then((res) =>
 		{
 			user.value = res.data;
+			api.get('/user/me').then((res) =>
+			{
+				ownPage.value = (res.data.id === user.value.id);
+			});
 		});
 
-		async function onDeleteFriend ()
+		async function fetchIgnore ()
 		{
-			console.log('removing friend!');
+			api.get('/ignore').then((res) =>
+			{
+				const ignoredUsers = res.data;
+				for (const ignoredUser of ignoredUsers)
+				{
+					if (ignoredUser.target.id === user.value.id)
+					{
+						isUserIgnored.value = true;
+						ignoreId = ignoredUser.target.id;
+						return;
+					}
+				}
+				isUserIgnored.value = false;
+			});
 		}
 
-		async function onBlockUser ()
+		fetchIgnore();
+
+		async function onToggleBlockUser ()
 		{
-			api.post('/ignore', {
-				id: user.value.id
+			if (isUserIgnored.value)
+			{
+				api.delete('/ignore/delete', {
+					data: { id: ignoreId }
+				}).then(() =>
+				{
+					fetchIgnore();
+				});
+			}
+			else
+			{
+				api.post('/ignore', {
+					id: user.value.id
+				}).then(() =>
+				{
+					fetchIgnore();
+				});
+			}
+		}
+
+		async function fetchFriends ()
+		{
+			api.get('/friends/accepted').then((res) =>
+			{
+				const friendUsers = res.data;
+				for (const friendUser of friendUsers)
+				{
+					if (friendUser.followedUser.id === user.value.id || friendUser.user.id === user.value.id)
+					{
+						isUserFriend.value = true;
+						friendId = friendUser.followedUser.id;
+						return;
+					}
+				}
+				isUserFriend.value = false;
 			});
+
+			api.get('/friends/pending').then((res) =>
+			{
+				const pendingFriendUsers = res.data;
+				for (const pendingFriendUser of pendingFriendUsers)
+				{
+					if (pendingFriendUser.followedUser.id === user.value.id)
+					{
+						isUserPendingFriend.value = true;
+						pendingFriendId = pendingFriendUser.followedUser.id;
+						return;
+					}
+					else if (pendingFriendUser.user.id === user.value.id)
+					{
+						isUserInvited.value = true;
+						pendingFriendId = pendingFriendUser.user.id;
+					}
+				}
+				isUserPendingFriend.value = false;
+			});
+		}
+
+		fetchFriends();
+
+		async function onToggleFriend ()
+		{
+			if (isUserFriend.value)
+			{
+				api.delete('/friends/delete', {
+					data: { id: friendId }
+				}).then(() =>
+				{
+					fetchFriends();
+				});
+			}
+			else if (isUserPendingFriend.value)
+			{
+				api.delete('friends/delete', {
+					data: { id: pendingFriendId }
+				}).then(() =>
+				{
+					fetchFriends();
+				});
+			}
+			else
+			{
+				api.post('/friends', {
+					id: user.value.id
+				}).then(() =>
+				{
+					fetchFriends();
+				});
+			}
 		}
 
 		return {
 			user,
 			matches,
 			achievements,
+			ownPage,
+			isUserIgnored,
+			isUserFriend,
+			isUserPendingFriend,
+			isUserInvited,
 
-			onDeleteFriend,
-			onBlockUser
+			onToggleBlockUser,
+			onToggleFriend
 		};
 	}
 };

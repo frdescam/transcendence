@@ -27,7 +27,7 @@ export default ({
 			{
 				disableInput.value = true;
 				const res = await api.post('/2FA/login', { code });
-				if (res.data.two_factor_enabled === false)
+				if (res.data.error)
 				{
 					disableInput.value = false;
 					inputColor.value = 'red';

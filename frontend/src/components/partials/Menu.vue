@@ -34,67 +34,21 @@
       </template>
     </q-select>
 
-    <!--
-    <q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'login' }">
-      <q-icon name="login" />
-    </q-btn>
-    -->
-
-    <q-btn-dropdown
-        no-caps
-        no-wrap
-        stretch
-        flat
-        :dense="$q.screen.lt.md"
-        :label="$q.screen.gt.md ? 'Username' : undefined"
-        icon="img:https://cdn.quasar.dev/logo-v2/svg/logo.svg"
-      >
-      <q-list>
-
-        <q-item clickable :to="{name: 'settings'}">
-          <q-item-section side class="inherit_color">
-            <q-icon name="settings" />
-          </q-item-section>
-          <q-item-section no-wrap>
-            <q-item-label>Account settings</q-item-label>
-          </q-item-section>
-        </q-item>
-
-        <q-item clickable disable>
-          <q-item-section side class="inherit_color">
-            <q-icon name="sports_esports" />
-          </q-item-section>
-          <q-item-section no-wrap>
-            <q-item-label>Retake the game</q-item-label>
-          </q-item-section>
-        </q-item>
-
-        <q-separator inset />
-
-        <q-item clickable @click="onLogout">
-          <q-item-section side class="inherit_color">
-            <q-icon name="logout" />
-          </q-item-section>
-          <q-item-section no-wrap>
-            <q-item-label>Disconnect</q-item-label>
-          </q-item-section>
-        </q-item>
-
-      </q-list>
-    </q-btn-dropdown>
+    <MenuUser/>
 
   </q-toolbar>
 </template>
 
 <script lang="ts">
-import clsx from 'clsx';
 import { defineComponent, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import options from 'src/i18n/options';
 import { useQuasar } from 'quasar';
-import languages from 'quasar/lang/index.json';
 import { api } from 'boot/axios';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import clsx from 'clsx';
+import options from 'src/i18n/options';
+import languages from 'quasar/lang/index.json';
+import MenuUser from './MenuUser.vue';
 
 // #region Quasar lang definition
 const defineLangs = options.map((el) => el.value);
@@ -127,6 +81,9 @@ const quasarLangs = languages.filter((el) =>
 
 export default defineComponent({
 	name: 'PartialMenu',
+	components: {
+		MenuUser
+	},
 	setup ()
 	{
 		const $q = useQuasar();

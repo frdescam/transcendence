@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-//import * as argon2 from 'argon2';
+import { password } from 'src/password.hash';
+import { passwordCompare } from '../interface';
 
 import { ChannelDTO } from '../orm/channel.dto';
 import { Channel } from '../orm/channel.entity';
@@ -213,6 +214,17 @@ export class ChannelService {
     }
   }
 
+  async checkPassword(pass: passwordCompare) {
+    try {
+      if (pass.channelId <= 0)
+        throw new Error();
+      const channel = await this.getOne(pass.channelId);
+      return await password.compare(channel.password, pass.password);
+    } catch (err) {
+      return false;
+    }
+  }
+
   async create(data: ChannelDTO) {
     try {
       const val = {
@@ -223,7 +235,7 @@ export class ChannelService {
         admins: data.admins
       };
       if (data.password)
-        val['password'] = data.password;
+        val['password'] = await password.hash(data.password);
       const newChannel = await this.channelRepository.createQueryBuilder()
         .insert()
         .into(Channel)
@@ -251,7 +263,7 @@ export class ChannelService {
         type: data.type,
       };
       if (data.type === 'protected' && data.password)
-        __ret['password'] = data.password;
+        __ret['password'] = await password.hash(data.password);
       await this.channelRepository.createQueryBuilder()
         .update(Channel)
         .set(__ret)

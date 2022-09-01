@@ -28,10 +28,10 @@ export class JwtRefreshStrategy extends PassportStrategy(
     });
   }
 
-	async validate(request: Request, payload: TokenPayload): Promise<User> {
-		return this.auth_svc.login({
-			id: payload.sub,
-			refresh_token: request.cookies?.Refresh,
-		});
-	}
+  async validate(request: Request, payload: TokenPayload): Promise<User> {
+    return this.auth_svc.login({
+      id: payload.sub,
+      refresh_token: request.cookies?.Refresh,
+    });
+  }
 }

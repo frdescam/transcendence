@@ -15,42 +15,42 @@ class ignoreDto {
 	@IsNotEmpty()
 	@IsPositive()
 	@IsInt()
-	id?: number;
+	  id?: number;
 }
 
 @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe({ whitelist: true }))
 @Controller('ignore')
 export class IgnoreController {
-	constructor(
+  constructor(
 		private readonly ignoreService: IgnoreService,
 		private readonly userService: UserService,
-	) {}
+  ) {}
 
 	@Post()
-	async create(
+  async create(
 		@AuthUser() user: User,
 		@Body() create_dto: ignoreDto,
-	): Promise<Ignore> {
-		const target: User = await this.userService.findOne({
-			id: create_dto.id,
-		});
+  ): Promise<Ignore> {
+    const target: User = await this.userService.findOne({
+      id: create_dto.id,
+    });
 
-		if (!target)
-			throw new NotFoundException('User not found.');
+    if (!target)
+      throw new NotFoundException('User not found.');
 
-		if (user.id === target.id)
-			throw new ForbiddenException('You can not ignore yourself.');
+    if (user.id === target.id)
+      throw new ForbiddenException('You can not ignore yourself.');
 
-		if (await this.ignoreService.alreadyIgnored(user, target) === true)
-			throw new ForbiddenException('Already ignored');
+    if (await this.ignoreService.alreadyIgnored(user, target) === true)
+      throw new ForbiddenException('Already ignored');
 
-		return await this.ignoreService.create(user, target);
-	}
+    return await this.ignoreService.create(user, target);
+  }
 
 	@Get()
 	async findAll(@AuthUser() user: User): Promise<Ignore[]> {
-		return this.ignoreService.findAll(user);
+	  return this.ignoreService.findAll(user);
 	}
 
 	@Delete('delete')
@@ -58,13 +58,13 @@ export class IgnoreController {
 		@AuthUser() user: User,
 		@Body() create_dto: ignoreDto,
 	): Promise<boolean> {
-		const target: User = await this.userService.findOne({
-			id: create_dto.id,
-		});
+	  const target: User = await this.userService.findOne({
+	    id: create_dto.id,
+	  });
 
-		if (!target)
-			throw new NotFoundException('User not found.');
+	  if (!target)
+	    throw new NotFoundException('User not found.');
 
-		return this.ignoreService.remove(user, target);
+	  return this.ignoreService.remove(user, target);
 	}
 }

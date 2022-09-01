@@ -13,11 +13,11 @@ export class LeaderboardService {
 
   async getRows(userId: number, friendsOnly: string, startRow: number, count: number, filter: string) {
     let allUsersAsEntity: User[];
-    if (friendsOnly == 'true') {
-        allUsersAsEntity = await this.FriendshipService.getFriends(userId);
-        allUsersAsEntity.push(await this.userService.findOne({id: userId}));
+    if (friendsOnly === 'true') {
+      allUsersAsEntity = await this.FriendshipService.getFriends(userId);
+      allUsersAsEntity.push(await this.userService.findOne({id: userId}));
     } else {
-        allUsersAsEntity = await this.userService.findAll();
+      allUsersAsEntity = await this.userService.findAll();
     }
     allUsersAsEntity.sort((a: User, b: User) => {
       return a.rank - b.rank;

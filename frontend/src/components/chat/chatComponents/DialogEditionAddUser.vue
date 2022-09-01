@@ -141,7 +141,10 @@ export default defineComponent({
 		watch(() => props.dialogEditionAddUserShow, (after) =>
 		{
 			if (after === true)
+			{
+				getUsers();
 				dialog.value?.show();
+			}
 			else
 				dialog.value?.hide();
 		});

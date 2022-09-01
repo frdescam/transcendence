@@ -5,6 +5,11 @@ interface admBanMut {
   until: Date
 }
 
+interface blockedUser {
+  id: number,
+  blockedId: number
+}
+
 interface receiveChannel {
   id: number,
   creator: number,
@@ -12,6 +17,20 @@ interface receiveChannel {
   type: string,
   password: string,
   users?: Array<number>
+}
+
+interface passwordCompare {
+  channelId: number,
+  password: string
+}
+
+interface receiveInvitation {
+  creatorId: number,
+  creatorName: string,
+  invitationId: number,
+  invitationName: string,
+  gameLink: string,
+  approvalFromInvitedUser?: boolean
 }
 
 interface receiveMessage {
@@ -50,7 +69,10 @@ interface timestamp {
 
 export { 
   admBanMut,
+  blockedUser,
   receiveChannel,
+  passwordCompare,
+  receiveInvitation,
   receiveMessage,
   updateMessage,
   channelUser,

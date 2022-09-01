@@ -172,7 +172,6 @@ defineExpose({
 	<q-table
 		row-key="room"
 		color="primary"
-		dark
 		dense
 		:rows="Object.keys(partiesListObject).map((key)=>(partiesListObject[key]))"
 		:columns="columns"

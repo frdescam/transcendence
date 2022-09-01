@@ -33,24 +33,19 @@ export class BannedService {
     const banned = await this.getOne(channelId, userId);
     if (!banned)
       return {
-        user: undefined,
         isBanned: false,
-        isDeleted: false
       };
     const untilDate = new Date(banned.until);
     const currentDate = new Date();
     if (untilDate.getTime() <= currentDate.getTime()) {
       return {
-        user: await this.delete(banned),
         isBanned: false,
-        isDeleted: true,
+        isDeleted: await this.delete(banned),
       };
     }
     return {
-      user: banned,
-      until: untilDate.getTime(),
       isBanned: true,
-      isDeleted: false
+      until: untilDate.getTime(),
     };
   }
 

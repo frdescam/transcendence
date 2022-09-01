@@ -7,14 +7,25 @@ import {
 } from '@nestjs/websockets';
 import cors from 'src/cors';
 import { NestGateway } from '@nestjs/websockets/interfaces/nest-gateway.interface';
-import { Bind, Logger } from '@nestjs/common';
+import { Bind, Logger, Request, UseGuards } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import * as crypto from 'crypto';
 import * as sanitizeHtml from 'sanitize-html';
-import { admBanMut, receiveChannel, receiveMessage, updateMessage, channelUser } from './interface';
+import { WsJwtGuard } from 'src/auth/guards/ws-jwt.guard';
+import {
+  admBanMut,
+  blockedUser,
+  receiveChannel,
+  passwordCompare,
+  receiveInvitation,
+  receiveMessage,
+  updateMessage,
+  channelUser
+} from './interface';
 
 import { BannedService } from './banned/banned.service';
 import { ChannelService } from './channel/channel.service';
+import { IgnoreService } from 'src/users/ignored/ignore.service';
 import { MessageService } from './message/message.service';
 import { MutedService } from './muted/muted.service';
 import { UserService } from 'src/users/user/user.service';
@@ -26,18 +37,16 @@ import { MessageDTO } from './orm/message.dto';
 import { MutedDTO } from './orm/muted.dto';
 
 const getType = (type: string) => {
-  switch (type) {
-  case 'public':
-    return channelTypesDTO.PUBLIC;
-  case 'protected':
-    return channelTypesDTO.PROTECTED;
-  case 'private':
-    return channelTypesDTO.PRIVATE;
-  default:
+  const temp = type.toLowerCase();
+  if (temp !== channelTypesDTO.PUBLIC &&
+    temp !== channelTypesDTO.PROTECTED &&
+    temp !== channelTypesDTO.PRIVATE
+  )
     return channelTypesDTO.DIRECT;
-  }
+  return temp;
 };
 
+// @UseGuards(WsJwtGuard)
 @WebSocketGateway({
   namespace: 'chat::',
   cors
@@ -45,12 +54,12 @@ const getType = (type: string) => {
 export class MainGateway implements NestGateway
 {
   constructor(
-    private readonly userService: UserService,
-
     private readonly bannedService: BannedService,
     private readonly channelService: ChannelService,
+    private readonly ignoreService: IgnoreService,
     private readonly messageService: MessageService,
     private readonly mutedService: MutedService,
+    private readonly userService: UserService,
   ) {}
 
   @WebSocketServer() server: Server;
@@ -61,12 +70,13 @@ export class MainGateway implements NestGateway
   }
   handleConnection(client: Socket) {
     this.logger.log(`Client ${client.id} is connected`);
-    this.server.emit('clientConnect', client.id);
+    this.server.emit('client::connect', client.id);
   }
   handleDisconnect(client: Socket) {
     this.logger.log(`Client ${client.id} is disconnected`);
-    this.server.emit('clientDisconnect', client.id);
+    this.server.emit('client::disconnect', client.id);
   }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   returnData(sender: Socket, data: any) {
     return {
@@ -74,6 +84,80 @@ export class MainGateway implements NestGateway
       data
     };
   }
+
+  cleanHtml(str: string) {
+    return sanitizeHtml(str, {
+      allowedTags: [],
+      allowedAttributes: {}
+    });
+  }
+
+  //#region Handshake
+  @Bind(ConnectedSocket(), Request())
+  @SubscribeMessage('ping')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async handshake(sender: Socket, req: any) {
+    this.logger.log(`Client ${sender.id} ask for his user id`);
+    this.server.emit('pong', {
+      socketId: sender.id,
+      id: (req.user) ? req.user.id : 0
+    });
+  }
+  //#endregion Handshake
+
+  //#region Blocked user
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('blocked::add')
+  async blockedUser(blocked: blockedUser, sender: Socket) {
+    this.logger.log(`Client ${sender.id} block ${blocked.blockedId}`);
+    const users = [await this.userService.getOne(blocked.id), await this.userService.getOne(blocked.blockedId)];
+    if (await this.ignoreService.alreadyIgnored(users[0], users[1]))
+    {
+      this.server.emit('blocked::receive::add', this.returnData(sender, { alreadyBlocked: true }));
+      return;
+    }
+    this.server.emit('blocked::receive::add', this.returnData(sender, await this.ignoreService.create(users[0], users[1])));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('blocked::remove')
+  async unblockedUser(blocked: blockedUser, sender: Socket) {
+    this.logger.log(`Client ${sender.id} remove ${blocked.blockedId}`);
+    const users = [await this.userService.getOne(blocked.id), await this.userService.getOne(blocked.blockedId)];
+    if (!await this.ignoreService.alreadyIgnored(users[0], users[1]))
+    {
+      this.server.emit('blocked::receive::remove', this.returnData(sender, { notBlocked: true }));
+      return;
+    }
+    this.server.emit('blocked::receive::remove', this.returnData(sender, {
+      deleted: await this.ignoreService.remove(users[0], users[1]),
+      target: users[1]
+    }));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('blocked::get')
+  async getBlocked(userId: number, sender: Socket) {
+    this.logger.log(`Client ${sender.id} get blocked user(s)`);
+    this.server.emit('blocked::receive::get', this.returnData(sender, await this.ignoreService.findAll(await this.userService.getOne(userId))));
+  }
+  //#endregion Blocked user
+
+  //#region Invitation
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('invitation::send')
+  invitation(invit: receiveInvitation, sender: Socket) {
+    this.logger.log(`Client ${sender.id} invite ${invit.invitationId} to a party`);
+    this.server.emit('invitation::receive::send', this.returnData(sender, invit));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('invitation::approval')
+  approval(approval: receiveInvitation, sender: Socket) {
+    this.logger.log(`Client ${sender.id} ${(approval.approvalFromInvitedUser) ? 'approval' : 'refused'} invitation of ${approval.invitationId} to a party`);
+    this.server.emit('invitation::receive::approval', this.returnData(sender, approval));
+  }
+  //#endregion
 
   //#region Admin
   @Bind(MessageBody(), ConnectedSocket())
@@ -119,6 +203,13 @@ export class MainGateway implements NestGateway
     };
     this.server.emit('muted::receive::delete', this.returnData(sender, await this.mutedService.delete(__newMuted)));
   }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('muted::check')
+  async isMute(muted: admBanMut, sender: Socket) {
+    this.logger.log(`Client ${sender.id} check if is mute`);
+    this.server.emit('muted::receive::check', this.returnData(sender, await this.mutedService.isMuted(muted.channelId, muted.userId)));
+  }
   //#endregion
 
   //#region Banned
@@ -146,6 +237,13 @@ export class MainGateway implements NestGateway
       until: undefined
     };
     this.server.emit('banned::receive::delete', this.returnData(sender, await this.bannedService.delete(__newBanned)));
+  }
+
+  @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('banned::check')
+  async isBan(muted: admBanMut, sender: Socket) {
+    this.logger.log(`Client ${sender.id} check if is ban`);
+    this.server.emit('banned::receive::check', this.returnData(sender, await this.bannedService.isBanned(muted.channelId, muted.userId)));
   }
   //#endregion
 
@@ -181,9 +279,15 @@ export class MainGateway implements NestGateway
   }
 
   @Bind(MessageBody(), ConnectedSocket())
+  @SubscribeMessage('channel::check')
+  async checkPassword(pass: passwordCompare, sender: Socket) {
+    this.logger.log(`Client ${sender.id} check password of ${pass.channelId} at ${new Date().toDateString()}`);
+    this.server.emit('channel::receive::check', this.returnData(sender, await this.channelService.checkPassword(pass)));
+  }
+  @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('channel::change')
   async change(channelId: number, sender: Socket) {
-    this.logger.log(`Client ${sender.id} change to channel ${channelId} at ${new Date().toDateString()}`);
+    this.logger.log(`Client ${sender.id} change channel ${channelId} at ${new Date().toDateString()}`);
     this.server.emit('channel::receive::change', this.returnData(sender, await this.channelService.getOneNoMessages(channelId)));
   }
 
@@ -215,7 +319,7 @@ export class MainGateway implements NestGateway
     const __newChannel: ChannelDTO = {
       id: undefined,
       owner: __owner,
-      name: channel.name,
+      name: this.cleanHtml(channel.name),
       type: getType(channel.type),
       password: channel.password,
       creationDate: undefined,
@@ -250,7 +354,7 @@ export class MainGateway implements NestGateway
     const ret = await this.channelService.update({
       id: channel.id,
       owner: await this.userService.getOne(channel.creator),
-      name: channel.name,
+      name: this.cleanHtml(channel.name),
       type: getType(channel.type),
       password: channel.password,
       creationDate: undefined,

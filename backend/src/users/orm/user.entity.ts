@@ -6,6 +6,7 @@ import { Muted } from 'src/chat/orm/muted.entity';
 import { Match } from 'src/match/orm/match.entity';
 import { Friend } from './friend.entity';
 import { Ignore } from './ignored.entity';
+import { AchievementsEnumName } from './achievements.dto';
 
 @Entity()
 export class User extends BaseEntity {
@@ -45,6 +46,9 @@ export class User extends BaseEntity {
 
     @Column({type: 'int4'})
       rank: number;
+
+    @Column({type : 'enum', array: true, default: [], nullable: true, enum: AchievementsEnumName}) // erase nullable?
+      achievements: AchievementsEnumName[];
 
     @Column({ type: 'boolean', default: () => 'false'})
       connected: boolean;

@@ -13,12 +13,11 @@
 		<q-item v-for="achievement in filteredAchievements" :key="achievement.id">
 			<q-card class="fit row justify-between q-pa-md">
 				<div class="column">
-					<p>{{ achievement.timestamp }}</p>
-					<p class="q-mb-sm">{{ achievement.achievementName }}</p>
-					<q-item-label caption>{{ achievement.achievementDescription }}</q-item-label>
+					<p class="q-mb-sm">{{ achievement.name }}</p>
+					<q-item-label caption>{{ achievement.description }}</q-item-label>
 				</div>
 				<q-avatar size="75px">
-					<img :src='achievement.achievementIcon'>
+					<img :src='achievement.image'>
 				</q-avatar>
 			</q-card>
 		</q-item>
@@ -34,7 +33,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, onMounted, ref, watch } from 'vue';
 
 export default defineComponent({
 	props: [
@@ -47,8 +46,19 @@ export default defineComponent({
 
 		async function onFilterChange (value: string)
 		{
-			filteredAchievements.value = props.achievements.filter(achievement => achievement.achievementName.toLowerCase().includes(value.toLowerCase()) || achievement.achievementDescription.toLowerCase().includes(value.toLowerCase()) /* || match.userForeign.toLowerCase().includes(value.toLowerCase()) */);
+			filteredAchievements.value = props.achievements.filter(achievement => achievement.name.toLowerCase().includes(value.toLowerCase()) || achievement.description.toLowerCase().includes(value.toLowerCase()) /* || match.userForeign.toLowerCase().includes(value.toLowerCase()) */);
 		}
+
+		onMounted(() =>
+		{
+			watch(() => props.achievements, () =>
+			{
+				onFilterChange(filter.value);
+			},
+			{
+				flush: 'post'
+			});
+		});
 
 		return {
 			props,

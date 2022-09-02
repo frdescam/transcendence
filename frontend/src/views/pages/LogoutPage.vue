@@ -13,6 +13,7 @@ import { api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 import type { AxiosError } from 'axios';
 import type { RefreshUserState } from 'src/boot/state';
+import { state } from 'src/boot/state';
 
 export default defineComponent({
 	name: 'LogoutPage',
@@ -47,6 +48,7 @@ export default defineComponent({
 						router.push({
 							name: 'login'
 						});
+						state.loggedIn = false;
 					}
 					else
 					{

@@ -174,7 +174,7 @@ export class AuthController {
     @Body() twoFACode: twoFAPayload, // create dto of dis shit
     @Req() request: Request,
         @AuthUser() user: User,
-        @Res() res: Response
+        // @Res() res: Response
     )//: Promise<LoginResponseType> {
     {
       const isCodeValid =
@@ -222,7 +222,7 @@ export class AuthController {
         path: '/',
       });
 
-      res.redirect('http://127.0.0.1:3000/');
+      // res.redirect('http://127.0.0.1:3000/');
 
       // logged in
       return {

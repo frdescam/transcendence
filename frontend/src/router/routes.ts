@@ -1,6 +1,7 @@
 import { api } from 'src/boot/axios';
 import { RouteRecordRaw } from 'vue-router';
 import type { LayoutTabs } from 'src/views/layouts/Tabs';
+import { state } from 'src/boot/state';
 
 const backgrounds = {
 	cactus: {
@@ -143,13 +144,8 @@ const routes: RouteRecordRaw[] = [
 			component: () => import('src/views/pages/LoginPage.vue'),
 			beforeEnter: async () =>
 			{
-				let isLogged = true;
-				await api.get('/logged').catch(() =>
-				{
-					isLogged = false;
-				});
-				if (isLogged)
-					return { path: '/' };
+				if (state.loggedIn)
+					return { path: '/', query: { logged: '' } };
 			}
 		}],
 		meta: {
@@ -175,13 +171,8 @@ const routes: RouteRecordRaw[] = [
 			component: () => import('src/views/pages/2FA.vue'),
 			beforeEnter: async () =>
 			{
-				let isLogged = true;
-				await api.get('/logged').catch(() =>
-				{
-					isLogged = false;
-				});
-				if (isLogged)
-					return { path: '/' };
+				if (state.loggedIn)
+					return { path: '/', query: { logged: '' } };
 			}
 		}],
 		meta: {

@@ -21,8 +21,7 @@ import { HttpExceptionFilter, NotFoundExceptionFilter } from './filter';
   app.useGlobalPipes(
     new ValidationPipe({
       enableDebugMessages: process.env.NODE_ENV !== 'production',
-      disableErrorMessages: false,
-      transform: true,
+      disableErrorMessages: false
     })
   );
   app.setGlobalPrefix('api');

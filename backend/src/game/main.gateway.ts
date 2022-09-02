@@ -1,7 +1,6 @@
-import { UseGuards, Request } from '@nestjs/common';
+import { UseGuards, Request, ValidationPipe, UsePipes } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import cors from 'src/cors';
-import { map } from './interface';
 import { PartyService } from './party/party.service';
 import type { Socket, Server } from 'socket.io';
 import type { userId } from 'src/common/game/types';
@@ -11,10 +10,13 @@ import type { getUserPartyDto } from 'src/common/game/orm/getUserParty.dto';
 import { WsJwtGuard } from 'src/auth/guards/ws-jwt.guard';
 import { WsJwtSpectateGuard } from 'src/auth/guards/ws-jwt-spectate.guard';
 
+const localPipe = new ValidationPipe({ transform: true, whitelist: true });
+
 @WebSocketGateway({
 	namespace: 'game',
 	cors
 })
+@UsePipes(localPipe)
 export class MainGateway implements OnGatewayDisconnect
 {
 	constructor(private partyService: PartyService)
@@ -131,13 +133,13 @@ export class MainGateway implements OnGatewayDisconnect
 		@ConnectedSocket() client: Socket,
 		@Request() req,
 		@MessageBody('map') map?: string,
-		@MessageBody('map') adversary?: userId,
+		// @MessageBody('adversary') adversary?: userId,
 	): void
 	{
 		const user: any = req.user;
 		this.partyService.checkUserObject(user);
 		const userId: userId = user.id;
-		const query: partyQuery = {map, adversary, requester: userId};
+		const query: partyQuery = {map/*, adversary*/, requester: userId};
 
 		const party = this.partyService.find(query);
 

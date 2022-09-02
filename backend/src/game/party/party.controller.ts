@@ -7,16 +7,19 @@ import { JwtAuthGuard } from 'src/auth/guards/auth-jwt.guard';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import type { userId } from 'src/common/game/types';
 
+const localPipe = new ValidationPipe({ transform: true, whitelist: true });
+
 @Controller('party')
+@UsePipes(localPipe)
 export class PartyController
 {
 	constructor (
 		private partyService: PartyService,
-    private userService: UserService,
+		private userService: UserService,
 		private readonly ignoreService: IgnoreService
 	)
 	{}
-  
+	
 	@Get()
 	findAll(): getPartyDto[]
 	{
@@ -41,7 +44,7 @@ export class PartyController
 	@Put('giveup')
 	giveup(
 		@Request() req,
-		@Param() params
+		@Param('room') room: string
 	)
 	{
 		const user: any = req.user;
@@ -53,8 +56,8 @@ export class PartyController
 		const slot = this.partyService.getSlotFromUser(party, himself);
 		if (slot === -1)
 			throw 'Unexpected state';
-		if (typeof params.room === 'string')
-			if (params.room !== party.room)
+		if (typeof room === 'string')
+			if (room !== party.room)
 				return ({left: false});
 
 		if (this.partyService.admitDefeat(party, slot))
@@ -64,9 +67,9 @@ export class PartyController
 	}
 
 	@Get(':room')
-	findOne(@Param() params): getPartyDto | null
+	findOne(@Param('room') room: string): getPartyDto | null
 	{
-		const partyArr = this.partyService.getAll().filter(({room}) => (room === params.room));
+		const partyArr = this.partyService.getAll().filter(({room: partyRoom}) => (partyRoom === room));
 
 		return (partyArr.length ? this.partyService.partyToPublicJson(partyArr[0]) : null);
 	}
@@ -86,19 +89,19 @@ export class PartyController
 			if (!(await this.userService.getOne(adversary)))
 				throw new HttpException('Adversary not found', HttpStatus.NOT_FOUND);
 
-    if (typeof himself === 'number' && typeof adversary === 'number')
+		if (typeof himself === 'number' && typeof adversary === 'number')
 		{
 			if (himself === adversary)
-      	throw new HttpException('You cannot start a game against yourself', HttpStatus.I_AM_A_TEAPOT);
+				throw new HttpException('You cannot start a game against yourself', HttpStatus.I_AM_A_TEAPOT);
 			if (!(await this.ignoreService.compatible(himself, adversary)))
 				throw new HttpException('You cannot start a game with ignored user', HttpStatus.I_AM_A_TEAPOT);
 		}
 
-    const party = this.partyService.createParty(
-      room,
-      map,
-      [himself, adversary]
-    );
-    return (party.room);
-  }
+		const party = this.partyService.createParty(
+			room,
+			map,
+			[himself, adversary]
+		);
+		return (party.room);
+	}
 }

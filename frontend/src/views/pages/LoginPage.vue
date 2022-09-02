@@ -17,7 +17,6 @@
 <script lang="ts">
 import { ref } from 'vue';
 import { api } from 'boot/axios';
-import { state } from 'src/boot/state';
 import { useRouter } from 'vue-router';
 
 export default {
@@ -43,10 +42,7 @@ export default {
 					if (res.data.two_factor_enabled)
 						router.push('/login/2FA');
 					else
-					{
-						state.loggedIn = true;
-						router.push({ path: '/', query: { logged: '' } });
-					}
+						router.push({ name: 'logging' });
 				}).catch(() =>
 				{
 					inputColor.value = 'red';

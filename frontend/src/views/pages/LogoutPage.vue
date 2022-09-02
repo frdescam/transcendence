@@ -13,7 +13,6 @@ import { api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 import type { AxiosError } from 'axios';
 import type { RefreshUserState } from 'src/boot/state';
-import { state } from 'src/boot/state';
 
 export default defineComponent({
 	name: 'LogoutPage',
@@ -45,10 +44,6 @@ export default defineComponent({
 							type: 'positive',
 							message: 'You were successfully unlogged'
 						});
-						router.push({
-							name: 'login'
-						});
-						state.loggedIn = false;
 					}
 					else
 					{
@@ -58,6 +53,9 @@ export default defineComponent({
 						);
 					}
 					refreshUserState();
+					router.push({
+						name: 'logging'
+					});
 				})
 				.catch((err: AxiosError) =>
 				{

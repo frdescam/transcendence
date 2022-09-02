@@ -11,7 +11,6 @@
 import { api } from 'boot/axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { state } from 'src/boot/state';
 
 export default ({
 	name: '2FAPage',
@@ -34,10 +33,7 @@ export default ({
 					inputColor.value = 'red';
 				}
 				else
-				{
-					state.loggedIn = true;
-					router.push({ path: '/', query: { logged: '' } });
-				}
+					router.push({ name: 'logging' });
 			}
 		}
 

@@ -40,7 +40,14 @@ export default route(function (/* { store, ssrContext } */)
 	{
 		if (!state.loggedIn)
 		{
-			if (to.name !== 'login' && to.name !== '2FA' && to.name !== 'party' && to.name !== 'play-list')
+			if (state.loading)
+			{
+				if (to.name !== 'logging')
+					return { name: 'logging', query: { next: from.fullPath } };
+				else
+					return;
+			}
+			if (to.name !== 'login' && to.name !== '2FA' && to.name !== 'party' && to.name !== 'play-list' && to.name !== 'logging')
 				return { path: '/login' };
 		}
 	});

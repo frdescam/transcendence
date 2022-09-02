@@ -1,4 +1,3 @@
-import { api } from 'src/boot/axios';
 import { RouteRecordRaw } from 'vue-router';
 import type { LayoutTabs } from 'src/views/layouts/Tabs';
 import { state } from 'src/boot/state';
@@ -144,8 +143,26 @@ const routes: RouteRecordRaw[] = [
 			component: () => import('src/views/pages/LoginPage.vue'),
 			beforeEnter: async () =>
 			{
-				if (state.loggedIn)
-					return { path: '/', query: { logged: '' } };
+				if (!state.loading && state.loggedIn)
+					return { path: '/' };
+			}
+		}],
+		meta: {
+			...(backgrounds.ft_login)
+		}
+	},
+
+	{
+		path: '/login/2FA',
+		component: () => import('src/views/layouts/Centered.vue'),
+		children: [{
+			path: '',
+			name: '2FA',
+			component: () => import('src/views/pages/2FA.vue'),
+			beforeEnter: async () =>
+			{
+				if (!state.loading && state.loggedIn)
+					return { path: '/' };
 			}
 		}],
 		meta: {
@@ -163,18 +180,9 @@ const routes: RouteRecordRaw[] = [
 	},
 
 	{
-		path: '/login/2FA',
+		path: '/logging',
 		component: () => import('src/views/layouts/Centered.vue'),
-		children: [{
-			path: '',
-			name: '2FA',
-			component: () => import('src/views/pages/2FA.vue'),
-			beforeEnter: async () =>
-			{
-				if (state.loggedIn)
-					return { path: '/', query: { logged: '' } };
-			}
-		}],
+		children: [{ path: '', name: 'logging', component: () => import('src/views/pages/LoggingPage.vue') }],
 		meta: {
 			...(backgrounds.ft_login)
 		}

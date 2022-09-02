@@ -70,7 +70,7 @@ function onConnected ()
 	gameSocket.emit(
 		'game::query::find',
 		{
-			map: map.value
+			map: map.value ?? undefined
 		} as query
 	);
 }

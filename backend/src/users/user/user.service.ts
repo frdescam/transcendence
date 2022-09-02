@@ -118,12 +118,29 @@ export class UserService {
   }
 
   async getMatches(id: number): Promise<User> {
-    return this.userRepository.findOne({
+    let user = await this.userRepository.findOne({
       where: {
         id: id,
       },
-      relations: ['matchesHome', 'matchesWon', 'matchesForeign']
+      relations: [
+        'matchesHome',
+        'matchesForeign',
+        'matchesHome.winner',
+        'matchesHome.userHome',
+        'matchesHome.userForeign',
+        'matchesForeign.winner',
+        'matchesForeign.userHome',
+        'matchesForeign.userForeign'
+      ]
     });
+    user = await this.sanitizeUser(user);
+    user.matchesHome.forEach(async (match) =>
+    {
+      match.winner = await this.sanitizeUser(match.winner);
+      match.userForeign = await this.sanitizeUser(match.userForeign);
+      match.userHome = await this.sanitizeUser(match.userHome);
+    })
+    return user;
   }
 
   //#region achievements

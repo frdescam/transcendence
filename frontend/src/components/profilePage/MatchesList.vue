@@ -11,19 +11,19 @@
 			</div>
 		</q-toolbar>
 		<q-item v-for="match in filteredMatches" :key="match.id">
-			<q-card class="fit q-pa-md" v-bind:style="{ 'background-color': (match.winner == 1) ? 'lightblue' : 'red' }">
-				<p>{{ match.timestamp }}</p>
+			<q-card class="fit q-pa-md" v-bind:style="{ 'background-color': (match.winner.id == user.id) ? 'lightblue' : 'red' }">
+				<p>{{ date.formatDate(match.timestamp, 'DD/MM/YYYY HH:mm') }}</p>
 				<div class="row justify-center">
 					<q-avatar>
-						<img src='https://cdn.quasar.dev/img/boy-avatar.png'>
+						<img :src='match.userHome.avatar'>
 					</q-avatar>
-					<p class="q-px-sm q-my-auto">User1</p>
+					<p class="q-px-sm q-my-auto">{{ match.userHome.pseudo }}</p>
 					<p class="q-px-sm q-my-auto">{{ match.userHomeScore }}</p>
 					<p class="q-px-sm q-my-auto">-</p>
 					<p class="q-px-sm q-my-auto">{{ match.userForeignScore }}</p>
-					<p class="q-px-sm q-my-auto">User2</p>
+					<p class="q-px-sm q-my-auto">{{ match.userForeign.pseudo }}</p>
 					<q-avatar>
-						<img src='https://cdn.quasar.dev/img/boy-avatar.png'>
+						<img :src='match.userForeign.avatar'>
 					</q-avatar>
 				</div>
 				<p class="text-center q-mb-none">map : {{ match.map }}</p>
@@ -41,11 +41,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, onMounted, ref, watch } from 'vue';
+import { date } from 'quasar';
 
 export default defineComponent({
 	props: [
-		'matches'
+		'matches',
+		'user'
 	],
 
 	setup (props)
@@ -55,15 +57,28 @@ export default defineComponent({
 
 		async function onFilterChange (value: string)
 		{
-			filteredMatches.value = props.matches.filter(match => match.map.toLowerCase().includes(value.toLowerCase()) /* || match.userHome.toLowerCase().includes(value.toLowerCase()) || match.userForeign.toLowerCase().includes(value.toLowerCase()) */);
+			filteredMatches.value = props.matches.filter(match => match.map.toLowerCase().includes(value.toLowerCase()) || match.userHome.pseudo.toLowerCase().includes(value.toLowerCase()) || match.userForeign.pseudo.toLowerCase().includes(value.toLowerCase()));
 		}
+
+		onMounted(() =>
+		{
+			watch(() => props.matches, (newState) =>
+			{
+				console.log("changed");
+				onFilterChange(filter.value);
+			},
+			{
+				flush: 'post'
+			});
+		});
 
 		return {
 			props,
 			filteredMatches,
 			filter,
 
-			onFilterChange
+			onFilterChange,
+			date
 		};
 	}
 });

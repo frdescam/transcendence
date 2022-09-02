@@ -33,7 +33,7 @@
 		</div>
 		<div class="row justify-evenly">
 			<div class="col-12 col-md-6 q-py-md q-pl-md" v-bind:class="$q.screen.lt.md ? 'q-pr-md' : 'q-pr-sm'">
-				<matchesList :matches="matches"></matchesList>
+				<matchesList :matches="matches" :user="user"></matchesList>
 			</div>
 			<div class="col-12 col-md-6  q-py-md q-pr-md" v-bind:class="$q.screen.lt.md ? 'q-pl-md' : 'q-pl-sm'">
 				<achievementsList :achievements="achievements"></achievementsList>
@@ -49,69 +49,6 @@ import { inject, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { api } from 'boot/axios';
 import { Socket } from 'socket.io-client';
-
-const matches = [
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/05/2021'
-	},
-	{
-		id: 1,
-		map: 'forest',
-		userHome: 1,
-		userForeign: 2,
-		winner: 2,
-		userHomeScore: 4,
-		userForeignScore: 5,
-		timestamp: '03/06/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 2000,
-		userForeignScore: 3,
-		timestamp: '03/07/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/08/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/09/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/10/2021'
-	}
-];
 
 const achievements = [
 	{
@@ -172,6 +109,7 @@ export default {
 		const userId = route.params.id;
 		const user = ref({});
 		const me = ref({});
+		const matches = ref([]);
 		const ownPage = ref(false);
 		const isUserIgnored = ref(false);
 		const isUserFriend = ref(false);
@@ -180,9 +118,11 @@ export default {
 		let friendId;
 		let pendingFriendId;
 
-		api.get('/user/' + userId).then((res) =>
+		api.get('/user/match/get/' + userId).then((res) =>
 		{
 			user.value = res.data;
+			matches.value = user.value.matchesForeign.concat(user.value.matchesHome);
+			console.log(matches.value);
 			api.get('/user/me').then((res) =>
 			{
 				ownPage.value = (res.data.id === user.value.id);
@@ -190,24 +130,18 @@ export default {
 			});
 		});
 
-		async function fetchIgnore ()
+		api.get('/ignore').then((res) =>
 		{
-			api.get('/ignore').then((res) =>
+			const ignoredUsers = res.data;
+			for (const ignoredUser of ignoredUsers)
 			{
-				const ignoredUsers = res.data;
-				for (const ignoredUser of ignoredUsers)
+				if (ignoredUser.target.id === user.value.id)
 				{
-					if (ignoredUser.target.id === user.value.id)
-					{
-						isUserIgnored.value = true;
-						return;
-					}
+					isUserIgnored.value = true;
+					break;
 				}
-				isUserIgnored.value = false;
-			});
-		}
-
-		fetchIgnore();
+			}
+		});
 
 		async function onToggleBlockUser ()
 		{

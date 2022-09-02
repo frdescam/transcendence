@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import clsx from 'clsx';
 import { AppFullscreen, Dialog, Notify } from 'quasar';
-import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref, inject } from 'vue';
+import { onBeforeUnmount, onMounted, onUnmounted, reactive, readonly, ref, Ref, inject } from 'vue';
 import { Socket } from 'socket.io-client';
 import { Capitalize } from 'src/boot/libs';
 import Scene, { mapConfig, options } from './canvas/scene';
@@ -288,6 +288,7 @@ function onStateChange (gameState: commonState)
 
 onMounted(() =>
 {
+	gameSocket.connect();
 	gameSocket.on('party::error', onError);
 	gameSocket.on('party::pong', onPong);
 	gameSocket.on('party::mapinfo', onMapInfo);
@@ -298,6 +299,8 @@ onMounted(() =>
 	if (gameSocket.connected)
 		onConnected();
 });
+
+onUnmounted(() => gameSocket.disconnect());
 
 onBeforeUnmount(() =>
 {
@@ -310,6 +313,12 @@ onBeforeUnmount(() =>
 	gameSocket.emit('party::leaveAll');
 
 	umountScene();
+});
+
+gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
+{
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 });
 
 function join ()

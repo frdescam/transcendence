@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, computed, inject } from 'vue';
+import { onBeforeUnmount, onMounted, onUnmounted, ref, computed, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Socket } from 'socket.io-client';
 import { useI18n } from 'vue-i18n';
@@ -76,6 +76,7 @@ function onConnected ()
 
 onMounted(() =>
 {
+	gameSocket.connect();
 	gameSocket.on('game::query::found', onFound);
 	gameSocket.on('game::query::notFound', onNotFound);
 	gameSocket.on('connect', onConnected);
@@ -83,6 +84,14 @@ onMounted(() =>
 
 	if (gameSocket.connected)
 		onConnected();
+});
+
+onUnmounted(() => gameSocket.disconnect());
+
+gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
+{
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 });
 
 onBeforeUnmount(() =>

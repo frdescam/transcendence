@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import clsx from 'clsx';
-import { onBeforeUnmount, onMounted, reactive, readonly, inject } from 'vue';
+import { onBeforeUnmount, onMounted, onUnmounted, reactive, readonly, inject } from 'vue';
 import { Socket } from 'socket.io-client';
 import { useRouter } from 'vue-router';
 import { useQuasar, copyToClipboard } from 'quasar';
@@ -15,56 +15,6 @@ const $q = useQuasar();
 const router = useRouter();
 const state = reactive<{ connected: boolean }>({ connected: false });
 const partiesListObject = reactive<partyListObject>({});
-
-const columns = [
-	{
-		name: 'room',
-		required: true,
-		label: 'Room ID',
-		field: 'room',
-		sortable: true,
-		align: 'left'
-	},
-	{
-		name: 'map',
-		label: 'Map',
-		field: 'map',
-		sortable: true,
-		align: 'left'
-	},
-	{
-		name: 'scores',
-		label: 'Scores',
-		field: 'scores',
-		align: 'center'
-	},
-	{
-		name: 'players',
-		label: 'Players',
-		field: 'players',
-		sortable: true,
-		sort: (a: usersArray, b: usersArray) => (
-			(countPlayers(b)) - (countPlayers(a))
-		),
-		align: 'center'
-	},
-	{
-		name: 'status',
-		label: 'Status',
-		field: 'status',
-		align: 'center'
-	},
-	{
-		name: 'createdAt',
-		label: 'Creation date',
-		field: 'createdAt',
-		sortable: true,
-		sort: (a: string, b: string) => (
-			(new Date(b).getTime()) - (new Date(a).getTime())
-		),
-		align: 'right'
-	}
-];
 
 const tablePagination = {
 	sortBy: 'createdAt',
@@ -152,6 +102,7 @@ function onUpdate (party: getPartyDto)
 
 onMounted(() =>
 {
+	gameSocket.connect();
 	gameSocket.on('game::list::full', onCompleteList);
 	gameSocket.on('game::list::update', onUpdate);
 	gameSocket.on('disconnect', onDisconnect);
@@ -161,6 +112,8 @@ onMounted(() =>
 		onConnected();
 });
 
+onUnmounted(() => gameSocket.disconnect());
+
 onBeforeUnmount(() =>
 {
 	gameSocket.emit('game::list::stop');
@@ -168,6 +121,12 @@ onBeforeUnmount(() =>
 	gameSocket.off('game::list::update', onUpdate);
 	gameSocket.off('disconnect', onDisconnect);
 	gameSocket.off('connect', onConnected);
+});
+
+gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
+{
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 });
 
 defineExpose({

@@ -148,10 +148,10 @@ export class UserController {
 	  }
 
     @UseGuards(JwtAuthGuard)
-    @Get('achievements') // add ParseIntPipe to validate id // is this useful?
-    async getAchievements(@AuthUser() user: User) : Promise<AchievementsDto[]> {
+    @Get('achievements/get/:id') // add ParseIntPipe to validate id // is this useful?
+    async getAchievements(@Param('id') id: number) : Promise<AchievementsDto[]> {
       // this.channelService.resetAchievement(user.id);
-      return this.channelService.getAchievements(user.id);
+      return this.channelService.getAchievements(id);
     }
 
     // this could be problematic

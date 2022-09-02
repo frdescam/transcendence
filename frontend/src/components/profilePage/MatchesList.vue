@@ -62,9 +62,8 @@ export default defineComponent({
 
 		onMounted(() =>
 		{
-			watch(() => props.matches, (newState) =>
+			watch(() => props.matches, () =>
 			{
-				console.log("changed");
 				onFilterChange(filter.value);
 			},
 			{

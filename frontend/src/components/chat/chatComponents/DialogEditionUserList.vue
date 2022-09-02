@@ -1,5 +1,5 @@
 <template>
-	<q-item>
+	<q-item :data-userId="user.id">
 		<q-item-section avatar>
 			<q-avatar>
 				<img :src="user.avatar" v-on:error="avatarError"/>

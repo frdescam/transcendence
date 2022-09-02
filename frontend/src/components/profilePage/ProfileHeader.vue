@@ -32,23 +32,6 @@ import { defineComponent } from 'vue';
 export default defineComponent({
 	props: [
 		'user'
-	],
-	setup (props)
-	{
-		async function onDeleteFriend ()
-		{
-			console.log('removing friend!');
-		}
-
-		async function onBlockUser ()
-		{
-			console.log('blocking user!');
-		}
-
-		return {
-			onDeleteFriend,
-			onBlockUser
-		};
-	}
+	]
 });
 </script>

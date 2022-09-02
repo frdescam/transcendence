@@ -27,13 +27,15 @@ module.exports = configure(() =>
 		boot: [
 			'axios',
 			'i18n',
+			'state',
 			'socket',
 			'libs'
 		],
 
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
 		css: [
-			'app.scss'
+			'app.scss',
+			'transitions.scss',
 		],
 
 		// https://github.com/quasarframework/quasar/tree/dev/extras

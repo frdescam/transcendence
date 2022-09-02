@@ -13,11 +13,7 @@ const { party } = route.params;
 </script>
 
 <template>
-	<q-page class="full-width row wrap justify-center">
-		<div class="col-10 col-xl-8 col-lg-10 col-md-12 col-sm-12 col-xs-12">
-			<game-interface :party="party as string"/>
-		</div>
-	</q-page>
+  <game-interface :party="party as string"/>
 </template>
 
 <style scoped>

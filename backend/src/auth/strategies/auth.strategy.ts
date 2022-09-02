@@ -40,16 +40,16 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, 'auth')
 
     const user: User = await this.authService.login({fortytwo_id: data.id});
 
-		if (user)
-			return (user);
+    if (user)
+      return (user);
 
-		const user_dto: AuthDto = {
-			fortytwo_id: data.id,
-			pseudo: data.login,
-			email: data.email,
-			avatar: 'http://127.0.0.1:8080/api/user/avatar/no_avatar.png',
-		};
+    const user_dto: AuthDto = {
+      fortytwo_id: data.id,
+      pseudo: data.login,
+      email: data.email,
+      avatar: 'http://127.0.0.1:8080/api/user/avatar/no_avatar.png',
+    };
 
-		return this.authService.signup(user_dto);
-	}
+    return this.authService.signup(user_dto);
+  }
 }

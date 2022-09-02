@@ -20,7 +20,7 @@ import { UserDTO } from '../orm/user.dto';
 import { AuthUser } from 'src/auth/decorators/auth-user.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/auth-jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from "multer";
+import { diskStorage } from 'multer';
 import { User } from '../orm/user.entity';
 import { Response } from 'express';
 // import { NotFoundError } from 'rxjs';
@@ -31,8 +31,15 @@ export class UserController {
   
   //#Leo's part
   @UseGuards(JwtAuthGuard)
+  @Get('new')
+  async new_user(@AuthUser() user: User): Promise<void> {
+    this.channelService.setNewUser(user);
+  }
+
+
+  @UseGuards(JwtAuthGuard)
   @Get('me')
-	async me(@AuthUser() user: User): Promise<User> {
+  async me(@AuthUser() user: User): Promise<User> {
     const sanitized_user: User = await this.channelService.findOne({
       id: user.id,
     });
@@ -40,49 +47,50 @@ export class UserController {
     if (!sanitized_user)
       throw new BadRequestException('User not found.');
 
-		return sanitized_user;
-	}
+    return sanitized_user;
+  }
 
     @UseGuards(JwtAuthGuard)
     // if file is saved as :id and do we need to store the extension of teh file somewhere too? or can we just serve a file without telling the browser about it?
     @Post('upload')
     @UseInterceptors(FileInterceptor('file', {
-        //fieldName: 'file',
-        storage: diskStorage({
-            destination: './upload/avatars',
-            filename: (req, file, callback) => {
-                //console.log(req.user);
-                const id: number = req.user['id'];
-                callback(null, (id).toString());
-              },
-          }),
-        //dest: '/avatars',
-        fileFilter: (request, file, callback) => {
-          //if (!file.mimetype.includes('image')) {
-          //  return callback(new BadRequestException('Provide a valid image'), false);
-          //}
-          const lower_originalname : string = file.originalname.toLowerCase();
-          if (!lower_originalname.match(/\.(jpg|jpeg|png)$/)) { // gifs too?
-            const err: BadRequestException = new BadRequestException(
-              'Only image files (jpg|jpeg|png) are supported',
-            )
-            return callback(err, false)
-          }
-          //console.log(request.user);
-          //console.log(path.parse(file.originalname).ext);
-          callback(null, true);
+      //fieldName: 'file',
+      storage: diskStorage({
+        destination: './upload/avatars',
+        filename: (req, file, callback) => {
+          //console.log(req.user);
+          const id: number = req.user['id'];
+          callback(null, (id).toString());
         },
-        limits: {
-          fileSize: 5242880 // 5MB 
-        },
+      }),
+      //dest: '/avatars',
+      fileFilter: (request, file, callback) => {
+        //if (!file.mimetype.includes('image')) {
+        //  return callback(new BadRequestException('Provide a valid image'), false);
+        //}
+        const lower_originalname : string = file.originalname.toLowerCase();
+        if (!lower_originalname.match(/\.(jpg|jpeg|png)$/)) { // gifs too?
+          const err: BadRequestException = new BadRequestException(
+            'Only image files (jpg|jpeg|png) are supported',
+          );
+          return callback(err, false);
+        }
+        //console.log(request.user);
+        //console.log(path.parse(file.originalname).ext);
+        callback(null, true);
+      },
+      limits: {
+        fileSize: 5242880 // 5MB 
+      },
         
-      }))
-    async uploadFile(@AuthUser() user: User, @UploadedFile() file) {
-        //console.log(file, file.filename, file.mimetype.includes('image'), path.parse(file.originalname).name.replace(/\s/g, ''));
-        //await this.channelService.setAvatar(file.filename, user.id);
-        //console.log(user);
-        return await this.channelService.updateAvatar(file.filename, user.id);
-    }
+    }))
+    // change to docker volume
+  async uploadFile(@AuthUser() user: User, @UploadedFile() file) {
+    //console.log(file, file.filename, file.mimetype.includes('image'), path.parse(file.originalname).name.replace(/\s/g, ''));
+    //await this.channelService.setAvatar(file.filename, user.id);
+    //console.log(user);
+    return await this.channelService.updateAvatar(file.filename, user.id);
+  }
 
     // for testing erase later
     // test to show that we can send the avatar to the frontend
@@ -95,20 +103,50 @@ export class UserController {
     // if (!sanitized_user)
       // throw new NotFoundException('user doesn\'t exists'); 
     // console.log(id, sanitized_user);
-    res.sendFile(name, { root: './upload/avatars/' })
-  }
+      res.sendFile(name, { root: './upload/avatars/' });
+    }
 
   @UseGuards(JwtAuthGuard)
     @Patch('updatePseudo')
     async updatePseudo(
       @AuthUser() user: User,
       @Body() { update_pseudo }, // updated pseudo here, use dto?
-      //@Param('id', ParseIntPipe) id: number,
+        //@Param('id', ParseIntPipe) id: number,
     ): Promise<User | object> { // this is ugly, return only one!
       return this.channelService.updatePseudo(update_pseudo, user.id,);
     }
 
-  @UseGuards(JwtAuthGuard)
+    // exception is useful?
+    @UseGuards(JwtAuthGuard)
+    @Get('all')
+	  async getAll(): Promise<User[]> {
+    const sanitized_user: User[] = await this.channelService.findAll();
+
+    // console.log(sanitized_user);
+    if (!sanitized_user)
+      throw new BadRequestException('User not found.');
+    //return undefined;
+
+    // console.log(target);
+    return sanitized_user;
+	  }
+
+    // use POST and validation pipes
+    @UseGuards(JwtAuthGuard)
+    @Get('match/:id') // add ParseIntPipe to validate id // is this useful?
+	  async getMatches(@Param('id') id: number): Promise<User> {
+      const sanitized_user: User = await this.channelService.getMatches(id);
+
+      if (!sanitized_user)
+        throw new BadRequestException('User not found.');
+        //return undefined;
+
+      // console.log(target);
+      return sanitized_user;
+	  }
+
+  
+    @UseGuards(JwtAuthGuard)
     @Get(':id') // add ParseIntPipe to validate id // is this useful?
 	  async findOne(@Param('id') id: number): Promise<User> {
       const sanitized_user: User = await this.channelService.findOne({
@@ -122,8 +160,13 @@ export class UserController {
       // console.log(target);
       return sanitized_user;
 	  }
-  
-  
+
+  @UseGuards(JwtAuthGuard)
+    @Delete('remove') // add ParseIntPipe to validate id // is this useful?
+	  async remove(@AuthUser() user: User): Promise<boolean> {
+      return this.channelService.remove(user);
+	  }
+
   //# end of Leo's part
   @Get('get/:id')
   async getChannel(@Param('id') id: number) {

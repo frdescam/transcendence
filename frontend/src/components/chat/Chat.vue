@@ -6,20 +6,12 @@
 		spellcheck="true"
 		@keydown.enter="handleCtrlEnter"
 	>
-		<!--
-			Une erreur apparait dans :definitions pour typescript même en suivant la doc officiel de quasar
-		-->
 		<q-editor
 			:placeholder="$t('chat.editor.placeholder')"
 			:disable="disableForm"
 			square
 			ref="editorRef"
 			:definitions="{
-				image: {
-					tip: $t('chat.editor.image'),
-					icon: 'image',
-					handler: insertImage
-				},
 				send: {
 					tip: $t('chat.editor.send'),
 					icon: 'send',
@@ -29,11 +21,12 @@
 			:toolbar="[
 				['bold', 'italic', 'strike', 'underline'],
 				['undo', 'redo'],
-				['image', 'send']
+				['send']
 			]"
 			v-model="editor"
 		/>
 	</form>
+
 	<template v-if="loading">
 		<div class="message-list">
 			<q-chat-message
@@ -59,12 +52,13 @@
 				v-bind:key="message.id"
 			>
 				<q-chat-message
+					v-if="!blockedUser.includes(message.user.id)"
 					:sent="userId === message.user.id"
 					text-color="white"
 					:bg-color="(userId === message.user.id) ? 'cyan-8' : 'blue-8'"
 				>
 					<template v-slot:name>{{ (userId !== message.user.id) ? message.user.pseudo: $t('chat.message.me') }}</template>
-					<template v-slot:stamp>{{ generateTimestamp(message.messages[message.messages.length - 1].timestamp) }}</template>
+					<template v-slot:stamp>{{ $t('chat.channel.dateFormat', generateTimestamp(message.messages[message.messages.length - 1].timestamp)) }}</template>
 					<template v-slot:avatar>
 						<img
 							:class="(userId === message.user.id) ? 'q-message-avatar q-message-avatar--sent' : 'q-message-avatar q-message-avatar--received'"
@@ -114,7 +108,7 @@
 <script lang="ts">
 
 /* eslint-disable no-array-constructor */
-import { Timestamp, TimestampFunction, SanitizeMessage } from 'src/boot/libs';
+import { Timestamp, TimestampFunction } from 'src/boot/libs';
 import { Socket } from 'socket.io-client';
 import { defineComponent, onMounted, ref, inject, nextTick, watch } from 'vue';
 import { QMenu } from 'quasar';
@@ -125,6 +119,7 @@ interface arrayInterface {
 	timestamp: string,
 	modified: Date
 }
+
 interface messageInterface {
 	user: {
 		id: number,
@@ -138,7 +133,9 @@ interface messageInterface {
 export default defineComponent({
 	name: 'chat_channel',
 	props: [
+		'selectedChannelBanMut',
 		'selectedChannel',
+		'blockedUser',
 		'userUpdate',
 		'userId'
 	],
@@ -146,7 +143,6 @@ export default defineComponent({
 	{
 		const socket: Socket = inject('socketChat') as Socket;
 		const timestamp: TimestampFunction = inject('timestamp') as TimestampFunction;
-		const sanitize: SanitizeMessage = inject('sanitizeMessage') as SanitizeMessage;
 
 		const contextmenu = ref<QMenu | null>(null);
 		const chat = ref<HTMLDivElement | null>(null);
@@ -157,6 +153,7 @@ export default defineComponent({
 		const messages = ref(new Array<messageInterface>());
 		const messageEditId = ref(-1);
 
+		// #region Libs
 		const getBottomOfChat = () =>
 		{
 			nextTick(() =>
@@ -183,30 +180,6 @@ export default defineComponent({
 			return hashArr.map((el) => el.toString(16).padStart(2, '0')).join('');
 		};
 
-		const insertImage = () =>
-		{
-			if (disableForm.value === true)
-				return;
-			const input = document.createElement('input');
-			input.type = 'file';
-			input.accept = '.png, .jpg';
-			let file;
-			input.onchange = () =>
-			{
-				const files = Array.from(input.files as FileList);
-				file = files[0];
-				const reader = new FileReader();
-				let dataUrl:string;
-				reader.onloadend = () =>
-				{
-					dataUrl = String(reader.result);
-					editor.value += `<img src="${dataUrl}" />`;
-				};
-				reader.readAsDataURL(file);
-			};
-			input.click();
-		};
-
 		const imageError = (e: Event) =>
 		{
 			const target = e.target as HTMLImageElement;
@@ -216,19 +189,32 @@ export default defineComponent({
 
 		const generateTimestamp = (time: string) =>
 		{
+			const pf = (n: number) => (n < 10) ? `0${n}` : String(n);
+
 			const messageDate: Timestamp = timestamp(time);
-			if (!messageDate)
-				return '';
-			return `${messageDate.day}/${messageDate.month}/${messageDate.year} - ${messageDate.hour}h${messageDate.minute}`;
+			return {
+				year: pf(messageDate.year),
+				month: pf(messageDate.month),
+				day: pf(messageDate.day),
+				hour: pf(messageDate.hour),
+				minute: pf(messageDate.minute)
+			};
 		};
 
+		const handleCtrlEnter = (event: KeyboardEvent) =>
+		{
+			if (event.ctrlKey)
+				sendMessage();
+		};
+		// #endregion Libs
+
+		// #region Get messages
 		const getMessages = (channelId: string) =>
 		{
 			loading.value = true;
 			noError.value = true;
 			socket.emit('messages::get', channelId);
 		};
-
 		socket.on('messages::receive::get', (res) =>
 		{
 			if (res.socketId !== socket.id)
@@ -239,7 +225,6 @@ export default defineComponent({
 				noError.value = false;
 				return;
 			}
-			disableForm.value = false;
 			loading.value = false;
 			const temp: messageInterface = {
 				user: {
@@ -277,13 +262,9 @@ export default defineComponent({
 				messages.value.push(JSON.parse(JSON.stringify(temp)));
 			getBottomOfChat();
 		});
+		// #endregion Get messages
 
-		const handleCtrlEnter = (event: KeyboardEvent) =>
-		{
-			if (event.ctrlKey)
-				sendMessage();
-		};
-
+		// #region Send message
 		const sendMessage = async () =>
 		{
 			if (disableForm.value === true || editor.value.length <= 0)
@@ -319,6 +300,7 @@ export default defineComponent({
 			editor.value = '';
 			messageEditId.value = -1;
 		};
+		// #endregion Send message
 
 		// #region User data change
 		watch(() => props.userUpdate, () =>
@@ -326,12 +308,35 @@ export default defineComponent({
 			if (props.userUpdate.user !== props.userId)
 				return;
 			disableForm.value = props.userUpdate.value;
-			if (props.userUpdate.banned)
+			if (props.userUpdate.banned === true)
 			{
 				disableForm.value = true;
 				messages.value.length = 0;
 				loading.value = false;
 				noError.value = true;
+			}
+		}, { deep: true });
+
+		watch(() => props.selectedChannelBanMut, () =>
+		{
+			if (props.userId === props.selectedChannelBanMut.user &&
+				props.selectedChannel.id > 0 &&
+				props.selectedChannel.id === props.selectedChannelBanMut.channel)
+			{
+				if (props.selectedChannelBanMut.ban !== null)
+				{
+					if (props.selectedChannelBanMut.ban === true)
+						reset();
+					else
+					{
+						loading.value = true;
+						noError.value = true;
+						disableForm.value = false;
+						getMessages(props.selectedChannel.id);
+					}
+				}
+				if (props.selectedChannelBanMut.mute !== null)
+					disableForm.value = Boolean(props.selectedChannelBanMut.mute);
 			}
 		}, { deep: true });
 		// #endregion
@@ -510,14 +515,34 @@ export default defineComponent({
 			}
 		};
 
+		// #region Check user mute
+		const checkMute = (channel: number) =>
+		{
+			socket.emit('muted::check', {
+				id: 0,
+				userId: props.userId,
+				channelId: channel,
+				until: new Date()
+			});
+		};
+		socket.on('muted::receive::check', (ret) =>
+		{
+			if (ret && ret.socketId === socket.id)
+				disableForm.value = ret.data.isMuted;
+		});
+		// #endregion
+
 		onMounted(() =>
 		{
+			if (props.userId > 0)
+				socket.emit('blocked::get', props.userId);
 			watch(() => props.selectedChannel, () =>
 			{
 				if (!props.selectedChannel.isDeleted)
 				{
 					loading.value = true;
 					noError.value = true;
+					checkMute(props.selectedChannel.id);
 					getMessages(props.selectedChannel.id);
 				}
 				else if (props.selectedChannel.id === -1)
@@ -527,7 +552,7 @@ export default defineComponent({
 			{
 				loading.value = true;
 				noError.value = true;
-				disableForm.value = false;
+				checkMute(props.selectedChannel.id);
 				getMessages(props.selectedChannel.id);
 			}
 			else
@@ -544,7 +569,6 @@ export default defineComponent({
 			messages,
 			openContextualMenu,
 			imageError,
-			insertImage,
 			handleCtrlEnter,
 			sendMessage,
 			generateTimestamp,

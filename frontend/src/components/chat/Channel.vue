@@ -119,8 +119,9 @@
 	/>
 	<dialog-password
 		:dialogPasswordShow="dialogPasswordShow"
+		:channelId="saveEmitChannelId"
 		:channelName="selectedChannelName"
-		:channelPassword="selectedChannelPasswordValue"
+		:userId="userId"
 		@dialog-password-hide="hideDialogPassword"
 		@dialog-password-ok="openDialogPasswordOk"
 	/>
@@ -186,7 +187,8 @@ export default defineComponent({
 	props: ['userId'],
 	emits: [
 		'channel-is-selected',
-		'channel-user-update'
+		'channel-user-update',
+		'channel-ban-mute'
 	],
 	components: {
 		dialogAlert,
@@ -284,15 +286,46 @@ export default defineComponent({
 
 		// #region Channel selection
 		let emitFromChannel = false;
-		let saveEmitChannelId = -1;
+		const saveEmitChannelId = ref(-1);
 		let userIsExistChannel = false;
+
+		const getLinkColor = (channelId: number) =>
+		{
+			const __colors = ['#ffc93c', '#ff9a3c', '#ff6f3c', '#49beb7', '#35bcbf', '#c5d86d'];
+			const n = (channelId / (__colors.length - 1));
+			const m = n % 1;
+
+			const extract = () =>
+			{
+				if (n <= 1)
+					return channelId;
+				if (m === 0 && n <= (__colors.length - 1))
+					return n;
+				let i = Number(m.toFixed(1)[2]);
+				if (i > (__colors.length - 1))
+					i -= (__colors.length - 1);
+				return i;
+			};
+			return __colors[extract()];
+		};
+
+		const getChannel = (channelId: number) =>
+		{
+			for (const i in channels.value)
+			{
+				if (channels.value[i].id === channelId)
+					return Number(i);
+			}
+			return -1;
+		};
+
 		const changeChannel = (channelId: number, channelType: string) =>
 		{
 			if (!selectedChannelId.value ||
 				(selectedChannelId.value && selectedChannelId.value !== channelId))
 			{
 				emitFromChannel = true;
-				saveEmitChannelId = channelId;
+				saveEmitChannelId.value = channelId;
 				selectedChannelType.value = channelType;
 				socket.emit('channel::get', channelId);
 			}
@@ -302,12 +335,12 @@ export default defineComponent({
 			if (!userIsExistChannel)
 			{
 				socket.emit('channel::user::add', {
-					channelId: saveEmitChannelId,
+					channelId: saveEmitChannelId.value,
 					userId: props.userId
 				});
 			}
 			userIsExistChannel = false;
-			sendEvent(saveEmitChannelId);
+			sendEvent(saveEmitChannelId.value);
 		};
 		socket.on('channel::receive::get', (ret) =>
 		{
@@ -319,7 +352,7 @@ export default defineComponent({
 			{
 				if (banned.user.id === props.userId)
 				{
-					saveEmitChannelId = -1;
+					saveEmitChannelId.value = -1;
 					openDialogAlert(ret.data.id, props.userId, 'banned', true, true);
 					return;
 				}
@@ -345,11 +378,168 @@ export default defineComponent({
 		});
 		// #endregion Channel selection
 
-		// #region Update user of channel
-		socket.on('channel::data::change', (channelId, ret) =>
+		// #region Cron task for remove ban/mute user
+		socket.on('banned::cron::delete', (ret) =>
 		{
-			console.log('log', channelId, ret);
+			if (!ret)
+				return;
+			const i = getChannel(ret.channel);
+			if (i === -1)
+				return;
+			const x = channels.value[i].banned.indexOf(ret.user);
+			if (x !== -1)
+			{
+				channels.value[i].banned.splice(x, 1);
+				banMutChange(ret.user, ret.channel, false, null);
+				if (selectedChannelId.value === ret.channel)
+					openDialogAlert(ret.id, props.userId, 'banned', false, true);
+			}
 		});
+
+		socket.on('muted::cron::delete', (ret) =>
+		{
+			if (!ret || (ret && ret.deleted === false))
+				return;
+			const i = getChannel(ret.channel);
+			if (i === -1)
+				return;
+			const x = channels.value[i].muted.indexOf(ret.user);
+			if (x !== -1)
+			{
+				channels.value[i].muted.splice(x, 1);
+				banMutChange(ret.user, ret.channel, null, false);
+				if (selectedChannelId.value === ret.channel)
+					openDialogAlert(ret.id, props.userId, 'muted', false, true);
+			}
+		});
+		// #endregion Cron task for remove ban or mute user
+
+		// #region Update channel
+		const banMutChange = (user: number, channel: number, ban: boolean|null, mute: boolean|null) =>
+		{
+			emit('channel-ban-mute', {
+				user,
+				channel,
+				ban,
+				mute
+			});
+		};
+
+		socket.on('channel::user::receive::remove', (ret) =>
+		{
+			if (!ret.data.deleted || ret.data.data.id !== props.userId)
+				return;
+
+			if (ret.data.channel !== selectedChannelId.value)
+				selectedChannelId.value = 0;
+
+			const i = getChannel(ret.data.channel);
+
+			let x = channels.value[i].admins.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].admins.splice(x, 1);
+
+			x = channels.value[i].banned.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].banned.splice(x, 1);
+
+			x = channels.value[i].muted.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].muted.splice(x, 1);
+
+			x = channels.value[i].muted.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].muted.splice(x, 1);
+
+			x = channels.value[i].users.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].users.splice(x, 1);
+
+			if (dialogEditionShow.value === true)
+				dialogEditionShow.value = false;
+
+			sendEvent(-1, true);
+		});
+
+		socket.on('admin::receive::set', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			if (i !== -1)
+				channels.value[i].admins.push(ret.data.user);
+		});
+		socket.on('admin::receive::delete', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			const x = channels.value[i].admins.indexOf(ret.data.user);
+			if (i !== -1 && x !== -1)
+			{
+				if (props.userId === ret.data.user && dialogEditionShow.value === true)
+					dialogEditionShow.value = false;
+				channels.value[i].admins.splice(x, 1);
+			}
+		});
+
+		socket.on('banned::receive::set', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			if (i !== -1)
+			{
+				channels.value[i].banned.push(ret.data.user);
+				banMutChange(ret.data.user, ret.data.channel, true, null);
+				if (selectedChannelId.value === ret.data.channel)
+					openDialogAlert(ret.data.id, props.userId, 'banned', true, true);
+			}
+		});
+		socket.on('banned::receive::delete', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			const x = channels.value[i].banned.indexOf(ret.data.user);
+			if (i !== -1 && x !== -1)
+			{
+				channels.value[i].banned.splice(x, 1);
+				banMutChange(ret.data.user, ret.data.channel, false, null);
+				if (selectedChannelId.value === ret.data.channel)
+					openDialogAlert(ret.data.id, props.userId, 'banned', false, true);
+			}
+		});
+
+		socket.on('muted::receive::set', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			if (i !== -1)
+			{
+				channels.value[i].muted.push(ret.data.user);
+				banMutChange(ret.data.user, ret.data.channel, null, true);
+				if (selectedChannelId.value === ret.data.channel)
+					openDialogAlert(ret.data.id, props.userId, 'muted', true, true);
+			}
+		});
+		socket.on('muted::receive::delete', (ret) =>
+		{
+			const i = getChannel(ret.data.channel);
+			const x = channels.value[i].muted.indexOf(ret.data.user);
+			if (i !== -1 && x !== -1)
+			{
+				channels.value[i].muted.splice(x, 1);
+				banMutChange(ret.data.user, ret.data.channel, null, false);
+				if (selectedChannelId.value === ret.data.channel)
+					openDialogAlert(ret.data.id, props.userId, 'muted', false, true);
+			}
+		});
+
+		socket.on('channel::receive::update', (ret) =>
+		{
+			if (ret.data.updated)
+			{
+				const i = getChannel(ret.data.data.id);
+				if (i === -1)
+					return;
+				channels.value[i].name = ret.data.data.name;
+				channels.value[i].password = ret.data.data.newPassword;
+				channels.value[i].type = ret.data.data.type;
+			}
+		});
+
 		const updateUser = (channelId: number, user: updateUserInterface) =>
 		{
 			const setVal = (compare: boolean, arr: number[], hideEdition = false, hideOnInsert = true) =>
@@ -380,9 +570,12 @@ export default defineComponent({
 					channels.value.splice(i, 1);
 					return;
 				}
-				setVal(user.admin, channels.value[i].admins, true, false);
-				setVal(user.banned, channels.value[i].banned, true);
-				setVal(user.muted, channels.value[i].muted);
+				if (user.admin)
+					setVal(user.admin, channels.value[i].admins, true, false);
+				if (user.banned)
+					setVal(user.banned, channels.value[i].banned, true);
+				if (user.muted)
+					setVal(user.muted, channels.value[i].muted);
 				emit('channel-user-update', {
 					user: user.userId,
 					admin: user.admin,
@@ -431,13 +624,13 @@ export default defineComponent({
 		{
 			dialogPasswordShow.value = false;
 			if (isSet === false)
-				saveEmitChannelId = -1;
+				saveEmitChannelId.value = -1;
 		};
 		const openDialogPasswordOk = (isSet: boolean) =>
 		{
 			sendEventChangeChannel();
 			if (isSet === false)
-				saveEmitChannelId = -1;
+				saveEmitChannelId.value = -1;
 		};
 
 		const dialogEditionShow = ref(false);
@@ -488,25 +681,6 @@ export default defineComponent({
 		// #region Socket
 		const generateData = (channel: any) =>
 		{
-			const getLinkColor = (channelId: number) =>
-			{
-				const __colors = ['#ffc93c', '#ff9a3c', '#ff6f3c', '#49beb7', '#35bcbf', '#c5d86d'];
-				const n = (channelId / (__colors.length - 1));
-				const m = n % 1;
-
-				const extract = () =>
-				{
-					if (n <= 1)
-						return channelId;
-					if (m === 0 && n <= (__colors.length - 1))
-						return n;
-					let i = Number(m.toFixed(1)[2]);
-					if (i > (__colors.length - 1))
-						i -= (__colors.length - 1);
-					return i;
-				};
-				return __colors[extract()];
-			};
 			const ret: channelInterface = {
 				id: channel.id,
 				owner: channel.owner.id,
@@ -521,6 +695,17 @@ export default defineComponent({
 				banned: channel.bannedUsers.map((el: any) => el.user.id)
 			};
 			return ret;
+		};
+
+		let getPrivateChannel = false;
+		const index = (id: number) =>
+		{
+			for (const i in channels.value)
+			{
+				if (channels.value[i].id === id)
+					return Number(i);
+			}
+			return -1;
 		};
 
 		onMounted(() => socket.emit('channel::gets'));
@@ -596,38 +781,63 @@ export default defineComponent({
 			{
 				if (channels.value[i].id === ret.data.data.id)
 				{
-					channels.value[i].name = ret.data.data.name;
-					channels.value[i].type = ret.data.data.type;
-					channels.value[i].owner = ret.data.data.owner.id;
-					channels.value[i].password = ret.data.data.password;
+					if (ret.data.data.type === 'private' &&
+						!channels.value[i].users.includes(props.userId))
+					{
+						channels.value.splice(Number(i), 1);
+						if (selectedChannelId.value === ret.data.data.id)
+							sendEvent(-1, false);
+					}
+					else
+					{
+						channels.value[i].name = ret.data.data.name;
+						channels.value[i].type = ret.data.data.type;
+						channels.value[i].owner = ret.data.data.owner.id;
+						channels.value[i].password = ret.data.data.password;
+					}
 					return;
 				}
 			}
+			if (ret.data.data.type !== 'private')
+				channels.value.push(generateData(ret.data.data));
 		});
 
 		socket.on('channel::user::receive::add', (ret) =>
 		{
-			for (const channel of channels.value)
+			const i = index(ret.data.channel);
+
+			getPrivateChannel = false;
+			if (i !== -1)
+				channels.value[i].users.push(ret.data.data.id);
+			else if (ret.data.data.id === props.userId)
 			{
-				if (channel.id === ret.data.channel)
-				{
-					channel.users.push(ret.data.data.id);
-					return;
-				}
+				// Is private channel
+				getPrivateChannel = true;
+				socket.emit('channel::get', ret.data.channel);
 			}
 		});
 
-		socket.on('channel::user::receive::delete', (ret) =>
+		socket.on('channel::receive::get', (ret) =>
 		{
-			for (const channel of channels.value)
+			if (!getPrivateChannel || ret.socketId !== socket.id)
+				return;
+			channels.value.push(generateData(ret.data));
+			getPrivateChannel = false;
+		});
+
+		socket.on('channel::user::receive::remove', (ret) =>
+		{
+			const i = index(ret.data.channel);
+			if (i === -1)
+				return;
+			const x = channels.value[i].users.indexOf(ret.data.data.id);
+			if (x !== -1)
+				channels.value[i].users.splice(x, 1);
+			if (channels.value[i].type === 'private' && ret.data.data.id === props.userId)
 			{
-				if (channel.id === ret.data.channel)
-				{
-					const i = channel.users.findIndex(ret.data.data.id);
-					if (i !== -1)
-						channel.users.splice(i, 1);
-					return;
-				}
+				if (selectedChannelId.value === channels.value[i].id)
+					sendEvent(-1, false);
+				channels.value.splice(i, 1);
 			}
 		});
 
@@ -673,6 +883,8 @@ export default defineComponent({
 			selectedChannelPassword,
 			selectedChannelPasswordValue,
 			selectedChannelName,
+
+			saveEmitChannelId,
 
 			sendEvent,
 			changeChannel,

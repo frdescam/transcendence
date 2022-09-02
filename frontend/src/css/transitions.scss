@@ -1,0 +1,24 @@
+.fade-left-enter-active,
+.fade-left-leave-active,
+.fade-right-enter-active,
+.fade-right-leave-active
+{
+	transition: opacity $animate-duration linear, transform $animate-duration ease-in-out;
+}
+.fade-left-enter-from,
+.fade-left-leave-to,
+.fade-right-enter-from,
+.fade-right-leave-to
+{
+	opacity: 0;
+}
+.fade-left-enter-from,
+.fade-right-leave-to
+{
+	transform: translateX(80px);
+}
+.fade-left-leave-to,
+.fade-right-enter-from
+{
+	transform: translateX(-80px);
+}

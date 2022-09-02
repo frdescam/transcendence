@@ -102,9 +102,8 @@ function onError (error: string)
 			position: 'top',
 			progress: true,
 			timeout: 15000,
-			icon: 'error',
 			message: error,
-			color: 'negative',
+			type: 'negative',
 			multiLine: true,
 			actions: [
 				{
@@ -253,7 +252,7 @@ function refreshError ()
 function onConnected ()
 {
 	state.connected = true;
-	gameSocket.timeout(15000).emit(
+	gameSocket.emit(
 		'party::spectate',
 		{
 			room: props.party

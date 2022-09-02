@@ -18,10 +18,12 @@ export default {
 							success: 'Les modifications ont été effectuées',
 							error: {
 								name: 'Le canal doit avoir un nom',
-								pass: 'L\'ancien mot de passe ne correspond pas',
-								passNew: 'Le nouveau mot de passe ne doit pas être vide',
+								emptyOld: 'L\'ancien mot de passe ne doit pas être vide',
+								emptyNew: 'Le nouveau mot de passe ne doit pas être vide',
 								toProtected: 'Un canal protégé nécessite un mot de passe',
-								same: 'Le nouveau mot de passe est le même que l\'ancien'
+								same: 'Le nouveau mot de passe est le même que l\'ancien',
+								passCheck: 'L\'ancien mot de passe ne correspond pas',
+								update: 'Une erreur s\'est produite avec le serveur, veuillez réessayer plus tard'
 							}
 						},
 						user: {
@@ -104,7 +106,37 @@ export default {
 				error: 'Le mot de passe est obligatoire',
 				valid: 'Valider',
 				incorrect: 'Mot de passe invalide'
-			}
+			},
+			invitation: {
+				creator: {
+					title: 'Invitation',
+					text: 'Voulez-vous inviter {user} à jouer ?',
+					map: 'Sélectionnez la carte sur laquelle vous voulez jouer',
+
+					error: 'Apparemment, vous avez déjà demandé à une autre personne de faire une partie, mais elle n\'a pas répondu. Lorsque celle-ci aura accepté ou refusé, vous pourrez refaire votre demande',
+					unknown: 'Une erreur inconnue s\'est produite, veuillez réessayer dans quelques minutes.',
+
+					pending: 'En attente de la validation de {user}',
+
+					accepted: '{user} a accepté l\'invitation, vous serez redirigé dans 5 secondes. Sinon, cliquez sur le bouton ci-dessous',
+					refused: '{user} a refusé l\'invitation. La fenêtre se fermera dans 5 secondes. Sinon, cliquez sur le bouton ci-dessous',
+					close: 'Fermer la fenêtre'
+				},
+				player: {
+					title: 'Vous êtes invité par {creator} à jouer une partie',
+					yes: 'Commencer la partie',
+					no: 'Refuser la partie'
+				}
+			},
+			dateFormat: '{day}/{month}/{year} - {hour}h{minute}'
+		},
+		user: {
+			profile: 'Voir le profil',
+			xp: 'xp',
+			sendMessage: 'Envoyer un message',
+			invite: 'Envoyer une invitation à jouer',
+			block: 'Bloquer l\'utilisateur',
+			unblock: 'Débloquer l\'utilisateur'
 		},
 		editor: {
 			image: 'Image',
@@ -117,6 +149,12 @@ export default {
 		},
 		message: {
 			me: 'Moi'
-		}
+		},
+		mp: 'Message(s) privé(s)',
+		quit: {
+			info: 'Voulez-vous quitter le canal ?',
+			creator: 'Vous êtes le créateur du canal, il sera immédiatement supprimé lorsque vous le quitterez. Voulez-vous le quitter ?'
+		},
+		socket: 'La connexion a été interrompu, reconnexion en cours'
 	}
 };

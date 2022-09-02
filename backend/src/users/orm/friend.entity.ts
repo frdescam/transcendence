@@ -1,24 +1,24 @@
-import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "./user.entity";
+import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from './user.entity';
 
 @Entity()
 export class Friend extends BaseEntity {
     @PrimaryGeneratedColumn()
-    id: number;
+      id: number;
 
     @ManyToOne(() => User, (user) => user.friends, {
-        eager: true
+      eager: true
     })
-    user: User;
+      user: User;
 
     @ManyToOne(() => User, (user) => user.followedBy, {
-        eager: true
+      eager: true
     })
-    followedUser: User;
+      followedUser: User;
 
     @Column({
-        type: 'boolean',
-		default: true,
-	})
-    isPending: boolean;
+      type: 'boolean',
+      default: true,
+    })
+      isPending: boolean;
 }

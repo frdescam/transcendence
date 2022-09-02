@@ -1,39 +1,37 @@
 <template>
-	<div class="q-pa-md">
-		<q-table
-			title="Leaderboard"
-			:rows="rows"
-			:columns="columns"
-			row-key="rank"
-			v-model:pagination="pagination"
-			:loading="loading"
-			:filter="filter"
-			@request="refreshData"
-			@row-click="onRowClick"
-			binary-state-sort
-		>
-			<template v-slot:top-right>
-				<q-toggle class="q-mr-lg"
-					label="Only friends"
-					color="blue"
-					@update:model-value="onFriendsOnlyChanged"
-					v-model="friendsOnly"
-				/>
-				<q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
-					<template v-slot:append>
-						<q-icon name="search" />
-					</template>
-				</q-input>
-			</template>
-			<template #body-cell-avatar="props">
-				<q-td :props="props">
-					<q-avatar :props="props">
-						<img :src=props.value>
-					</q-avatar>
-				</q-td>
-		</template>
-		</q-table>
-	</div>
+  <q-table
+    title="Leaderboard"
+    :rows="rows"
+    :columns="columns"
+    row-key="rank"
+    v-model:pagination="pagination"
+    :loading="loading"
+    :filter="filter"
+    @request="refreshData"
+    @row-click="onRowClick"
+    binary-state-sort
+  >
+    <template v-slot:top-right>
+      <q-toggle class="q-mr-lg"
+        label="Only friends"
+        color="blue"
+        @update:model-value="onFriendsOnlyChanged"
+        v-model="friendsOnly"
+      />
+      <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
+        <template v-slot:append>
+          <q-icon name="search" />
+        </template>
+      </q-input>
+    </template>
+    <template #body-cell-avatar="props">
+      <q-td :props="props">
+        <q-avatar :props="props">
+          <img :src=props.value>
+        </q-avatar>
+      </q-td>
+  </template>
+  </q-table>
 </template>
 
 <script>
@@ -77,7 +75,7 @@ const columns = [
 	{
 		name: 'level',
 		label: 'LEVEL',
-		field: 'level',
+		field: 'xp',
 		required: true,
 		align: 'left',
 		style: 'width: 10%'
@@ -101,11 +99,10 @@ export default {
 			rowsNumber: 0
 		});
 
-		async function fetchFromServer (userId, friendsOnly, startRow, count, filter)
+		async function fetchFromServer (friendsOnly, startRow, count, filter)
 		{
 			const res = await api.get('/leaderboard/getRows', {
 				params: {
-					userId,
 					friendsOnly,
 					startRow,
 					count,
@@ -119,14 +116,12 @@ export default {
 		{
 			const { page, rowsPerPage, sortBy, descending } = props.pagination;
 			const filter = props.filter;
-			// tmp for testing
-			const userId = 1;
 
 			loading.value = true;
 
 			const fetchCount = rowsPerPage;
 			const startRow = (page - 1) * rowsPerPage;
-			const returnedData = await fetchFromServer(userId, localFriendsOnly, startRow, fetchCount, filter);
+			const returnedData = await fetchFromServer(localFriendsOnly, startRow, fetchCount, filter);
 			pagination.value.rowsNumber = returnedData.totalRowsNumber;
 			rows.value.splice(0, rows.value.length, ...returnedData.rows);
 
@@ -159,7 +154,7 @@ export default {
 
 		async function onRowClick (evt, row)
 		{
-			router.push('/profile/' + row.pseudo); // TODO : replace by id
+			router.push('/profile/' + row.id);
 		}
 
 		return {

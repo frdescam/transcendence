@@ -18,10 +18,12 @@ export default {
 							success: 'The modifications have been made',
 							error: {
 								name: 'The channel must have a name',
-								pass: 'The old password does not match',
-								passNew: 'The new password must not be empty',
+								emptyOld: 'The old password must not be empty',
+								emptyNew: 'The new password must not be empty',
 								toProtected: 'A protected channel requires a password',
-								same: 'The new password is the same as the old one'
+								same: 'The new password is the same as the old one',
+								passCheck: 'The old password does not match',
+								update: 'An error with the server occurred, please try again later'
 							}
 						},
 						user: {
@@ -104,7 +106,37 @@ export default {
 				error: 'Password is required',
 				valid: 'Validate',
 				incorrect: 'Incorrect password'
-			}
+			},
+			invitation: {
+				creator: {
+					title: 'Invitation',
+					text: 'Would you like to invite {user} to play ?',
+					map: 'Select the map you want to play on',
+
+					error: 'Apparently you have already asked someone else to do a party, but they did not respond. When this one will have accepted or refused, you will be able to redo your request',
+					unknown: 'An unknown error has occurred, please try again in a few minutes',
+
+					pending: 'Waiting for validation from {user}',
+
+					accepted: '{user} has accepted the invitation, you will be redirected in 5 seconds. Otherwise click on the button below',
+					refused: '{user} refused the invitation. The window will close in 5 seconds. Otherwise click on the button below',
+					close: 'Close window'
+				},
+				player: {
+					title: 'You are invited by {creator} to play a party',
+					yes: 'Start the game',
+					no: 'Refuse the game'
+				}
+			},
+			dateFormat: '{month}/{day}/{year} - {hour}h{minute}'
+		},
+		user: {
+			profile: 'See profile',
+			xp: 'xp',
+			sendMessage: 'Send message',
+			invite: 'Send an invitation to play',
+			block: 'Block user',
+			unblock: 'Unblock user'
 		},
 		editor: {
 			image: 'Image',
@@ -117,6 +149,12 @@ export default {
 		},
 		message: {
 			me: 'Me'
-		}
+		},
+		mp: 'Private message(s)',
+		quit: {
+			info: 'Do you want to leave the channel ?',
+			creator: 'You are the creator of the channel, this one will be immediately deleted when you leave. Do you want to leave it ?'
+		},
+		socket: 'The connection has been lost, reconnection in progress'
 	}
 };

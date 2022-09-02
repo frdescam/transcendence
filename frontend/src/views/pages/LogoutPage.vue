@@ -2,7 +2,7 @@
 		<h1 class="text-white text-center">
 			<q-spinner size="2em" />
 			<br />
-			Logging out...
+			{{ capitalize($t('login.logout')) }}
 		</h1>
 </template>
 
@@ -13,12 +13,14 @@ import { api } from 'boot/axios';
 import { useQuasar } from 'quasar';
 import type { AxiosError } from 'axios';
 import type { RefreshUserState } from 'src/boot/state';
+import { Capitalize } from 'src/boot/libs';
 
 export default defineComponent({
 	name: 'LogoutPage',
 
 	setup ()
 	{
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const $q = useQuasar();
 		const router = useRouter();
 		const refreshUserState = inject('refreshUserState') as RefreshUserState;
@@ -66,7 +68,9 @@ export default defineComponent({
 				});
 		});
 
-		return {};
+		return {
+			capitalize
+		};
 	}
 });
 </script>

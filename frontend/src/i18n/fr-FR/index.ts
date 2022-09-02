@@ -174,6 +174,18 @@ export default {
 		title: 'Oups, rien ici...',
 		label: 'Aller à la page d\'accueil'
 	},
+	friend: {
+		title: 'Vos amis',
+		search: 'rechercher',
+		noMatch: 'aucun résultat trouvé',
+		noData: 'aucune donnée disponible',
+		message: 'envoyer un message',
+		delete: 'supprimer un ami',
+		watch: 'regarder le jeu',
+		rank: '#{rank}',
+		level: 'niveau: {level}',
+		ratio: 'ratio: {ratio}'
+	},
 	game: {
 		creation: {
 			title: 'création d\'une partie',
@@ -263,8 +275,9 @@ export default {
 		search: 'rechercher'
 	},
 	login: {
-		button: 'Connectez-vous avec',
-		submit: 'envoyer'
+		button: 'connectez-vous avec',
+		submit: 'envoyer',
+		logout: 'déconnexion'
 	},
 	matching: {
 		look: 'Rechercher une partie',
@@ -281,6 +294,24 @@ export default {
 		create: 'créer',
 		explore: 'explorer'
 	},
+	profil: {
+		search: 'rechercher',
+		noMatch: 'aucun résultat trouvé',
+		noData: 'aucune donnée disponible',
+		achievements: {
+			title: 'succès',
+			list: {
+				name: {
+					title: 'name',
+					subtitle: 'subname'
+				}
+			}
+		},
+		matches: {
+			title: 'matches',
+			map: 'carte: {map}'
+		}
+	},
 	setting: {
 		title: 'paramètres :',
 		twoFactor: {
@@ -295,6 +326,12 @@ export default {
 			subtitleOne: 'êtes-vous sûr ?',
 			subtitleTwo: 'vous perdrez toute votre progression'
 		},
+		user: {
+			fieldRequired: 'le champ est obligatoire',
+			currentPassword: 'mot de passe actuel',
+			newPassword: 'nouveau mot de passe',
+			update: 'mettre à jour'
+		},
 		profilPictureModal: {
 			title: 'Vous pouvez modifier votre pseudo et votre photo de profil ici même :',
 			pseudo: 'Modifier le pseudo',
@@ -302,5 +339,8 @@ export default {
 			update: 'mettre à jour',
 			dismiss: 'fermer'
 		}
+	},
+	twofa: {
+		label: 'Entrez le code 2FA'
 	}
 };

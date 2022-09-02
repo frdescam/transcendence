@@ -174,6 +174,18 @@ export default {
 		title: 'Oops, nothing here...',
 		label: 'Go home'
 	},
+	friend: {
+		title: 'your friends',
+		search: 'search',
+		noMatch: 'no matching records found',
+		noData: 'no data available',
+		message: 'send message',
+		delete: 'delete friend',
+		watch: 'watch game',
+		rank: '#{rank}',
+		level: 'level: {level}',
+		ratio: 'ratio: {ratio}'
+	},
 	game: {
 		creation: {
 			title: 'game creation',
@@ -264,7 +276,8 @@ export default {
 	},
 	login: {
 		button: 'Login with',
-		submit: 'submit'
+		submit: 'submit',
+		logout: 'logging out'
 	},
 	matching: {
 		look: 'Looking for party',
@@ -281,6 +294,24 @@ export default {
 		create: 'create',
 		explore: 'explore'
 	},
+	profil: {
+		search: 'search',
+		noMatch: 'no matching records found',
+		noData: 'no data available',
+		achievements: {
+			title: 'achievements',
+			list: {
+				name: {
+					title: 'name',
+					subtitle: 'subname'
+				}
+			}
+		},
+		matches: {
+			title: 'matches',
+			map: 'map: {map}'
+		}
+	},
 	setting: {
 		title: 'settings :',
 		twoFactor: {
@@ -295,6 +326,12 @@ export default {
 			subtitleOne: 'are you sure ?',
 			subtitleTwo: 'you will lose all progress'
 		},
+		user: {
+			fieldRequired: 'Field is required',
+			currentPassword: 'current password',
+			newPassword: 'new password',
+			update: 'update'
+		},
 		profilPictureModal: {
 			title: 'you can edit your pseudo and profile picture right here :',
 			pseudo: 'change pseudo',
@@ -302,5 +339,8 @@ export default {
 			update: 'update',
 			dismiss: 'dismiss'
 		}
+	},
+	twofa: {
+		label: 'enter 2FA code'
 	}
 };

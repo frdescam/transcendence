@@ -7,8 +7,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, inject, watch } from 'vue';
+import { defineComponent, onMounted, onUnmounted, inject, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import type { WatchStopHandle } from 'vue';
 import type { RefreshUserState, State } from 'src/boot/state';
 
 export default defineComponent({
@@ -21,11 +22,13 @@ export default defineComponent({
 		const refreshUserState = inject('refreshUserState') as RefreshUserState;
 		const state = inject('state') as State;
 
+		var unwatch: null | WatchStopHandle = null;
+
 		onMounted(() =>
 		{
 			if (!state.loading)
 				refreshUserState();
-			watch(
+			unwatch = watch(
 				state,
 				function (newState)
 				{
@@ -46,6 +49,12 @@ export default defineComponent({
 					flush: 'post'
 				}
 			);
+		});
+
+		onUnmounted(() =>
+		{
+			if (unwatch)
+				unwatch();
 		});
 
 		return {};

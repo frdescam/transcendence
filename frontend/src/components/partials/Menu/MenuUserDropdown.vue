@@ -22,7 +22,7 @@
 					<q-icon name="settings" />
 				</q-item-section>
 				<q-item-section no-wrap>
-					<q-item-label>Account settings</q-item-label>
+					<q-item-label>{{ capitalize($t('menu.setting')) }}</q-item-label>
 				</q-item-section>
 			</q-item>
 
@@ -35,7 +35,7 @@
 					<q-icon name="logout" />
 				</q-item-section>
 				<q-item-section no-wrap>
-					<q-item-label>Disconnect</q-item-label>
+					<q-item-label>{{ capitalize($t('menu.disconnect')) }}</q-item-label>
 				</q-item-section>
 			</q-item>
 
@@ -48,6 +48,7 @@ import { defineComponent, inject, onBeforeUnmount, onMounted, reactive, ref } fr
 import clsx from 'clsx';
 import MenuUserGame from './MenuUserGame.vue';
 import type { State } from 'src/boot/state';
+import { Capitalize } from 'src/boot/libs';
 import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import type { getUserPartyDto } from 'src/common/game/orm/getUserParty.dto';
 import type { Socket } from 'socket.io-client';
@@ -65,6 +66,7 @@ export default defineComponent({
 	},
 	setup ()
 	{
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const state = inject('state') as State;
 		const gameSocket: Socket = inject('socketGame') as Socket;
 		const gameState = reactive<stateType>({ connected: false, party: null });
@@ -111,6 +113,7 @@ export default defineComponent({
 		});
 
 		return {
+			capitalize,
 			clsx,
 			state,
 			gameState

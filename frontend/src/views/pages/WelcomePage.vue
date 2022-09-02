@@ -4,17 +4,18 @@
       <profileHeader :user="user"></profileHeader>
     </q-toolbar>
     <q-list class="column q-mt-md">
-      <q-btn class="q-mb-md" :to="{ path: '/play' }" color="primary">Start a game</q-btn>
-      <q-btn class="q-mb-md" :to="{ path: '/chat' }" color="primary">Chat with your friends</q-btn>
-      <q-btn class="q-mb-md" :to="{ path: '/play/list' }" color="primary">Check out live games</q-btn>
+      <q-btn class="q-mb-md" :to="{ path: '/play' }" color="primary">{{ capitalize($t('index.buttons.start')) }}</q-btn>
+      <q-btn class="q-mb-md" :to="{ path: '/chat' }" color="primary">{{ capitalize($t('index.buttons.chat')) }}</q-btn>
+      <q-btn class="q-mb-md" :to="{ path: '/play/list' }" color="primary">{{ capitalize($t('index.buttons.checkoutGame')) }}</q-btn>
     </q-list>
     <q-list class="column q-mt-md">
-      <q-btn class="q-mb-md" :to="{ path: '/leaderboard' }" color="primary">Checkout the leaderboard</q-btn>
-      <q-btn class="q-mb-xs" :to="{ path: '/settings' }" color="primary">Edit your settings</q-btn>
+      <q-btn class="q-mb-md" :to="{ path: '/leaderboard' }" color="primary">{{ capitalize($t('index.buttons.checkoutLeader')) }}</q-btn>
+      <q-btn class="q-mb-xs" :to="{ path: '/settings' }" color="primary">{{ capitalize($t('index.buttons.edit')) }}</q-btn>
     </q-list>
+	</q-list>
 	<q-list class="rounded-borders shadow-2 q-my-md scroll" style="width: 300px; height: 300px">
 		<q-toolbar>
-		<q-toolbar-title :hidden="!hideSearch">Your Friends : </q-toolbar-title>
+		<q-toolbar-title :hidden="!hideSearch">{{ capitalize($t('index.friends')) }}</q-toolbar-title>
 			<q-input :hidden="hideSearch" ref="input" borderless dense debounce="300" v-model="filter" @update:model-value="onFilterChange" placeholder="Search"/>
 			<q-btn flat rounded class="q-ml-auto" icon="search" @click="toggleSearch"/>
 		</q-toolbar>
@@ -26,11 +27,11 @@
 		</q-item>
 			<div v-if="filteredFriendList.length == 0 && filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
 			<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
-			No matching records found
+			{{ capitalize($t('index.noData')) }}
 		</div>
 		<div v-if="filteredFriendList.length == 0 && !filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
 			<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
-			No data available
+			{{ capitalize($t('index.noFriends')) }}
 		</div>
 	</q-list>
 
@@ -102,7 +103,7 @@ export default ({
 			api.get('/user/new');
 		}
 
-		async function onFriendClick (friendPseudo)
+		async function onFriendClick (friendPseudo: string)
 		{
 			router.push('/profile/' + friendPseudo);
 		}

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { boot } from 'quasar/wrappers';
 import sanitizeHtml from 'sanitize-html';
+import { ComposerTranslation } from 'vue-i18n';
 
 export interface TypeOfObject {
 	(object: any): any;
@@ -32,13 +33,18 @@ export interface Capitalize {
   (str: string): string;
 }
 
+export interface GetTraduction {
+  (key: string, t: ComposerTranslation, href?: string): string;
+}
+
 declare module '@vue/runtime-core' {
 	interface ComponentCustomProperties {
 		$typeofObject: TypeOfObject;
 		$timestamp: TimestampFunction;
 		$objDiff: ObjDiff,
 		$sanitizeMessage: SanitizeMessage,
-		$capitalize: Capitalize
+		$capitalize: Capitalize,
+		$getTraduction: GetTraduction
 	}
 }
 
@@ -180,6 +186,32 @@ const sanitizeUserMessage = (message: string) =>
  */
 const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);
 
+/**
+ * Automatically get traduction of element
+ * Work with pathname of url, for exemple:
+ * if pathname if `/one/two/three` and key `hello`, this function search `one.two.three.hello` key
+ * @param key key to search
+ * @param href href of current page, by default is `window.location.href`
+ * @return traducted element of passed key if is not found
+ */
+const getTraduction = (
+	key: string,
+	t: ComposerTranslation,
+	href: string = window.location.href
+): string =>
+{
+	const pathname = new URL(href).pathname.slice(1);
+	const index = `${pathname.split('/').join('.')}.${key}`;
+	try
+	{
+		return t(index);
+	}
+	catch (_err)
+	{
+		return key;
+	}
+};
+
 export default boot(({ app }) =>
 {
 	app.config.globalProperties.$typeofObject = typeofObject;
@@ -192,4 +224,6 @@ export default boot(({ app }) =>
 	app.provide('sanitizeMessage', app.config.globalProperties.$sanitizeMessage);
 	app.config.globalProperties.$capitalize = capitalize;
 	app.provide('capitalize', app.config.globalProperties.$capitalize);
+	app.config.globalProperties.$getTraduction = getTraduction;
+	app.provide('getTraduction', app.config.globalProperties.$getTraduction);
 });

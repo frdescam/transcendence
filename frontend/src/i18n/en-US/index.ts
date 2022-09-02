@@ -6,7 +6,9 @@ export default {
 		leaderboard: 'leaderboard',
 		setting: 'account setting',
 		retake: 'retake the game',
-		disconnect: 'disconnect'
+		disconnect: 'disconnect',
+		playing: 'you are currently playing on {map}',
+		notPlaying: 'you are not playing'
 	},
 	// pages
 	chat: {
@@ -193,10 +195,42 @@ export default {
 				creation: 'creation date'
 			},
 			vs: 'vs'
+		},
+		gameInterface: {
+			controls: 'controls',
+			wheel: 'wheel',
+			mouse: 'mouse wheel',
+			keyboard: 'keyboard',
+			cursor: 'cursor',
+			graphics: 'graphics',
+			window: 'window',
+			fullscreen: 'fullscreen',
+			accessibility: 'accessibility',
+			play: 'play',
+			pause: 'pause',
+			give: 'give up',
+			quality: {
+				minimum: 'minimum',
+				low: 'low',
+				average: 'average',
+				good: 'good',
+				high: 'high',
+				ultra: 'ultra'
+			}
+		},
+		gameView: {
+			refresh: 'refresh',
+			state: {
+				connected: 'connecting',
+				state: 'awaiting gamestate',
+				default: 'loading map'
+			}
 		}
 	},
 	index: {
 		exp: 'xp',
+		friends: 'your friends',
+		noData: 'no data available',
 		noFriends: 'no friends to display yet',
 		level: 'level',
 		nextLevel: 'next level :',
@@ -209,6 +243,17 @@ export default {
 			start: 'start a game'
 		}
 	},
+	inputs: {
+		adversary: 'adversary',
+		adversaryHint: 'if selected, an invitation would be sent',
+		map: 'map',
+		mapHint: 'the map affect ball\'s speed and allowed controls',
+		room: 'room name',
+		roomHint: 'the name of the party, which will be in the URL',
+		matchHint: 'if selected, you will be queued to play with that person particularly',
+		query: 'place a query',
+		party: 'create my party'
+	},
 	leaderboard: {
 		rank: 'rank',
 		player: 'player',
@@ -218,7 +263,8 @@ export default {
 		search: 'search'
 	},
 	login: {
-		button: 'Login with'
+		button: 'Login with',
+		submit: 'submit'
 	},
 	matching: {
 		look: 'Looking for party',
@@ -229,6 +275,11 @@ export default {
 			found: 'Redirecting to the party...',
 			default: 'Connecting...'
 		}
+	},
+	play: {
+		matching: 'matching',
+		create: 'create',
+		explore: 'explore'
 	},
 	setting: {
 		title: 'settings :',

@@ -6,7 +6,9 @@ export default {
 		leaderboard: 'classement',
 		setting: 'paramètre du compte',
 		retake: 'reprendre la partie',
-		disconnect: 'déconnexion'
+		disconnect: 'déconnexion',
+		playing: 'vous jouez actuellement sur {map}',
+		notPlaying: 'vous ne jouez pas'
 	},
 	// pages
 	chat: {
@@ -193,10 +195,42 @@ export default {
 				creation: 'date de création'
 			},
 			vs: 'vs'
+		},
+		gameInterface: {
+			controls: 'contrôles',
+			wheel: 'molette',
+			mouse: 'molette de la souris',
+			keyboard: 'clavier',
+			cursor: 'curseur',
+			graphics: 'graphiques',
+			window: 'fenêtre',
+			fullscreen: 'plein écran',
+			accessibility: 'accessibilité',
+			play: 'jouer',
+			pause: 'pause',
+			give: 'abandonner',
+			quality: {
+				minimum: 'minimum',
+				low: 'faible',
+				average: 'moyenne',
+				good: 'bon',
+				high: 'élevé',
+				ultra: 'ultra'
+			}
+		},
+		gameView: {
+			refresh: 'rafraîchir',
+			state: {
+				connected: 'en connection',
+				state: 'en attente de l\'état de jeu',
+				default: 'chargement de la carte'
+			}
 		}
 	},
 	index: {
 		exp: 'xp',
+		friends: 'vos amis',
+		noData: 'aucune donnée disponible',
 		noFriends: 'aucun ami à afficher pour le moment',
 		level: 'niveau',
 		nextLevel: 'niveau suivant :',
@@ -209,6 +243,17 @@ export default {
 			start: 'démarrer une partie'
 		}
 	},
+	inputs: {
+		adversary: 'adversaire',
+		adversaryHint: 'si elle est sélectionnée, une invitation sera envoyée',
+		map: 'carte',
+		mapHint: 'la carte affecte la vitesse de la balle et permet des contrôles',
+		room: 'nom de la salle',
+		roomHint: 'le nom de la partie, qui sera dans l\'URL',
+		matchHint: 'si vous êtes sélectionné, vous serez mis en file d\'attente pour jouer avec cette personne en particulier',
+		query: 'placer une requête',
+		party: 'créer ma partie'
+	},
 	leaderboard: {
 		rank: 'rang',
 		player: 'joueur',
@@ -218,7 +263,8 @@ export default {
 		search: 'rechercher'
 	},
 	login: {
-		button: 'Connectez-vous avec'
+		button: 'Connectez-vous avec',
+		submit: 'envoyer'
 	},
 	matching: {
 		look: 'Rechercher une partie',
@@ -229,6 +275,11 @@ export default {
 			found: 'Réorientation vers la partie...',
 			default: 'Connexion...'
 		}
+	},
+	play: {
+		matching: 'appariement',
+		create: 'créer',
+		explore: 'explorer'
 	},
 	setting: {
 		title: 'paramètres :',

@@ -9,7 +9,11 @@
 		<div class="q-mt-lg">Or login as test user : </div>
 		<q-form @submit="onSubmit" class="column justify-evenly items-center">
 			<q-input v-model="id" ref="input" class="q-my-lg" :disable="disableInput" :color="inputColor" :autofocus=true label="enter id :"></q-input>
-			<q-btn label="Submit" type="submit" color="secondary"/>
+			<q-btn
+				:label="$t('login.submit')"
+				type="submit"
+				color="secondary"
+			/>
 		</q-form>
 	</q-card>
 </template>

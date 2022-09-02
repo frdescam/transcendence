@@ -3,7 +3,7 @@
 
 		<q-toolbar-title shrink class="gt-sm">
 			<q-btn flat round dense size="lg" icon="mdi-table-tennis" :to="{ name: 'home' }"/>
-			{{ $t('menu.title') }}
+			{{ capitalize($t('menu.title')) }}
 		</q-toolbar-title>
 
 		<div :class="clsx('col-grow row no-wrap', $q.screen.gt.xs ? 'q-gutter-md' : 'q-gutter-sm', $q.screen.gt.xs && 'justify-center')">

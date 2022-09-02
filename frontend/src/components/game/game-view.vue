@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { AppFullscreen, Dialog, Notify } from 'quasar';
 import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref, inject } from 'vue';
 import { Socket } from 'socket.io-client';
+import { Capitalize } from 'src/boot/libs';
 import Scene, { mapConfig, options } from './canvas/scene';
 import maps from './maps';
 
@@ -35,6 +36,7 @@ export interface interfaceState {
 	}
 }
 
+const capitalize: Capitalize = inject('capitalize') as Capitalize;
 const gameSocket: Socket = inject('socketGame') as Socket;
 
 const props = defineProps<{ party: string }>();
@@ -357,15 +359,6 @@ function toggleControl (control: controlsMode)
 	}
 }
 
-function getStateText ()
-{
-	if (!state.connected)
-		return 'Connecting';
-	if (!state.gamestate)
-		return 'Awaiting gamestate';
-	return 'Loading map';
-}
-
 defineExpose({
 	onClick,
 	join,
@@ -397,12 +390,20 @@ defineExpose({
 					:dense="$q.screen.lt.sm"
 					color="primary"
 					icon="refresh"
-					label="Refresh"
+					:label="capitalize($t('game.gameView.refresh'))"
 					@click="refreshError"
 				/>
 			</div>
 			<p class="text-h2" v-if="!state.error">
-				{{getStateText()}}...
+				<template v-if="!state.connected">
+					{{ capitalize($t('game.gameView.state.connected')) }}
+				</template>
+				<template v-else-if="!state.gamestate">
+					{{ capitalize($t('game.gameView.state.state')) }}
+				</template>
+				<template v-else>
+					{{ capitalize($t('game.gameView.state.default')) }}
+				</template>
 			</p>
 			<q-linear-progress
 				track-color="brown-3"

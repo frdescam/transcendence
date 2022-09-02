@@ -46,7 +46,7 @@ const getType = (type: string) => {
   return temp;
 };
 
-// @UseGuards(WsJwtGuard)
+@UseGuards(WsJwtGuard)
 @WebSocketGateway({
   namespace: 'chat::',
   cors

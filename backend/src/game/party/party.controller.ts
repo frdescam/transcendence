@@ -9,91 +9,93 @@ import { JwtAuthGuard } from 'src/auth/guards/auth-jwt.guard';
 @Controller('party')
 export class PartyController
 {
-  constructor (
-    private partyService: PartyService,
-    private readonly ignoreService: IgnoreService
-  )
-  {}
-    
-  @Get()
-  findAll(): getPartyDto[]
-  {
-    return (this.partyService.getAllAsJSON());
-  }
+	constructor (
+		private partyService: PartyService,
+		private readonly ignoreService: IgnoreService
+	)
+	{}
+		
+	@Get()
+	findAll(): getPartyDto[]
+	{
+		return (this.partyService.getAllAsJSON());
+	}
 
-  @UseGuards(JwtAuthGuard)
-  @Get('mine')
-  findMine(
-    @Request() req,
-  ): string | null
-  {
-    const user: any = req.user;
-    this.partyService.checkUserObject(user);
-    const himself: userId = user.id;
-    const party = this.partyService.findPartyWithUser(himself);
+	@UseGuards(JwtAuthGuard)
+	@Get('mine')
+	findMine(
+		@Request() req,
+	): string | null
+	{
+		const user: any = req.user;
+		this.partyService.checkUserObject(user);
+		const himself: userId = user.id;
+		const party = this.partyService.findPartyWithUser(himself);
 
-    return (party ? party.room : null);        
-  }
+		return (party ? party.room : null);        
+	}
 
-  @UseGuards(JwtAuthGuard)
-  @Put('giveup')
-  giveup(
-    @Request() req,
-    @Param() params
-  )
-  {
-    const user: any = req.user;
-    this.partyService.checkUserObject(user);
-    const himself: userId = user.id;
-    const party = this.partyService.findPartyWithUser(himself);
-    if (!party)
-      return ({left: false});
-    const slot = this.partyService.getSlotFromUser(party, himself);
-    if (slot === -1)
-      throw 'Unexpected state';
-    if (params.room)
-      if (params.room !== party.room)
-        return ({left: false});
+	@UseGuards(JwtAuthGuard)
+	@Put('giveup')
+	giveup(
+		@Request() req,
+		@Param() params
+	)
+	{
+		const user: any = req.user;
+		this.partyService.checkUserObject(user);
+		const himself: userId = user.id;
+		const party = this.partyService.findPartyWithUser(himself);
+		if (!party)
+			return ({left: false});
+		const slot = this.partyService.getSlotFromUser(party, himself);
+		if (slot === -1)
+			throw 'Unexpected state';
+		if (typeof params.room === 'string')
+			if (params.room !== party.room)
+				return ({left: false});
 
-    if (this.partyService.admitDefeat(party, slot))
-      return ({left: true});
-    else
-      return ({left: false});
-  }
+		if (this.partyService.admitDefeat(party, slot))
+			return ({left: true});
+		else
+			return ({left: false});
+	}
 
-  @Get(':room')
-  findOne(@Param() params): getPartyDto | null
-  {
-    const partyArr = this.partyService.getAll().filter(({room}) => (room === params.room));
+	@Get(':room')
+	findOne(@Param() params): getPartyDto | null
+	{
+		const partyArr = this.partyService.getAll().filter(({room}) => (room === params.room));
 
-    return (partyArr.length ? this.partyService.partyToPublicJson(partyArr[0]) : null);
-  }
-  
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  @UsePipes(new ValidationPipe({ transform: true, transformOptions: {enableImplicitConversion: true} }))
-  async create(
-    @Body() {room = null, map = 'classic', adversary = null}: CreatePartyDto,
-    @Request() req
-  ): Promise<string>
-  {
-    const user: any = req.user;
-    this.partyService.checkUserObject(user);
-    const himself: userId = user.id;
+		return (partyArr.length ? this.partyService.partyToPublicJson(partyArr[0]) : null);
+	}
+	
+	@UseGuards(JwtAuthGuard)
+	@Post()
+	@UsePipes(new ValidationPipe({ transform: true, transformOptions: {enableImplicitConversion: true} }))
+	async create(
+		@Body() {room = null, map = 'classic', adversary = null}: CreatePartyDto,
+		@Request() req
+	): Promise<string>
+	{
+		const user: any = req.user;
+		this.partyService.checkUserObject(user);
+		const himself: userId = user.id;
 
-    let adversaryId = null;
-    if (adversary && typeof adversary === 'string' && !isNaN(parseInt(adversary)))
-      adversaryId = parseInt(adversary);
-    // @TODO: check adversary ID existence
+		let adversaryId = null;
+		if (typeof adversary === 'string' && !isNaN(parseInt(adversary)))
+			adversaryId = parseInt(adversary);
+		else if (typeof adversary === 'number')
+			adversaryId = adversary;
+		// @TODO: check adversary ID existence
 
-    if (himself && adversaryId && !(await this.ignoreService.compatible(himself, adversaryId)))
-      throw new HttpException('You cannot start a game with ignored user', HttpStatus.I_AM_A_TEAPOT);
+		if (himself && adversaryId && !(await this.ignoreService.compatible(himself, adversaryId)))
+			throw new HttpException('You cannot start a game with ignored user', HttpStatus.I_AM_A_TEAPOT);
 
-    const party = this.partyService.createParty(
-      room,
-      map,
-      [himself, adversaryId]
-    );
-    return (party.room);
-  }
+		const party = this.partyService.createParty(
+			room,
+			map,
+			[himself, adversaryId]
+		);
+		return (party.room);
+	}
 }

@@ -6,12 +6,12 @@ import { PartyModule } from './party/party.module';
 import { MainGateway } from './main.gateway';
 
 @Module({
-  imports: [
-    UsersModule,
-    PartyModule
-  ],
-  providers: [
-    MainGateway
-  ]
+	imports: [
+		UsersModule,
+		PartyModule
+	],
+	providers: [
+		MainGateway
+	]
 })
 export class GameModule {}

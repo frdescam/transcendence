@@ -42,9 +42,12 @@
 </template>
 
 <script lang="ts">
-import { QDialog } from 'quasar';
+import { QDialog, useMeta } from 'quasar';
 import { Socket } from 'socket.io-client';
+import { useI18n } from 'vue-i18n';
+import { Capitalize } from 'src/boot/libs';
 import { defineComponent, inject, onMounted, onUnmounted, ref, watch } from 'vue';
+import { generateMeta } from 'src/meta';
 import channelChannel from 'src/components/chat/Channel.vue';
 import userChannel from 'src/components/chat/User.vue';
 import chatChannel from 'src/components/chat/Chat.vue';
@@ -77,6 +80,13 @@ export default defineComponent({
 	},
 	setup ()
 	{
+		// #region Set custom title
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+		const { t } = useI18n();
+
+		useMeta(generateMeta(capitalize(t('chat.title'))));
+		// #endregion Set custom title
+
 		// #region Definition
 		const socket: Socket = inject('socketChat') as Socket;
 

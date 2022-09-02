@@ -12,6 +12,7 @@ export default {
 	},
 	// pages
 	chat: {
+		title: 'chat',
 		channel: {
 			createTooltip: 'Create a new channel',
 			menu: {

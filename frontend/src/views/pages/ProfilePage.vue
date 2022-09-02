@@ -33,7 +33,7 @@
 		</div>
 		<div class="row justify-evenly">
 			<div class="col-12 col-md-6 q-py-md q-pl-md" v-bind:class="$q.screen.lt.md ? 'q-pr-md' : 'q-pr-sm'">
-				<matchesList :matches="matches"></matchesList>
+				<matchesList :matches="matches" :user="user"></matchesList>
 			</div>
 			<div class="col-12 col-md-6  q-py-md q-pr-md" v-bind:class="$q.screen.lt.md ? 'q-pl-md' : 'q-pl-sm'">
 				<achievementsList :achievements="achievements"></achievementsList>
@@ -50,114 +50,6 @@ import { useRoute } from 'vue-router';
 import { api } from 'boot/axios';
 import { Socket } from 'socket.io-client';
 
-const matches = [
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/05/2021'
-	},
-	{
-		id: 1,
-		map: 'forest',
-		userHome: 1,
-		userForeign: 2,
-		winner: 2,
-		userHomeScore: 4,
-		userForeignScore: 5,
-		timestamp: '03/06/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 2000,
-		userForeignScore: 3,
-		timestamp: '03/07/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/08/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/09/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/10/2021'
-	}
-];
-
-const achievements = [
-	{
-		id: 1,
-		timestamp: '03/01/2022',
-		achievementName: 'Rigorous Basterd1',
-		achievementDescription: 'Win 10 matches in a row',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	},
-	{
-		id: 1,
-		timestamp: '03/02/2022',
-		achievementName: 'Rigorous Basterd2',
-		achievementDescription: 'Win 10 matches in a row 1',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	},
-	{
-		id: 1,
-		timestamp: '03/03/2022',
-		achievementName: 'Rigorous Basterd3',
-		achievementDescription: 'Win 10 matches in a row 2',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	},
-	{
-		id: 1,
-		timestamp: '03/04/2022',
-		achievementName: 'Rigorous Basterd4',
-		achievementDescription: 'Win 10 matches in a row 3',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	},
-	{
-		id: 1,
-		timestamp: '03/05/2022',
-		achievementName: 'Rigorous Basterd4',
-		achievementDescription: 'Win 10 matches in a row 4',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	},
-	{
-		id: 1,
-		timestamp: '03/06/2022',
-		achievementName: 'Rigorous Basterd5',
-		achievementDescription: 'Win 10 matches in a row 5',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	}
-];
-
 export default {
 	name: 'LeaderboardPage',
 	components: {
@@ -172,6 +64,8 @@ export default {
 		const userId = route.params.id;
 		const user = ref({});
 		const me = ref({});
+		const matches = ref([]);
+		const achievements = ref([]);
 		const ownPage = ref(false);
 		const isUserIgnored = ref(false);
 		const isUserFriend = ref(false);
@@ -180,34 +74,34 @@ export default {
 		let friendId;
 		let pendingFriendId;
 
-		api.get('/user/' + userId).then((res) =>
+		api.get('/user/match/get/' + userId).then((res) =>
 		{
 			user.value = res.data;
+			matches.value = user.value.matchesForeign.concat(user.value.matchesHome);
+			console.log(matches.value);
 			api.get('/user/me').then((res) =>
 			{
 				ownPage.value = (res.data.id === user.value.id);
 				me.value = res.data;
 			});
+			api.get('/user/achievements/get/' + userId).then((res) =>
+			{
+				achievements.value = res.data;
+			});
 		});
 
-		async function fetchIgnore ()
+		api.get('/ignore').then((res) =>
 		{
-			api.get('/ignore').then((res) =>
+			const ignoredUsers = res.data;
+			for (const ignoredUser of ignoredUsers)
 			{
-				const ignoredUsers = res.data;
-				for (const ignoredUser of ignoredUsers)
+				if (ignoredUser.target.id === user.value.id)
 				{
-					if (ignoredUser.target.id === user.value.id)
-					{
-						isUserIgnored.value = true;
-						return;
-					}
+					isUserIgnored.value = true;
+					break;
 				}
-				isUserIgnored.value = false;
-			});
-		}
-
-		fetchIgnore();
+			}
+		});
 
 		async function onToggleBlockUser ()
 		{

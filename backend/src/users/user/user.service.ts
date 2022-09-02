@@ -6,6 +6,7 @@ import { AuthDto } from '../../auth/dto';
 import { UserDTO } from '../orm/user.dto';
 import { User } from '../orm/user.entity';
 import { Match } from 'src/match/orm/match.entity';
+import { AchievementsEnumName, AchievementsDto, Achievements} from '../orm/achievements.dto';
 
 @Injectable({})
 export class UserService {
@@ -117,13 +118,101 @@ export class UserService {
   }
 
   async getMatches(id: number): Promise<User> {
-    return this.userRepository.findOne({
+    let user = await this.userRepository.findOne({
       where: {
         id: id,
       },
-      relations: ['matchesHome', 'matchesForeign']
+      relations: [
+        'matchesHome',
+        'matchesForeign',
+        'matchesHome.winner',
+        'matchesHome.userHome',
+        'matchesHome.userForeign',
+        'matchesForeign.winner',
+        'matchesForeign.userHome',
+        'matchesForeign.userForeign'
+      ]
     });
+    user = await this.sanitizeUser(user);
+    user.matchesHome.forEach(async (match) =>
+    {
+      match.winner = await this.sanitizeUser(match.winner);
+      match.userForeign = await this.sanitizeUser(match.userForeign);
+      match.userHome = await this.sanitizeUser(match.userHome);
+    })
+    return user;
   }
+
+  //#region achievements
+  async getAchievements(userId: number) : Promise<AchievementsDto[]> {
+    const user: User = await this.findOne({id : userId});
+    if (!user)
+      return null;
+    
+    const player_achievs : AchievementsEnumName[] = user.achievements;
+    if (!player_achievs)
+      return null;
+
+    let achievs : AchievementsDto[] = [];
+    for (const elem of Achievements) {
+      if (player_achievs.includes(elem.name))
+        achievs.push(elem);
+    }
+    return achievs;
+  }
+
+  // testing purposes, erase later
+  async createMockupMatch(user: User, obj: any) {
+    const enemy : User = await this.findOne({id : obj.ene});
+    const winner : User = await this.findOne({id : obj.win});
+    const match = this.matchRepository.create({
+      map : 'classic',
+      userHome : user,
+      userForeign : enemy,
+      winner : winner,
+      ...obj,
+      timestamp : new Date(Date.now()).toLocaleString(),
+    });
+    await this.matchRepository.save(match);
+    return match;
+  }
+
+  // testing purposes, erase later
+  async resetAchievement(userId : number) : Promise<void> {
+    const user : User = (await this.userRepository.findOne(userId));
+    this.userRepository.update(user, {achievements : []});
+  }
+
+  async checkAchievement(userId: number) : Promise<void> {
+    const user : User = (await this.userRepository.findOne(userId, {relations: ['matchesHome', 'matchesForeign', 'matchesWon']}));
+    if ((user.matchesForeign && user.matchesForeign.length === 0 && user.matchesHome && user.matchesHome.length === 0) || (user.achievements && user.achievements.includes(AchievementsEnumName.COMPLETE)))
+      return ;
+    const wins : Match[] = user.matchesWon;
+    const home : Match[] = user.matchesHome;
+    const foreign : Match[] = user.matchesForeign;
+    if (!user.achievements.includes(AchievementsEnumName.ZAPATERO) || !user.achievements.includes(AchievementsEnumName.CLOSE))
+    {
+      for (let index = 0; index < wins.length; index++) {
+        const element = wins[index];
+        if ((!user.achievements.includes(AchievementsEnumName.ZAPATERO)) && element.userHomeScore === 11 && element.userForeignScore === 0 || element.userHomeScore === 0 && element.userForeignScore === 11)
+          user.achievements.push(AchievementsEnumName.ZAPATERO);
+        if ((!user.achievements.includes(AchievementsEnumName.CLOSE)) && element.userHomeScore === 11 && element.userForeignScore === 10 || element.userHomeScore === 10 && element.userForeignScore === 11)
+          user.achievements.push(AchievementsEnumName.CLOSE);
+      }
+    }
+    if ((!user.achievements.includes(AchievementsEnumName.TEN_GAMES)) && home.length + foreign.length >= 10)
+      user.achievements.push(AchievementsEnumName.TEN_GAMES);
+    if ((!user.achievements.includes(AchievementsEnumName.TEN_WINS)) && wins.length >= 10)
+      user.achievements.push(AchievementsEnumName.TEN_WINS);
+    if ((!user.achievements.includes(AchievementsEnumName.HUNDRED_GAMES)) && home.length + foreign.length >= 100)
+      user.achievements.push(AchievementsEnumName.HUNDRED_GAMES);
+    if ((!user.achievements.includes(AchievementsEnumName.LEVEL_ONE)) && user.xp >= 10)
+      user.achievements.push(AchievementsEnumName.LEVEL_ONE);
+    if ((!user.achievements.includes(AchievementsEnumName.COMPLETE)) && user.achievements.length === 6)
+      user.achievements.push(AchievementsEnumName.COMPLETE);
+    await this.userRepository.save(user);
+  }
+  //#endregion
 
   // need to test more!
   // and use this when changing pseudo too not just register
@@ -248,7 +337,9 @@ export class UserService {
     });
 
     this.updateRanks(userId);
-  }
+    this.checkAchievement(userId);
+    // here call checkAchievs
+}
   
   //#region Part Clément
   getAll(): Promise<User[]> {

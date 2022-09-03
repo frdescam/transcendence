@@ -42,8 +42,16 @@ export default route(function (/* { store, ssrContext } */)
 		{
 			if (state.loading)
 			{
+				// `from` is wrong on the initial load, so I use raw value
 				if (to.name !== 'logging')
-					return { name: 'logging', query: { next: from.fullPath } };
+				{
+					return {
+						name: 'logging',
+						query: {
+							next: typeof window !== 'undefined' ? window.location.pathname : from.fullPath
+						}
+					};
+				}
 				else
 					return;
 			}

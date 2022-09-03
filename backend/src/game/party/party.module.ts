@@ -6,13 +6,13 @@ import { MatchModule } from 'src/match/main.module';
 import { IgnoreModule } from 'src/users/ignored/ignore.module';
 
 @Module({
-  imports: [
-    UsersModule,
-    MatchModule,
-    IgnoreModule
-  ],
-  controllers: [PartyController],
-  providers: [PartyService],
-  exports: [PartyService]
+	imports: [
+		UsersModule,
+		MatchModule,
+		IgnoreModule
+	],
+	controllers: [PartyController],
+	providers: [PartyService],
+	exports: [PartyService]
 })
 export class PartyModule {}

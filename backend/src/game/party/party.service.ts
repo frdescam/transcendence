@@ -1034,23 +1034,11 @@ router.resolve({
 		if (typeof party.playersId[0] == 'number' && typeof party.playersId[1] == 'number')
 			if (party.playersId[0] !== query.requester && party.playersId[1] !== query.requester)
 				return (false);
-		if (typeof query.adversary == 'number' && party.playersId[0] !== query.adversary && party.playersId[1] !== query.adversary)
+		if (typeof query.adversary === 'number' && party.playersId[0] !== query.adversary && party.playersId[1] !== query.adversary)
 			return (false);
-		if (typeof query.map == 'string' && party.map !== query.map)
+		if (typeof query.map === 'string' && party.map !== query.map)
 			return (false);
 		return (true);
-	}
-
-	public find (query: partyQuery): Party | null
-	{
-		const candidates = this.parties.filter(
-			(party) => this.isPartyCompatibleWithQuery(party, query)
-		);
-
-		if (candidates.length)
-			return (candidates[0]);
-		else
-			return (null);
 	}
 
 	private isQueryCompatible (query1: partyQuery, query2: partyQuery): boolean
@@ -1065,6 +1053,18 @@ router.resolve({
 				return (false);
 			
 		return (true);
+	}
+
+	public find (query: partyQuery): Party | null
+	{
+		const candidates = this.parties.filter(
+			(party) => this.isPartyCompatibleWithQuery(party, query)
+		);
+
+		if (candidates.length)
+			return (candidates[0]);
+		else
+			return (null);
 	}
 
 	private createPartyForQuery (query1: partyQuery, query2: partyQuery): Party

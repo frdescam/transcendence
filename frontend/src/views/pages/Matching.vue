@@ -24,13 +24,14 @@ const route = useRoute();
 
 const gameSocket: Socket = inject('socketGame') as Socket;
 const status = ref(State.Connecting);
-const map = computed(() => (route.query.map || null)); // @TODO: Manage change in the URL
+const map = computed(() => (route.query.map || null));
+const adversary = computed(() => (route.query.adversary || null));
 const message = computed(() =>
 {
 	switch (status.value)
 	{
 	case State.Awaiting:
-		return 'Awaiting such party to be created ...';
+		return 'Awaiting to match ...';
 
 	case State.Querying:
 		return 'Querying the server ...';
@@ -70,7 +71,8 @@ function onConnected ()
 	gameSocket.emit(
 		'game::query::find',
 		{
-			map: map.value ?? undefined
+			map: map.value ?? undefined,
+			adversary: adversary.value ?? undefined
 		} as query
 	);
 }
@@ -101,7 +103,7 @@ onBeforeUnmount(() =>
 	<q-page class="page text-white text-center q-pa-md flex flex-center">
 		<div class="container">
 			<h1 class="text-h1">
-				Looking for party{{map && (" with map " + map)}}...
+				Looking for party{{map && (" with map " + map)}}{{adversary && ", against a player"}}...
 			</h1>
 			<p class="text-h2">{{message}}</p>
 			<q-linear-progress

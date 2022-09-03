@@ -9,8 +9,22 @@ import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import type { getUserPartyDto } from 'src/common/game/orm/getUserParty.dto';
 import { WsJwtGuard } from 'src/auth/guards/ws-jwt.guard';
 import { WsJwtSpectateGuard } from 'src/auth/guards/ws-jwt-spectate.guard';
+import { IsAlphanumeric, IsInt, IsOptional, Length, Min } from 'class-validator';
 
-const localPipe = new ValidationPipe({ transform: true, whitelist: true });
+const localPipe = new ValidationPipe({ transform: true, transformOptions: { enableImplicitConversion: true }, whitelist: true });
+
+class queryFind
+{
+	@Length(1, 256)
+	@IsAlphanumeric()
+	@IsOptional()
+		map?: string = 'classic';
+
+	@Min(0)
+	@IsInt()
+	@IsOptional()
+		adversary?: userId;
+}
 
 @WebSocketGateway({
 	namespace: 'game',
@@ -132,14 +146,13 @@ export class MainGateway implements OnGatewayDisconnect
 	query(
 		@ConnectedSocket() client: Socket,
 		@Request() req,
-		@MessageBody('map') map?: string,
-		// @MessageBody('adversary') adversary?: userId,
+		@MessageBody() { map, adversary }: queryFind,
 	): void
 	{
 		const user: any = req.user;
 		this.partyService.checkUserObject(user);
 		const userId: userId = user.id;
-		const query: partyQuery = {map/*, adversary*/, requester: userId};
+		const query: partyQuery = {map, adversary, requester: userId};
 
 		const party = this.partyService.find(query);
 

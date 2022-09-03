@@ -18,12 +18,6 @@ import { HttpExceptionFilter, NotFoundExceptionFilter } from './filter';
   app.use(cookieParser());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new NotFoundExceptionFilter());
-  app.useGlobalPipes(
-    new ValidationPipe({
-      enableDebugMessages: process.env.NODE_ENV !== 'production',
-      disableErrorMessages: false
-    })
-  );
   app.setGlobalPrefix('api');
   await app.listen(process.env.BACK_PORT);
 })();

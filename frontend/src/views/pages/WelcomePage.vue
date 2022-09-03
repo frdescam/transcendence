@@ -17,6 +17,7 @@
 		<q-toolbar-title :hidden="!hideSearch">Your Friends : </q-toolbar-title>
 			<q-input :hidden="hideSearch" ref="input" borderless dense debounce="300" v-model="filter" @update:model-value="onFilterChange" placeholder="Search"/>
 			<q-btn flat rounded class="q-ml-auto" icon="search" @click="toggleSearch"/>
+			<q-btn flat rounded class="q-ml-auto" icon="open_in_full" :to="{name: 'friends'}"/>
 		</q-toolbar>
 		<q-item v-for="friend in filteredFriendList" v-bind:key="friend.id" clickable v-ripple @click="onFriendClick(friend.user.id)" class="q-ma-md q-pa-md rounded-borders shadow-2 row items-center" style="width: 260px">
 				<q-avatar>

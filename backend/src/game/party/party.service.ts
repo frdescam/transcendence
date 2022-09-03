@@ -797,7 +797,7 @@ export class PartyService
 		}
 		else
 			slot = 0;
-   
+	 
 		if (party.playersSocket[slot])
 		{
 			this.sendError('You are already playing in another window', client);
@@ -868,11 +868,11 @@ export class PartyService
 					this.joinParty(party, client, userId);
 					return (party);
 				}
-          else if (party.playersSocket[slot].id == client.id)
-            return (party);
+					else if (party.playersSocket[slot].id == client.id)
+						return (party);
 			}
 		}
-   
+	 
 		party.spectators.push(client);
 		this.partiesBySocket[client.id] = party;
 
@@ -958,9 +958,7 @@ export class PartyService
 			);
 
 			this.handlePartyChange(party, {}, true);
-
-			if (typeof userIds[1] !== 'number')
-				this.wireMatchingQuery(party);
+			this.wireMatchingQuery(party);
 
 			if (typeof userIds[1] === 'number' && (typeof disableInvitation === 'undefined' || disableInvitation === false))
 			{

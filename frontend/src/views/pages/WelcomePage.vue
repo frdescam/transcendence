@@ -87,7 +87,6 @@ export default ({
 		async function fetchFriendList ()
 		{
 			const res = await api.get('/friends/accepted');
-			console.log(res.data);
 			friendList.value = res.data;
 			onFilterChange(filter.value);
 		}

@@ -775,6 +775,15 @@ export class PartyService
 
 	public joinParty (party: Party, client: Socket, userId: userId): Party | null
 	{
+		{
+			let otherParty = this.findPartyWithUser(userId);
+			if (otherParty && otherParty.room !== party.room)
+			{
+				this.sendError('You are already playing in another party', client);
+				return (null);
+			}
+		}
+
 		let slot;
 		if (typeof party.playersId[0] === 'number' && party.playersId[0] !== userId)
 		{
@@ -788,7 +797,7 @@ export class PartyService
 		}
 		else
 			slot = 0;
-			
+   
 		if (party.playersSocket[slot])
 		{
 			this.sendError('You are already playing in another window', client);
@@ -845,7 +854,7 @@ export class PartyService
 	public spectateParty (party: Party, client: Socket, user: any): Party
 	{
 		client.emit('party::mapinfo', party.map);
-		this.sendSocketState(client, party.state, undefined, !!user);  // @TODO: Check if is blocked
+		this.sendSocketState(client, party.state, this.getSlotFromSocket(party, client), !!user);
 		if (!!user)
 		{
 			this.checkUserObject(user);
@@ -859,9 +868,11 @@ export class PartyService
 					this.joinParty(party, client, userId);
 					return (party);
 				}
+          else if (party.playersSocket[slot].id == client.id)
+            return (party);
 			}
 		}
-			
+   
 		party.spectators.push(client);
 		this.partiesBySocket[client.id] = party;
 
@@ -1005,8 +1016,9 @@ router.resolve({
 
 	public queryFoundParty(client: Socket, party: Party, userId: userId)
 	{
-		if (!party || !this.joinParty(party, client, userId))
+		if (!party)
 			return (false);
+		this.joinParty(party, client, userId);
 		client.emit('game::query::found', party.room);
 		this.leaveAll(client);
 		return (true);

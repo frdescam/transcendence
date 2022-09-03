@@ -148,7 +148,7 @@ export class MainGateway implements OnGatewayDisconnect
 		const userId: userId = user.id;
 		const query: partyQuery = {map, adversary, requester: userId};
 
-		const party = this.partyService.find(query);
+		const party = this.partyService.find(userId, query);
 
 		if (!party || !this.partyService.queryFoundParty(client, party, userId))
 		{

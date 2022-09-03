@@ -190,14 +190,14 @@ export class UserService {
     const wins : Match[] = user.matchesWon;
     const home : Match[] = user.matchesHome;
     const foreign : Match[] = user.matchesForeign;
-    if (!user.achievements.includes(AchievementsEnumName.ZAPATERO) || !user.achievements.includes(AchievementsEnumName.CLOSE))
+    if (!user.achievements.includes(AchievementsEnumName.ZAPATERO) || !user.achievements.includes(AchievementsEnumName.CLOSE_CALL))
     {
       for (let index = 0; index < wins.length; index++) {
         const element = wins[index];
         if ((!user.achievements.includes(AchievementsEnumName.ZAPATERO)) && element.userHomeScore === 11 && element.userForeignScore === 0 || element.userHomeScore === 0 && element.userForeignScore === 11)
           user.achievements.push(AchievementsEnumName.ZAPATERO);
-        if ((!user.achievements.includes(AchievementsEnumName.CLOSE)) && element.userHomeScore === 11 && element.userForeignScore === 10 || element.userHomeScore === 10 && element.userForeignScore === 11)
-          user.achievements.push(AchievementsEnumName.CLOSE);
+        if ((!user.achievements.includes(AchievementsEnumName.CLOSE_CALL)) && element.userHomeScore === 11 && element.userForeignScore === 10 || element.userHomeScore === 10 && element.userForeignScore === 11)
+          user.achievements.push(AchievementsEnumName.CLOSE_CALL);
       }
     }
     if ((!user.achievements.includes(AchievementsEnumName.TEN_GAMES)) && home.length + foreign.length >= 10)

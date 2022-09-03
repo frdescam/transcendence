@@ -1,8 +1,8 @@
 export enum AchievementsEnumName {
-    ZAPATERO = '7 - 0 zapatero',
+    ZAPATERO = '11 - 0 zapatero',
     TEN_WINS = 'Win 10 games',
     TEN_GAMES = 'Play 10 games',
-    CLOSE = 'Close call!',
+    CLOSE_CALL = 'Close call!',
     LEVEL_ONE = 'Level 1',
     HUNDRED_GAMES = 'Play 100 games',
     COMPLETE = 'Completionist',
@@ -17,12 +17,12 @@ export interface AchievementsDto {
 export const Achievements : AchievementsDto[] = [
 	{
 		name: AchievementsEnumName.ZAPATERO,
-		description: 'You won without taking a goal',
+		description: 'Win a match without taking a goal',
 		image: 'http://127.0.0.1:3000/achievements/zapatero.png',
 	},
 	{
 		name: AchievementsEnumName.TEN_WINS,
-		description: 'You won 10 games',
+		description: 'Win 10 games',
 		image: 'http://127.0.0.1:3000/achievements/wins_ten.png',
 	},
 	{
@@ -31,7 +31,7 @@ export const Achievements : AchievementsDto[] = [
 		image: 'http://127.0.0.1:3000/achievements/play_ten.png',
 	},
 	{
-		name: AchievementsEnumName.CLOSE,
+		name: AchievementsEnumName.CLOSE_CALL,
 		description: 'Win a match with a score of 11 - 10',
 		image: 'http://127.0.0.1:3000/achievements/close.png',
 	},

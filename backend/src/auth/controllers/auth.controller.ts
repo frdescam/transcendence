@@ -110,13 +110,6 @@ export class AuthController {
         return user;
     }
 
-    @UseGuards(JwtAuthGuard)
-	@Get('2FA/reset')
-	async reset2FA(@Res() response: Response, @AuthUser() user: User): Promise<void> {
-        await this.deactivate2FA(user);
-        return await this.generate(response, user);
-	}
-
     // this shoudlnt return null? cant fail so could be, but frontend wont knwo if dis worked
     @UseGuards(JwtAuthGuard)
 	@Get('2FA/deactivate')

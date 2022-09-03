@@ -97,9 +97,9 @@ export default ({
 			api.get('/user/new');
 		}
 
-		async function onFriendClick (friendPseudo)
+		async function onFriendClick (friendId: number)
 		{
-			router.push('/profile/' + friendPseudo);
+			router.push('/profile/' + friendId);
 		}
 
 		async function toggleSearch ()

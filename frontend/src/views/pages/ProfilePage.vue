@@ -79,16 +79,17 @@ export default {
 		{
 			user.value = res.data;
 			matches.value = user.value.matchesForeign.concat(user.value.matchesHome);
-			console.log(matches.value);
-			api.get('/user/me').then((res) =>
-			{
-				ownPage.value = (res.data.id === user.value.id);
-				me.value = res.data;
-			});
-			api.get('/user/achievements/get/' + userId).then((res) =>
-			{
-				achievements.value = res.data;
-			});
+		});
+
+		api.get('/user/me').then((res) =>
+		{
+			ownPage.value = (res.data.id === userId);
+			me.value = res.data;
+		});
+
+		api.get('/user/achievements/get/' + userId).then((res) =>
+		{
+			achievements.value = res.data;
 		});
 
 		api.get('/ignore').then((res) =>

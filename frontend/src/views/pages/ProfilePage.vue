@@ -49,6 +49,7 @@ import { inject, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { AxiosInstance } from 'axios';
 import { Socket } from 'socket.io-client';
+import type { State } from 'src/boot/state';
 
 export default {
 	name: 'LeaderboardPage',
@@ -59,12 +60,12 @@ export default {
 	},
 	setup ()
 	{
+		const state = inject('state') as State;
 		const socket: Socket = inject('socketChat') as Socket;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const route = useRoute();
-		const userId = route.params.id;
+		const userId: number = +route.params.id;
 		const user = ref({});
-		const me = ref({});
 		const matches = ref([]);
 		const achievements = ref([]);
 		const ownPage = ref(false);
@@ -72,8 +73,8 @@ export default {
 		const isUserFriend = ref(false);
 		const isUserPendingFriend = ref(false);
 		const isUserInvited = ref(false);
-		let friendId;
-		let pendingFriendId;
+		let friendId: number;
+		let pendingFriendId: number;
 
 		api.get('/user/match/get/' + userId).then((res) =>
 		{
@@ -81,11 +82,7 @@ export default {
 			matches.value = user.value.matchesForeign.concat(user.value.matchesHome);
 		});
 
-		api.get('/user/me').then((res) =>
-		{
-			ownPage.value = (res.data.id === userId);
-			me.value = res.data;
-		});
+		ownPage.value = (state.myself.id === userId);
 
 		api.get('/user/achievements/get/' + userId).then((res) =>
 		{
@@ -110,14 +107,14 @@ export default {
 			if (isUserIgnored.value)
 			{
 				socket.emit('blocked::remove', {
-					id: me.value.id,
+					id: state.myself.id,
 					blockedId: user.value.id
 				});
 			}
 			else
 			{
 				socket.emit('blocked::add', {
-					id: me.value.id,
+					id: state.myself.id,
 					blockedId: user.value.id
 				});
 			}

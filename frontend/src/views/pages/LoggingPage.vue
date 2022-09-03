@@ -37,12 +37,12 @@ export default defineComponent({
 						if (newState.loggedIn)
 						{
 							if (typeof route.query.next !== 'undefined' && route.query.next && route.query.next.length > 0)
-								router.push({ path: route.query.next.toString() });
+								router.replace({ path: route.query.next.toString() });
 							else
-								router.push({ name: 'home' });
+								router.replace({ name: 'home' });
 						}
 						else
-							router.push({ name: 'login' });
+							router.replace({ name: 'login' });
 					}
 				},
 				{

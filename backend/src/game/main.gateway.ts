@@ -1,36 +1,24 @@
-import { UseGuards, Request, ValidationPipe, UsePipes } from '@nestjs/common';
+import { UseGuards, Request, UsePipes } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import cors from 'src/cors';
+import { WsJwtGuard } from 'src/auth/guards/ws-jwt.guard';
+import { WsJwtSpectateGuard } from 'src/auth/guards/ws-jwt-spectate.guard';
+import { socketValidationPipe } from 'src/validation';
 import { PartyService } from './party/party.service';
+import { partyPingDto, partyJoinDto, partySpecateDto, partyMoveDto } from './orm/gatewayParty.dto';
+import { queryFindDto } from './orm/gatewayQuery.dto';
+import { userinfosDto } from './orm/gatewayUserinfos.dto';
 import type { Socket, Server } from 'socket.io';
 import type { userId } from 'src/common/game/types';
 import type { Pong, partyQuery } from 'src/common/game/interfaces';
 import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import type { getUserPartyDto } from 'src/common/game/orm/getUserParty.dto';
-import { WsJwtGuard } from 'src/auth/guards/ws-jwt.guard';
-import { WsJwtSpectateGuard } from 'src/auth/guards/ws-jwt-spectate.guard';
-import { IsAlphanumeric, IsInt, IsOptional, Length, Min } from 'class-validator';
-
-const localPipe = new ValidationPipe({ transform: true, transformOptions: { enableImplicitConversion: true }, whitelist: true });
-
-class queryFind
-{
-	@Length(1, 256)
-	@IsAlphanumeric()
-	@IsOptional()
-		map?: string = 'classic';
-
-	@Min(0)
-	@IsInt()
-	@IsOptional()
-		adversary?: userId;
-}
 
 @WebSocketGateway({
 	namespace: 'game',
 	cors
 })
-@UsePipes(localPipe)
+@UsePipes(socketValidationPipe)
 export class MainGateway implements OnGatewayDisconnect
 {
 	constructor(private partyService: PartyService)
@@ -51,18 +39,24 @@ export class MainGateway implements OnGatewayDisconnect
 	@SubscribeMessage('party::ping')
 	ping(
 		@ConnectedSocket() client: Socket,
-		@MessageBody('cdate') cdate: string,
+		@MessageBody() { cdate }: partyPingDto
 	): void
 	{
-		client.volatile.emit('party::pong', {cdate, sdate: (new Date()).toISOString()} as Pong);
+		client.volatile.emit(
+			'party::pong',
+			{
+				cdate,
+				sdate: (new Date()).toISOString()
+			} as Pong
+		);
 	}
 
 	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('party::join')
 	join(
-		@MessageBody('room') room: string,
 		@ConnectedSocket() client: Socket,
 		@Request() req,
+		@MessageBody() { room }: partyJoinDto
 	): void
 	{
 		const party = this.partyService.findParty(room);
@@ -78,9 +72,9 @@ export class MainGateway implements OnGatewayDisconnect
 	@UseGuards(WsJwtSpectateGuard)
 	@SubscribeMessage('party::spectate')
 	spectate(
-		@MessageBody('room') room: string,
 		@ConnectedSocket() client: Socket,
 		@Request() req,
+		@MessageBody() { room }: partySpecateDto
 	): void
 	{
 		const party = this.partyService.findParty(room);
@@ -102,8 +96,8 @@ export class MainGateway implements OnGatewayDisconnect
 
 	@SubscribeMessage('party::move')
 	handleMove(
-		@MessageBody('position') position: number,
 		@ConnectedSocket() client: Socket,
+		@MessageBody() { position }: partyMoveDto
 	): void
 	{
 		this.partyService.move(position / 1000, client);
@@ -146,7 +140,7 @@ export class MainGateway implements OnGatewayDisconnect
 	query(
 		@ConnectedSocket() client: Socket,
 		@Request() req,
-		@MessageBody() { map, adversary }: queryFind,
+		@MessageBody() { map, adversary }: queryFindDto,
 	): void
 	{
 		const user: any = req.user;
@@ -200,7 +194,7 @@ export class MainGateway implements OnGatewayDisconnect
 	@SubscribeMessage('game::userinfos::join')
 	joinUserInfos(
 		@ConnectedSocket() client: Socket,
-		@MessageBody('id') userId: userId
+		@MessageBody() { id: userId }: userinfosDto
 	): void
 	{
 		client.join(`game::userinfos::${userId}`);
@@ -217,7 +211,7 @@ export class MainGateway implements OnGatewayDisconnect
 	@SubscribeMessage('game::userinfos::leave')
 	leaveUserInfos(
 		@ConnectedSocket() client: Socket,
-		@MessageBody('id') userId: userId
+		@MessageBody() { id: userId }: userinfosDto
 	): void
 	{
 		client.leave(`game::userinfos::${userId}`);

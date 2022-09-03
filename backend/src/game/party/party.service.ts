@@ -870,7 +870,7 @@ export class PartyService
 	
 	public createParty (room: string | null, map: map | null | undefined, userIds: [userId, userId | null], client?: Socket, user?: any, disableInvitation?: boolean): Party
 	{
-		let party = room && this.findParty(room);
+		let party;
 		const involvedParty = this.findPartyWithUser(userIds[0]);
 
 		if (!room)
@@ -882,21 +882,6 @@ export class PartyService
 			
 		if (room === 'mine')
 			throw new HttpException('This party name is special and cannot be used', HttpStatus.CONFLICT);
-		else if (party)
-		{
-			if (party.map !== map)
-				throw new HttpException('Party exists with a different map', HttpStatus.CONFLICT);
-			if (party.playersSocket[0] && party.playersSocket[1] && !party.playersSocket.includes(client))
-				throw new HttpException('Party exists but is already full', HttpStatus.CONFLICT);
-			if (client)
-			{
-				this.checkUserObject(user);
-				const userId: userId = user.id;
-				return (this.joinParty(party, client, userId));
-			}
-			else
-				return (party);
-		}
 		else if (involvedParty)
 		{
 			throw new HttpException('You are already involved in another party in room ' + involvedParty.room, HttpStatus.FORBIDDEN);

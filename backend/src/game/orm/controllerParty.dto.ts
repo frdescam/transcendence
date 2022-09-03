@@ -1,8 +1,7 @@
-import { Transform } from 'class-transformer';
 import { IsOptional, IsAlphanumeric, IsInt, Length, Min } from 'class-validator';
 import type { userId } from 'src/common/game/types';
 
-export class CreatePartyDto
+export class createPartyDto
 {
 	@Length(1, 256)
 	@IsAlphanumeric()
@@ -16,8 +15,21 @@ export class CreatePartyDto
 
 	@Min(0)
 	@IsInt()
-	@Transform(({value}) => Number(value))
 	@IsOptional()
 		adversary?: userId;
+}
+
+export class partyGiveupDto
+{
+	@Length(1, 256)
+	@IsOptional()
+		room?: string;
+}
+	
+
+export class partyGetDto
+{
+	@Length(1, 256)
+		room: string;
 }
 	

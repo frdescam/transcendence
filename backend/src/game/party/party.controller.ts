@@ -2,15 +2,14 @@ import { Body, Request, Controller, Get, Param, Post, Put, UsePipes, ValidationP
 import { PartyService } from './party.service';
 import { UserService } from 'src/users/user/user.service';
 import { IgnoreService } from 'src/users/ignored/ignore.service';
-import { CreatePartyDto } from '../orm/createParty.dto';
 import { JwtAuthGuard } from 'src/auth/guards/auth-jwt.guard';
+import { controllerValidationPipe } from 'src/validation';
+import { partyGiveupDto, partyGetDto, createPartyDto } from '../orm/controllerParty.dto';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import type { userId } from 'src/common/game/types';
 
-const localPipe = new ValidationPipe({ transform: true, whitelist: true });
-
 @Controller('party')
-@UsePipes(localPipe)
+@UsePipes(controllerValidationPipe)
 export class PartyController
 {
 	constructor (
@@ -44,7 +43,7 @@ export class PartyController
 	@Put('giveup')
 	giveup(
 		@Request() req,
-		@Param('room') room: string
+		@Param() { room }: partyGiveupDto
 	)
 	{
 		const user: any = req.user;
@@ -67,7 +66,9 @@ export class PartyController
 	}
 
 	@Get(':room')
-	findOne(@Param('room') room: string): getPartyDto | null
+	findOne(
+		@Param() { room }: partyGetDto
+	): getPartyDto | null
 	{
 		const partyArr = this.partyService.getAll().filter(({room: partyRoom}) => (partyRoom === room));
 
@@ -77,7 +78,7 @@ export class PartyController
 	@UseGuards(JwtAuthGuard)
 	@Post()
 	async create(
-		@Body() {room = null, map = 'classic', adversary = null}: CreatePartyDto,
+		@Body() { room = null, map = 'classic', adversary = null }: createPartyDto,
 		@Request() req
 	): Promise<string>
 	{

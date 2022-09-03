@@ -57,6 +57,7 @@ import pictureEditing from 'src/components/userSettings/pictureEditing.vue';
 import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
 import { ref, onMounted, inject } from 'vue';
+import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
 import { AxiosInstance } from 'axios';
 
@@ -72,6 +73,7 @@ export default ({
 	{
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const user = ref({});
+		const $q = useQuasar();
 		const router = useRouter();
 		const friendList = ref([]);
 		const filteredFriendList = ref([]);
@@ -116,10 +118,24 @@ export default ({
 			filteredFriendList.value = friendList.value.filter(friend => friend.user.pseudo.toLowerCase().includes(value.toLowerCase()));
 		}
 
-		onMounted(() =>
+		onMounted(async () =>
 		{
-			fetchUserInfo();
-			fetchFriendList();
+			try
+			{
+				await fetchUserInfo();
+				await fetchFriendList();
+			}
+			catch (err: any)
+			{
+				let cause;
+				if (!!err && typeof err === 'object' && 'cause' in err)
+					cause = err.cause;
+				$q.notify({
+					type: 'negative',
+					message: 'Failed to fetch user informations',
+					caption: cause
+				});
+			}
 		});
 
 		return {

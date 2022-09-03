@@ -8,7 +8,7 @@
         </template>
       </q-input>
     </q-toolbar>
-    <q-item v-for="friend in filteredFriends" :key="friend.id" clickable v-ripple @click="onFriendClick(friend.user.pseudo)" class="column q-ma-md q-pa-none rounded-borders shadow-2" style="width: 300px">
+    <q-item v-for="friend in filteredFriends" :key="friend.id" clickable v-ripple @click="onFriendClick(friend.user.id)" class="column q-ma-md q-pa-none rounded-borders shadow-2" style="width: 300px">
       <q-responsive :ratio="1" class="full-width">
         <q-avatar rounded class="full-width full-height">
           <img :src='friend.user.avatar'>
@@ -19,7 +19,7 @@
           <q-btn round fab icon="chat" color="primary" :href="'chat/' + friend.pseudo" v-on:click.stop>
             <q-tooltip :delay="500">send message</q-tooltip>
           </q-btn>
-          <q-btn round fab icon="person_remove" color="primary" @click="onDeleteFriend(friend.id)" v-on:click.stop>
+          <q-btn round fab icon="person_remove" color="primary" @click="onDeleteFriend(friend.followedUser.id)" v-on:click.stop>
             <q-tooltip :delay="500">delete friend</q-tooltip>
           </q-btn>
           <q-btn v-if="friend.status == 'playing'" fab icon="visibility" color="primary" :href="'game/' + friend.pseudo/* TODO : replace with party id */" v-on:click.stop>
@@ -58,7 +58,7 @@
 import { ref } from '@vue/reactivity';
 import { useRouter } from 'vue-router';
 import { AxiosInstance } from 'axios';
-import { inject } from 'vue';
+import { inject, onMounted, watch } from 'vue';
 
 export default {
 	name: 'FriendsPage',
@@ -70,11 +70,16 @@ export default {
 		const friends = ref([]);
 		const filteredFriends = ref([]);
 
-		api.get('/friends/accepted').then((res) =>
+		async function fetchFriends ()
 		{
-			friends.value = res.data;
-			onFilterChange(filter.value);
-		});
+			api.get('/friends/accepted').then((res) =>
+			{
+				friends.value = res.data;
+				onFilterChange(filter.value);
+			});
+		}
+
+		fetchFriends();
 
 		function onFriendClick (friendPseudo)
 		{
@@ -88,9 +93,24 @@ export default {
 
 		async function onDeleteFriend (friendId)
 		{
-			// TODO : request backend to delete friendship
-			console.log(friendId);
+			api.delete('/friends/delete', {
+				data: { id: friendId }
+			}).then(() =>
+			{
+				fetchFriends();
+			});
 		}
+
+		onMounted(() =>
+		{
+			watch(() => friends.value, () =>
+			{
+				onFilterChange(filter.value);
+			},
+			{
+				flush: 'post'
+			});
+		});
 
 		return {
 			filteredFriends,

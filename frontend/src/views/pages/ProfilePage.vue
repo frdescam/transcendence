@@ -47,7 +47,7 @@ import achievementsList from 'src/components/profilePage/AchievementsList.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
 import { inject, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { api } from 'boot/axios';
+import { AxiosInstance } from 'axios';
 import { Socket } from 'socket.io-client';
 
 export default {
@@ -60,6 +60,7 @@ export default {
 	setup ()
 	{
 		const socket: Socket = inject('socketChat') as Socket;
+		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const route = useRoute();
 		const userId = route.params.id;
 		const user = ref({});

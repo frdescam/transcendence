@@ -58,7 +58,7 @@ import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
 import { ref, onMounted, inject } from 'vue';
 import { useRouter } from 'vue-router';
-import { api } from 'boot/axios';
+import { AxiosInstance } from 'axios';
 
 export default ({
 	name: 'WelcomePage',
@@ -70,6 +70,7 @@ export default ({
 
 	setup ()
 	{
+		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const user = ref({});
 		const router = useRouter();
 		const friendList = ref([]);

@@ -34,10 +34,10 @@
   </q-table>
 </template>
 
-<script>
-import { ref, onMounted, computed } from 'vue';
+<script lang="ts">
+import { ref, onMounted, computed, inject } from 'vue';
+import { AxiosInstance } from 'axios';
 import { useRouter } from 'vue-router';
-import { api } from 'boot/axios';
 
 const columns = [
 	{
@@ -86,6 +86,7 @@ export default {
 	name: 'LeaderboardPage',
 	setup ()
 	{
+		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const friendsOnly = ref(false);
 		const router = useRouter();
 		const rows = ref([]);

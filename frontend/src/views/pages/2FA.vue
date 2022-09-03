@@ -8,8 +8,8 @@
 
 <script lang="ts">
 
-import { api } from 'boot/axios';
-import { ref } from 'vue';
+import { AxiosInstance } from 'axios';
+import { inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 export default ({
@@ -17,6 +17,7 @@ export default ({
 
 	setup ()
 	{
+		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const router = useRouter();
 		const disableInput = ref(false);
 		const inputColor = ref('blue');

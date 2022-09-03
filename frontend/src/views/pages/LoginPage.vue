@@ -15,8 +15,8 @@
 </template>
 
 <script lang="ts">
-import { ref } from 'vue';
-import { api } from 'boot/axios';
+import { inject, ref } from 'vue';
+import { AxiosInstance } from 'axios';
 import { useRouter } from 'vue-router';
 
 export default {
@@ -24,6 +24,7 @@ export default {
 
 	setup ()
 	{
+		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const router = useRouter();
 		const id = ref(null);
 		const disableInput = ref(false);

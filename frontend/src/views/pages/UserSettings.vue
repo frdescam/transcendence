@@ -81,8 +81,8 @@
 </template>
 
 <script lang="ts">
-import { ref } from 'vue';
-import { api } from 'boot/axios';
+import { inject, ref } from 'vue';
+import { AxiosInstance } from 'axios';
 import pictureEditing from 'src/components/userSettings/pictureEditing.vue';
 import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
 // import passwordEditing from 'src/components/userSettings/passwordEditing.vue';
@@ -96,6 +96,7 @@ export default ({
 	},
 	setup ()
 	{
+		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const TFAActivating = ref(false);
 		// const paddleSelected = ref('Normal');
 		const disableInput = ref(false);

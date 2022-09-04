@@ -9,6 +9,16 @@ import type { userId } from 'src/common/game/types';
 
 type usersArray = [userId | null, userId | null];
 type partyListObject = {[key: string]: getPartyDto};
+interface column
+{
+	name: string,
+	required?: boolean,
+	label: string,
+	field: string,
+	sortable?: boolean,
+	align?: 'left' | 'center' | 'right',
+	sort?: ((a: any, b: any, rowA: any, rowB: any) => number)
+}
 
 const gameSocket: Socket = inject('socketGame') as Socket;
 const $q = useQuasar();
@@ -16,7 +26,7 @@ const router = useRouter();
 const state = reactive<{ connected: boolean }>({ connected: false });
 const partiesListObject = reactive<partyListObject>({});
 
-const columns = [
+const columns: column[] = [
 	{
 		name: 'room',
 		required: true,
@@ -90,7 +100,7 @@ function joinRoom (room: string)
 	router.push(routeFor(room));
 }
 
-function roomUrlToClipboard (room: string, e: MouseEvent)
+function roomUrlToClipboard (room: string, e: Event)
 {
 	e.stopPropagation();
 

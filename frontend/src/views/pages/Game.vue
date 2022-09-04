@@ -6,7 +6,7 @@ export default {
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import GameInterface from '../../components/game/game-interface.vue';
+import GameInterface from 'src/components/game/game-interface.vue';
 
 const route = useRoute();
 const { party } = route.params;

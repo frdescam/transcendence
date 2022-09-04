@@ -22,16 +22,6 @@ interface column
 	sort?: ((a: any, b: any, rowA: any, rowB: any) => number)
 }
 
-enum partyStatus
-{
-	AwaitingPlayer,
-	Warmup,
-	Paused,
-	IntroducingSleeve,
-	Running,
-	Finish
-}
-
 const { t } = useI18n();
 const capitalize: Capitalize = inject('capitalize') as Capitalize;
 const gameSocket: Socket = inject('socketGame') as Socket;

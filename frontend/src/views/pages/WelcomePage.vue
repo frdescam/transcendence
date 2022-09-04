@@ -88,7 +88,6 @@ export default ({
 		async function fetchUserInfo ()
 		{
 			const res = await api.get('/user/me', {});
-			console.log(res.data);
 			user.value = res.data;
 		}
 		async function fetchFriendList ()

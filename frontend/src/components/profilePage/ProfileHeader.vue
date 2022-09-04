@@ -9,9 +9,9 @@
 					<div class="text-weight-bold q-ml-sm" style="font-size: 3em; color: #eee;">
 						{{ $t('friend.rank', { rank: user.rank }) }}
 					</div>
-					<div v-bind:class="$q.screen.lt.md ? 'text-center' : 'text-right'" class="col-12 col-md-6" style="font-size: 1.5em; color: #eee;">
-						{{ $t('index.ratio') }}: {{ user.ratio }}%
-					</div>
+				</div>
+				<div v-bind:class="$q.screen.lt.md ? 'text-center' : 'text-right'" class="col-12 col-md-6" style="font-size: 1.5em; color: #eee;">
+					{{ $t('index.ratio') }}: {{ user.ratio }}%
 				</div>
 			</div>
 			<q-badge
@@ -29,11 +29,11 @@
 					{{ capitalize($t('index.nextLevel')) }}
 				</div>
 				<div style="color: #eee;" class="q-mb-none">
-					{{ parseInt((user.xp - parseInt(user.xp)) * 100) }} / 100 {{ $t('index.exp').toUpperCase() }}
+					{{ (parseFloat(user.xp) - Math.floor(parseFloat(user.xp))) * 100 }} / 100 {{ $t('index.exp').toUpperCase() }}
 				</div>
 			</div>
 			<div class="col-2">
-				<q-linear-progress stripe rounded class="q-mt-sm" size="20px" :value="parseInt((user.xp - parseInt(user.xp)) * 100) / 100" color="blue" />
+				<q-linear-progress stripe rounded class="q-mt-sm" size="20px" :value="parseFloat(user.xp) - Math.floor(parseFloat(user.xp))" color="blue" />
 			</div>
 		</div>
 	</div>

@@ -4,7 +4,11 @@ import synthwave from './synthwave.headless';
 
 import type { mapConfig } from '../interfaces';
 
-const maps = {
+type mapsObject = {
+	[key: string]: mapConfig
+};
+
+const maps: mapsObject = {
 	classic: classic as mapConfig,
 	forest: forest as mapConfig,
 	synthwave: synthwave as mapConfig

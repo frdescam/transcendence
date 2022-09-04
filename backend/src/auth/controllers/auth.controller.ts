@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 
@@ -12,11 +12,14 @@ import { AuthUser } from '../decorators/auth-user.decorator';
 import { User } from 'src/users/orm/user.entity';
 import { TwoFactorAuthService } from '../services/twoFactorAuth.service';
 import { AuthDto } from '../dto';
+import { IsNotEmpty, IsNumberString, Length } from 'class-validator';
 
 // add async to route and stuff
 
-interface twoFAPayload {
-	code?: string;
+class twoFAPayload {
+	@IsNumberString()
+    @Length(6,6, {message: 'code must be exactly 6 characters long'})
+	    code?: string;
 }
 
 @Controller()
@@ -134,6 +137,7 @@ export class AuthController {
     // receive 2FA code first time to check if its correct, if it is correct updates user db (activates 2FA). if fails return error.
     @UseGuards(JwtAuthGuard)
     @Post('2FA/turn-on')
+    @UsePipes(new ValidationPipe({ whitelist: true }))
     async turnOnTwoFactorAuthentication(
         @AuthUser() user: User, @Body() twoFACode : twoFAPayload // : TwoFactorAuthenticationCodeDto // create 2FA dto && add return that 2FA is activated
     ) {
@@ -162,6 +166,7 @@ export class AuthController {
     // clear the jwt 2fa cookie after this, if it works. what if it doesnt, clear or try again?
     @UseGuards(JwtAuth2FAGuard)
     @Post('2FA/login')
+    @UsePipes(new ValidationPipe({ whitelist: true }))
 	async login2FA(
 		@Body() twoFACode: twoFAPayload, // create dto of dis shit
 		@Req() request: Request,

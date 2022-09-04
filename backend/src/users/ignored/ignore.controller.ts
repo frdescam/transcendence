@@ -9,14 +9,7 @@ import { User } from 'src/users/orm/user.entity';
 import { UserService } from 'src/users/user/user.service';
 import { IgnoreService } from './ignore.service';
 import { Ignore } from '../orm/ignored.entity';
-import { IsInt, IsNotEmpty, IsPositive } from 'class-validator';
-
-class ignoreDto {
-	@IsNotEmpty()
-	@IsPositive()
-	@IsInt()
-	  id?: number;
-}
+import { idValidationDto } from '../orm/userValidation.dto';
 
 @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -30,7 +23,7 @@ export class IgnoreController {
 	@Post()
   async create(
 		@AuthUser() user: User,
-		@Body() create_dto: ignoreDto,
+		@Body() create_dto: idValidationDto,
   ): Promise<Ignore> {
     const target: User = await this.userService.findOne({
       id: create_dto.id,
@@ -56,7 +49,7 @@ export class IgnoreController {
 	@Delete('delete')
 	async remove(
 		@AuthUser() user: User,
-		@Body() create_dto: ignoreDto,
+		@Body() create_dto: idValidationDto,
 	): Promise<boolean> {
 	  const target: User = await this.userService.findOne({
 	    id: create_dto.id,

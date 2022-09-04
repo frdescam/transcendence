@@ -14,9 +14,13 @@ import {
   UploadedFile,
   Res,
   NotFoundException,
+  UsePipes,
+  ValidationPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserDTO } from '../orm/user.dto';
+import { idValidationDto, avatarValidationDto, updateUserValidationDto } from '../orm/userValidation.dto';
 import { AuthUser } from 'src/auth/decorators/auth-user.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/auth-jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -36,7 +40,6 @@ export class UserController {
   async new_user(@AuthUser() user: User): Promise<void> {
     this.channelService.setNewUser(user);
   }
-
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
@@ -96,82 +99,76 @@ export class UserController {
     // for testing erase later
     // test to show that we can send the avatar to the frontend
     // add validation pipe for strings
-    @Get('avatar/:name')
-    async display(@Param('name') name: string, @Res() res: Response){
+    @Get('avatar/:pseudo')
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    async display(@Param() pseudo_dto: avatarValidationDto, @Res() res: Response) {
+      // console.log(pseudo_dto);
+      
     // const sanitized_user: User = await this.channelService.findOne({
     //     id: id,
     // });
     // if (!sanitized_user)
       // throw new NotFoundException('user doesn\'t exists'); 
     // console.log(id, sanitized_user);
-      res.sendFile(name, { root: './upload/avatars/' });
+      res.sendFile(pseudo_dto.pseudo, { root: './upload/avatars/' });
     }
 
   @UseGuards(JwtAuthGuard)
     @Patch('updatePseudo')
+    @UsePipes(new ValidationPipe({ whitelist: true }))
     async updatePseudo(
       @AuthUser() user: User,
-      @Body() { update_pseudo }, // updated pseudo here, use dto?
-        //@Param('id', ParseIntPipe) id: number,
+      @Body() update_pseudo_dto : updateUserValidationDto, // updated pseudo here, use dto?
     ): Promise<User | object> { // this is ugly, return only one!
-      return this.channelService.updatePseudo(update_pseudo, user.id,);
+      return this.channelService.updatePseudo(update_pseudo_dto.update_pseudo, user.id,);
     }
 
-    // exception is useful?
+    // erase me
     @UseGuards(JwtAuthGuard)
     @Get('all')
 	  async getAll(): Promise<User[]> {
     const sanitized_user: User[] = await this.channelService.findAll();
 
-    // console.log(sanitized_user);
     if (!sanitized_user)
       throw new BadRequestException('User not found.');
-    //return undefined;
 
-    // console.log(target);
     return sanitized_user;
 	  }
 
-    // use POST and validation pipes
-    // THIS WILL BREAK CHANGE BACK TO match/get/:id
     @UseGuards(JwtAuthGuard)
-    @Get('match/get/:id') // add ParseIntPipe to validate id // is this useful?
-	  async getMatches(@Param('id') id: number): Promise<User> {
+    @Get('match/get/:id')
+	  async getMatches(@Param('id', ParseIntPipe) id: number): Promise<User> {
       const sanitized_user: User = await this.channelService.getMatches(id);
 
       if (!sanitized_user)
         throw new BadRequestException('User not found.');
-        //return undefined;
 
-      // console.log(target);
       return sanitized_user;
 	  }
 
     @UseGuards(JwtAuthGuard)
-    @Get('achievements/get/:id') // add ParseIntPipe to validate id // is this useful?
-    async getAchievements(@Param('id') id: number) : Promise<AchievementsDto[]> {
-      // this.channelService.resetAchievement(user.id);
+    @Get('achievements/get/:id')
+    async getAchievements(@Param('id', ParseIntPipe) id: number) : Promise<AchievementsDto[]> {
       return this.channelService.getAchievements(id);
     }
 
     // this could be problematic
     // test for matches
     @UseGuards(JwtAuthGuard)
-    @Get(':id') // add ParseIntPipe to validate id // is this useful?
-	  async findOne(@Param('id') id: number): Promise<User> {
+    @Get(':id')
+	  async findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
       const sanitized_user: User = await this.channelService.findOne({
         id: id,
       });
 
       if (!sanitized_user)
         throw new BadRequestException('User not found.');
-        //return undefined;
 
-      // console.log(target);
       return sanitized_user;
 	  }
 
     // this could be problematic
+    // test stuff erase me
     @UseGuards(JwtAuthGuard)
     @Post('match/create')
 	  async matches(@AuthUser() user: User, @Body() obj: any,){
@@ -179,7 +176,7 @@ export class UserController {
 	  }
 
   @UseGuards(JwtAuthGuard)
-    @Delete('remove') // add ParseIntPipe to validate id // is this useful?
+    @Delete('remove')
 	  async remove(@AuthUser() user: User): Promise<boolean> {
       return this.channelService.remove(user);
 	  }

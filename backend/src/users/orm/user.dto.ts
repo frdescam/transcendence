@@ -16,7 +16,7 @@ export interface UserDTO {
   pseudo: string;
   refresh_token: string;
   email: string;
-  password: string;
+  // password: string;
   avatar: string;
   is2FActive: boolean;
   secretOf2FA: string;

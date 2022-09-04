@@ -27,10 +27,10 @@ module.exports = configure(() =>
 		boot: [
 			'axios',
 			'i18n',
+			'lang',
 			'socket',
 			'libs',
 			'state'
-			// 'quasar-lang-packs'
 		],
 
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css

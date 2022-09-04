@@ -174,7 +174,7 @@ function onState (state: Partial<commonState>)
 	scene?.setState(state, latency);
 }
 
-function onDisconnect ()
+function onDisconnect (reason: Socket.DisconnectReason)
 {
 	state.connected = false;
 	scene?.setState({
@@ -183,6 +183,9 @@ function onDisconnect ()
 		textSize: 0.5,
 		textColor: 0xff0000
 	}, 0);
+
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 }
 
 function onClick ()
@@ -289,13 +292,13 @@ function onStateChange (gameState: commonState)
 
 onMounted(() =>
 {
-	gameSocket.connect();
 	gameSocket.on('party::error', onError);
 	gameSocket.on('party::pong', onPong);
 	gameSocket.on('party::mapinfo', onMapInfo);
 	gameSocket.on('party::state', onState);
 	gameSocket.on('disconnect', onDisconnect);
 	gameSocket.on('connect', onConnected);
+	gameSocket.connect();
 
 	if (gameSocket.connected)
 		onConnected();
@@ -314,12 +317,6 @@ onBeforeUnmount(() =>
 	gameSocket.emit('party::leaveAll');
 
 	umountScene();
-});
-
-gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
-{
-	if (reason === 'io server disconnect')
-		gameSocket.connect();
 });
 
 function join ()

@@ -82,9 +82,11 @@ function countPlayers (players: usersArray): number
 	return (players.filter((userId: userId | null) => (!!userId)).length);
 }
 
-function onDisconnect ()
+function onDisconnect (reason: Socket.DisconnectReason)
 {
 	state.connected = false;
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 }
 
 function onConnected ()
@@ -117,11 +119,11 @@ function onUpdate (party: getPartyDto)
 
 onMounted(() =>
 {
-	gameSocket.connect();
 	gameSocket.on('game::list::full', onCompleteList);
 	gameSocket.on('game::list::update', onUpdate);
 	gameSocket.on('disconnect', onDisconnect);
 	gameSocket.on('connect', onConnected);
+	gameSocket.connect();
 
 	if (gameSocket.connected)
 		onConnected();
@@ -136,12 +138,6 @@ onBeforeUnmount(() =>
 	gameSocket.off('game::list::update', onUpdate);
 	gameSocket.off('disconnect', onDisconnect);
 	gameSocket.off('connect', onConnected);
-});
-
-gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
-{
-	if (reason === 'io server disconnect')
-		gameSocket.connect();
 });
 
 defineExpose({

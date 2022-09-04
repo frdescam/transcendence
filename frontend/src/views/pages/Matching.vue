@@ -78,9 +78,11 @@ function onNotFound ()
 	status.value = State.Awaiting;
 }
 
-function onDisconnect ()
+function onDisconnect (reason: Socket.DisconnectReason)
 {
 	status.value = State.Connecting;
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 }
 
 function onConnected ()
@@ -97,24 +99,18 @@ function onConnected ()
 
 onMounted(() =>
 {
-	gameSocket.connect();
 	gameSocket.on('game::query::found', onFound);
 	gameSocket.on('game::query::notFound', onNotFound);
 	gameSocket.on('party::error', onError);
 	gameSocket.on('connect', onConnected);
 	gameSocket.on('disconnect', onDisconnect);
+	gameSocket.connect();
 
 	if (gameSocket.connected)
 		onConnected();
 });
 
 onUnmounted(() => gameSocket.disconnect());
-
-gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
-{
-	if (reason === 'io server disconnect')
-		gameSocket.connect();
-});
 
 onBeforeUnmount(() =>
 {

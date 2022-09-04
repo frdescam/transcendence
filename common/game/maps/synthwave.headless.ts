@@ -45,7 +45,7 @@ const config: Partial<mapConfig> = {
 	textFontHeight: 0.8,
 	textPausePosition: new Vector3(0, 4, 50),
 	textPauseRotation: new Euler(-Math.PI / 2 * 0.2, 0, 0),
-	textPlayPosition: new Vector3(0, 8, 18),
+	textPlayPosition: new Vector3(0, 8, 17.25),
 	textPlayRotation: new Euler(-Math.PI / 2, 0, 0)
 };
 

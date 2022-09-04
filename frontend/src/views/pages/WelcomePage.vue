@@ -4,18 +4,19 @@
       <profileHeader :user="user"></profileHeader>
     </q-toolbar>
     <q-list class="column q-mt-md">
-      <q-btn class="q-mb-md" :to="{ path: '/play' }" color="primary">Start a game</q-btn>
-      <q-btn class="q-mb-md" :to="{ path: '/chat' }" color="primary">Chat with your friends</q-btn>
-      <q-btn class="q-mb-md" :to="{ path: '/play/list' }" color="primary">Check out live games</q-btn>
+      <q-btn class="q-mb-md" :to="{ path: '/play' }" color="primary">{{ capitalize($t('index.buttons.start')) }}</q-btn>
+      <q-btn class="q-mb-md" :to="{ path: '/chat' }" color="primary">{{ capitalize($t('index.buttons.chat')) }}</q-btn>
+      <q-btn class="q-mb-md" :to="{ path: '/play/list' }" color="primary">{{ capitalize($t('index.buttons.checkoutGame')) }}</q-btn>
     </q-list>
     <q-list class="column q-mt-md">
-      <q-btn class="q-mb-md" :to="{ path: '/leaderboard' }" color="primary">Checkout the leaderboard</q-btn>
-      <q-btn class="q-mb-xs" :to="{ path: '/settings' }" color="primary">Edit your settings</q-btn>
+      <q-btn class="q-mb-md" :to="{ path: '/leaderboard' }" color="primary">{{ capitalize($t('index.buttons.checkoutLeader')) }}</q-btn>
+      <q-btn class="q-mb-xs" :to="{ path: '/settings' }" color="primary">{{ capitalize($t('index.buttons.edit')) }}</q-btn>
     </q-list>
+	</q-list>
 	<q-list class="rounded-borders shadow-2 q-my-md scroll" style="width: 300px; height: 300px">
 		<q-toolbar>
-		<q-toolbar-title :hidden="!hideSearch">Your Friends : </q-toolbar-title>
-			<q-input :hidden="hideSearch" ref="input" borderless dense debounce="300" v-model="filter" @update:model-value="onFilterChange" placeholder="Search"/>
+		<q-toolbar-title :hidden="!hideSearch">{{ capitalize($t('index.friends')) }}</q-toolbar-title>
+			<q-input :hidden="hideSearch" ref="input" borderless dense debounce="300" v-model="filter" @update:model-value="onFilterChange" :placeholder="capitalize($t('friend.search'))"/>
 			<q-btn flat rounded class="q-ml-auto" icon="search" @click="toggleSearch"/>
 			<q-btn flat rounded class="q-ml-auto" icon="open_in_full" :to="{name: 'friends'}"/>
 		</q-toolbar>
@@ -27,29 +28,29 @@
 		</q-item>
 			<div v-if="filteredFriendList.length == 0 && filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
 			<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
-			No matching records found
+			{{ capitalize($t('index.noData')) }}
 		</div>
 		<div v-if="filteredFriendList.length == 0 && !filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
 			<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
-			No data available
+			{{ capitalize($t('index.noFriends')) }}
 		</div>
 	</q-list>
-  </q-list>
-  <q-dialog v-model="user.new_user">
-    <div class="q-pa-md" style="background-color: white; max-width: 400px;">
-      <h5 class="q-ma-md">You can edit your pseudo and profile picture right here:</h5>
-      <q-card bordered style='width: 300px;' class="q-ma-md">
-        <q-card-section>
-          <pseudoEditing :pseudo='user.pseudo' v-on:update:pseudo="user.pseudo = $event"></pseudoEditing>
-        </q-card-section>
-        <q-separator inset />
-        <q-card-section>
-          <pictureEditing :avatar='user.avatar'></pictureEditing>
-        </q-card-section>
-      </q-card>
-      <q-btn @click="onDimmissPopup" flat v-close-popup>Dismiss</q-btn>
-    </div>
-  </q-dialog>
+
+	<q-dialog v-model="user.new_user">
+		<div class="q-pa-md" style="background-color: white; max-width: 400px;">
+			<h5 class="q-ma-md">{{ capitalize($t('setting.profilPictureModal.title')) }}</h5>
+			<q-card bordered style='width: 300px;' class="q-ma-md">
+				<q-card-section>
+					<pseudoEditing :pseudo='user.pseudo' v-on:update:pseudo="user.pseudo = $event"></pseudoEditing>
+				</q-card-section>
+				<q-separator inset />
+				<q-card-section>
+					<pictureEditing :avatar='user.avatar'></pictureEditing>
+				</q-card-section>
+			</q-card>
+			<q-btn flat v-close-popup  @click="onDimmissPopup">{{ $t('setting.profilPictureModal.dismiss') }}</q-btn>
+		</div>
+	</q-dialog>
 </template>
 
 <script lang="ts">
@@ -58,6 +59,7 @@ import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
 import { ref, onMounted, inject } from 'vue';
 import { useQuasar } from 'quasar';
+import { Capitalize } from 'src/boot/libs';
 import { useRouter } from 'vue-router';
 import { AxiosInstance } from 'axios';
 
@@ -71,7 +73,9 @@ export default ({
 
 	setup ()
 	{
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
+
 		const user = ref({});
 		const $q = useQuasar();
 		const router = useRouter();
@@ -101,7 +105,7 @@ export default ({
 
 		async function onFriendClick (friendId: number)
 		{
-			router.push('/profile/' + friendId);
+			router.push('/profile/' + String(friendId));
 		}
 
 		async function toggleSearch ()
@@ -139,6 +143,8 @@ export default ({
 		});
 
 		return {
+			capitalize,
+
 			user,
 			friendList,
 			hideSearch,

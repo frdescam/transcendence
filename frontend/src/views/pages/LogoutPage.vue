@@ -2,7 +2,7 @@
 		<h1 class="text-white text-center">
 			<q-spinner size="2em" />
 			<br />
-			Logging out...
+			{{ capitalize($t('login.logout')) }}
 		</h1>
 </template>
 
@@ -11,14 +11,18 @@ import { defineComponent, onMounted, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from 'boot/axios';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import type { AxiosError } from 'axios';
 import type { RefreshUserState } from 'src/boot/state';
+import { Capitalize } from 'src/boot/libs';
 
 export default defineComponent({
 	name: 'LogoutPage',
 
 	setup ()
 	{
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+		const { t } = useI18n();
 		const $q = useQuasar();
 		const router = useRouter();
 		const refreshUserState = inject('refreshUserState') as RefreshUserState;
@@ -42,14 +46,14 @@ export default defineComponent({
 					{
 						$q.notify({
 							type: 'positive',
-							message: 'You were successfully unlogged'
+							message: capitalize(t('login.logoutPage.success'))
 						});
 					}
 					else
 					{
 						fail(
-							'Failed to log out',
-							'Unexpected server answer'
+							capitalize(t('login.logoutPage.failOne')),
+							capitalize(t('login.logoutPage.failTwo'))
 						);
 					}
 					refreshUserState();
@@ -60,13 +64,15 @@ export default defineComponent({
 				.catch((err: AxiosError) =>
 				{
 					fail(
-						'Failed to log out',
+						capitalize(t('login.logoutPage.failOne')),
 						err.message || (err + '')
 					);
 				});
 		});
 
-		return {};
+		return {
+			capitalize
+		};
 	}
 });
 </script>

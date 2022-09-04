@@ -1,17 +1,28 @@
 <script setup lang="ts">
 import clsx from 'clsx';
 import { AppFullscreen } from 'quasar';
-import { ref, Ref } from 'vue';
+import { ref, inject, Ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { Capitalize } from 'src/boot/libs';
 import GameView from './game-view.vue';
 import ControlItem from './game-interface-control-item.vue';
 import type { interfaceState } from './game-view.vue';
 
 defineProps<{ party: string }>();
 
+const { t } = useI18n();
+const capitalize: Capitalize = inject('capitalize') as Capitalize;
 const self = ref<Ref | null>(null);
 const pong = ref<Ref | null>(null);
 
-const qualityLevelsLabels = ['Minimum', 'Low', 'Average', 'Good', 'High', 'Ultra'];
+const qualityLevelsLabels = [
+	capitalize(t('game.gameInterface.quality.minimum')),
+	capitalize(t('game.gameInterface.quality.low')),
+	capitalize(t('game.gameInterface.quality.average')),
+	capitalize(t('game.gameInterface.quality.good')),
+	capitalize(t('game.gameInterface.quality.high')),
+	capitalize(t('game.gameInterface.quality.ultra'))
+];
 
 function toggleFullscreen ()
 {
@@ -48,21 +59,21 @@ function teamActionIcon (state: interfaceState): string | undefined
 function teamActionText (state: interfaceState): string
 {
 	if (state.can_join)
-		return 'Join as player';
+		return capitalize(t('game.gameInterface.action.player'));
 	else if (state.spectator)
-		return 'You are spectator';
+		return capitalize(t('game.gameInterface.action.spectatorText'));
 	else
-		return 'You are playing';
+		return capitalize(t('game.gameInterface.action.playText'));
 }
 
 function compactTeamActionText (state: interfaceState): string
 {
 	if (state.can_join)
-		return 'Join as player';
+		return capitalize(t('game.gameInterface.action.spectator'));
 	else if (state.spectator)
-		return 'Spectating';
+		return capitalize(t('game.gameInterface.action.spectatorText'));
 	else
-		return 'Playing';
+		return capitalize(t('game.gameInterface.action.play'));
 }
 
 </script>
@@ -98,7 +109,7 @@ function compactTeamActionText (state: interfaceState): string
 							<q-item-section side>
 								<q-icon name="input" />
 							</q-item-section>
-							<q-item-section>Controls</q-item-section>
+							<q-item-section>{{ capitalize($t('game.gameInterface.controls')) }}</q-item-section>
 							<q-item-section side>
 								<q-icon name="keyboard_arrow_right" />
 							</q-item-section>
@@ -108,21 +119,21 @@ function compactTeamActionText (state: interfaceState): string
                   <ControlItem
                     :state="pong ? pong.state : null"
                     :action="pong.toggleControl"
-                    :label="$q.screen.lt.sm ? 'Wheel' : 'Mouse Wheel'"
+										:label="$q.screen.lt.sm ? capitalize($t('game.gameInterface.wheel')): capitalize($t('game.gameInterface.mouse'))"
                     controlName="wheel"
                     icon="mdi-mouse-move-down"
                   />
                   <ControlItem
                     :state="pong ? pong.state : null"
                     :action="pong.toggleControl"
-                    label="Keyboard"
+                    :label="capitalize($t('game.gameInterface.keyboard'))"
                     controlName="keyboard"
                     icon="keyboard"
                   />
                   <ControlItem
                     :state="pong ? pong.state : null"
                     :action="pong.toggleControl"
-                    label="Cursor"
+                    :label="capitalize($t('game.gameInterface.cursor'))"
                     controlName="mouse"
                     icon="mdi-cursor-default"
                   />
@@ -136,7 +147,7 @@ function compactTeamActionText (state: interfaceState): string
 							<q-item-section side>
 								<q-icon name="tune" />
 							</q-item-section>
-							<q-item-section>Graphics</q-item-section>
+							<q-item-section>{{ capitalize($t('game.gameInterface.graphics')) }}</q-item-section>
 							<q-item-section side>
 								<q-icon name="keyboard_arrow_right" />
 							</q-item-section>
@@ -188,7 +199,17 @@ function compactTeamActionText (state: interfaceState): string
           :dense="$q.screen.lt.sm"
 					@click="toggleFullscreen"
 				>
-          <q-tooltip transition-duration="150" anchor="top middle" self="bottom middle">{{AppFullscreen.isActive ? 'Window' : 'Fullscreen'}}</q-tooltip>
+          <q-tooltip
+						transition-duration="150"
+						anchor="top middle"
+						self="bottom middle"
+					>
+						{{
+							AppFullscreen.isActive ?
+							capitalize($t('game.gameInterface.window')) :
+							capitalize($t('game.gameInterface.fullscreen'))
+						}}
+					</q-tooltip>
         </q-btn>
 
 				<q-btn
@@ -197,7 +218,9 @@ function compactTeamActionText (state: interfaceState): string
 					@click="pong.toggleAccessibility()"
           class="gt-xs"
 				>
-          <q-tooltip transition-duration="150" anchor="top middle" self="bottom middle">Accessibility</q-tooltip>
+          <q-tooltip transition-duration="150" anchor="top middle" self="bottom middle">
+						{{ capitalize($t('game.gameInterface.accessibility')) }}
+					</q-tooltip>
         </q-btn>
 
 				<q-space />
@@ -216,7 +239,7 @@ function compactTeamActionText (state: interfaceState): string
 				<q-btn
 					color="green-7"
 					:icon="pong && pong.state.paused ? 'play_arrow' : 'pause'"
-					:label="pong && $q.screen.gt.sm && (pong.state.paused ? 'Play' : 'Pause') || undefined"
+					:label="pong && $q.screen.gt.sm && (pong.state.paused ? capitalize($t('game.gameInterface.play')) : capitalize($t('game.gameInterface.pause'))) || undefined"
           :dense="$q.screen.lt.sm"
 					:disable="pong && (pong.state.spectator || pong.state.lobby)"
 					@click="pong.onClick()"
@@ -225,7 +248,7 @@ function compactTeamActionText (state: interfaceState): string
 				<q-btn
 					color="brown-7"
 					icon-right="flag"
-					:label="$q.screen.gt.xs ? 'Give up' : undefined"
+					:label="$q.screen.gt.xs ? capitalize($t('game.gameInterface.give')) : undefined"
           :dense="$q.screen.lt.sm"
 					:disable="pong && (pong.state.spectator || pong.state.finish)"
 					@click="pong.admitDefeat()"

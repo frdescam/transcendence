@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import clsx from 'clsx';
 import { AppFullscreen, Dialog, Notify } from 'quasar';
-import { onBeforeUnmount, onMounted, reactive, readonly, ref, Ref, inject } from 'vue';
+import { onBeforeUnmount, onMounted, onUnmounted, reactive, readonly, ref, Ref, inject } from 'vue';
 import { Socket } from 'socket.io-client';
+import { useI18n } from 'vue-i18n';
+import { Capitalize } from 'src/boot/libs';
 import Scene, { mapConfig, options } from './canvas/scene';
 import maps from './maps';
 
@@ -34,7 +36,8 @@ export interface interfaceState {
 		mouse: boolean
 	}
 }
-
+const { t } = useI18n();
+const capitalize: Capitalize = inject('capitalize') as Capitalize;
 const gameSocket: Socket = inject('socketGame') as Socket;
 
 const props = defineProps<{ party: string }>();
@@ -176,7 +179,7 @@ function onDisconnect ()
 	state.connected = false;
 	scene?.setState({
 		lobby: true,
-		text: 'Connection lost',
+		text: capitalize(t('game.gameView.onDisconnect')),
 		textSize: 0.5,
 		textColor: 0xff0000
 	}, 0);
@@ -286,6 +289,7 @@ function onStateChange (gameState: commonState)
 
 onMounted(() =>
 {
+	gameSocket.connect();
 	gameSocket.on('party::error', onError);
 	gameSocket.on('party::pong', onPong);
 	gameSocket.on('party::mapinfo', onMapInfo);
@@ -296,6 +300,8 @@ onMounted(() =>
 	if (gameSocket.connected)
 		onConnected();
 });
+
+onUnmounted(() => gameSocket.disconnect());
 
 onBeforeUnmount(() =>
 {
@@ -308,6 +314,12 @@ onBeforeUnmount(() =>
 	gameSocket.emit('party::leaveAll');
 
 	umountScene();
+});
+
+gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
+{
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 });
 
 function join ()
@@ -324,8 +336,8 @@ function admitDefeat ()
 {
 	gameSocket.emit('party::pause');
 	Dialog.create({
-		title: 'Admit defeat ?',
-		message: 'The score would be save if the first countdown were shown.',
+		title: capitalize(t('game.gameView.defeat.title')),
+		message: capitalize(t('game.gameView.defeat.message')),
 		cancel: true
 	})
 		.onOk(
@@ -355,15 +367,6 @@ function toggleControl (control: controlsMode)
 		state.controls[control] = !state.controls[control];
 		scene?.setControl(control, state.controls[control]);
 	}
-}
-
-function getStateText ()
-{
-	if (!state.connected)
-		return 'Connecting';
-	if (!state.gamestate)
-		return 'Awaiting gamestate';
-	return 'Loading map';
 }
 
 defineExpose({
@@ -397,12 +400,20 @@ defineExpose({
 					:dense="$q.screen.lt.sm"
 					color="primary"
 					icon="refresh"
-					label="Refresh"
+					:label="capitalize($t('game.gameView.refresh'))"
 					@click="refreshError"
 				/>
 			</div>
 			<p class="text-h2" v-if="!state.error">
-				{{getStateText()}}...
+				<template v-if="!state.connected">
+					{{ capitalize($t('game.gameView.state.connected')) }}
+				</template>
+				<template v-else-if="!state.gamestate">
+					{{ capitalize($t('game.gameView.state.state')) }}
+				</template>
+				<template v-else>
+					{{ capitalize($t('game.gameView.state.default')) }}
+				</template>
 			</p>
 			<q-linear-progress
 				track-color="brown-3"

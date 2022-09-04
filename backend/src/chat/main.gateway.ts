@@ -46,7 +46,7 @@ const getType = (type: string) => {
   return temp;
 };
 
-// @UseGuards(WsJwtGuard)
+@UseGuards(WsJwtGuard)
 @WebSocketGateway({
   namespace: 'chat::',
   cors
@@ -68,10 +68,12 @@ export class MainGateway implements NestGateway
   afterInit(server: Server) {
     this.logger.log('Server chat init', server);
   }
+
   handleConnection(client: Socket) {
     this.logger.log(`Client ${client.id} is connected`);
     this.server.emit('client::connect', client.id);
   }
+  
   handleDisconnect(client: Socket) {
     this.logger.log(`Client ${client.id} is disconnected`);
     this.server.emit('client::disconnect', client.id);

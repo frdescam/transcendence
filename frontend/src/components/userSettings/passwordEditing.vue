@@ -6,11 +6,11 @@
 		<q-input
 			v-model="oldPassword"
 			outlined
-			label="Current Password"
+			:label="capitalize($t('setting.user.currentPassword'))"
 			name="password"
 			:type="isOldPswd ? 'password' : 'text'"
 			class=""
-			:rules="[(val) => !!val || 'Field is required']"
+			:rules="[(val) => !!val || capitalize($t('setting.user.fieldRequired'))]"
 			ref="inputRef"
 		>
 			<template v-slot:append>
@@ -24,11 +24,11 @@
 		<q-input
 			v-model="newPassword"
 			outlined
-			label="New Password"
+			:label="capitalize($t('setting.user.newPassword'))"
 			name="password"
 			:type="isNewPswd ? 'password' : 'text'"
 			class=""
-			:rules="[(val) => !!val || 'Field is required']"
+			:rules="[(val) => !!val || capitalize($t('setting.user.fieldRequired'))]"
 			ref="inputRef"
 		>
 			<template v-slot:append>
@@ -39,16 +39,18 @@
 				/>
 			</template>
 		</q-input>
-		<q-btn type="submit" class="q-mt-md" label='Update' />
+		<q-btn type="submit" class="q-mt-md" :label="$t('setting.user.update')" />
 	</q-form>
 </template>
 
-<script>
-import { ref, defineComponent } from 'vue';
+<script lang="ts">
+import { ref, inject, defineComponent } from 'vue';
+import { Capitalize } from 'src/boot/libs';
 
 export default defineComponent({
 	setup ()
 	{
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const newPassword = ref('');
 		const oldPassword = ref('');
 		const passwordSubmit = function ()
@@ -56,6 +58,7 @@ export default defineComponent({
 			console.log(oldPassword.value, newPassword.value);
 		};
 		return {
+			capitalize,
 			newPassword,
 			oldPassword,
 			isOldPswd: ref(true),

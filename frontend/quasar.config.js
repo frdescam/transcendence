@@ -27,15 +27,16 @@ module.exports = configure(() =>
 		boot: [
 			'axios',
 			'i18n',
-			'state',
 			'socket',
-			'libs'
+			'libs',
+			'state',
+			'quasar-lang-packs'
 		],
 
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
 		css: [
 			'app.scss',
-			'transitions.scss',
+			'transitions.scss'
 		],
 
 		// https://github.com/quasarframework/quasar/tree/dev/extras
@@ -94,9 +95,10 @@ module.exports = configure(() =>
 			// components: [],
 			// directives: [],
 			plugins: [
-				'Notify',
+				'AppFullscreen',
 				'Dialog',
-				'AppFullscreen'
+				'Meta',
+				'Notify'
 			]
 		},
 

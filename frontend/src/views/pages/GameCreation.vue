@@ -21,7 +21,7 @@
 
 			<div>
 				<SubmitButton
-					label="Create my party"
+					:label="capitalize($t('inputs.party'))"
 					:loading="loading"
 				/>
 			</div>
@@ -30,9 +30,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from 'src/boot/axios';
+import { Capitalize } from 'src/boot/libs';
 import ControlledForm from 'src/components/inputs/ControlledForm.vue';
 import SubmitButton from 'src/components/inputs/SubmitButton.vue';
 import PartyRoomNameInput from 'src/components/inputs/PartyRoomNameInput.vue';
@@ -55,6 +56,7 @@ export default defineComponent({
 	},
 	setup ()
 	{
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const router = useRouter();
 		const loading = ref<boolean>(false);
 
@@ -98,6 +100,7 @@ export default defineComponent({
 		}
 
 		return {
+			capitalize,
 			loading,
 			setLoading,
 			room,

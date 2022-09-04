@@ -1,5 +1,18 @@
 export default {
+	menu: {
+		title: 'transcendance',
+		play: 'play',
+		chat: 'chat',
+		leaderboard: 'leaderboard',
+		setting: 'account setting',
+		retake: 'retake the game',
+		disconnect: 'disconnect',
+		playing: 'you are currently playing on {map}',
+		notPlaying: 'you are not playing'
+	},
+	// pages
 	chat: {
+		title: 'chat',
 		channel: {
 			createTooltip: 'Create a new channel',
 			menu: {
@@ -156,5 +169,209 @@ export default {
 			creator: 'You are the creator of the channel, this one will be immediately deleted when you leave. Do you want to leave it ?'
 		},
 		socket: 'The connection has been lost, reconnection in progress'
+	},
+	error: {
+		404: '404',
+		title: 'Oops, nothing here...',
+		label: 'Go home'
+	},
+	friend: {
+		title: 'your friends',
+		search: 'search',
+		noMatch: 'no matching records found',
+		noData: 'no data available',
+		message: 'send message',
+		delete: 'delete friend',
+		watch: 'watch game',
+		rank: '#{rank}',
+		level: 'level: {level}',
+		ratio: 'ratio: {ratio}'
+	},
+	game: {
+		creation: {
+			title: 'game creation',
+			mapSelection: 'map selection',
+			play: {
+				anyone: 'play with anyone',
+				friend: 'play with a friend',
+				button: 'play'
+			},
+			opponent: 'opponent selection'
+		},
+		listView: {
+			columns: {
+				room: 'room id',
+				map: 'map',
+				scores: 'scores',
+				players: 'players',
+				status: 'status',
+				creation: 'creation date'
+			},
+			copied: 'link copied',
+			failed: 'failed to copy to clipboard',
+			vs: 'vs'
+		},
+		gameInterface: {
+			controls: 'controls',
+			wheel: 'wheel',
+			mouse: 'mouse wheel',
+			keyboard: 'keyboard',
+			cursor: 'cursor',
+			graphics: 'graphics',
+			window: 'window',
+			fullscreen: 'fullscreen',
+			accessibility: 'accessibility',
+			play: 'play',
+			pause: 'pause',
+			give: 'give up',
+			action: {
+				player: 'join as player',
+				spectatorText: 'you are spectator',
+				spectator: 'spectating',
+				playText: 'you are playing',
+				play: 'playing'
+			},
+			quality: {
+				minimum: 'minimum',
+				low: 'low',
+				average: 'average',
+				good: 'good',
+				high: 'high',
+				ultra: 'ultra'
+			}
+		},
+		gameView: {
+			refresh: 'refresh',
+			onDisconnect: 'connection lost',
+			defeat: {
+				title: 'admit defeat ?',
+				message: 'the score would be save if the first countdown were shown'
+			},
+			state: {
+				connected: 'connecting',
+				state: 'awaiting gamestate',
+				default: 'loading map'
+			}
+		}
+	},
+	index: {
+		exp: 'xp',
+		friends: 'your friends',
+		noData: 'no data available',
+		noFriends: 'no friends to display yet',
+		level: 'level',
+		nextLevel: 'next level :',
+		ratio: 'ratio',
+		buttons: {
+			chat: 'chat with your friends',
+			checkoutGame: 'checkout live games',
+			checkoutLeader: 'checkout the leaderboard',
+			edit: 'edit your settings',
+			start: 'start a game'
+		}
+	},
+	inputs: {
+		adversary: 'adversary',
+		adversaryHint: 'if selected, an invitation would be sent',
+		map: 'map',
+		mapHint: 'the map affect ball\'s speed and allowed controls',
+		room: 'room name',
+		roomHint: 'the name of the party, which will be in the URL',
+		matchHint: 'if selected, you will be queued to play with that person particularly',
+		query: 'place a query',
+		party: 'create my party'
+	},
+	leaderboard: {
+		rank: 'rank',
+		player: 'player',
+		ratio: 'ratio',
+		level: 'level',
+		friends: 'only friends',
+		search: 'search'
+	},
+	login: {
+		button: 'Login with',
+		submit: 'submit',
+		logout: 'logging out',
+		token: 'checking token',
+		logoutPage: {
+			success: 'you were successfully unlogged',
+			failOne: 'failed to log out',
+			failTwo: 'unexpected server answer'
+		}
+	},
+	matching: {
+		look: 'Looking for party',
+		with: 'with map {map}',
+		against: 'against a player',
+		messages: {
+			awaiting: 'Awaiting such party to be created...',
+			querying: 'Querying the server...',
+			found: 'Redirecting to the party...',
+			default: 'Connecting...'
+		}
+	},
+	play: {
+		matching: 'matching',
+		create: 'create',
+		explore: 'explore'
+	},
+	profil: {
+		search: 'search',
+		noMatch: 'no matching records found',
+		noData: 'no data available',
+		achievements: {
+			title: 'achievements',
+			list: {
+				name: {
+					title: 'name',
+					subtitle: 'subname'
+				}
+			}
+		},
+		matches: {
+			title: 'matches',
+			map: 'map: {map}'
+		},
+		page: {
+			remove: 'remove friend',
+			cancel: 'cancel invitation',
+			accept: 'accept invitation',
+			friend: 'add friend',
+			message: 'send a message',
+			block: 'block user',
+			unblock: 'unblock user'
+		}
+	},
+	setting: {
+		title: 'settings :',
+		twoFactor: {
+			title: 'two factor authentication',
+			subtitleOn: 'two factor authentication is activate',
+			subtitleOff: 'two factor authentication is desactivate',
+			activate: 'activate',
+			desactivate: 'desactivate'
+		},
+		delete: {
+			title: 'delete your account',
+			subtitleOne: 'are you sure ?',
+			subtitleTwo: 'you will lose all progress'
+		},
+		user: {
+			fieldRequired: 'Field is required',
+			currentPassword: 'current password',
+			newPassword: 'new password',
+			update: 'update'
+		},
+		profilPictureModal: {
+			title: 'you can edit your pseudo and profile picture right here :',
+			pseudo: 'change pseudo',
+			picture: 'change picture',
+			update: 'update',
+			dismiss: 'dismiss'
+		}
+	},
+	twofa: {
+		label: 'enter 2FA code'
 	}
 };

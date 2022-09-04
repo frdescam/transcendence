@@ -11,13 +11,13 @@
 
 			<AdversarySelect
 				filled
-				hint="If selected, you will be queued to play with that person particularly"
+				:hint="capitalize($t('inputs.matchHint'))"
 				v-model="adversary"
 			/>
 
 			<div>
 				<SubmitButton
-					label="Place a query"
+					:label="capitalize($t('inputs.query'))"
 					:loading="loading"
 				/>
 			</div>
@@ -26,8 +26,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { Capitalize } from 'src/boot/libs';
 import ControlledForm from 'src/components/inputs/ControlledForm.vue';
 import SubmitButton from 'src/components/inputs/SubmitButton.vue';
 import MapSelect from 'src/components/inputs/MapSelect.vue';
@@ -46,6 +47,7 @@ export default defineComponent({
 	},
 	setup ()
 	{
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const router = useRouter();
 		const loading = ref<boolean>(false);
 
@@ -66,6 +68,7 @@ export default defineComponent({
 		}
 
 		return {
+			capitalize,
 			loading,
 			map,
 			adversary,

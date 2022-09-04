@@ -1,5 +1,18 @@
 export default {
+	menu: {
+		title: 'transcendance',
+		play: 'jouer',
+		chat: 'chat',
+		leaderboard: 'classement',
+		setting: 'paramètre du compte',
+		retake: 'reprendre la partie',
+		disconnect: 'déconnexion',
+		playing: 'vous jouez actuellement sur {map}',
+		notPlaying: 'vous ne jouez pas'
+	},
+	// pages
 	chat: {
+		title: 'chat',
 		channel: {
 			createTooltip: 'Créer un nouveau canal',
 			menu: {
@@ -156,5 +169,209 @@ export default {
 			creator: 'Vous êtes le créateur du canal, il sera immédiatement supprimé lorsque vous le quitterez. Voulez-vous le quitter ?'
 		},
 		socket: 'La connexion a été interrompu, reconnexion en cours'
+	},
+	error: {
+		404: '404',
+		title: 'Oups, rien ici...',
+		label: 'Aller à la page d\'accueil'
+	},
+	friend: {
+		title: 'Vos amis',
+		search: 'rechercher',
+		noMatch: 'aucun résultat trouvé',
+		noData: 'aucune donnée disponible',
+		message: 'envoyer un message',
+		delete: 'supprimer un ami',
+		watch: 'regarder le jeu',
+		rank: '#{rank}',
+		level: 'niveau: {level}',
+		ratio: 'ratio: {ratio}'
+	},
+	game: {
+		creation: {
+			title: 'création d\'une partie',
+			mapSelection: 'sélection de la carte',
+			play: {
+				anyone: 'jouer avec n\'importe qui',
+				friend: 'jouer avec un ami',
+				button: 'jouer'
+			},
+			opponent: 'sélection d\'un adversaire'
+		},
+		listView: {
+			columns: {
+				room: 'identifiant de la chambre',
+				map: 'carte',
+				scores: 'scores',
+				players: 'joueurs',
+				status: 'status',
+				creation: 'date de création'
+			},
+			copied: 'lien copié',
+			failed: 'échec de la copie dans le presse-papiers',
+			vs: 'vs'
+		},
+		gameInterface: {
+			controls: 'contrôles',
+			wheel: 'molette',
+			mouse: 'molette de la souris',
+			keyboard: 'clavier',
+			cursor: 'curseur',
+			graphics: 'graphiques',
+			window: 'fenêtre',
+			fullscreen: 'plein écran',
+			accessibility: 'accessibilité',
+			play: 'jouer',
+			pause: 'pause',
+			give: 'abandonner',
+			action: {
+				player: 'joindre comme joueur',
+				spectatorText: 'vous êtes spectateur',
+				spectator: 'spectateur',
+				playText: 'vous jouez',
+				play: 'jouer'
+			},
+			quality: {
+				minimum: 'minimum',
+				low: 'faible',
+				average: 'moyenne',
+				good: 'bon',
+				high: 'élevé',
+				ultra: 'ultra'
+			}
+		},
+		gameView: {
+			refresh: 'rafraîchir',
+			onDisconnect: 'connexion perdue',
+			defeat: {
+				title: 'admettre la défaite ?',
+				message: 'le score sera sauvegardé si le premier compte à rebours est affiché'
+			},
+			state: {
+				connected: 'en connection',
+				state: 'en attente de l\'état de jeu',
+				default: 'chargement de la carte'
+			}
+		}
+	},
+	index: {
+		exp: 'xp',
+		friends: 'vos amis',
+		noData: 'aucune donnée disponible',
+		noFriends: 'aucun ami à afficher pour le moment',
+		level: 'niveau',
+		nextLevel: 'niveau suivant :',
+		ratio: 'ratio',
+		buttons: {
+			chat: 'discuter avec vos amis',
+			checkoutGame: 'consultez les jeux en direct',
+			checkoutLeader: 'consultez le classement',
+			edit: 'modifier vos paramètres',
+			start: 'démarrer une partie'
+		}
+	},
+	inputs: {
+		adversary: 'adversaire',
+		adversaryHint: 'si elle est sélectionnée, une invitation sera envoyée',
+		map: 'carte',
+		mapHint: 'la carte affecte la vitesse de la balle et permet des contrôles',
+		room: 'nom de la salle',
+		roomHint: 'le nom de la partie, qui sera dans l\'URL',
+		matchHint: 'si vous êtes sélectionné, vous serez mis en file d\'attente pour jouer avec cette personne en particulier',
+		query: 'placer une requête',
+		party: 'créer ma partie'
+	},
+	leaderboard: {
+		rank: 'rang',
+		player: 'joueur',
+		ratio: 'ratio',
+		level: 'niveau',
+		friends: 'seulement mes amis',
+		search: 'rechercher'
+	},
+	login: {
+		button: 'connectez-vous avec',
+		submit: 'envoyer',
+		logout: 'déconnexion',
+		token: 'vérification du jeton',
+		logoutPage: {
+			success: 'vous avez été déconnecté avec succès',
+			failOne: 'échec de la déconnexion',
+			failTwo: 'réponse inattendue du serveur'
+		}
+	},
+	matching: {
+		look: 'Rechercher une partie',
+		with: 'avec la carte {map}',
+		against: 'contre un joueur',
+		messages: {
+			awaiting: 'En attente de la création de cette partie...',
+			querying: 'Demande au serveur...',
+			found: 'Réorientation vers la partie...',
+			default: 'Connexion...'
+		}
+	},
+	play: {
+		matching: 'appariement',
+		create: 'créer',
+		explore: 'explorer'
+	},
+	profil: {
+		search: 'rechercher',
+		noMatch: 'aucun résultat trouvé',
+		noData: 'aucune donnée disponible',
+		achievements: {
+			title: 'succès',
+			list: {
+				name: {
+					title: 'name',
+					subtitle: 'subname'
+				}
+			}
+		},
+		matches: {
+			title: 'matches',
+			map: 'carte: {map}'
+		},
+		page: {
+			remove: 'supprimer un ami',
+			cancel: 'annuler l\'invitation',
+			accept: 'accepter l\'invitation',
+			friend: 'ajouter un ami',
+			message: 'envoyer un message',
+			block: 'bloquer l\'utilisateur',
+			unblock: 'débloquer un utilisateur'
+		}
+	},
+	setting: {
+		title: 'paramètres :',
+		twoFactor: {
+			title: 'authentification à double facteur',
+			subtitleOn: 'l\'authentification à double facteurs est activée',
+			subtitleOff: 'l\'authentification à double facteurs est désactivée',
+			activate: 'activer',
+			desactivate: 'désactiver'
+		},
+		delete: {
+			title: 'supprimer votre compte',
+			subtitleOne: 'êtes-vous sûr ?',
+			subtitleTwo: 'vous perdrez toute votre progression'
+		},
+		user: {
+			fieldRequired: 'le champ est obligatoire',
+			currentPassword: 'mot de passe actuel',
+			newPassword: 'nouveau mot de passe',
+			update: 'mettre à jour'
+		},
+		profilPictureModal: {
+			title: 'Vous pouvez modifier votre pseudo et votre photo de profil ici même :',
+			pseudo: 'Modifier le pseudo',
+			picture: 'Changement d\'image',
+			update: 'mettre à jour',
+			dismiss: 'fermer'
+		}
+	},
+	twofa: {
+		label: 'Entrez le code 2FA'
 	}
 };

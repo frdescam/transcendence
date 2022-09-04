@@ -2,7 +2,7 @@
 		<h1 class="text-white text-center">
 			<q-spinner size="2em" />
 			<br />
-			Checking token...
+			{{ capitalize($t('login.token')) }}
 		</h1>
 </template>
 
@@ -10,6 +10,7 @@
 import { defineComponent, onMounted, onUnmounted, inject, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import type { WatchStopHandle } from 'vue';
+import { Capitalize } from 'src/boot/libs';
 import type { RefreshUserState, State } from 'src/boot/state';
 
 export default defineComponent({
@@ -17,12 +18,14 @@ export default defineComponent({
 
 	setup ()
 	{
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+
 		const router = useRouter();
 		const route = useRoute();
 		const refreshUserState = inject('refreshUserState') as RefreshUserState;
 		const state = inject('state') as State;
 
-		var unwatch: null | WatchStopHandle = null;
+		let unwatch: null | WatchStopHandle = null;
 
 		onMounted(() =>
 		{
@@ -57,7 +60,9 @@ export default defineComponent({
 				unwatch();
 		});
 
-		return {};
+		return {
+			capitalize
+		};
 	}
 });
 </script>

@@ -1,4 +1,4 @@
-import { Body, Request, Controller, Get, Param, Post, Put, UsePipes, ValidationPipe, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
+import { Body, Request, Controller, Get, Param, Post, Put, UsePipes, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
 import { PartyService } from './party.service';
 import { UserService } from 'src/users/user/user.service';
 import { IgnoreService } from 'src/users/ignored/ignore.service';

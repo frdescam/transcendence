@@ -258,7 +258,7 @@ export default {
 			},
 			state: {
 				connected: 'en connection',
-				state: 'en attente de l\'état de jeu',
+				state: 'en attente de l\'état du jeu',
 				default: 'chargement de la carte'
 			}
 		}

@@ -62,24 +62,6 @@ function onError (error: string)
 	});
 }
 
-function onError (error: string)
-{
-	Notify.create({
-		position: 'top',
-		progress: true,
-		timeout: 15000,
-		message: error,
-		type: 'negative',
-		multiLine: true,
-		actions: [
-			{
-				label: 'Dismiss',
-				color: 'white'
-			}
-		]
-	});
-}
-
 function onFound (room: string)
 {
 	status.value = State.Found;

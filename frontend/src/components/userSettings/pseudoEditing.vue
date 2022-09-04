@@ -3,16 +3,16 @@
 		<span id="username-display">
 			{{ pseudo }}
 			<q-btn @click="toggleNameEdit" flat round icon="edit" />
-      <div class="inline-block">
-        <q-spinner v-if="LoadingPseudo"></q-spinner>
-        <q-icon v-if="success" name="check_circle" color="green"></q-icon>
-        <q-icon v-if="failure" name="error" color="red"></q-icon>
-        <span v-if="failure" class="q-pl-sm" style="color: red; font-size: 0.6em">{{ errorMessage }}</span>
-      </div>
+			<div class="inline-block">
+				<q-spinner v-if="LoadingPseudo"></q-spinner>
+				<q-icon v-if="success" name="check_circle" color="green"></q-icon>
+				<q-icon v-if="failure" name="error" color="red"></q-icon>
+				<span v-if="failure" class="q-pl-sm" style="color: red; font-size: 0.6em">{{ errorMessage }}</span>
+			</div>
 		</span>
 		<span id="username-edit" style="display:none;">
 			<q-form @submit="editUsername">
-				<q-input style="display:inline;" v-model="newPseudo" label="Change pseudo"/>
+				<q-input style="display:inline;" v-model="newPseudo" :label="capitalize($t('setting.profilPictureModal.pseudo'))"/>
 				<q-btn type="submit" flat round icon="check_circle" />
 				<q-btn @click="toggleNameEdit" flat round icon="cancel" />
 			</q-form>
@@ -21,7 +21,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, inject } from 'vue';
+import { defineComponent, inject, ref } from 'vue';
+import { Capitalize } from 'src/boot/libs';
 import { api } from 'boot/axios';
 import type { RefreshUserState } from 'src/boot/state';
 
@@ -35,6 +36,8 @@ export default defineComponent({
 	setup (props, { emit })
 	{
 		const refreshUserState = inject('refreshUserState') as RefreshUserState;
+
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 
 		const newPseudo = ref('');
 		const LoadingPseudo = ref(false);
@@ -93,6 +96,7 @@ export default defineComponent({
 			failure,
 			errorMessage,
 
+			capitalize,
 			toggleNameEdit,
 			editUsername
 		};

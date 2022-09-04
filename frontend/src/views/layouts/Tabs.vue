@@ -7,7 +7,7 @@
 						v-for="tab in tabs"
 						v-bind:key="tab.label"
 						:icon="tab.icon"
-						:label="tab.label"
+						:label="$t(tab.label)"
 						:to="tab.route"
 						exact
 					/>

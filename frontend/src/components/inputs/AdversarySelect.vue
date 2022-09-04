@@ -1,7 +1,7 @@
 <template>
 	<q-select
-		label="Adversary"
-		hint="If selected, an invitation would be sent"
+		:label="capitalize($t('inputs.adversary'))"
+		:hint="capitalize($t('inputs.adversaryHint'))"
 		clearable
 		emit-value
 		map-options
@@ -13,7 +13,7 @@
 		<template v-slot:no-option>
 			<q-item>
 				<q-item-section class="text-italic text-grey">
-					You don't have any friend to show
+					{{ capitalize($t('index.noFriends')) }}
 				</q-item-section>
 			</q-item>
 		</template>
@@ -21,8 +21,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, inject, ref } from 'vue';
 import { api } from 'src/boot/axios';
+import { Capitalize } from 'src/boot/libs';
 import { QSelect, useQuasar } from 'quasar';
 import type { AxiosError } from 'axios';
 
@@ -37,6 +38,7 @@ export default defineComponent({
 	props: ['value', 'v-on:input'],
 	setup (props)
 	{
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const $q = useQuasar();
 		const adversaryOptions = ref<selectOption[] | undefined>(undefined);
 
@@ -69,6 +71,7 @@ export default defineComponent({
 		}
 
 		return {
+			capitalize,
 			adversaryOptions,
 			getFriendList,
 			props

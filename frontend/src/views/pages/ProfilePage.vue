@@ -23,12 +23,9 @@
 				<profileHeader :user="user"></profileHeader>
 			</div>
 			<q-item v-if="!ownPage" class="full-width row justify-around">
-				<q-btn @click="onToggleFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
-					:label="isUserFriend ? 'remove friend' : isUserPendingFriend ? 'cancel invitation' : isUserInvited ? 'accept invitation' : 'add friend'" /> <!-- Yeah very dirty i know, it works don't touch! -->
-				<q-btn :href="'chat/' + user.pseudo" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
-					label="send a message" />
-				<q-btn @click="onToggleBlockUser()" style="background: rgba(0, 0, 0, 0.4); color: #eee;"
-					:label="isUserIgnored ? 'unblock user' : 'block user'" />
+				<q-btn @click="onToggleFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="toggleFriend" />
+				<q-btn :href="'chat/' + user.pseudo" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="$t('profil.page.message')" />
+				<q-btn @click="onToggleBlockUser()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="(isUserIgnored) ? $t('profil.page.unblock') : $t('profil.page.block')" />
 			</q-item>
 		</div>
 		<div class="row justify-evenly">
@@ -47,6 +44,7 @@ import achievementsList from 'src/components/profilePage/AchievementsList.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
 import { inject, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { AxiosInstance } from 'axios';
 import { Socket } from 'socket.io-client';
 import type { State } from 'src/boot/state';
@@ -60,6 +58,8 @@ export default {
 	},
 	setup ()
 	{
+		const { t } = useI18n();
+
 		const state = inject('state') as State;
 		const socket: Socket = inject('socketChat') as Socket;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
@@ -209,6 +209,17 @@ export default {
 			}
 		}
 
+		const toggleFriend = () =>
+		{
+			if (isUserFriend.value)
+				return t('profil.page.remove');
+			else if (isUserPendingFriend.value)
+				return t('profil.page.cancel');
+			else if (isUserInvited.value)
+				return t('profil.page.accept');
+			return t('profil.page.friend');
+		};
+
 		return {
 			user,
 			matches,
@@ -220,7 +231,8 @@ export default {
 			isUserInvited,
 
 			onToggleBlockUser,
-			onToggleFriend
+			onToggleFriend,
+			toggleFriend
 		};
 	}
 };

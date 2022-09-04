@@ -1,9 +1,4 @@
 <template>
-	<div>
-		<q-radio v-model="user" :val="Number(1)">Clément user</q-radio>
-		<q-radio v-model="user" :val="Number(2)">John user</q-radio>
-		<q-radio v-model="user" :val="Number(3)">Titi user</q-radio>
-	</div>
 	<q-page class="row no-wrap justify-between items-stretch content-stretch">
 		<div class="col-3 channel">
 			<channelChannel
@@ -47,9 +42,12 @@
 </template>
 
 <script lang="ts">
-import { QDialog } from 'quasar';
+import { QDialog, useMeta } from 'quasar';
 import { Socket } from 'socket.io-client';
-import { defineComponent, inject, onBeforeMount, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { Capitalize } from 'src/boot/libs';
+import { defineComponent, inject, onMounted, onUnmounted, ref, watch } from 'vue';
+import { generateMeta } from 'src/meta';
 import channelChannel from 'src/components/chat/Channel.vue';
 import userChannel from 'src/components/chat/User.vue';
 import chatChannel from 'src/components/chat/Chat.vue';
@@ -82,7 +80,16 @@ export default defineComponent({
 	},
 	setup ()
 	{
+		// #region Set custom title
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+		const { t } = useI18n();
+
+		useMeta(generateMeta(capitalize(t('chat.title'))));
+		// #endregion Set custom title
+
+		// #region Definition
 		const socket: Socket = inject('socketChat') as Socket;
+
 		const selectedChannel = ref<channelInterface>({
 			id: 0,
 			socketId: '',
@@ -114,16 +121,16 @@ export default defineComponent({
 		{
 			userUpdate.value = ret;
 		};
+		// #endregion Definition
 
 		// #region Check if error with socket
 		const dialog = ref<QDialog | null>(null);
 
 		socket.on('connect_error', () => dialog.value?.show());
 		socket.on('connect', () => dialog.value?.hide());
-		socket.on('disconnect', (reason) =>
+		socket.on('disconnect', (reason: Socket.DisconnectReason) =>
 		{
-			if (reason === 'io server disconnect' ||
-				reason === 'io client disconnect')
+			if (reason === 'io server disconnect')
 				socket.connect();
 		});
 		// #endregion  Check if error with socket
@@ -165,7 +172,13 @@ export default defineComponent({
 		// #endregion
 
 		// #region Get user id
-		onBeforeMount(() => socket.emit('ping'));
+		onMounted(() =>
+		{
+			socket.connect();
+			socket.emit('ping');
+		});
+		onUnmounted(() => socket.disconnect());
+
 		socket.on('pong', (ret) =>
 		{
 			if (ret.socketId === socket.id)

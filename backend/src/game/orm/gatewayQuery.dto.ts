@@ -6,7 +6,7 @@ export class queryFindDto
 	@Length(1, 256)
 	@IsAlphanumeric()
 	@IsOptional()
-		map?: string = 'classic';
+		map?: string;
 
 	@Min(0)
 	@IsInt()

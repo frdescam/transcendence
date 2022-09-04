@@ -272,6 +272,17 @@ export class PartyService
 		}
 	}
 
+	private handlePartyRemove(party: Party)
+	{
+		if (this.onUserStatusChange)
+		{
+			if (typeof party.playersId[0] === 'number')
+				this.onUserStatusChange( party.playersId[0], null );
+			if (typeof party.playersId[1] === 'number')
+				this.onUserStatusChange( party.playersId[1], null );
+		}
+	}
+
 	public setOnListChange(callback: listChangeCallback | null)
 	{
 		this.onListChange = callback;
@@ -985,6 +996,19 @@ router.resolve({
 
 	private removeParty (party: Party)
 	{
+		this.handlePartyRemove(party);
+
+		party.spectators.forEach(
+			(spectator) =>
+			{
+				delete this.partiesBySocket[spectator.id];
+			}
+		);
+		if (!!party.playersSocket[0])
+			delete this.partiesBySocket[party.playersSocket[0].id];
+		if (!!party.playersSocket[1])
+			delete this.partiesBySocket[party.playersSocket[1].id];
+
 		for (let i = 0; i < this.parties.length; ++i)
 		{ 
 			if (this.parties[i] === party)
@@ -1131,7 +1155,6 @@ router.resolve({
 			return 'running';
 		case partyStatus.Finish:
 			return 'finish';
-			break;
 									
 		default:
 			return 'unknown';

@@ -1,70 +1,35 @@
 <script setup lang="ts">
 import clsx from 'clsx';
-import { onBeforeUnmount, onMounted, reactive, readonly, inject } from 'vue';
+import { onBeforeUnmount, onMounted, onUnmounted, reactive, readonly, inject } from 'vue';
 import { Socket } from 'socket.io-client';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { Capitalize } from 'src/boot/libs';
 import { useQuasar, copyToClipboard } from 'quasar';
 import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import type { userId } from 'src/common/game/types';
 
 type usersArray = [userId | null, userId | null];
 type partyListObject = {[key: string]: getPartyDto};
+interface column
+{
+	name: string,
+	required?: boolean,
+	label: string,
+	field: string,
+	sortable?: boolean,
+	align?: 'left' | 'center' | 'right',
+	sort?: ((a: any, b: any, rowA: any, rowB: any) => number)
+}
 
+const { t } = useI18n();
+const capitalize: Capitalize = inject('capitalize') as Capitalize;
 const gameSocket: Socket = inject('socketGame') as Socket;
+
 const $q = useQuasar();
 const router = useRouter();
 const state = reactive<{ connected: boolean }>({ connected: false });
 const partiesListObject = reactive<partyListObject>({});
-
-const columns = [
-	{
-		name: 'room',
-		required: true,
-		label: 'Room ID',
-		field: 'room',
-		sortable: true,
-		align: 'left'
-	},
-	{
-		name: 'map',
-		label: 'Map',
-		field: 'map',
-		sortable: true,
-		align: 'left'
-	},
-	{
-		name: 'scores',
-		label: 'Scores',
-		field: 'scores',
-		align: 'center'
-	},
-	{
-		name: 'players',
-		label: 'Players',
-		field: 'players',
-		sortable: true,
-		sort: (a: usersArray, b: usersArray) => (
-			(countPlayers(b)) - (countPlayers(a))
-		),
-		align: 'center'
-	},
-	{
-		name: 'status',
-		label: 'Status',
-		field: 'status',
-		align: 'center'
-	},
-	{
-		name: 'createdAt',
-		label: 'Creation date',
-		field: 'createdAt',
-		sortable: true,
-		sort: (a: string, b: string) => (
-			(new Date(b).getTime()) - (new Date(a).getTime())
-		),
-		align: 'right'
-	}
-];
 
 const tablePagination = {
 	sortBy: 'createdAt',
@@ -90,7 +55,7 @@ function joinRoom (room: string)
 	router.push(routeFor(room));
 }
 
-function roomUrlToClipboard (room: string, e: MouseEvent)
+function roomUrlToClipboard (room: string, e: Event)
 {
 	e.stopPropagation();
 
@@ -100,14 +65,14 @@ function roomUrlToClipboard (room: string, e: MouseEvent)
 		{
 			$q.notify({
 				type: 'positive',
-				message: 'Link copied'
+				message: capitalize(t('game.listView.copied'))
 			});
 		})
 		.catch(() =>
 		{
 			$q.notify({
 				type: 'warning',
-				message: 'Failed to copy to clipboard'
+				message: capitalize(t('game.listView.failed'))
 			});
 		});
 }
@@ -152,6 +117,7 @@ function onUpdate (party: getPartyDto)
 
 onMounted(() =>
 {
+	gameSocket.connect();
 	gameSocket.on('game::list::full', onCompleteList);
 	gameSocket.on('game::list::update', onUpdate);
 	gameSocket.on('disconnect', onDisconnect);
@@ -161,6 +127,8 @@ onMounted(() =>
 		onConnected();
 });
 
+onUnmounted(() => gameSocket.disconnect());
+
 onBeforeUnmount(() =>
 {
 	gameSocket.emit('game::list::stop');
@@ -168,6 +136,12 @@ onBeforeUnmount(() =>
 	gameSocket.off('game::list::update', onUpdate);
 	gameSocket.off('disconnect', onDisconnect);
 	gameSocket.off('connect', onConnected);
+});
+
+gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
+{
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 });
 
 defineExpose({
@@ -181,7 +155,55 @@ defineExpose({
 		color="primary"
 		dense
 		:rows="Object.keys(partiesListObject).map((key)=>(partiesListObject[key]))"
-		:columns="columns"
+		:columns="[
+      {
+        name: 'room',
+        required: true,
+        label: $t('game.listView.columns.room').toUpperCase(),
+        field: 'room',
+        sortable: true,
+        align: 'left'
+      },
+      {
+        name: 'map',
+        label: $t('game.listView.columns.map').toUpperCase(),
+        field: 'map',
+        sortable: true,
+        align: 'left'
+      },
+      {
+        name: 'scores',
+        label: $t('game.listView.columns.scores').toUpperCase(),
+        field: 'scores',
+        align: 'center'
+      },
+      {
+        name: 'players',
+        label: $t('game.listView.columns.players').toUpperCase(),
+        field: 'players',
+        sortable: true,
+        sort: (a: usersArray, b: usersArray) => (
+          (countPlayers(b)) - (countPlayers(a))
+        ),
+        align: 'center'
+      },
+      {
+        name: 'status',
+        label: $t('game.listView.columns.status').toUpperCase(),
+        field: 'status',
+        align: 'center'
+      },
+      {
+        name: 'createdAt',
+        label: $t('game.listView.columns.creation').toUpperCase(),
+        field: 'createdAt',
+        sortable: true,
+        sort: (a: string, b: string) => (
+          (new Date(b).getTime()) - (new Date(a).getTime())
+        ),
+        align: 'right'
+      }
+    ] as column[]"
 		:loading="!state.connected"
 		:pagination="tablePagination"
 		:rows-per-page-options="tablePaginationPerPage"
@@ -214,7 +236,7 @@ defineExpose({
 							<q-avatar square>
 								<img :src="props.row.avatars[0] ? props.row.avatars[0] : '/imgs/chat/default.webp'" v-if="props.row.players[0]">
 							</q-avatar>
-							vs
+							{{ $t('game.listView.vs').toUpperCase() }}
 							<q-avatar square>
 								<img :src="props.row.avatars[1] ? props.row.avatars[1] : '/imgs/chat/default.webp'" v-if="props.row.players[1]">
 							</q-avatar>

@@ -22,7 +22,7 @@
 					<q-icon name="settings" />
 				</q-item-section>
 				<q-item-section no-wrap>
-					<q-item-label>Account settings</q-item-label>
+					<q-item-label>{{ capitalize($t('menu.setting')) }}</q-item-label>
 				</q-item-section>
 			</q-item>
 
@@ -35,7 +35,7 @@
 					<q-icon name="logout" />
 				</q-item-section>
 				<q-item-section no-wrap>
-					<q-item-label>Disconnect</q-item-label>
+					<q-item-label>{{ capitalize($t('menu.disconnect')) }}</q-item-label>
 				</q-item-section>
 			</q-item>
 
@@ -44,10 +44,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { defineComponent, inject, onBeforeUnmount, onMounted, onUnmounted, reactive, ref } from 'vue';
 import clsx from 'clsx';
 import MenuUserGame from './MenuUserGame.vue';
 import type { State } from 'src/boot/state';
+import { Capitalize } from 'src/boot/libs';
 import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import type { getUserPartyDto } from 'src/common/game/orm/getUserParty.dto';
 import type { Socket } from 'socket.io-client';
@@ -65,6 +66,7 @@ export default defineComponent({
 	},
 	setup ()
 	{
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const state = inject('state') as State;
 		const gameSocket: Socket = inject('socketGame') as Socket;
 		const gameState = reactive<stateType>({ connected: false, party: null });
@@ -96,6 +98,7 @@ export default defineComponent({
 			if (typeof state.myself === 'undefined' || typeof state.myself.id === 'undefined')
 				return;
 			myId.value = state.myself.id;
+			gameSocket.connect();
 			gameSocket.on('game::userinfos', onUpdate);
 			gameSocket.on('disconnect', onDisconnect);
 			gameSocket.on('connect', onConnected);
@@ -109,8 +112,16 @@ export default defineComponent({
 			gameSocket.off('disconnect', onDisconnect);
 			gameSocket.off('connect', onConnected);
 		});
+		onUnmounted(() => gameSocket.disconnect());
+
+		gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
+		{
+			if (reason === 'io server disconnect')
+				gameSocket.connect();
+		});
 
 		return {
+			capitalize,
 			clsx,
 			state,
 			gameState

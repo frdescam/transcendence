@@ -191,6 +191,7 @@ export class MainGateway implements OnGatewayDisconnect
 			this.server.to('game::list').emit('game::list::update', partyJson);
 	}
 
+	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('game::userinfos::join')
 	joinUserInfos(
 		@ConnectedSocket() client: Socket,
@@ -208,6 +209,7 @@ export class MainGateway implements OnGatewayDisconnect
 		);
 	}
 
+	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('game::userinfos::leave')
 	leaveUserInfos(
 		@ConnectedSocket() client: Socket,

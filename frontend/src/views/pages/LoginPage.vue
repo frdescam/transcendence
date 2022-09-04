@@ -1,15 +1,19 @@
 <template>
 	<q-card class="column items-center justify-center" style="width: 300px; height: 400px">
-		<q-btn label="Login with" class="q-pa-md shadow-box" color="secondary" href="http://127.0.0.1:8080/api/login">
+		<q-btn :label="$t('login.button')" class="q-pa-md shadow-box" color="secondary" href="http://127.0.0.1:8080/api/login">
 			<q-icon
 				class="q-ml-sm"
-				name="img:https://42.fr/wp-content/uploads/2021/05/42-Final-sigle-seul.svg"
+				name="img:imgs/42_logo.svg"
 			/>
 		</q-btn>
 		<div class="q-mt-lg">Or login as test user : </div>
 		<q-form @submit="onSubmit" class="column justify-evenly items-center">
 			<q-input v-model="id" ref="input" class="q-my-lg" :disable="disableInput" :color="inputColor" :autofocus=true label="enter id :"></q-input>
-			<q-btn label="Submit" type="submit" color="secondary"/>
+			<q-btn
+				:label="$t('login.submit')"
+				type="submit"
+				color="secondary"
+			/>
 		</q-form>
 	</q-card>
 </template>

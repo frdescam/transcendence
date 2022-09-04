@@ -6,7 +6,7 @@
 		<q-item-section no-wrap>
 
 			<q-item-label>
-				You are currently playing on {{ party.map[0].toUpperCase() + party.map.substring(1) }}
+				{{ capitalize($t('menu.playing', { map: party.map[0].toUpperCase() + party.map.substring(1) })) }}
 			</q-item-label>
 
 			<q-item-label>
@@ -28,28 +28,28 @@
 			<q-icon name="sports_esports" />
 		</q-item-section>
 		<q-item-section no-wrap>
-			<q-item-label>You are not playing</q-item-label>
+			<q-item-label>{{ capitalize($t('menu.notPlaying')) }}</q-item-label>
 		</q-item-section>
 	</q-item>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
+import { Capitalize } from 'src/boot/libs';
 import type { userId } from 'src/common/game/types';
-
-type usersArray = [userId | null, userId | null];
-
-function countPlayers (players: usersArray): number
-{
-	return (players.filter((userId: userId | null) => (!!userId)).length);
-}
 
 export default defineComponent({
 	name: 'PartialMenuUserDropdownGame',
 	props: ['connected', 'party'],
 	setup ()
 	{
+		type usersArray = [userId | null, userId | null];
+
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+		const countPlayers = (players: usersArray): number => (players.filter((userId: userId | null) => (!!userId)).length);
+
 		return {
+			capitalize,
 			countPlayers
 		};
 	}

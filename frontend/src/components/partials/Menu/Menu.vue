@@ -1,53 +1,54 @@
 <template>
-  <q-toolbar class="q-pr-none">
+	<q-toolbar class="q-pr-none">
 
-    <q-toolbar-title shrink class="gt-sm">
-      <q-btn flat round dense size="lg" icon="mdi-table-tennis" :to="{ name: 'home' }"/>
-      Transcendance
-    </q-toolbar-title>
+		<q-toolbar-title shrink class="gt-sm">
+			<q-btn flat round dense size="lg" icon="mdi-table-tennis" :to="{ name: 'home' }"/>
+			{{ capitalize($t('menu.title')) }}
+		</q-toolbar-title>
 
-    <div :class="clsx('col-grow row no-wrap', $q.screen.gt.xs ? 'q-gutter-md' : 'q-gutter-sm', $q.screen.gt.xs && 'justify-center')">
-      <q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'play' }" :label="$q.screen.gt.xs ? 'Play' : undefined" icon="sports_esports" />
-      <q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'chat' }" :label="$q.screen.gt.xs ? 'Chat' : undefined" icon="chat" />
-      <q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'leaderboard' }" :label="$q.screen.gt.xs ? 'Leaderboard' : undefined" icon="leaderboard" />
-    </div>
+		<div :class="clsx('col-grow row no-wrap', $q.screen.gt.xs ? 'q-gutter-md' : 'q-gutter-sm', $q.screen.gt.xs && 'justify-center')">
+			<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'play' }" :label="$q.screen.gt.xs ? $t('menu.play') : undefined" icon="sports_esports" />
+			<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'chat' }" :label="$q.screen.gt.xs ? $t('menu.chat') : undefined" icon="chat" />
+			<q-btn flat :rounded="$q.screen.gt.xs" :round="$q.screen.lt.sm" :to="{ name: 'leaderboard' }" :label="$q.screen.gt.xs ? $t('menu.leaderboard') : undefined" icon="leaderboard" />
+		</div>
 
-    <q-select
-      rounded
-      borderless
-      dense
-      options-dense
-      :options-dark="false"
-      :hide-selected="$q.screen.lt.lg"
-      dark
-      emit-value
-      map-options
-      v-model="locale"
-      :options="localeOptions"
-      :class="clsx($q.screen.gt.md && 'lang_allocated_space')"
-    >
-      <template v-slot:prepend v-if="$q.screen.gt.md">
-        <q-icon name="translate" />
-      </template>
-      <template v-slot:append v-if="$q.screen.lt.lg">
-        <q-icon name="translate" />
-      </template>
-    </q-select>
+		<q-select
+			rounded
+			borderless
+			dense
+			options-dense
+			:options-dark="false"
+			:hide-selected="$q.screen.lt.lg"
+			dark
+			emit-value
+			map-options
+			v-model="locale"
+			:options="localeOptions"
+			:class="clsx($q.screen.gt.md && 'lang_allocated_space')"
+		>
+			<template v-slot:prepend v-if="$q.screen.gt.md">
+				<q-icon name="translate" />
+			</template>
+			<template v-slot:append v-if="$q.screen.lt.lg">
+				<q-icon name="translate" />
+			</template>
+		</q-select>
 
     <MenuUser/>
 
-  </q-toolbar>
+	</q-toolbar>
 </template>
 
 <script lang="ts">
-import { defineComponent, watch } from 'vue';
-import { useQuasar } from 'quasar';
-import { api } from 'boot/axios';
-import { useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
 import clsx from 'clsx';
+import { defineComponent, inject, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+import { Capitalize } from 'src/boot/libs';
+import { api } from 'boot/axios';
 import options from 'src/i18n/options';
 import languages from 'quasar/lang/index.json';
+
 import MenuUser from '../Menu/MenuUser.vue';
 
 // #region Quasar lang definition
@@ -86,7 +87,7 @@ export default defineComponent({
 	},
 	setup ()
 	{
-		const $q = useQuasar();
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const { locale } = useI18n({ useScope: 'global' });
 		const router = useRouter();
 
@@ -96,10 +97,14 @@ export default defineComponent({
 			{
 				if (lang.value === val)
 				{
-					import(
-						/* @vite-ignore */
-						`../../../node_modules/quasar/lang/${lang.quasar}`)
-						.then(lang => $q.lang.set(lang.default));
+					window.dispatchEvent(new CustomEvent('lang::change', {
+						detail: {
+							value: lang.value
+						},
+						bubbles: true,
+						cancelable: true,
+						composed: false
+					}));
 				}
 			}
 		});
@@ -115,7 +120,8 @@ export default defineComponent({
 			locale,
 			localeOptions: options,
 
-			onLogout
+			onLogout,
+			capitalize
 		};
 	}
 });

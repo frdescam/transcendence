@@ -40,18 +40,6 @@ lerna-debug.log*
 *.vim
 .prettierrc
 
-# IDE - VSCode
-.vscode/*
-.prettierrc
-
-# IDE - VSCode
-.vscode/*
-.vscode
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
 # Docker
 data/
 

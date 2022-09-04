@@ -1,92 +1,93 @@
 <template>
-  <q-table
-    title="Leaderboard"
-    :rows="rows"
-    :columns="columns"
-    row-key="rank"
-    v-model:pagination="pagination"
-    :loading="loading"
-    :filter="filter"
-    @request="refreshData"
-    @row-click="onRowClick"
-    binary-state-sort
-  >
-    <template v-slot:top-right>
-      <q-toggle class="q-mr-lg"
-        label="Only friends"
-        color="blue"
-        @update:model-value="onFriendsOnlyChanged"
-        v-model="friendsOnly"
-      />
-      <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
-        <template v-slot:append>
-          <q-icon name="search" />
-        </template>
-      </q-input>
+	<q-table
+		:title="capitalize($t('menu.leaderboard'))"
+		:rows="rows"
+		:columns="[
+			{
+				name: 'rank',
+				label: $t('leaderboard.rank').toUpperCase(),
+				field: 'rank',
+				required: true,
+				align: 'left',
+				format: (val: number) => `#${val}`,
+				style: 'width: 5%'
+			},
+			{
+				name: 'avatar',
+				label: '',
+				field: 'avatar',
+				reqired: true,
+				align: 'right',
+				style: 'width: 10%'
+			},
+			{
+				name: 'pseudo',
+				field: 'pseudo',
+				required: true,
+				label: $t('leaderboard.player').toUpperCase(),
+				align: 'left'
+			},
+			{
+				name: 'ratio',
+				label: $t('leaderboard.ratio').toUpperCase(),
+				field: 'ratio',
+				required: true,
+				align: 'left',
+				style: 'width: 10%'
+			},
+			{
+				name: 'level',
+				label: $t('leaderboard.level').toUpperCase(),
+				field: 'level',
+				required: true,
+				align: 'left',
+				style: 'width: 10%'
+			}
+		]"
+		row-key="rank"
+		v-model:pagination="pagination"
+		:loading="loading"
+		:filter="filter"
+		@request="refreshData"
+		@row-click="onRowClick"
+		binary-state-sort
+	>
+		<template v-slot:top-right>
+			<q-toggle class="q-mr-lg"
+				:label="capitalize($t('leaderboard.friends'))"
+				color="blue"
+				@update:model-value="onFriendsOnlyChanged"
+				v-model="friendsOnly"
+			/>
+			<q-input borderless dense debounce="300" v-model="filter" :placeholder="capitalize($t('leaderboard.search'))">
+				<template v-slot:append>
+					<q-icon name="search" />
+				</template>
+			</q-input>
+		</template>
+		<template #body-cell-avatar="props">
+			<q-td :props="props">
+				<q-avatar :props="props">
+					<img :src=props.value v-on:error="imageError" />
+				</q-avatar>
+			</q-td>
     </template>
-    <template #body-cell-avatar="props">
-      <q-td :props="props">
-        <q-avatar :props="props">
-          <img :src=props.value>
-        </q-avatar>
-      </q-td>
-  </template>
-  </q-table>
+	</q-table>
 </template>
 
 <script lang="ts">
-import { ref, onMounted, computed, inject } from 'vue';
+import { inject, ref, onMounted, computed } from 'vue';
 import { AxiosInstance } from 'axios';
+import { Capitalize } from 'src/boot/libs';
 import { useRouter } from 'vue-router';
-
-const columns = [
-	{
-		name: 'rank',
-		label: 'RANK',
-		field: 'rank',
-		required: true,
-		align: 'left',
-		format: (val) => `#${val}`,
-		style: 'width: 5%'
-	},
-	{
-		name: 'avatar',
-		label: '',
-		field: 'avatar',
-		reqired: true,
-		align: 'right',
-		style: 'width: 10%'
-	},
-	{
-		name: 'pseudo',
-		field: 'pseudo',
-		required: true,
-		label: 'PLAYER',
-		align: 'left'
-	},
-	{
-		name: 'ratio',
-		label: 'RATIO',
-		field: 'ratio',
-		required: true,
-		align: 'left',
-		style: 'width: 10%'
-	},
-	{
-		name: 'level',
-		label: 'LEVEL',
-		field: 'xp',
-		required: true,
-		align: 'left',
-		style: 'width: 10%'
-	}
-];
 
 export default {
 	name: 'LeaderboardPage',
 	setup ()
 	{
 		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+
 		const friendsOnly = ref(false);
 		const router = useRouter();
 		const rows = ref([]);
@@ -99,6 +100,13 @@ export default {
 			rowsPerPage: 10,
 			rowsNumber: 0
 		});
+
+		const imageError = (e: Event) =>
+		{
+			const target = e.target as HTMLImageElement;
+			if (target)
+				target.src = 'imgs/chat/default.webp';
+		};
 
 		async function fetchFromServer (friendsOnly, startRow, count, filter)
 		{
@@ -163,13 +171,15 @@ export default {
 			filter,
 			loading,
 			pagination,
-			columns,
 			rows,
 			pagesNumber: computed(() => Math.ceil(rows.value.length / pagination.value.rowsPerPage)),
 
+			imageError,
 			refreshData,
 			onRowClick,
-			onFriendsOnlyChanged
+			onFriendsOnlyChanged,
+
+			capitalize
 		};
 	}
 };

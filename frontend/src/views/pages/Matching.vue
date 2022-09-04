@@ -5,10 +5,11 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, computed, inject } from 'vue';
+import { onBeforeUnmount, onMounted, onUnmounted, ref, computed, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Notify } from 'quasar';
 import type { Socket } from 'socket.io-client';
+import { useI18n } from 'vue-i18n';
 
 import type { partyQuery as query } from 'src/common/game/interfaces';
 
@@ -23,6 +24,7 @@ enum State
 const router = useRouter();
 const route = useRoute();
 
+const { t } = useI18n();
 const gameSocket: Socket = inject('socketGame') as Socket;
 const status = ref(State.Connecting);
 const map = computed(() => (route.query.map || null));
@@ -32,16 +34,13 @@ const message = computed(() =>
 	switch (status.value)
 	{
 	case State.Awaiting:
-		return 'Awaiting to match ...';
-
+		return t('matching.messages.awaiting');
 	case State.Querying:
-		return 'Querying the server ...';
-
+		return t('matching.messages.querying');
 	case State.Found:
-		return 'Redirecting to the party ...';
-
+		return t('matching.messages.found');
 	default:
-		return 'Connecting ...';
+		return t('matching.messages.default');
 	}
 });
 
@@ -98,6 +97,7 @@ function onConnected ()
 
 onMounted(() =>
 {
+	gameSocket.connect();
 	gameSocket.on('game::query::found', onFound);
 	gameSocket.on('game::query::notFound', onNotFound);
 	gameSocket.on('party::error', onError);
@@ -106,6 +106,14 @@ onMounted(() =>
 
 	if (gameSocket.connected)
 		onConnected();
+});
+
+onUnmounted(() => gameSocket.disconnect());
+
+gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
+{
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 });
 
 onBeforeUnmount(() =>
@@ -125,9 +133,10 @@ onBeforeUnmount(() =>
 		<div class="page-bg" />
 		<div class="container">
 			<h1 class="text-h1">
-				Looking for party{{map && (" with map " + map)}}{{adversary && ", against a player"}}...
+				{{ $t('matching.look') }} {{ (map) && $t('matching.with', { map: map }) }}
+				{{ (adversary) && `, ${$t('matching.against')}` }}
 			</h1>
-			<p class="text-h2">{{message}}</p>
+			<p class="text-h2">{{ message }}</p>
 			<q-linear-progress
 				rounded track-color="grey-7" color="white"
 				:indeterminate="status != State.Connecting"

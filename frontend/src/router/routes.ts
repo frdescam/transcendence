@@ -81,17 +81,17 @@ const routes: RouteRecordRaw[] = [
 			tabs: [
 				{
 					icon: 'sports_esports',
-					label: 'Matching',
+					label: 'play.matching',
 					route: { name: 'play' }
 				},
 				{
 					icon: 'add_circle',
-					label: 'Create',
+					label: 'play.create',
 					route: { name: 'play-create' }
 				},
 				{
 					icon: 'list',
-					label: 'Explore',
+					label: 'play.explore',
 					route: { name: 'play-list' }
 				}
 			] as LayoutTabs

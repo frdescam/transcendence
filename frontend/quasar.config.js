@@ -29,8 +29,8 @@ module.exports = configure(() =>
 			'i18n',
 			'socket',
 			'libs',
-			'state',
-			'quasar-lang-packs'
+			'state'
+			// 'quasar-lang-packs'
 		],
 
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css

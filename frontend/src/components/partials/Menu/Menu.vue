@@ -99,7 +99,7 @@ export default defineComponent({
 			{
 				if (lang.value === val)
 				{
-					//localStorage.setItem('transcendance_lang', lang.quasar);
+					// localStorage.setItem('transcendance_lang', lang.quasar);
 					import(
 						// @vite-ignore
 						`../../../node_modules/quasar/lang/${lang.quasar}`)

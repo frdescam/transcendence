@@ -6,6 +6,7 @@ import { JwtAuthGuard } from 'src/auth/guards/auth-jwt.guard';
 import { controllerValidationPipe } from 'src/validation';
 import { partyGiveupDto, partyGetDto, createPartyDto } from '../orm/controllerParty.dto';
 import { getPartyDto } from 'src/common/game/orm/getParty.dto';
+import type { UserDTO } from 'src/users/orm/user.dto';
 import type { userId } from 'src/common/game/types';
 
 @Controller('party')
@@ -31,7 +32,7 @@ export class PartyController
 		@Request() req,
 	): string | null
 	{
-		const user: any = req.user;
+		const user: UserDTO = req.user;
 		this.partyService.checkUserObject(user);
 		const himself: userId = user.id;
 		const party = this.partyService.findPartyWithUser(himself);
@@ -46,7 +47,7 @@ export class PartyController
 		@Param() { room }: partyGiveupDto
 	)
 	{
-		const user: any = req.user;
+		const user: UserDTO = req.user;
 		this.partyService.checkUserObject(user);
 		const himself: userId = user.id;
 		const party = this.partyService.findPartyWithUser(himself);
@@ -82,7 +83,7 @@ export class PartyController
 		@Request() req
 	): Promise<string>
 	{
-		const user: any = req.user;
+		const user: UserDTO = req.user;
 		this.partyService.checkUserObject(user);
 		const himself: userId = user.id;
 

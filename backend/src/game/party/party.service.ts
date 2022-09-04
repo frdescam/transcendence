@@ -9,6 +9,7 @@ import { bounceBall } from 'src/common/game/logic';
 import { teamEnum } from 'src/common/game/types';
 import maps from 'src/common/game/maps';
 import { Party, partyStatus, pauseReason, map, Query } from '../interface';
+import type { UserDTO } from 'src/users/orm/user.dto';
 import type { serverState, partyQuery } from 'src/common/game/interfaces';
 import type { team, userId } from 'src/common/game/types';
 import type { Socket } from 'socket.io';
@@ -21,7 +22,7 @@ export type userStatusChangeCallback = (userId: userId, partyJson: getPartyDto |
 export class PartyService
 {
 	private parties: Party[] = [];
-	private partiesBySocket: any = {};
+	private partiesBySocket: { [key: string]: Party } = {};
 	private queries: Query[] = [];
 	private onListChange: listChangeCallback | null = null;
 	private onUserStatusChange: userStatusChangeCallback | null = null;
@@ -32,7 +33,7 @@ export class PartyService
 	)
 	{}
 
-	public checkUserObject(user: any)
+	public checkUserObject(user: UserDTO)
 	{
 		if (typeof user !== 'object' || typeof user?.id !== 'number')
 			throw 'Authentification is required for that function';
@@ -862,7 +863,7 @@ export class PartyService
 		return (party);
 	}
 
-	public spectateParty (party: Party, client: Socket, user: any): Party
+	public spectateParty (party: Party, client: Socket, user: UserDTO): Party
 	{
 		client.emit('party::mapinfo', party.map);
 		this.sendSocketState(client, party.state, this.getSlotFromSocket(party, client), !!user);
@@ -890,7 +891,7 @@ export class PartyService
 		return (party);
 	}
 	
-	public createParty (room: string | null, map: map | null | undefined, userIds: [userId, userId | null], client?: Socket, user?: any, disableInvitation?: boolean): Party
+	public createParty (room: string | null, map: map | null | undefined, userIds: [userId, userId | null], client?: Socket, user?: UserDTO, disableInvitation?: boolean): Party
 	{
 		let party;
 		const involvedParty = this.findPartyWithUser(userIds[0]);

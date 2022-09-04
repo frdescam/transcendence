@@ -6,7 +6,7 @@ import { authenticator } from 'otplib';
 import { toFileStream } from 'qrcode';
 import { Response } from 'express';
 
-// TODO here add types to payloads, add returns
+// TODO erase console log of secret l19
 
 @Injectable({})
 export class TwoFactorAuthService {
@@ -20,7 +20,6 @@ export class TwoFactorAuthService {
     return otpauthUrl;
   }
 
-  // what the return type of dis
   async pipeQrCodeStream(stream: Response, otpauthUrl: string) {
     return toFileStream(stream, otpauthUrl);
   }

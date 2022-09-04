@@ -68,7 +68,7 @@ export class UserService {
     const user: User = await this.userRepository.findOne({pseudo : new_pseudo});
 
     if (user)
-      return {error: 'pseudo already taken!'};
+      return {error: 'pseudo already taken!'}; // throw exception?
 		
     console.log('updatePseudo: if undefined is good, user: ', user);
 		
@@ -133,6 +133,8 @@ export class UserService {
         'matchesForeign.userForeign'
       ]
     });
+    if (!user)
+      return null;
     user = await this.sanitizeUser(user);
     user.matchesHome.forEach(async (match) =>
     {

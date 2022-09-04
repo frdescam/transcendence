@@ -8,13 +8,11 @@ export class Ignore extends BaseEntity {
       id: number;
 
 	@ManyToOne(() => User, (user) => user.blockedUsers, {
-	  // nullable: false,
 	  eager: true,
 	})
 	  user: User;
 
 	@ManyToOne(() => User, (user) => user.blockedUsersBy, {
-	  // nullable: false,
 	  eager: true,
 	})
 	  target: User;

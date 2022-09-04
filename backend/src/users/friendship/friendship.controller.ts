@@ -9,14 +9,7 @@ import { User } from 'src/users/orm/user.entity';
 import { UserService } from 'src/users/user/user.service';
 import { FriendshipService } from './friendship.service';
 import { Friend } from '../orm/friend.entity';
-import { IsInt, IsNotEmpty, IsPositive } from 'class-validator';
-
-class friendDto {
-	@IsNotEmpty()
-	@IsPositive()
-	@IsInt()
-	  id?: number;
-}
+import { idValidationDto } from '../orm/userValidation.dto';
 
 @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -30,7 +23,7 @@ export class FriendshipController {
 	@Post()
   async create(
 		@AuthUser() user: User,
-		@Body() friendDto: friendDto,
+		@Body() friendDto: idValidationDto,
   ): Promise<Friend> {
     const target: User = await this.userService.findOneComplete({
       id: friendDto.id,
@@ -50,7 +43,6 @@ export class FriendshipController {
     if (!friendship)
       return this.friendshipService.add(user, target);
 
-
     if (friendship.user.id === user.id)
       return this.friendshipService.sanitizeFriend(friendship);
 
@@ -62,21 +54,21 @@ export class FriendshipController {
 	@Get('accepted')
 	async findAllAccepted(
 		@AuthUser() user: User,
-	) {
-	  return this.friendshipService.findAllOrWithAccepted(user, false);
+	): Promise<User[]> {
+	  return this.friendshipService.getFriendsPendingOrAccepted(user, false);
 	}
 
 	@Get('pending')
 	async findAllPending(
 		@AuthUser() user: User,
-	) {
-	  return this.friendshipService.findAllOrWithAccepted(user, true);
+	): Promise<User[]> {
+	  return this.friendshipService.getFriendsPendingOrAccepted(user, true);
 	}
 
 	@Delete('delete')
 	async remove(
 		@AuthUser() user: User,
-		@Body() friendDto: friendDto,
+		@Body() friendDto: idValidationDto,
 	): Promise<boolean> {
 	  const target: User = await this.userService.findOneComplete({
 	    id: friendDto.id,

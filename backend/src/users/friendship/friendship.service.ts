@@ -39,28 +39,24 @@ export class FriendshipService {
     return this.frienships_repo.save(Friend);
   }
 
-  async getFriends(userId : number): Promise<User[]> {
-    const friendRelations = await this.frienships_repo.find({
-      where: {user: userId, isPending: false}
-    });
-    const friends: User[] = [];
-    friendRelations.forEach(friendRelation => {
-      friends.push(friendRelation.followedUser);
-    });
-    return friends;
-  }
-
-  async findAllOrWithAccepted(
+  async getFriendsPendingOrAccepted(
     user: User,
     pending: boolean,
-  ): Promise<Friend[]> {
-    const friends : Friend[] = (await this.frienships_repo.find({
+  ): Promise<User[]> {
+    const friendRelations : Friend[] = (await this.frienships_repo.find({
       where: [
         { user: user, isPending: pending },
         { followedUser: user, isPending: pending },
       ],
     }));
-    friends.forEach(elem => this.sanitizeFriend(elem));
+    friendRelations.forEach(elem => this.sanitizeFriend(elem));
+    const friends: User[] = [];
+    friendRelations.forEach(friendRelation => {
+      if (friendRelation.user.id === user.id)
+        friends.push(friendRelation.followedUser);
+      else
+        friends.push(friendRelation.user);
+    });
     return friends;
   }
 

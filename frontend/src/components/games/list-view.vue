@@ -11,6 +11,16 @@ import type { userId } from 'src/common/game/types';
 
 type usersArray = [userId | null, userId | null];
 type partyListObject = {[key: string]: getPartyDto};
+interface column
+{
+	name: string,
+	required?: boolean,
+	label: string,
+	field: string,
+	sortable?: boolean,
+	align?: 'left' | 'center' | 'right',
+	sort?: ((a: any, b: any, rowA: any, rowB: any) => number)
+}
 
 const { t } = useI18n();
 const capitalize: Capitalize = inject('capitalize') as Capitalize;
@@ -45,7 +55,7 @@ function joinRoom (room: string)
 	router.push(routeFor(room));
 }
 
-function roomUrlToClipboard (room: string, e: MouseEvent)
+function roomUrlToClipboard (room: string, e: Event)
 {
 	e.stopPropagation();
 
@@ -193,7 +203,7 @@ defineExpose({
         ),
         align: 'right'
       }
-    ]"
+    ] as column[]"
 		:loading="!state.connected"
 		:pagination="tablePagination"
 		:rows-per-page-options="tablePaginationPerPage"

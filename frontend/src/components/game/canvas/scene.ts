@@ -135,6 +135,7 @@ class PongScene
 			team: -1,
 			spectator: true,
 			can_join: false,
+			could_join: false,
 			finish: false,
 			date: new Date(),
 			positions: [0.5, 0.5],

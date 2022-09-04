@@ -42,13 +42,12 @@
 <script lang="ts">
 import clsx from 'clsx';
 import { defineComponent, inject, watch } from 'vue';
-import { Capitalize } from 'src/boot/libs';
 import { useI18n } from 'vue-i18n';
-import options from 'src/i18n/options';
-import { useQuasar } from 'quasar';
-import languages from 'quasar/lang/index.json';
-import { api } from 'boot/axios';
 import { useRouter } from 'vue-router';
+import { Capitalize } from 'src/boot/libs';
+import { api } from 'boot/axios';
+import options from 'src/i18n/options';
+import languages from 'quasar/lang/index.json';
 
 import MenuUser from '../Menu/MenuUser.vue';
 
@@ -89,7 +88,6 @@ export default defineComponent({
 	setup ()
 	{
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
-		const $q = useQuasar();
 		const { locale } = useI18n({ useScope: 'global' });
 		const router = useRouter();
 
@@ -99,11 +97,14 @@ export default defineComponent({
 			{
 				if (lang.value === val)
 				{
-					// localStorage.setItem('transcendance_lang', lang.quasar);
-					import(
-						// @vite-ignore
-						`../../../node_modules/quasar/lang/${lang.quasar}`)
-						.then(lang => $q.lang.set(lang.default));
+					window.dispatchEvent(new CustomEvent('lang::change', {
+						detail: {
+							value: lang.value
+						},
+						bubbles: true,
+						cancelable: true,
+						composed: false
+					}));
 				}
 			}
 		});

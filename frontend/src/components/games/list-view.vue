@@ -19,7 +19,7 @@ interface column
 	field: string,
 	sortable?: boolean,
 	align?: 'left' | 'center' | 'right',
-	sort?: ((a: any, b: any, rowA: any, rowB: any) => number)
+	sort?: ((a: unknown, b: unknown, rowA: unknown, rowB: unknown) => number)
 }
 
 const { t } = useI18n();

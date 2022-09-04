@@ -14,7 +14,7 @@
 					{{ countPlayers(party.players) + '/2' }}
 				</q-chip>
 
-				{{party.status[0].toUpperCase() + party.status.replace(/-/g, ' ').substring(1)}}
+				{{ printStatus(party.status) }}
 
 				<q-chip square :color="party.status == 'awaiting-player' ? 'grey' : 'blue'">
 					{{ party.scores[0] }} - {{ party.scores[1] }}
@@ -35,6 +35,7 @@
 
 <script lang="ts">
 import { defineComponent, inject } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Capitalize } from 'src/boot/libs';
 import type { userId } from 'src/common/game/types';
 
@@ -45,12 +46,34 @@ export default defineComponent({
 	{
 		type usersArray = [userId | null, userId | null];
 
+		const { t } = useI18n();
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const countPlayers = (players: usersArray): number => (players.filter((userId: userId | null) => (!!userId)).length);
+		const printStatus = (val: string) =>
+		{
+			switch (val)
+			{
+			case 'awaiting-player':
+				return capitalize(t('game.listView.message.awaiting'));
+			case 'warmup':
+				return capitalize(t('game.listView.message.warmup'));
+			case 'paused':
+				return capitalize(t('game.listView.message.paused'));
+			case 'introducing-sleeve':
+				return capitalize(t('game.listView.message.sleeve'));
+			case 'running':
+				return capitalize(t('game.listView.message.running'));
+			case 'finish':
+				return capitalize(t('game.listView.message.finish'));
+			default:
+				return capitalize(t('game.listView.message.default'));
+			}
+		};
 
 		return {
 			capitalize,
-			countPlayers
+			countPlayers,
+			printStatus
 		};
 	}
 });

@@ -22,6 +22,16 @@ interface column
 	sort?: ((a: any, b: any, rowA: any, rowB: any) => number)
 }
 
+enum partyStatus
+{
+	AwaitingPlayer,
+	Warmup,
+	Paused,
+	IntroducingSleeve,
+	Running,
+	Finish
+}
+
 const { t } = useI18n();
 const capitalize: Capitalize = inject('capitalize') as Capitalize;
 const gameSocket: Socket = inject('socketGame') as Socket;
@@ -147,6 +157,27 @@ gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
 defineExpose({
 	partiesListObject: readonly(partiesListObject)
 });
+
+const printStatus = (val: string) =>
+{
+	switch (val)
+	{
+	case 'awaiting-player':
+		return capitalize(t('game.listView.message.awaiting'));
+	case 'warmup':
+		return capitalize(t('game.listView.message.warmup'));
+	case 'paused':
+		return capitalize(t('game.listView.message.paused'));
+	case 'introducing-sleeve':
+		return capitalize(t('game.listView.message.sleeve'));
+	case 'running':
+		return capitalize(t('game.listView.message.running'));
+	case 'finish':
+		return capitalize(t('game.listView.message.finish'));
+	default:
+		return capitalize(t('game.listView.message.default'));
+	}
+};
 </script>
 
 <template>
@@ -156,54 +187,54 @@ defineExpose({
 		dense
 		:rows="Object.keys(partiesListObject).map((key)=>(partiesListObject[key]))"
 		:columns="[
-      {
-        name: 'room',
-        required: true,
-        label: $t('game.listView.columns.room').toUpperCase(),
-        field: 'room',
-        sortable: true,
-        align: 'left'
-      },
-      {
-        name: 'map',
-        label: $t('game.listView.columns.map').toUpperCase(),
-        field: 'map',
-        sortable: true,
-        align: 'left'
-      },
-      {
-        name: 'scores',
-        label: $t('game.listView.columns.scores').toUpperCase(),
-        field: 'scores',
-        align: 'center'
-      },
-      {
-        name: 'players',
-        label: $t('game.listView.columns.players').toUpperCase(),
-        field: 'players',
-        sortable: true,
-        sort: (a: usersArray, b: usersArray) => (
-          (countPlayers(b)) - (countPlayers(a))
-        ),
-        align: 'center'
-      },
-      {
-        name: 'status',
-        label: $t('game.listView.columns.status').toUpperCase(),
-        field: 'status',
-        align: 'center'
-      },
-      {
-        name: 'createdAt',
-        label: $t('game.listView.columns.creation').toUpperCase(),
-        field: 'createdAt',
-        sortable: true,
-        sort: (a: string, b: string) => (
-          (new Date(b).getTime()) - (new Date(a).getTime())
-        ),
-        align: 'right'
-      }
-    ] as column[]"
+			{
+				name: 'room',
+				required: true,
+				label: $t('game.listView.columns.room').toUpperCase(),
+				field: 'room',
+				sortable: true,
+				align: 'left'
+			},
+			{
+				name: 'map',
+				label: $t('game.listView.columns.map').toUpperCase(),
+				field: 'map',
+				sortable: true,
+				align: 'left'
+			},
+			{
+				name: 'scores',
+				label: $t('game.listView.columns.scores').toUpperCase(),
+				field: 'scores',
+				align: 'center'
+			},
+			{
+				name: 'players',
+				label: $t('game.listView.columns.players').toUpperCase(),
+				field: 'players',
+				sortable: true,
+				sort: (a: usersArray, b: usersArray) => (
+					(countPlayers(b)) - (countPlayers(a))
+				),
+				align: 'center'
+			},
+			{
+				name: 'status',
+				label: $t('game.listView.columns.status').toUpperCase(),
+				field: 'status',
+				align: 'center'
+			},
+			{
+				name: 'createdAt',
+				label: $t('game.listView.columns.creation').toUpperCase(),
+				field: 'createdAt',
+				sortable: true,
+				sort: (a: string, b: string) => (
+					(new Date(b).getTime()) - (new Date(a).getTime())
+				),
+				align: 'right'
+			}
+		] as column[]"
 		:loading="!state.connected"
 		:pagination="tablePagination"
 		:rows-per-page-options="tablePaginationPerPage"
@@ -246,7 +277,7 @@ defineExpose({
 				</q-td>
 
 				<q-td key="status" :props="props">
-					{{ props.row.status[0].toUpperCase() + props.row.status.replace(/-/g, ' ').substring(1) }}
+					{{ printStatus(props.row.status) }}
 				</q-td>
 
 				<q-td key="createdAt" :props="props">

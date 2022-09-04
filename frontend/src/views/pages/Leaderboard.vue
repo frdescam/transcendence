@@ -38,7 +38,7 @@
 			{
 				name: 'level',
 				label: $t('leaderboard.level').toUpperCase(),
-				field: 'level',
+				field: 'xp',
 				required: true,
 				align: 'left',
 				style: 'width: 10%'

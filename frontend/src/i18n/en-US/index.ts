@@ -207,6 +207,15 @@ export default {
 				status: 'status',
 				creation: 'creation date'
 			},
+			message: {
+				awaiting: 'awaiting player',
+				warmup: 'warmup',
+				paused: 'paused',
+				sleeve: 'introducing sleeve',
+				running: 'running',
+				finish: 'finish',
+				default: 'unknow'
+			},
 			copied: 'link copied',
 			failed: 'failed to copy to clipboard',
 			vs: 'vs'

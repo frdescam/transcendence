@@ -56,7 +56,7 @@ export default defineComponent({
 		async function onFilterChange (value: string | number | null)
 		{
 			if (typeof value === 'string')
-				filteredAchievements.value = props.achievements.filter((achievement: any) => achievement.achievementName.toLowerCase().includes(value.toLowerCase()) || achievement.achievementDescription.toLowerCase().includes(value.toLowerCase()) /* || match.userForeign.toLowerCase().includes(value.toLowerCase()) */);
+				filteredAchievements.value = props.achievements.filter((achievement: any) => achievement.name.toLowerCase().includes(value.toLowerCase()) || achievement.description.toLowerCase().includes(value.toLowerCase()) /* || match.userForeign.toLowerCase().includes(value.toLowerCase()) */);
 		}
 
 		onMounted(() =>

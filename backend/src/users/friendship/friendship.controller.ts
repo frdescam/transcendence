@@ -1,4 +1,4 @@
-import { Controller, ForbiddenException, NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, ForbiddenException, InternalServerErrorException, NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Get, Post, Delete } from '@nestjs/common';
 import { Body } from '@nestjs/common';
 import { UseGuards } from '@nestjs/common';
@@ -16,14 +16,14 @@ import { idValidationDto } from '../orm/userValidation.dto';
 @Controller('friends')
 export class FriendshipController {
   constructor(
-		private readonly friendshipService: FriendshipService,
-		private readonly userService: UserService,
+    private readonly friendshipService: FriendshipService,
+    private readonly userService: UserService,
   ) {}
 
-	@Post()
+  @Post()
   async create(
-		@AuthUser() user: User,
-		@Body() friendDto: idValidationDto,
+    @AuthUser() user: User,
+    @Body() friendDto: idValidationDto,
   ): Promise<Friend> {
     const target: User = await this.userService.findOneComplete({
       id: friendDto.id,
@@ -51,32 +51,69 @@ export class FriendshipController {
     return this.friendshipService.update(friendship);
   }
 
-	@Get('accepted')
-	async findAllAccepted(
-		@AuthUser() user: User,
-	): Promise<User[]> {
-	  return this.friendshipService.getFriendsPendingOrAccepted(user, false);
-	}
+  @Get('accepted')
+  async findAllAccepted(
+    @AuthUser() user: User,
+  ): Promise<User[]> {
+    return this.friendshipService.getFriendsPendingOrAccepted(user, false);
+  }
 
-	@Get('pending')
-	async findAllPending(
-		@AuthUser() user: User,
-	): Promise<User[]> {
-	  return this.friendshipService.getFriendsPendingOrAccepted(user, true);
-	}
+  @Get('pending')
+  async findAllPending(
+    @AuthUser() user: User,
+  ): Promise<User[]> {
+    return this.friendshipService.getFriendsPendingOrAccepted(user, true);
+  }
 
-	@Delete('delete')
-	async remove(
-		@AuthUser() user: User,
-		@Body() friendDto: idValidationDto,
-	): Promise<boolean> {
-	  const target: User = await this.userService.findOneComplete({
-	    id: friendDto.id,
-	  });
+  @Delete('delete')
+  async remove(
+    @AuthUser() user: User,
+    @Body() friendDto: idValidationDto,
+  ): Promise<boolean> {
+    const target: User = await this.userService.findOneComplete({
+      id: friendDto.id,
+    });
 
-	  if (!target)
-	    throw new NotFoundException('User not found.');
+    if (!target)
+      throw new NotFoundException('User not found.');
 
-	  return this.friendshipService.remove(user, target);
-	}
+    return this.friendshipService.remove(user, target);
+  }
+
+  @Post('status')
+  async getFriendshipStatus(
+    @AuthUser() user: User,
+    @Body() { id }: idValidationDto
+  ): Promise<{friend: boolean, asked: boolean, asking: boolean}>
+  {
+    try {
+      let friend = false;
+      let asked = false;
+      let asking = false;
+
+      const res =
+        await this.friendshipService.findOneOr(
+          user,
+          await this.userService.getOne(id)
+        );
+      
+      if (typeof res !== 'undefined')
+      {
+        const {isPending, user: requester} = res;
+  
+        friend = !isPending;
+        asked = isPending && requester.id === user.id;
+        asking = isPending && requester.id === id;
+      }
+
+      return ({
+        friend,
+        asked,
+        asking
+      });
+    } catch (___)
+    {
+      throw new InternalServerErrorException('Database error');
+    }
+  }
 }

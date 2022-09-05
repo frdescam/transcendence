@@ -8,15 +8,12 @@
 						<img :src='user.avatar'>
 						<q-badge v-if="user.connected" class="absolute-bottom-right"
 							style="width: 30px; height: 30px" color="light-green-14" rounded>
-							<q-tooltip>{{ user.connected }}</q-tooltip>
 						</q-badge>
 						<q-badge v-if="!user.connected" class="absolute-bottom-right"
 							style="width: 30px; height: 30px" color="red" rounded>
-							<q-tooltip>{{ user.connected }}</q-tooltip>
 						</q-badge>
 						<q-badge v-if="user.connected == 'playing'" class="absolute-bottom-right"
 							style="width: 30px; height: 30px" color="orange" rounded>
-							<q-tooltip>{{ user.connected }}</q-tooltip>
 						</q-badge>
 					</q-avatar>
 				</div>
@@ -24,7 +21,7 @@
 			</div>
 			<q-item v-if="!ownPage" class="full-width row justify-around">
 				<q-btn @click="onToggleFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="toggleFriend()" />
-				<q-btn :href="'chat/' + user.pseudo" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="$t('profil.page.message')" />
+				<q-btn :to="{ name: 'chat' }" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="$t('profil.page.message')" />
 				<q-btn @click="onToggleBlockUser()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="(isUserIgnored) ? $t('profil.page.unblock') : $t('profil.page.block')" />
 			</q-item>
 		</div>
@@ -138,17 +135,26 @@ export default {
 			isUserIgnored.value = false;
 		});
 
+		api.get('user/me').then((res) =>
+		{
+			console.log(res);
+		});
+
 		async function fetchFriends ()
 		{
+			isUserFriend.value = false;
+			isUserInvited.value = false;
+			isUserPendingFriend.value = false;
+
 			api.get('/friends/accepted').then((res) =>
 			{
 				const friendUsers = res.data;
 				for (const friendUser of friendUsers)
 				{
-					if (friendUser.followedUser.id === user.value.id || friendUser.user.id === user.value.id)
+					if (friendUser.id === user.value.id)
 					{
 						isUserFriend.value = true;
-						friendId = friendUser.followedUser.id;
+						friendId = user.value.id;
 						return;
 					}
 				}
@@ -158,20 +164,17 @@ export default {
 			api.get('/friends/pending').then((res) =>
 			{
 				const pendingFriendUsers = res.data;
+				console.log(res.data);
 				for (const pendingFriendUser of pendingFriendUsers)
 				{
-					if (pendingFriendUser.followedUser.id === user.value.id)
+					if (pendingFriendUser.id === user.value.id)
 					{
 						isUserPendingFriend.value = true;
-						pendingFriendId = pendingFriendUser.followedUser.id;
+						pendingFriendId = pendingFriendUser.id;
 						return;
 					}
-					else if (pendingFriendUser.user.id === user.value.id)
-					{
-						isUserInvited.value = true;
-						pendingFriendId = pendingFriendUser.user.id;
-					}
 				}
+				isUserInvited.value = true;
 				isUserPendingFriend.value = false;
 			});
 		}
@@ -184,26 +187,33 @@ export default {
 			{
 				api.delete('/friends/delete', {
 					data: { id: friendId }
-				}).then(() =>
+				}).then((res) =>
 				{
-					fetchFriends();
+					if (!res.data.delete)
+						console.log('delete friend failed');
+					else
+						fetchFriends();
 				});
 			}
 			else if (isUserPendingFriend.value)
 			{
 				api.delete('friends/delete', {
 					data: { id: pendingFriendId }
-				}).then(() =>
+				}).then((res) =>
 				{
-					fetchFriends();
+					if (!res.data.delete)
+						console.log('delete pending friend failed');
+					else
+						fetchFriends();
 				});
 			}
 			else
 			{
 				api.post('/friends', {
 					id: user.value.id
-				}).then(() =>
+				}).then((res) =>
 				{
+					console.log('post', res);
 					fetchFriends();
 				});
 			}

@@ -149,7 +149,12 @@ export default {
 			sendMessage: 'Send message',
 			invite: 'Send an invitation to play',
 			block: 'Block user',
-			unblock: 'Unblock user'
+			unblock: 'Unblock user',
+			time: '{time} seconds remaining',
+			notify: {
+				success: 'The party was properly closed',
+				failed: 'The party could not be closed properly, try to do it manually'
+			}
 		},
 		editor: {
 			image: 'Image',

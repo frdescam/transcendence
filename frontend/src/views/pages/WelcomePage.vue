@@ -20,11 +20,11 @@
 			<q-btn flat rounded class="q-ml-auto" icon="search" @click="toggleSearch"/>
 			<q-btn flat rounded class="q-ml-auto" icon="open_in_full" :to="{name: 'friends'}"/>
 		</q-toolbar>
-		<q-item v-for="friend in filteredFriendList" v-bind:key="friend.id" clickable v-ripple @click="onFriendClick(friend.user.id)" class="q-ma-md q-pa-md rounded-borders shadow-2 row items-center" style="width: 260px">
+		<q-item v-for="friend in filteredFriendList" v-bind:key="friend.id" clickable v-ripple @click="onFriendClick(friend.id)" class="q-ma-md q-pa-md rounded-borders shadow-2 row items-center" style="width: 260px">
 				<q-avatar>
-					<img :src='friend.user.avatar'>
+					<img :src='friend.avatar'>
 				</q-avatar>
-				<div class="q-ml-md">{{ friend.user.pseudo }}</div>
+				<div class="q-ml-md">{{ friend.pseudo }}</div>
 		</q-item>
 			<div v-if="filteredFriendList.length == 0 && filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
 			<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
@@ -118,7 +118,11 @@ export default ({
 
 		async function onFilterChange (value: string)
 		{
-			filteredFriendList.value = friendList.value.filter(friend => friend.user.pseudo.toLowerCase().includes(value.toLowerCase()));
+			filteredFriendList.value = friendList.value.filter((friend: any) =>
+				(value)
+					? friend.pseudo.toLowerCase().includes(value.toLowerCase())
+					: friend.pseudo.toLowerCase()
+			);
 		}
 
 		onMounted(async () =>

@@ -594,6 +594,10 @@ export default defineComponent({
 		overflow-x: auto;
 		z-index: 2;
 	}
+	.q-message-name {
+		color: white;
+		font-size: small;
+	}
 	.chat form img {
 		width: 100%;
 		height: 100%;

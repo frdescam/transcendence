@@ -12,28 +12,28 @@
       <q-btn class="q-mb-md" :to="{ path: '/leaderboard' }" color="primary">{{ capitalize($t('index.buttons.checkoutLeader')) }}</q-btn>
       <q-btn class="q-mb-xs" :to="{ path: '/settings' }" color="primary">{{ capitalize($t('index.buttons.edit')) }}</q-btn>
     </q-list>
-	</q-list>
-	<q-list class="rounded-borders shadow-2 q-my-md scroll" style="width: 300px; height: 300px">
-		<q-toolbar>
-		<q-toolbar-title :hidden="!hideSearch">{{ capitalize($t('index.friends')) }}</q-toolbar-title>
-			<q-input :hidden="hideSearch" ref="input" borderless dense debounce="300" v-model="filter" @update:model-value="onFilterChange" :placeholder="capitalize($t('friend.search'))"/>
-			<q-btn flat rounded class="q-ml-auto" icon="search" @click="toggleSearch"/>
-			<q-btn flat rounded class="q-ml-auto" icon="open_in_full" :to="{name: 'friends'}"/>
-		</q-toolbar>
-		<q-item v-for="friend in filteredFriendList" v-bind:key="friend.id" clickable v-ripple @click="onFriendClick(friend.id)" class="q-ma-md q-pa-md rounded-borders shadow-2 row items-center" style="width: 260px">
-				<q-avatar>
-					<img :src='friend.avatar'>
-				</q-avatar>
-				<div class="q-ml-md">{{ friend.pseudo }}</div>
-		</q-item>
-			<div v-if="filteredFriendList.length == 0 && filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
-			<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
-			{{ capitalize($t('index.noData')) }}
-		</div>
-		<div v-if="filteredFriendList.length == 0 && !filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
-			<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
-			{{ capitalize($t('index.noFriends')) }}
-		</div>
+		<q-list class="rounded-borders shadow-2 q-my-md scroll" style="width: 300px; height: 300px">
+			<q-toolbar>
+			<q-toolbar-title :hidden="!hideSearch">{{ capitalize($t('index.friends')) }}</q-toolbar-title>
+				<q-input :hidden="hideSearch" ref="input" borderless dense debounce="300" v-model="filter" @update:model-value="onFilterChange" :placeholder="capitalize($t('friend.search'))"/>
+				<q-btn flat rounded class="q-ml-auto" icon="search" @click="toggleSearch"/>
+				<q-btn flat rounded class="q-ml-auto" icon="open_in_full" :to="{name: 'friends'}"/>
+			</q-toolbar>
+			<q-item v-for="friend in filteredFriendList" v-bind:key="friend.id" clickable v-ripple @click="onFriendClick(friend.id)" class="q-ma-md q-pa-md rounded-borders shadow-2 row items-center" style="width: 260px">
+					<q-avatar>
+						<img :src='friend.avatar'>
+					</q-avatar>
+					<div class="q-ml-md">{{ friend.pseudo }}</div>
+			</q-item>
+				<div v-if="filteredFriendList.length == 0 && filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
+				<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
+				{{ capitalize($t('index.noData')) }}
+			</div>
+			<div v-if="filteredFriendList.length == 0 && !filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
+				<q-icon name="warning" size="1.5rem" class="q-mr-sm"></q-icon>
+				{{ capitalize($t('index.noFriends')) }}
+			</div>
+		</q-list>
 	</q-list>
 
 	<q-dialog v-model="user.new_user">

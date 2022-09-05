@@ -60,6 +60,7 @@ import { useRouter } from 'vue-router';
 import { AxiosInstance } from 'axios';
 import { inject, onMounted, watch } from 'vue';
 import { Capitalize } from 'src/boot/libs';
+import type { catchAxiosType } from 'src/boot/axios';
 
 export default {
 	name: 'FriendsPage',
@@ -67,6 +68,7 @@ export default {
 	{
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
 		const router = useRouter();
 		const filter = ref('');
 		const friends = ref([]);
@@ -74,11 +76,13 @@ export default {
 
 		async function fetchFriends ()
 		{
-			api.get('/friends/accepted').then((res) =>
-			{
-				friends.value = res.data;
-				onFilterChange(filter.value);
-			});
+			catchAxios(
+				api.get('/friends/accepted').then((res) =>
+				{
+					friends.value = res.data;
+					onFilterChange(filter.value);
+				})
+			);
 		}
 
 		fetchFriends();
@@ -95,12 +99,14 @@ export default {
 
 		async function onDeleteFriend (friendId: number)
 		{
-			api.delete('/friends/delete', {
-				data: { id: friendId }
-			}).then(() =>
-			{
-				fetchFriends();
-			});
+			catchAxios(
+				api.delete('/friends/delete', {
+					data: { id: friendId }
+				}).then(() =>
+				{
+					fetchFriends();
+				})
+			);
 		}
 
 		onMounted(() =>

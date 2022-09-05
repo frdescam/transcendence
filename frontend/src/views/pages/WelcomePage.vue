@@ -62,6 +62,7 @@ import { useQuasar } from 'quasar';
 import { Capitalize } from 'src/boot/libs';
 import { useRouter } from 'vue-router';
 import { AxiosInstance } from 'axios';
+import type { catchAxiosType } from 'src/boot/axios';
 
 export default ({
 	name: 'WelcomePage',
@@ -75,6 +76,7 @@ export default ({
 	{
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
 
 		const user = ref({});
 		const $q = useQuasar();
@@ -87,19 +89,19 @@ export default ({
 
 		async function fetchUserInfo ()
 		{
-			const res = await api.get('/user/me', {});
+			const res: any = await catchAxios(api.get('/user/me', {}));
 			user.value = res.data;
 		}
 		async function fetchFriendList ()
 		{
-			const res = await api.get('/friends/accepted');
+			const res: any = await catchAxios(api.get('/friends/accepted'));
 			friendList.value = res.data;
 			onFilterChange(filter.value);
 		}
 
 		async function onDimmissPopup ()
 		{
-			api.get('/user/new');
+			catchAxios(api.get('/user/new'));
 		}
 
 		async function onFriendClick (friendId: number)
@@ -125,24 +127,10 @@ export default ({
 			);
 		}
 
-		onMounted(async () =>
+		onMounted(() =>
 		{
-			try
-			{
-				await fetchUserInfo();
-				await fetchFriendList();
-			}
-			catch (err: any)
-			{
-				let cause;
-				if (!!err && typeof err === 'object' && 'cause' in err)
-					cause = err.cause;
-				$q.notify({
-					type: 'negative',
-					message: 'Failed to fetch user informations',
-					caption: cause
-				});
-			}
+			fetchUserInfo();
+			fetchFriendList();
 		});
 
 		return {

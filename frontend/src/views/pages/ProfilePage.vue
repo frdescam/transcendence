@@ -44,6 +44,7 @@ import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { AxiosInstance } from 'axios';
 import { Socket } from 'socket.io-client';
+import type { catchAxiosType } from 'src/boot/axios';
 import type { State } from 'src/boot/state';
 
 export default {
@@ -60,6 +61,7 @@ export default {
 		const state = inject('state') as State;
 		const socket: Socket = inject('socketChat') as Socket;
 		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
 		const route = useRoute();
 		const userId: number = +route.params.id;
 		const user = ref({});
@@ -73,31 +75,31 @@ export default {
 		let friendId: number;
 		let pendingFriendId: number;
 
-		api.get('/user/match/get/' + userId).then((res) =>
-		{
-			user.value = res.data;
-			matches.value = user.value.matchesForeign.concat(user.value.matchesHome);
-		});
-
 		ownPage.value = (state.myself.id === userId);
 
-		api.get('/user/achievements/get/' + userId).then((res) =>
-		{
-			achievements.value = res.data;
-		});
-
-		api.get('/ignore').then((res) =>
-		{
-			const ignoredUsers = res.data;
-			for (const ignoredUser of ignoredUsers)
+		[
+			api.get('/user/match/get/' + userId).then((res) =>
 			{
-				if (ignoredUser.target.id === user.value.id)
+				user.value = res.data;
+				matches.value = user.value.matchesForeign.concat(user.value.matchesHome);
+			}),
+			api.get('/user/achievements/get/' + userId).then((res) =>
+			{
+				achievements.value = res.data;
+			}),
+			api.get('/ignore').then((res) =>
+			{
+				const ignoredUsers = res.data;
+				for (const ignoredUser of ignoredUsers)
 				{
-					isUserIgnored.value = true;
-					break;
+					if (ignoredUser.target.id === user.value.id)
+					{
+						isUserIgnored.value = true;
+						break;
+					}
 				}
-			}
-		});
+			})
+		].map(catchAxios);
 
 		async function onToggleBlockUser ()
 		{
@@ -135,10 +137,12 @@ export default {
 			isUserIgnored.value = false;
 		});
 
-		api.get('user/me').then((res) =>
-		{
-			console.log(res);
-		});
+		catchAxios(
+			api.get('user/me').then((res) =>
+			{
+				console.log(res);
+			})
+		);
 
 		async function fetchFriends ()
 		{
@@ -146,37 +150,38 @@ export default {
 			isUserInvited.value = false;
 			isUserPendingFriend.value = false;
 
-			api.get('/friends/accepted').then((res) =>
-			{
-				const friendUsers = res.data;
-				for (const friendUser of friendUsers)
+			[
+				api.get('/friends/accepted').then((res) =>
 				{
-					if (friendUser.id === user.value.id)
+					const friendUsers = res.data;
+					for (const friendUser of friendUsers)
 					{
-						isUserFriend.value = true;
-						friendId = user.value.id;
-						return;
+						if (friendUser.id === user.value.id)
+						{
+							isUserFriend.value = true;
+							friendId = user.value.id;
+							return;
+						}
 					}
-				}
-				isUserFriend.value = false;
-			});
-
-			api.get('/friends/pending').then((res) =>
-			{
-				const pendingFriendUsers = res.data;
-				console.log(res.data);
-				for (const pendingFriendUser of pendingFriendUsers)
+					isUserFriend.value = false;
+				}),
+				api.get('/friends/pending').then((res) =>
 				{
-					if (pendingFriendUser.id === user.value.id)
+					const pendingFriendUsers = res.data;
+					console.log(res.data);
+					for (const pendingFriendUser of pendingFriendUsers)
 					{
-						isUserPendingFriend.value = true;
-						pendingFriendId = pendingFriendUser.id;
-						return;
+						if (pendingFriendUser.id === user.value.id)
+						{
+							isUserPendingFriend.value = true;
+							pendingFriendId = pendingFriendUser.id;
+							return;
+						}
 					}
-				}
-				isUserInvited.value = true;
-				isUserPendingFriend.value = false;
-			});
+					isUserInvited.value = true;
+					isUserPendingFriend.value = false;
+				})
+			].map(catchAxios);
 		}
 
 		fetchFriends();
@@ -185,37 +190,43 @@ export default {
 		{
 			if (isUserFriend.value)
 			{
-				api.delete('/friends/delete', {
-					data: { id: friendId }
-				}).then((res) =>
-				{
-					if (!res.data.delete)
-						console.log('delete friend failed');
-					else
-						fetchFriends();
-				});
+				catchAxios(
+					api.delete('/friends/delete', {
+						data: { id: friendId }
+					}).then((res) =>
+					{
+						if (!res.data.delete)
+							console.log('delete friend failed');
+						else
+							fetchFriends();
+					})
+				);
 			}
 			else if (isUserPendingFriend.value)
 			{
-				api.delete('friends/delete', {
-					data: { id: pendingFriendId }
-				}).then((res) =>
-				{
-					if (!res.data.delete)
-						console.log('delete pending friend failed');
-					else
-						fetchFriends();
-				});
+				catchAxios(
+					api.delete('friends/delete', {
+						data: { id: pendingFriendId }
+					}).then((res) =>
+					{
+						if (!res.data.delete)
+							console.log('delete pending friend failed');
+						else
+							fetchFriends();
+					})
+				);
 			}
 			else
 			{
-				api.post('/friends', {
-					id: user.value.id
-				}).then((res) =>
-				{
-					console.log('post', res);
-					fetchFriends();
-				});
+				catchAxios(
+					api.post('/friends', {
+						id: user.value.id
+					}).then((res) =>
+					{
+						console.log('post', res);
+						fetchFriends();
+					})
+				);
 			}
 		}
 

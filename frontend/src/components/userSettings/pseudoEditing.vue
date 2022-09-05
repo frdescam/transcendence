@@ -25,6 +25,7 @@ import { defineComponent, inject, ref } from 'vue';
 import { Capitalize } from 'src/boot/libs';
 import { api } from 'boot/axios';
 import type { RefreshUserState } from 'src/boot/state';
+import type { catchAxiosType } from 'src/boot/axios';
 
 export default defineComponent({
 	props: [
@@ -36,8 +37,8 @@ export default defineComponent({
 	setup (props, { emit })
 	{
 		const refreshUserState = inject('refreshUserState') as RefreshUserState;
-
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
 
 		const newPseudo = ref('');
 		const LoadingPseudo = ref(false);
@@ -70,23 +71,25 @@ export default defineComponent({
 		{
 			toggleNameEdit();
 			LoadingPseudo.value = true;
-			api.patch('/user/updatePseudo', { update_pseudo: newPseudo.value }).then((res) =>
-			{
-				if (res.data.error)
+			catchAxios(
+				api.patch('/user/updatePseudo', { update_pseudo: newPseudo.value }).then((res) =>
 				{
-					failure.value = true;
-					success.value = false;
-					errorMessage.value = res.data.error;
-				}
-				else
-				{
-					emit('update:pseudo', res.data.pseudo);
-					failure.value = false;
-					success.value = true;
-					refreshUserState();
-				}
-				LoadingPseudo.value = false;
-			});
+					if (res.data.error)
+					{
+						failure.value = true;
+						success.value = false;
+						errorMessage.value = res.data.error;
+					}
+					else
+					{
+						emit('update:pseudo', res.data.pseudo);
+						failure.value = false;
+						success.value = true;
+						refreshUserState();
+					}
+					LoadingPseudo.value = false;
+				})
+			);
 		};
 		return {
 			props,

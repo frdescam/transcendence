@@ -109,18 +109,11 @@ export default defineComponent({
 			}
 		});
 
-		function onLogout ()
-		{
-			api.get('/logout');
-			router.push('/login');
-		}
-
 		return {
 			clsx,
 			locale,
 			localeOptions: options,
 
-			onLogout,
 			capitalize
 		};
 	}

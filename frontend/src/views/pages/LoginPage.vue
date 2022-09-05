@@ -22,6 +22,7 @@
 import { inject, ref } from 'vue';
 import { AxiosInstance } from 'axios';
 import { useRouter } from 'vue-router';
+import type { catchAxiosType } from 'src/boot/axios';
 
 export default {
 	name: 'LoginPage',
@@ -29,6 +30,7 @@ export default {
 	setup ()
 	{
 		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
 		const router = useRouter();
 		const id = ref(null);
 		const disableInput = ref(false);
@@ -38,25 +40,27 @@ export default {
 		async function onSubmit ()
 		{
 			disableInput.value = true;
-			api.post('/auto_login',
-				{
-					id: id.value
-				})
-				.then((res) =>
-				{
-					if (res.data.two_factor_enabled)
-						router.push('/login/2FA');
-					else
-						router.push({ name: 'logging' });
-				}).catch(() =>
-				{
-					inputColor.value = 'red';
-					disableInput.value = false;
-					setTimeout(() =>
+			catchAxios(
+				api.post('/auto_login',
 					{
-						input.value.focus();
-					}, 100);
-				});
+						id: id.value
+					})
+					.then((res) =>
+					{
+						if (res.data.two_factor_enabled)
+							router.push('/login/2FA');
+						else
+							router.push({ name: 'logging' });
+					}).catch(() =>
+					{
+						inputColor.value = 'red';
+						disableInput.value = false;
+						setTimeout(() =>
+						{
+							input.value.focus();
+						}, 100);
+					})
+			);
 		}
 		return {
 			onSubmit,

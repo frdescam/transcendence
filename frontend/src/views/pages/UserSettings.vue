@@ -56,6 +56,7 @@
 			</q-card-section>
 		</q-card> -->
 
+<!--
 		<q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section class="row justify-center">
 				<q-form method="post" @submit="deleteAccount">
@@ -78,6 +79,8 @@
 				</q-form>
 			</q-card-section>
 		</q-card>
+-->
+
 	</q-list>
 </template>
 
@@ -88,6 +91,7 @@ import { Capitalize } from 'src/boot/libs';
 import pictureEditing from 'src/components/userSettings/pictureEditing.vue';
 import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
 import { QPopupProxy } from 'quasar';
+import type { catchAxiosType } from 'src/boot/axios';
 // import passwordEditing from 'src/components/userSettings/passwordEditing.vue';
 
 export default ({
@@ -100,6 +104,7 @@ export default ({
 	setup ()
 	{
 		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 
 		const TFAActivating = ref(false);
@@ -118,7 +123,7 @@ export default ({
 
 		function onDeactivate2FA ()
 		{
-			api.get('2FA/deactivate');
+			catchAxios(api.get('2FA/deactivate'));
 			me.value.is2FActive = false;
 		}
 
@@ -128,7 +133,7 @@ export default ({
 			if (code.length === 6)
 			{
 				disableInput.value = true;
-				const res = await api.post('/2FA/turn-on', { code });
+				const res: any = await catchAxios(api.post('/2FA/turn-on', { code }));
 				if (res.data.error)
 				{
 					disableInput.value = false;
@@ -142,10 +147,12 @@ export default ({
 			}
 		}
 
-		api.get('/user/me').then((res) =>
-		{
-			me.value = res.data;
-		});
+		catchAxios(
+			api.get('/user/me').then((res) =>
+			{
+				me.value = res.data;
+			})
+		);
 
 		return {
 			capitalize,

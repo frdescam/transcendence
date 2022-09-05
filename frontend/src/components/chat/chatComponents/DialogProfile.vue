@@ -21,6 +21,7 @@
             <q-badge :label="$t('chat.user.xp').toUpperCase()" style="margin-right: .5em;" />
             <span>{{ user.xp }}</span>
           </div>
+					<q-btn class="q-mt-sm" color="secondary" @click="toProfilePage" icon="account_circle" :label="$t('chat.user.profile')" />
 				</q-item-section>
 			</q-item>
 		</q-card>
@@ -29,6 +30,7 @@
 
 <script lang="ts">
 import { QDialog } from 'quasar';
+import { useRouter } from 'vue-router';
 import { defineComponent, ref, watch } from 'vue';
 
 export default defineComponent({
@@ -40,6 +42,8 @@ export default defineComponent({
 	emits: ['dialog-profil-close'],
 	setup: (props, { emit }) =>
 	{
+		const router = useRouter();
+
 		const dialog = ref<QDialog | null>(null);
 
 		const imageError = (e: Event) =>
@@ -47,6 +51,11 @@ export default defineComponent({
 			const target = e.target as HTMLImageElement;
 			if (target)
 				target.src = 'imgs/chat/default.webp';
+		};
+
+		const toProfilePage = () =>
+		{
+			router.push(`profile/${props.user.id}`);
 		};
 
 		const close = () =>
@@ -65,6 +74,7 @@ export default defineComponent({
 			dialog,
 
 			imageError,
+			toProfilePage,
 			close
 		};
 	}

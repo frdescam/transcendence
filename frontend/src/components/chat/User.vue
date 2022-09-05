@@ -14,7 +14,9 @@
 			<template v-else>
 				<template v-if="noError">
 					<q-item
-						clickable v-ripple
+						clickable
+						v-ripple
+						@click="openUserProfile"
 						v-for="user in users" v-bind:key="user.id" :data-id="user.id"
 					>
 						<q-item-section>{{ user.pseudo }}</q-item-section>
@@ -40,15 +42,6 @@
 			@before-show="openMpMenu"
 		>
 			<q-list bordered padding>
-				<q-item
-					clickable
-					@click="seeUserProfile(); mpMemu?.hide(); "
-				>
-					<q-item-section avatar>
-						<q-icon name="account_circle"></q-icon>
-					</q-item-section>
-					<q-item-section>{{ $t('chat.user.profile') }}</q-item-section>
-				</q-item>
 				<q-item
 					clickable
 					@click="sendMP(); mpMemu?.hide();"
@@ -330,13 +323,24 @@ export default defineComponent({
 		const dialogProfilShow = ref(false);
 		const dialogProfilUser = ref();
 
-		const seeUserProfile = () =>
+		const openUserProfile = (e: Event) =>
 		{
-			const i = findIndex(userSelected.value);
-			if (i !== -1)
+			let target = e.target as HTMLElement;
+			if (target)
 			{
-				dialogProfilUser.value = users.value[i];
-				dialogProfilShow.value = true;
+				while (target.classList && !target.classList.contains('q-item'))
+					target = target.parentNode as HTMLElement;
+				if (target.hasAttribute &&
+						target.hasAttribute('data-id'))
+				{
+					userSelected.value = Number(target.getAttribute('data-id'));
+					const i = findIndex(userSelected.value);
+					if (i !== -1)
+					{
+						dialogProfilUser.value = users.value[i];
+						dialogProfilShow.value = true;
+					}
+				}
 			}
 		};
 		// #endregion
@@ -377,7 +381,7 @@ export default defineComponent({
 
 			dialogProfilShow,
 			dialogProfilUser,
-			seeUserProfile,
+			openUserProfile,
 
 			imageError
 		};

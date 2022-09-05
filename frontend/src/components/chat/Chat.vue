@@ -106,7 +106,6 @@
 </template>
 
 <script lang="ts">
-
 /* eslint-disable no-array-constructor */
 import { Timestamp, TimestampFunction } from 'src/boot/libs';
 import { Socket } from 'socket.io-client';

@@ -43,9 +43,7 @@
 import clsx from 'clsx';
 import { defineComponent, inject, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
 import { Capitalize } from 'src/boot/libs';
-import { api } from 'boot/axios';
 import options from 'src/i18n/options';
 import languages from 'quasar/lang/index.json';
 
@@ -89,7 +87,6 @@ export default defineComponent({
 	{
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const { locale } = useI18n({ useScope: 'global' });
-		const router = useRouter();
 
 		watch(locale, (val) =>
 		{

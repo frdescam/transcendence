@@ -58,7 +58,6 @@ import pictureEditing from 'src/components/userSettings/pictureEditing.vue';
 import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
 import { ref, onMounted, inject } from 'vue';
-import { useQuasar } from 'quasar';
 import { Capitalize } from 'src/boot/libs';
 import { useRouter } from 'vue-router';
 import { AxiosInstance } from 'axios';
@@ -79,7 +78,6 @@ export default ({
 		const catchAxios = inject('catchAxios') as catchAxiosType;
 
 		const user = ref({});
-		const $q = useQuasar();
 		const router = useRouter();
 		const friendList = ref([]);
 		const filteredFriendList = ref([]);

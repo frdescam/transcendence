@@ -20,9 +20,9 @@
 				<profileHeader :user="user"></profileHeader>
 			</div>
 			<q-item v-if="!ownPage" class="full-width row justify-around">
-				<q-btn @click="onToggleFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="toggleFriend()" />
-				<q-btn :to="{ name: 'chat' }" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="$t('profil.page.message')" />
-				<q-btn @click="onToggleBlockUser()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="(isUserIgnored) ? $t('profil.page.unblock') : $t('profil.page.block')" />
+				<q-btn @click="friendAction()" class="action_button" :label="getFriendLabel()" :disable="friendStatus === FriendStatus.loading" />
+				<q-btn :to="{ name: 'chat' }" class="action_button" :label="$t('profil.page.message')" />
+				<q-btn @click="onToggleBlockUser()" class="action_button" :label="(isUserIgnored) ? $t('profil.page.unblock') : $t('profil.page.block')" />
 			</q-item>
 		</div>
 		<div class="row justify-evenly">
@@ -47,6 +47,15 @@ import { Socket } from 'socket.io-client';
 import type { catchAxiosType } from 'src/boot/axios';
 import type { State } from 'src/boot/state';
 
+enum FriendStatus
+{
+	loading,
+	none,
+	asked,
+	asking,
+	friend,
+}
+
 export default {
 	name: 'LeaderboardPage',
 	components: {
@@ -63,27 +72,23 @@ export default {
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const catchAxios = inject('catchAxios') as catchAxiosType;
 		const route = useRoute();
-		const userId: number = +route.params.id;
+		const profileUserId: number = +route.params.id;
 		const user = ref({});
 		const matches = ref([]);
 		const achievements = ref([]);
 		const ownPage = ref(false);
 		const isUserIgnored = ref(false);
-		const isUserFriend = ref(false);
-		const isUserPendingFriend = ref(false);
-		const isUserInvited = ref(false);
-		let friendId: number;
-		let pendingFriendId: number;
+		const friendStatus = ref<FriendStatus>(FriendStatus.loading);
 
-		ownPage.value = (state.myself.id === userId);
+		ownPage.value = (state.myself.id === profileUserId);
 
 		[
-			api.get('/user/match/get/' + userId).then((res) =>
+			api.get('/user/match/get/' + profileUserId).then((res) =>
 			{
 				user.value = res.data;
 				matches.value = user.value.matchesForeign.concat(user.value.matchesHome);
 			}),
-			api.get('/user/achievements/get/' + userId).then((res) =>
+			api.get('/user/achievements/get/' + profileUserId).then((res) =>
 			{
 				achievements.value = res.data;
 			}),
@@ -101,7 +106,7 @@ export default {
 			})
 		].map(catchAxios);
 
-		async function onToggleBlockUser ()
+		function onToggleBlockUser ()
 		{
 			if (isUserIgnored.value)
 			{
@@ -137,109 +142,74 @@ export default {
 			isUserIgnored.value = false;
 		});
 
-		catchAxios(
-			api.get('user/me').then((res) =>
-			{
-				console.log(res);
-			})
-		);
-
-		async function fetchFriends ()
+		function getFriendLabel ()
 		{
-			isUserFriend.value = false;
-			isUserInvited.value = false;
-			isUserPendingFriend.value = false;
-
-			[
-				api.get('/friends/accepted').then((res) =>
-				{
-					const friendUsers = res.data;
-					for (const friendUser of friendUsers)
-					{
-						if (friendUser.id === user.value.id)
-						{
-							isUserFriend.value = true;
-							friendId = user.value.id;
-							return;
-						}
-					}
-					isUserFriend.value = false;
-				}),
-				api.get('/friends/pending').then((res) =>
-				{
-					const pendingFriendUsers = res.data;
-					console.log(res.data);
-					for (const pendingFriendUser of pendingFriendUsers)
-					{
-						if (pendingFriendUser.id === user.value.id)
-						{
-							isUserPendingFriend.value = true;
-							pendingFriendId = pendingFriendUser.id;
-							return;
-						}
-					}
-					isUserInvited.value = true;
-					isUserPendingFriend.value = false;
-				})
-			].map(catchAxios);
-		}
-
-		fetchFriends();
-
-		async function onToggleFriend ()
-		{
-			if (isUserFriend.value)
+			switch (friendStatus.value)
 			{
-				catchAxios(
-					api.delete('/friends/delete', {
-						data: { id: friendId }
-					}).then((res) =>
-					{
-						if (!res.data.delete)
-							console.log('delete friend failed');
-						else
-							fetchFriends();
-					})
-				);
-			}
-			else if (isUserPendingFriend.value)
-			{
-				catchAxios(
-					api.delete('friends/delete', {
-						data: { id: pendingFriendId }
-					}).then((res) =>
-					{
-						if (!res.data.delete)
-							console.log('delete pending friend failed');
-						else
-							fetchFriends();
-					})
-				);
-			}
-			else
-			{
-				catchAxios(
-					api.post('/friends', {
-						id: user.value.id
-					}).then((res) =>
-					{
-						console.log('post', res);
-						fetchFriends();
-					})
-				);
-			}
-		}
-
-		const toggleFriend = () =>
-		{
-			if (isUserFriend.value)
+			case FriendStatus.friend:
 				return t('profil.page.remove');
-			else if (isUserPendingFriend.value)
-				return t('profil.page.cancel');
-			else if (isUserInvited.value)
+			case FriendStatus.asking:
 				return t('profil.page.accept');
-			return t('profil.page.friend');
-		};
+			case FriendStatus.asked:
+				return t('profil.page.cancel');
+			case FriendStatus.none:
+				return t('profil.page.friend');
+
+			default:
+				return '...';
+			}
+		}
+
+		function removeFriend ()
+		{
+			friendStatus.value = FriendStatus.loading;
+			catchAxios(
+				api.delete('/friends/delete', {
+					data: {
+						id: profileUserId
+					}
+				})
+					.then(() =>
+					{
+						friendStatus.value = FriendStatus.none;
+					})
+					.catch((err) =>
+					{
+						friendStatus.value = FriendStatus.friend;
+						return (err);
+					})
+			);
+		}
+
+		function addFriend ()
+		{
+			friendStatus.value = FriendStatus.loading;
+			catchAxios(
+				api.post('/friends', {
+					id: profileUserId
+				})
+					.then(({ data: { isPending } }: any) =>
+					{
+						if (isPending)
+							friendStatus.value = FriendStatus.asked;
+						else
+							friendStatus.value = FriendStatus.friend;
+					})
+					.catch((err) =>
+					{
+						friendStatus.value = FriendStatus.none;
+						return (err);
+					})
+			);
+		}
+
+		function friendAction ()
+		{
+			if (friendStatus.value === FriendStatus.friend || friendStatus.value === FriendStatus.asked)
+				removeFriend();
+			else
+				addFriend();
+		}
 
 		const disconnect = (reason: Socket.DisconnectReason) =>
 		{
@@ -251,6 +221,23 @@ export default {
 		{
 			socket.on('disconnect', disconnect);
 			socket.connect();
+
+			catchAxios(
+				api.post('/friends/status', {
+					id: profileUserId
+				})
+					.then(({ data }: any) =>
+					{
+						if (data.friend)
+							friendStatus.value = FriendStatus.friend;
+						else if (data.asking)
+							friendStatus.value = FriendStatus.asking;
+						else if (data.asked)
+							friendStatus.value = FriendStatus.asked;
+						else
+							friendStatus.value = FriendStatus.none;
+					})
+			);
 		});
 
 		onUnmounted(() =>
@@ -265,14 +252,21 @@ export default {
 			achievements,
 			ownPage,
 			isUserIgnored,
-			isUserFriend,
-			isUserPendingFriend,
-			isUserInvited,
 
 			onToggleBlockUser,
-			onToggleFriend,
-			toggleFriend
+			getFriendLabel,
+			friendAction,
+			friendStatus,
+			FriendStatus
 		};
 	}
 };
 </script>
+
+<style scoped>
+.action_button
+{
+	color: #eee;
+	background: rgba(0, 0, 0, 0.4);
+}
+</style>

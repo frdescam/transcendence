@@ -29,11 +29,18 @@
 					{{ capitalize($t('index.nextLevel')) }}
 				</div>
 				<div style="color: #eee;" class="q-mb-none">
-					{{ (parseFloat(user.xp) - Math.floor(parseFloat(user.xp))) * 100 }} / 100 {{ $t('index.exp').toUpperCase() }}
+					{{ calcXP(user) }} / 100 {{ $t('index.exp').toUpperCase() }}
 				</div>
 			</div>
 			<div class="col-2">
-				<q-linear-progress stripe rounded class="q-mt-sm" size="20px" :value="parseFloat(user.xp) - Math.floor(parseFloat(user.xp))" color="blue" />
+				<q-linear-progress
+					class="q-mt-sm"
+					size="20px"
+					color="blue"
+					stripe
+					rounded
+					:value="calcXP(user) / 100"
+				/>
 			</div>
 		</div>
 	</div>
@@ -42,6 +49,13 @@
 <script lang="ts">
 import { defineComponent, inject } from 'vue';
 import { Capitalize } from 'src/boot/libs';
+
+function calcXP (user: any): number
+{
+	if (typeof user === 'object' && user && typeof user.xp !== 'undefined')
+		return (parseFloat(user.xp) - Math.floor(parseFloat(user.xp))) * 100;
+	return (0);
+}
 
 export default defineComponent({
 	props: [
@@ -52,7 +66,8 @@ export default defineComponent({
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 
 		return {
-			capitalize
+			capitalize,
+			calcXP
 		};
 	}
 });

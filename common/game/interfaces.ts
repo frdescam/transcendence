@@ -1,5 +1,5 @@
 import type { Euler, Color, Vector3 } from 'three';
-import type { Material, avatar, team, userId } from './types';
+import type { Material, avatar, inclusiveTeam, userId, controlsMode } from './types';
 
 interface mapConfig {
 	name: string,
@@ -7,7 +7,7 @@ interface mapConfig {
 	fov: number,
 	forceRotationRatio: number,
 	effects: string[],
-	controls: string[],
+	controls: controlsMode[],
   speedFactor: number,
 	sceneFile?: string,
 	additionnalLight?: string[],
@@ -82,7 +82,7 @@ interface serverState {
 }
 
 interface state extends serverState {
-	team: team,
+	team: inclusiveTeam,
 	spectator: boolean,
 	can_join: boolean,
 	could_join: boolean

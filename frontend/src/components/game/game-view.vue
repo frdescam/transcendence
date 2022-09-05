@@ -8,6 +8,7 @@ import { Capitalize } from 'src/boot/libs';
 import Scene, { mapConfig, options } from './canvas/scene';
 import maps from './maps';
 
+import { controls } from 'src/common/game/types';
 import type { state as commonState, Ping, Pong } from 'src/common/game/interfaces';
 import type { controlsMode } from 'src/common/game/types';
 
@@ -165,7 +166,7 @@ function onState (state: Partial<commonState>)
 {
 	let latency = 0;
 	lastState = state;
-	if ('date' in state)
+	if ('date' in state && typeof state.date === 'string')
 	{
 		const now: Date = new Date();
 		const serverDate: Date = new Date(state.date);
@@ -217,10 +218,11 @@ function mountScene (config: mapConfig)
 				state.loaded = true;
 				scene?.setAccessibility(state.accessibility);
 				scene?.setQuality(state.graphics);
-				for (const control in ['wheel', 'keyboard', 'mouse'])
+				for (const control in controls)
 				{
-					if (state.available_controls[control])
-						scene?.setControl(control, state.controls[control]);
+					const typedControl = control as controlsMode; // Despite of the type of the array 'controls', typescript loose its information
+					if (state.available_controls[typedControl])
+						scene?.setControl(typedControl, state.controls[typedControl]);
 				}
 			},
 			onError
@@ -263,9 +265,9 @@ function onConnected ()
 		{
 			room: props.party
 		},
-		(err) =>
+		(err: Error) =>
 		{
-			state.error = err.message ? err.message : err;
+			state.error = err.message ? err.message : (err + '');
 		}
 	);
 

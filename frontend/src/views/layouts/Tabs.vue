@@ -30,14 +30,8 @@
 import { defineComponent, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import None from './None.vue';
-import type { RouteRecordNormalized, RouteRecordRaw, RouteRecordName } from 'vue-router';
-
-export interface LayoutTab {
-	label: string,
-	icon: string
-	route: RouteRecordRaw
-}
-export type LayoutTabs = LayoutTab[];
+import type { RouteRecordNormalized, RouteRecordName } from 'vue-router';
+import type { LayoutTabs } from './interfaces';
 
 const tabIndex = ref(0);
 

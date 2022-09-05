@@ -1,6 +1,6 @@
 import { RouteRecordRaw } from 'vue-router';
-import type { LayoutTabs } from 'src/views/layouts/Tabs';
 import { state } from 'src/boot/state';
+import { LayoutTabs } from 'src/views/layouts/interfaces';
 
 const backgrounds = {
 	cactus: {

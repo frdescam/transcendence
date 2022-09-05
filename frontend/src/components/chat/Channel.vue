@@ -848,7 +848,8 @@ export default defineComponent({
 				if (channels.value[i].id === ret.data.id)
 				{
 					channels.value.splice(Number(i), 1);
-					sendEvent(-1, true);
+					if (selectedChannelId.value === ret.data.id)
+						sendEvent(-1, true);
 					return;
 				}
 			}

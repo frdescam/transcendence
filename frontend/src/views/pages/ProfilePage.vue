@@ -23,7 +23,7 @@
 				<profileHeader :user="user"></profileHeader>
 			</div>
 			<q-item v-if="!ownPage" class="full-width row justify-around">
-				<q-btn @click="onToggleFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="toggleFriend" />
+				<q-btn @click="onToggleFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="toggleFriend()" />
 				<q-btn :href="'chat/' + user.pseudo" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="$t('profil.page.message')" />
 				<q-btn @click="onToggleBlockUser()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" :label="(isUserIgnored) ? $t('profil.page.unblock') : $t('profil.page.block')" />
 			</q-item>
@@ -42,7 +42,7 @@
 import matchesList from 'src/components/profilePage/MatchesList.vue';
 import achievementsList from 'src/components/profilePage/AchievementsList.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
-import { inject, ref } from 'vue';
+import { inject, ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { AxiosInstance } from 'axios';
@@ -219,6 +219,24 @@ export default {
 				return t('profil.page.accept');
 			return t('profil.page.friend');
 		};
+
+		const disconnect = (reason: Socket.DisconnectReason) =>
+		{
+			if (reason === 'io server disconnect')
+				socket.connect();
+		};
+
+		onMounted(() =>
+		{
+			socket.on('disconnect', disconnect);
+			socket.connect();
+		});
+
+		onUnmounted(() =>
+		{
+			socket.off('disconnect', disconnect);
+			socket.disconnect();
+		});
 
 		return {
 			user,

@@ -33,7 +33,7 @@
 						<img :src='match.userForeign.avatar'>
 					</q-avatar>
 				</div>
-				<p class="text-center q-mb-none">{{ $t('profil.matches.title', { map: match.map }) }}</p>
+				<p class="text-center q-mb-none">{{ $t('profil.matches.map', { map: match.map }) }}</p>
 			</q-card>
 		</q-item>
 			<div v-if="filteredMatches.length == 0 && filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">

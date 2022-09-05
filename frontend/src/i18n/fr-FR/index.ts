@@ -149,7 +149,12 @@ export default {
 			sendMessage: 'Envoyer un message',
 			invite: 'Envoyer une invitation à jouer',
 			block: 'Bloquer l\'utilisateur',
-			unblock: 'Débloquer l\'utilisateur'
+			unblock: 'Débloquer l\'utilisateur',
+			time: '{time} secondes restantes',
+			notify: {
+				success: 'La partie a été correctement fermée',
+				failed: 'La partie n\'a pas pu être fermée correctement, essayez de le faire manuellement'
+			}
 		},
 		editor: {
 			image: 'Image',
@@ -207,6 +212,15 @@ export default {
 				status: 'status',
 				creation: 'date de création'
 			},
+			message: {
+				awaiting: 'en attente d\'un joueur',
+				warmup: 'échauffement',
+				paused: 'en pause',
+				sleeve: 'manche d\'introduction',
+				running: 'en cours d\'exécution',
+				finish: 'terminer',
+				default: 'inconnu'
+			},
 			copied: 'lien copié',
 			failed: 'échec de la copie dans le presse-papiers',
 			vs: 'vs'
@@ -249,7 +263,7 @@ export default {
 			},
 			state: {
 				connected: 'en connection',
-				state: 'en attente de l\'état de jeu',
+				state: 'en attente de l\'état du jeu',
 				default: 'chargement de la carte'
 			}
 		}
@@ -274,10 +288,10 @@ export default {
 		adversary: 'adversaire',
 		adversaryHint: 'si elle est sélectionnée, une invitation sera envoyée',
 		map: 'carte',
-		mapHint: 'la carte affecte la vitesse de la balle et permet des contrôles',
+		mapHint: 'la carte affecte la vitesse de la balle et les contrôles autorisées',
 		room: 'nom de la salle',
 		roomHint: 'le nom de la partie, qui sera dans l\'URL',
-		matchHint: 'si vous êtes sélectionné, vous serez mis en file d\'attente pour jouer avec cette personne en particulier',
+		matchHint: 'si sélectionné, vous serez mis en file d\'attente pour jouer avec cette personne en particulier',
 		query: 'placer une requête',
 		party: 'créer ma partie'
 	},

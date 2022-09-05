@@ -14,7 +14,9 @@
 			<template v-else>
 				<template v-if="noError">
 					<q-item
-						clickable v-ripple
+						clickable
+						v-ripple
+						@click="openUserProfile"
 						v-for="user in users" v-bind:key="user.id" :data-id="user.id"
 					>
 						<q-item-section>{{ user.pseudo }}</q-item-section>
@@ -42,15 +44,6 @@
 			<q-list bordered padding>
 				<q-item
 					clickable
-					@click="seeUserProfile(); mpMemu?.hide(); "
-				>
-					<q-item-section avatar>
-						<q-icon name="account_circle"></q-icon>
-					</q-item-section>
-					<q-item-section>{{ $t('chat.user.profile') }}</q-item-section>
-				</q-item>
-				<q-item
-					clickable
 					@click="sendMP(); mpMemu?.hide();"
 				>
 					<q-item-section avatar>
@@ -73,7 +66,8 @@
 
 				<q-item
 					clickable
-					@click="dialogInvitationCreatorShow = true; mpMemu?.hide(); "
+					:disable="!userIsConnected"
+					@click="sendInvitation()"
 				>
 					<q-item-section avatar>
 						<q-icon name="videogame_asset"></q-icon>
@@ -134,6 +128,7 @@ export default defineComponent({
 		const mpMemu = ref<QMenu | null>(null);
 		const userSelected = ref<number>(-1);
 		const userIsBlocked = ref<boolean>(false);
+		const userIsConnected = ref<boolean>(false);
 
 		const dialogInvitationCreatorShow = ref(false);
 		const dialogCreatorName = ref();
@@ -173,9 +168,10 @@ export default defineComponent({
 			socket.emit('channel::get', props.selectedChannel.id);
 		};
 
-		socket.on('channel::receive::delete', () =>
+		socket.on('channel::receive::delete', (ret) =>
 		{
-			users.value = [];
+			if (ret.data.channel === props.selectedChannel.id)
+				users.value = [];
 		});
 
 		socket.on('channel::receive::get', (ret) =>
@@ -192,6 +188,23 @@ export default defineComponent({
 		// #endregion Channel
 
 		// #region MP
+		const checkIfInvitationFailed = (): boolean =>
+		{
+			for (const user of users.value)
+			{
+				if (user.id === userSelected.value)
+					return (user.connected);
+			}
+			return false;
+		};
+
+		const sendInvitation = () =>
+		{
+			if (userIsConnected.value)
+				dialogInvitationCreatorShow.value = true;
+			mpMemu.value?.hide();
+		};
+
 		const openMpMenu = (e: Event) =>
 		{
 			let target = e.target as HTMLElement;
@@ -205,6 +218,7 @@ export default defineComponent({
 				{
 					userSelected.value = Number(target.getAttribute('data-id'));
 					userIsBlocked.value = props.blockedUser.includes(userSelected.value);
+					userIsConnected.value = checkIfInvitationFailed();
 					const iCreator = findIndex(props.userId);
 					const iInvite = findIndex(userSelected.value);
 					if (iCreator !== -1)
@@ -309,13 +323,24 @@ export default defineComponent({
 		const dialogProfilShow = ref(false);
 		const dialogProfilUser = ref();
 
-		const seeUserProfile = () =>
+		const openUserProfile = (e: Event) =>
 		{
-			const i = findIndex(userSelected.value);
-			if (i !== -1)
+			let target = e.target as HTMLElement;
+			if (target)
 			{
-				dialogProfilUser.value = users.value[i];
-				dialogProfilShow.value = true;
+				while (target.classList && !target.classList.contains('q-item'))
+					target = target.parentNode as HTMLElement;
+				if (target.hasAttribute &&
+						target.hasAttribute('data-id'))
+				{
+					userSelected.value = Number(target.getAttribute('data-id'));
+					const i = findIndex(userSelected.value);
+					if (i !== -1)
+					{
+						dialogProfilUser.value = users.value[i];
+						dialogProfilShow.value = true;
+					}
+				}
 			}
 		};
 		// #endregion
@@ -347,6 +372,8 @@ export default defineComponent({
 			mpMemu,
 			userSelected,
 			userIsBlocked,
+			userIsConnected,
+			sendInvitation,
 			openMpMenu,
 			sendMP,
 
@@ -354,7 +381,7 @@ export default defineComponent({
 
 			dialogProfilShow,
 			dialogProfilUser,
-			seeUserProfile,
+			openUserProfile,
 
 			imageError
 		};

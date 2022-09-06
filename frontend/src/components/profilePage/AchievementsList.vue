@@ -42,6 +42,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, inject, ref, watch } from 'vue';
 import { Capitalize } from 'src/boot/libs';
+import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
 	props: [
@@ -52,11 +53,12 @@ export default defineComponent({
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const filteredAchievements = ref([...props.achievements]);
 		const filter = ref('');
+		const { t } = useI18n();
 
 		async function onFilterChange (value: string | number | null)
 		{
 			if (typeof value === 'string')
-				filteredAchievements.value = props.achievements.filter((achievement: any) => achievement.name.toLowerCase().includes(value.toLowerCase()) || achievement.description.toLowerCase().includes(value.toLowerCase()) /* || match.userForeign.toLowerCase().includes(value.toLowerCase()) */);
+				filteredAchievements.value = props.achievements.filter((achievement: any) => achievement.name.toLowerCase().includes(value.toLowerCase()) || t(`profil.achievements.list.${achievement.key}.description`).toLowerCase().includes(value.toLowerCase()));
 		}
 
 		onMounted(() =>

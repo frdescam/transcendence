@@ -20,11 +20,11 @@
 		<q-item v-for="achievement in filteredAchievements" :key="achievement.id">
 			<q-card class="fit row justify-between q-pa-md">
 				<div class="column">
-					<p class="q-mb-sm">{{ achievement.name }}</p>
-					<q-item-label caption>{{ achievement.description }}</q-item-label>
+					<p class="q-mb-sm">{{ capitalize($t(`profil.achievements.list.${achievement.key}.name`)) }}</p>
+					<q-item-label caption>{{ capitalize($t(`profil.achievements.list.${achievement.key}.description`)) }}</q-item-label>
 				</div>
 				<q-avatar size="75px">
-					<img :src='achievement.image'>
+					<img :src="`./../achievements/${achievement.key}.png`" />
 				</q-avatar>
 			</q-card>
 		</q-item>

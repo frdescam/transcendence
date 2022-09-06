@@ -21,20 +21,20 @@ export class UserService {
     await this.userRepository.update(userId, {
       is2FActive: true,
     });
-	  }
+  }
 
   async turnOff2FA(userId: number): Promise<void> {
     await this.userRepository.update(userId, {
       is2FActive: false,
       secretOf2FA: null,
     });
-	  }
+  }
 
   async set2FASecret(secret: string, userId: number): Promise<void> {
     await this.userRepository.update(userId, {
       secretOf2FA: secret,
     });
-	  }
+  }
 
   // should add something if id fails?
   async updateAvatar(filename: string, userId: number): Promise<User> {
@@ -141,7 +141,7 @@ export class UserService {
       match.winner = await this.sanitizeUser(match.winner);
       match.userForeign = await this.sanitizeUser(match.userForeign);
       match.userHome = await this.sanitizeUser(match.userHome);
-    })
+    });
     return user;
   }
 
@@ -155,7 +155,7 @@ export class UserService {
     if (!player_achievs)
       return null;
 
-    let achievs : AchievementsDto[] = [];
+    const achievs : AchievementsDto[] = [];
     for (const elem of Achievements) {
       if (player_achievs.includes(elem.name))
         achievs.push(elem);

@@ -8,7 +8,7 @@
         </template>
       </q-input>
     </q-toolbar>
-    <q-item v-for="friend in filteredFriends" :key="friend.id" clickable v-ripple @click="onFriendClick(friend.user.id)" class="column q-ma-md q-pa-none rounded-borders shadow-2" style="width: 300px">
+    <q-item v-for="friend in filteredFriends" :key="friend.id" clickable v-ripple @click="onFriendClick(friend.id)" class="column q-ma-md q-pa-none rounded-borders shadow-2" style="width: 300px">
       <q-responsive :ratio="1" class="full-width">
         <q-avatar rounded class="full-width full-height">
           <img :src='friend.avatar'>
@@ -16,7 +16,7 @@
       </q-responsive>
       <div class="column items-center q-pt-xl">
         <div class="absolute full-width row justify-evenly" style="top: 300px; transform: translateY(-50%);">
-          <q-btn round fab icon="chat" color="primary" :href="'chat/' + friend.pseudo" v-on:click.stop>
+          <q-btn round fab icon="chat" color="primary" :to="{ name: 'chat' }" v-on:click.stop>
             <q-tooltip :delay="500">{{ capitalize($t('friend.message')) }}</q-tooltip>
           </q-btn>
           <q-btn round fab icon="person_remove" color="primary" @click="onDeleteFriend(friend.id)" v-on:click.stop>
@@ -71,8 +71,8 @@ export default {
 		const catchAxios = inject('catchAxios') as catchAxiosType;
 		const router = useRouter();
 		const filter = ref('');
-		const friends = ref([]);
-		const filteredFriends = ref([]);
+		const friends = ref<any[]>([]);
+		const filteredFriends = ref<any[]>([]);
 
 		async function fetchFriends ()
 		{
@@ -103,12 +103,23 @@ export default {
 
 		async function onDeleteFriend (friendId: number)
 		{
+			const getFriends = () =>
+			{
+				for (const i in filteredFriends.value)
+				{
+					if (filteredFriends.value[i].id === friendId)
+						return Number(i);
+				}
+				return -1;
+			};
 			catchAxios(
 				api.delete('/friends/delete', {
 					data: { id: friendId }
 				}).then(() =>
 				{
-					fetchFriends();
+					const i = getFriends();
+					if (i !== -1)
+						filteredFriends.value.splice(i, 1);
 				})
 			);
 		}

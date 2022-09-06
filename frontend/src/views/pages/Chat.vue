@@ -184,6 +184,7 @@ export default defineComponent({
 			socket.off('connect_error', connectError);
 			socket.off('connect', connect);
 			socket.off('disconnect', disconnect);
+			socket.removeAllListeners();
 			socket.disconnect();
 		});
 		// #endregion  Check if error with socket

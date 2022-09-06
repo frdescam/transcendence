@@ -1,16 +1,16 @@
-interface admBanMut {
+export interface admBanMut {
   id: number,
   userId: number,
   channelId: number,
   until: Date
 }
 
-interface blockedUser {
+export interface blockedUser {
   id: number,
   blockedId: number
 }
 
-interface receiveChannel {
+export interface receiveChannel {
   id: number,
   creator: number,
   name: string,
@@ -19,12 +19,12 @@ interface receiveChannel {
   users?: Array<number>
 }
 
-interface passwordCompare {
+export interface passwordCompare {
   channelId: number,
   password: string
 }
 
-interface receiveInvitation {
+export interface receiveInvitation {
   creatorId: number,
   creatorName: string,
   invitationId: number,
@@ -33,7 +33,7 @@ interface receiveInvitation {
   approvalFromInvitedUser?: boolean
 }
 
-interface receiveMessage {
+export interface receiveMessage {
   id: number,
   channel: number,
   message: string,
@@ -42,7 +42,7 @@ interface receiveMessage {
   hash: string
 }
 
-interface updateMessage {
+export interface updateMessage {
   id: number,
   channel: number,
   messageId: number,
@@ -52,12 +52,12 @@ interface updateMessage {
   hash: string
 }
 
-interface channelUser {
+export interface channelUser {
   userId: number,
   channelId: number,
 }
 
-interface timestamp {
+export interface timestamp {
 	year: number,
 	month: number,
 	day: number,
@@ -66,15 +66,3 @@ interface timestamp {
 	second: number,
 	millisecond: number
 }
-
-export { 
-  admBanMut,
-  blockedUser,
-  receiveChannel,
-  passwordCompare,
-  receiveInvitation,
-  receiveMessage,
-  updateMessage,
-  channelUser,
-  timestamp
-};

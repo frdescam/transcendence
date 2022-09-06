@@ -140,7 +140,7 @@ export default defineComponent({
 
 		socket.on('blocked::receive::add', (ret) =>
 		{
-			if (!ret || ret.socketId !== socket.id)
+			if (!ret || ret.data.user.id !== user.value)
 				return;
 			if (Object.prototype.hasOwnProperty.call(ret.data, 'alreadyBlocked'))
 				return;
@@ -149,7 +149,7 @@ export default defineComponent({
 
 		socket.on('blocked::receive::remove', (ret) =>
 		{
-			if (!ret || ret.socketId !== socket.id)
+			if (!ret || ret.data.user.id !== user.value)
 				return;
 			if (Object.prototype.hasOwnProperty.call(ret.data, 'notBlocked') || ret.data.deleted === false)
 				return;

@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Channel } from 'src/chat/orm/channel.entity';
 import { Message } from 'src/chat/orm/message.entity';
 import { Banned } from 'src/chat/orm/banned.entity';
@@ -27,7 +27,7 @@ export class User extends BaseEntity {
       email: string; // erase email
 
     // @Column({type: 'varchar', length: 60, nullable: true}) // nullable, optional?
-      // password: string; // erase password
+    //  password: string; // erase password
 
     @Column({type: 'varchar', length: 70, nullable: true})
       avatar: string;

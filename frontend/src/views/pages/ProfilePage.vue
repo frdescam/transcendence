@@ -12,9 +12,6 @@
 						<q-badge v-if="!user.connected" class="absolute-bottom-right"
 							style="width: 30px; height: 30px" color="red" rounded>
 						</q-badge>
-						<q-badge v-if="user.connected == 'playing'" class="absolute-bottom-right"
-							style="width: 30px; height: 30px" color="orange" rounded>
-						</q-badge>
 					</q-avatar>
 				</div>
 				<profileHeader :user="user"></profileHeader>

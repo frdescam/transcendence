@@ -22,18 +22,18 @@
           <q-btn round fab icon="person_remove" color="primary" @click="onDeleteFriend(friend.id)" v-on:click.stop>
             <q-tooltip :delay="500">{{ capitalize($t('friend.delete')) }}</q-tooltip>
           </q-btn>
-          <q-btn v-if="friend.connected == 'playing'" fab icon="visibility" color="primary" :href="'game/' + friend.pseudo/* TODO : replace with party id */" v-on:click.stop>
+          <q-btn v-if="friend.isPlaying" fab icon="visibility" color="primary" :href="'game/' + friend.partyRoom" v-on:click.stop>
             <q-tooltip :delay="500">{{ capitalize($t('friend.watch')) }}</q-tooltip>
           </q-btn>
         </div>
         <div class="row" style="font-size: 2em;">
-          <q-badge v-if="friend.connected" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="light-green-14" rounded>
+          <q-badge v-if="friend.connected && !friend.isPlaying" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="light-green-14" rounded>
             <q-tooltip>{{ friend.status }}</q-tooltip>
           </q-badge>
           <q-badge v-if="!friend.connected" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="red" rounded>
             <q-tooltip>{{ friend.status }}</q-tooltip>
           </q-badge>
-          <q-badge v-if="friend.connected == 'playing'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="orange" rounded>
+          <q-badge v-if="friend.isPlaying" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="orange" rounded>
             <q-tooltip>{{ friend.status }}</q-tooltip>
           </q-badge>
             <div>{{ friend.pseudo }}</div>
@@ -58,9 +58,11 @@
 import { ref } from '@vue/reactivity';
 import { useRouter } from 'vue-router';
 import { AxiosInstance } from 'axios';
-import { inject, onMounted, watch } from 'vue';
+import { inject, onBeforeUnmount, onMounted, watch } from 'vue';
 import { Capitalize } from 'src/boot/libs';
 import type { catchAxiosType } from 'src/boot/axios';
+import { Socket } from 'socket.io-client';
+import type { getUserPartyDto } from 'src/common/game/orm/getUserParty.dto';
 
 export default {
 	name: 'FriendsPage',
@@ -73,6 +75,51 @@ export default {
 		const filter = ref('');
 		const friends = ref<any[]>([]);
 		const filteredFriends = ref<any[]>([]);
+		const gameSocket: Socket = inject('socketGame') as Socket;
+
+		function onDisconnect ()
+		{
+			console.log("onDisconnect");
+			for (const friend of friends.value)
+			{
+				gameSocket.emit('game::userinfos::leave', {
+					id: friend.id
+				});
+			}
+		}
+
+		function onConnected ()
+		{
+			console.log("onConnected");
+			for (const friend of friends.value)
+			{
+				gameSocket.emit('game::userinfos::join', {
+					id: friend.id
+				});
+			}
+		}
+
+		function onUpdate (data: getUserPartyDto)
+		{
+			console.log("onUpdate", data);
+			for (const friend of friends.value)
+			{
+				if (data.userId === friend.id)
+				{
+					if (data.party)
+					{
+						friend.isPlaying = true;
+						friend.partyRoom = data.party.room;
+					}
+					else
+					{
+						friend.isPlaying = false;
+						friend.partyRoom = null;
+					}
+					break;
+				}
+			}
+		}
 
 		async function fetchFriends ()
 		{
@@ -80,6 +127,11 @@ export default {
 				api.get('/friends/accepted').then((res) =>
 				{
 					friends.value = res.data;
+					gameSocket.on('disconnect', onDisconnect);
+					gameSocket.on('connect', onConnected);
+					gameSocket.on('game::userinfos', onUpdate);
+					if (gameSocket.connected)
+						onConnected();
 					onFilterChange(filter.value);
 				})
 			);
@@ -87,9 +139,9 @@ export default {
 
 		fetchFriends();
 
-		function onFriendClick (friendPseudo: number)
+		function onFriendClick (friendId: number)
 		{
-			router.push('/profile/' + String(friendPseudo));
+			router.push('/profile/' + friendId);
 		}
 
 		function onFilterChange (value: string)
@@ -133,6 +185,14 @@ export default {
 			{
 				flush: 'post'
 			});
+		});
+
+		onBeforeUnmount(() =>
+		{
+			onDisconnect();
+			gameSocket.off('game::userinfos', onUpdate);
+			gameSocket.off('disconnect', onDisconnect);
+			gameSocket.off('connect', onConnected);
 		});
 
 		return {

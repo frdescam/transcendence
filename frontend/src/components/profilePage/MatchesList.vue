@@ -18,7 +18,7 @@
 			</div>
 		</q-toolbar>
 		<q-item v-for="match in filteredMatches" :key="match.id">
-			<q-card class="fit q-pa-md" v-bind:style="{ 'background-color': (match.winner.id == user.id) ? 'lightblue' : 'red' }">
+			<q-card class="fit q-pa-md" v-bind:style="{ 'background-color': (match.winner.id == user.id) ? 'lightblue' : '#e82e2e' }">
 				<p>{{ date.formatDate(match.timestamp, 'DD/MM/YYYY HH:mm') }}</p>
 				<div class="row justify-center">
 					<q-avatar>

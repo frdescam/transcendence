@@ -337,9 +337,33 @@ export default {
 		achievements: {
 			title: 'achievements',
 			list: {
-				name: {
-					title: 'name',
-					subtitle: 'subname'
+				zapatero: {
+					name: '11 - 0 zapatero',
+					description: 'win a match without taking a goal'
+				},
+				tenWins: {
+					name: 'win 10 games',
+					description: 'win 10 games'
+				},
+				tenGames: {
+					name: 'play 10 games',
+					description: 'play 10 games'
+				},
+				closeCall: {
+					name: 'close call !',
+					description: 'win a match with a score of 11 - 10'
+				},
+				levelOne: {
+					name: 'level 1',
+					description: 'reach level one'
+				},
+				hundredGames: {
+					name: 'play 100 games',
+					description: 'play 100 games'
+				},
+				complete: {
+					name: 'completionist',
+					description: 'finish every game achievement'
 				}
 			}
 		},

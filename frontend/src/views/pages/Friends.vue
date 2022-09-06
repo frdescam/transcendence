@@ -22,18 +22,18 @@
           <q-btn round fab icon="person_remove" color="primary" @click="onDeleteFriend(friend.id)" v-on:click.stop>
             <q-tooltip :delay="500">{{ capitalize($t('friend.delete')) }}</q-tooltip>
           </q-btn>
-          <q-btn v-if="friend.status == 'playing'" fab icon="visibility" color="primary" :href="'game/' + friend.pseudo/* TODO : replace with party id */" v-on:click.stop>
+          <q-btn v-if="friend.connected == 'playing'" fab icon="visibility" color="primary" :href="'game/' + friend.pseudo/* TODO : replace with party id */" v-on:click.stop>
             <q-tooltip :delay="500">{{ capitalize($t('friend.watch')) }}</q-tooltip>
           </q-btn>
         </div>
         <div class="row" style="font-size: 2em;">
-          <q-badge v-if="friend.status == 'online'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="light-green-14" rounded>
+          <q-badge v-if="friend.connected" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="light-green-14" rounded>
             <q-tooltip>{{ friend.status }}</q-tooltip>
           </q-badge>
-          <q-badge v-if="friend.status == 'offline'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="red" rounded>
+          <q-badge v-if="!friend.connected" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="red" rounded>
             <q-tooltip>{{ friend.status }}</q-tooltip>
           </q-badge>
-          <q-badge v-if="friend.status == 'playing'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="orange" rounded>
+          <q-badge v-if="friend.connected == 'playing'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="orange" rounded>
             <q-tooltip>{{ friend.status }}</q-tooltip>
           </q-badge>
             <div>{{ friend.pseudo }}</div>

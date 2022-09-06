@@ -104,12 +104,12 @@ export class UserController {
     async display(@Param() pseudo_dto: avatarValidationDto, @Res() res: Response) {
       // console.log(pseudo_dto);
       
-    // const sanitized_user: User = await this.channelService.findOne({
-    //     id: id,
-    // });
-    // if (!sanitized_user)
+      // const sanitized_user: User = await this.channelService.findOne({
+      //     id: id,
+      // });
+      // if (!sanitized_user)
       // throw new NotFoundException('user doesn\'t exists'); 
-    // console.log(id, sanitized_user);
+      // console.log(id, sanitized_user);
       res.sendFile(pseudo_dto.pseudo, { root: './upload/avatars/' });
     }
 
@@ -126,25 +126,25 @@ export class UserController {
     // erase me
     @UseGuards(JwtAuthGuard)
     @Get('all')
-	  async getAll(): Promise<User[]> {
+  async getAll(): Promise<User[]> {
     const sanitized_user: User[] = await this.channelService.findAll();
 
     if (!sanitized_user)
       throw new BadRequestException('User not found.');
 
     return sanitized_user;
-	  }
+  }
 
     @UseGuards(JwtAuthGuard)
     @Get('match/get/:id')
-	  async getMatches(@Param('id', ParseIntPipe) id: number): Promise<User> {
+    async getMatches(@Param('id', ParseIntPipe) id: number): Promise<User> {
       const sanitized_user: User = await this.channelService.getMatches(id);
 
       if (!sanitized_user)
         throw new BadRequestException('User not found.');
 
       return sanitized_user;
-	  }
+    }
 
     @UseGuards(JwtAuthGuard)
     @Get('achievements/get/:id')
@@ -156,7 +156,7 @@ export class UserController {
     // test for matches
     @UseGuards(JwtAuthGuard)
     @Get(':id')
-	  async findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
+    async findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
       const sanitized_user: User = await this.channelService.findOne({
         id: id,
       });
@@ -165,21 +165,21 @@ export class UserController {
         throw new BadRequestException('User not found.');
 
       return sanitized_user;
-	  }
+    }
 
     // this could be problematic
     // test stuff erase me
     @UseGuards(JwtAuthGuard)
     @Post('match/create')
-	  async matches(@AuthUser() user: User, @Body() obj: any,){
+    async matches(@AuthUser() user: User, @Body() obj: any,){
       return this.channelService.createMockupMatch(user, obj);
-	  }
+    }
 
   @UseGuards(JwtAuthGuard)
     @Delete('remove')
-	  async remove(@AuthUser() user: User): Promise<boolean> {
+    async remove(@AuthUser() user: User): Promise<boolean> {
       return this.channelService.remove(user);
-	  }
+    }
 
   //# end of Leo's part
   @Get('get/:id')

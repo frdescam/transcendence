@@ -337,9 +337,33 @@ export default {
 		achievements: {
 			title: 'succès',
 			list: {
-				name: {
-					title: 'name',
-					subtitle: 'subname'
+				zapatero: {
+					name: '11 - 0 zapatero',
+					description: 'gagner un match sans encaisser de coup'
+				},
+				tenWins: {
+					name: 'gagner 10 parties',
+					description: 'gagner 10 parties'
+				},
+				tenGames: {
+					name: 'jouer 10 parties',
+					description: 'jouer 10 parties'
+				},
+				closeCall: {
+					name: 'c\'était moins une !',
+					description: 'remporter une partie avec le score de 11 - 10'
+				},
+				levelOne: {
+					name: 'niveau 1',
+					description: 'atteindre le niveau 1'
+				},
+				hundredGames: {
+					name: 'jouer 100 parties',
+					description: 'jouer 100 parties'
+				},
+				complete: {
+					name: 'collectionneur',
+					description: 'obtenir tous les succès du jeu'
 				}
 			}
 		},

@@ -1,19 +1,18 @@
 <template>
-	<q-page class="row items-start">
+	<q-list class="row justify-evenly shadow-2 rounded-borders bg-white">
+		<q-toolbar>
+			<q-toolbar-title class="q-ml-lg q-mt-md">{{ capitalize($t('setting.title')) }}</q-toolbar-title>
+		</q-toolbar>
 		<q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section>
-				<pseudoEditing
-					:username='username'
-				></pseudoEditing>
+				<pseudoEditing :pseudo='me.pseudo' v-on:update:pseudo="me.pseudo = $event"></pseudoEditing>
 			</q-card-section>
 			<q-separator inset />
 			<q-card-section>
-				<pictureEditing
-					:picture='profilePicture'
-				></pictureEditing>
+				<pictureEditing :avatar="me.avatar"></pictureEditing>
 			</q-card-section>
 		</q-card>
-		<q-card bordered style='width: 300px;' class="q-ma-md">
+		<!-- <q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section>
 				<div class="text-h6">Password</div>
 			</q-card-section>
@@ -21,32 +20,28 @@
 			<q-card-section>
 				<passwordEditing></passwordEditing>
 			</q-card-section>
-		</q-card>
+		</q-card> -->
 
 		<q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section>
-				<div class="text-h6">Two factor authentication</div>
+				<div class="text-h6">{{ capitalize($t('setting.twoFactor.title')) }}</div>
 			</q-card-section>
 			<q-separator inset />
-			<q-card-section>
-				<q-form
-					method="post"
-					@submit="tfaSubmit"
-				>
-					<q-toggle
-						v-model='useTfa'
-						label="Activate?"
-					/>
-					<br/>
-					<div v-if="useTfa">
-						<p>Actions to enable 2FA</p>
-					</div>
-					<q-btn type="submit" class="q-mt-md" label='Update' />
+			<q-card-section class="column justify-center items-center">
+				<div v-if="me.is2FActive">{{ capitalize($t('setting.twoFactor.subtitleOn')) }}</div>
+				<div v-if="!me.is2FActive">{{ capitalize($t('setting.twoFactor.subtitleOff')) }}</div>
+				<q-icon v-if="me.is2FActive && !TFAActivating" name="check_circle" color="green" size="200px"></q-icon>
+				<q-icon v-if="!me.is2FActive && !TFAActivating" name="error" color="red" size="200px"></q-icon>
+				<q-btn v-if="!TFAActivating && !me.is2FActive" @click="onActivate2FA">{{ capitalize($t('setting.twoFactor.activate')) }}</q-btn>
+				<q-btn v-if="!TFAActivating && me.is2FActive" @click="onDeactivate2FA">{{ capitalize($t('setting.twoFactor.desactivate')) }}</q-btn>
+				<q-img v-if="TFAActivating" :src='("http://127.0.0.1:8080/api/2FA/generate?time=" + new Date().getTime())' :ratio="1" style="width: 200px"/>
+				<q-form v-if="TFAActivating" class="column justify-evenly items-center full-height">
+					<q-input @update:model-value="update" :disable="disableInput" :color="inputColor" :autofocus=true mask="######" :label="capitalize($t('twofa.label'))"></q-input>
 				</q-form>
 			</q-card-section>
 		</q-card>
 
-		<q-card bordered style='width: 300px;' class="my-card q-ma-md">
+		<!-- <q-card bordered style='width: 300px;' class="my-card q-ma-md">
 			<q-card-section>
 				<div class="text-h6">Game options</div>
 			</q-card-section>
@@ -54,79 +49,131 @@
 			<q-separator inset />
 
 			<q-card-section>
-				<q-form
-					method="post"
-					@submit="GameOptionsSubmit"
-				>
+				<q-form method="post" @submit="GameOptionsSubmit">
 					<q-select v-model="paddleSelected" :options="paddleOptions" label="Paddle Color" />
 					<q-btn type="submit" class="q-mt-md" label='Update' />
 				</q-form>
 			</q-card-section>
-		</q-card>
+		</q-card> -->
 
+<!--
 		<q-card bordered style='width: 300px;' class="q-ma-md">
-			<q-card-section>
-				<div class="text-h6">Danger zone!</div>
-			</q-card-section>
-			<q-separator inset />
-			<q-card-section>
-				<q-form
-					method="post"
-					@submit="TFASubmit"
-				>
-					<q-btn push label="Delete your account">
-						<q-popup-proxy>
+			<q-card-section class="row justify-center">
+				<q-form method="post" @submit="deleteAccount">
+					<q-btn push :label="capitalize($t('setting.delete.title'))" color="red">
+						<q-popup-proxy ref="popupDelete">
 							<q-banner>
 								<template v-slot:avatar>
 									<q-icon name="warning" color="red" />
 								</template>
-								Are you sure? You will lose all progress.
-								<q-btn @click="deleteAccount" color="red" class="q-ma-xs" label='Yes' />
+								<div class="row no-wrap items-center">
+									<span style="height: fit-content">{{ capitalize($t('setting.delete.subtitleOne')) }} {{ capitalize($t('setting.delete.subtitleTwo')) }}</span>
+									<div>
+										<q-btn flat icon="done" color="red" @click="deleteAccount" />
+										<q-btn flat icon="close" color="secondary" @click="popupDelete.hide()" />
+									</div>
+								</div>
 							</q-banner>
 						</q-popup-proxy>
 					</q-btn>
 				</q-form>
 			</q-card-section>
 		</q-card>
-	</q-page>
+-->
+
+	</q-list>
 </template>
 
 <script lang="ts">
-import { ref } from 'vue';
+import { inject, ref } from 'vue';
+import { AxiosInstance } from 'axios';
+import { Capitalize } from 'src/boot/libs';
 import pictureEditing from 'src/components/userSettings/pictureEditing.vue';
 import pseudoEditing from 'src/components/userSettings/pseudoEditing.vue';
-import passwordEditing from 'src/components/userSettings/passwordEditing.vue';
+import { QPopupProxy } from 'quasar';
+import type { catchAxiosType } from 'src/boot/axios';
+// import passwordEditing from 'src/components/userSettings/passwordEditing.vue';
 
 export default ({
 	name: 'IndexPage',
 	components: {
 		pseudoEditing,
-		pictureEditing,
-		passwordEditing
+		pictureEditing//,
+		// passwordEditing
 	},
 	setup ()
 	{
-		const username = ref('pohl');
-		const profilePicture = ref('https://placeimg.com/500/300/nature');
-		const useTfa = ref(false);
-		const tfaSubmit = function ()
+		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+
+		const TFAActivating = ref(false);
+		// const paddleSelected = ref('Normal');
+		const disableInput = ref(false);
+		const inputColor = ref('blue');
+		const popupDelete = ref<QPopupProxy | null>(null);
+		const me = ref({});
+
+		function onActivate2FA ()
 		{
-			console.log(useTfa);
-		};
-		const paddleSelected = ref('Normal');
+			TFAActivating.value = true;
+			disableInput.value = false;
+			inputColor.value = 'blue';
+		}
+
+		function onDeactivate2FA ()
+		{
+			catchAxios(api.get('2FA/deactivate'));
+			me.value.is2FActive = false;
+		}
+
+		async function update (code: string)
+		{
+			console.log('me.value (in update) : ', me.value);
+			if (code.length === 6)
+			{
+				disableInput.value = true;
+				const res: any = await catchAxios(api.post('/2FA/turn-on', { code }));
+				if (res.data.error)
+				{
+					disableInput.value = false;
+					inputColor.value = 'red';
+				}
+				else
+				{
+					me.value.is2FActive = true;
+					TFAActivating.value = false;
+				}
+			}
+		}
+
+		catchAxios(
+			api.get('/user/me').then((res) =>
+			{
+				me.value = res.data;
+			})
+		);
 
 		return {
-			username,
-			profilePicture,
-			paddleSelected,
-			useTfa,
-			tfaSubmit,
-			GameOptionsSubmit ()
-			{
-				console.log(paddleSelected.value);
-			},
+			capitalize,
+
+			// paddleSelected,
+			TFAActivating,
+			disableInput,
+			inputColor,
+			me,
+			popupDelete,
+
+			onActivate2FA,
+			onDeactivate2FA,
+			update,
+			// GameOptionsSubmit ()
+			// {
+			// console.log(paddleSelected.value);
+			// },
 			deleteAccount ()
 			{
+				popupDelete.value?.hide();
 				console.log('User deleted their account');
 			},
 			paddleOptions: [

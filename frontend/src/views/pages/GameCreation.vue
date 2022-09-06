@@ -1,67 +1,113 @@
 <template>
-	<q-page class="row items-center justify-center">
-		<q-form action="/play/matching" method="get" @submit="onSubmit" class="dark q-pa-md shadow-box shadow-8"
-			autofocus>
-			<div class="q-ma-md">
-				<h3>Game creation</h3>
+	<q-card class="overflow-hidden q-pa-md">
+		<ControlledForm
+			:setLoading="setLoading"
+			:action="createGame"
+		>
+			<PartyRoomNameInput
+				filled
+				v-model="room"
+			/>
+
+			<MapSelect
+				filled
+				v-model="map"
+			/>
+
+			<AdversarySelect
+				filled
+				v-model="adversary"
+			/>
+
+			<div>
+				<SubmitButton
+					:label="capitalize($t('inputs.party'))"
+					:loading="loading"
+				/>
 			</div>
-			<q-select filled v-model="map" :options="mapOptions" label="Map selection" class="bg-blue-grey-1 q-ma-md" />
-			<q-btn-toggle v-model="opponentType" toggle-color="primary" class="bg-blue-grey-1 q-ma-md" :options="[
-				{ label: 'Play with anyone', value: 'any' },
-				{ label: 'Play with a friend', value: 'friend' },
-			]" />
-			<q-select filled v-if="opponentType == 'friend'" v-model="opponent" :options="friendList"
-				label="Opponent selection" class="bg-blue-grey-1 q-ma-md" />
-			<div class="q-ma-md">
-				<q-btn label="Play!" class="full-width" type="submit" color="primary" />
-			</div>
-		</q-form>
-	</q-page>
+		</ControlledForm>
+	</q-card>
 </template>
 
 <script lang="ts">
-import { ref } from 'vue';
+import { defineComponent, inject, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { api } from 'src/boot/axios';
+import { Capitalize } from 'src/boot/libs';
+import ControlledForm from 'src/components/inputs/ControlledForm.vue';
+import SubmitButton from 'src/components/inputs/SubmitButton.vue';
+import PartyRoomNameInput from 'src/components/inputs/PartyRoomNameInput.vue';
+import MapSelect from 'src/components/inputs/MapSelect.vue';
+import AdversarySelect from 'src/components/inputs/AdversarySelect.vue';
+import type { AxiosError } from 'axios';
 
-export default {
+const room = ref<string | null>(null);
+const map = ref<string | null>(null);
+const adversary = ref<string | null>(null);
+
+export default defineComponent({
+	name: 'GameCreation',
+	components: {
+		ControlledForm,
+		SubmitButton,
+		PartyRoomNameInput,
+		MapSelect,
+		AdversarySelect
+	},
 	setup ()
 	{
-		const map = ref('Any');
-		const mapOptions = [
-			'Any',
-			'Normal',
-			'Legacy',
-			'Harder',
-			'Doom'
-		];
-		const opponentType = ref('any');
-		const friendList = [
-			'Joe',
-			'Jack',
-			'Jane',
-			'Keanu Reeves',
-			'Reanu Keeves',
-			'Bongo'
-		];
-		const opponent = ref(friendList[0]);
-		return {
-			friendList,
-			map,
-			mapOptions,
-			opponent,
-			opponentType,
-			onSubmit ()
-			{
-				let newUri = '/play/matching';
-				if (map.value !== 'Any')
-					newUri += '?map=' + map.value;
-				if (opponentType.value !== 'any')
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+		const router = useRouter();
+		const loading = ref<boolean>(false);
+
+		function setLoading (state: boolean)
+		{
+			loading.value = state;
+		}
+
+		async function createGame ()
+		{
+			return api.post('/party', {
+				room: room.value ?? undefined,
+				map: map.value ?? undefined,
+				adversary: adversary.value ?? undefined
+			})
+				.then(({ data }) =>
 				{
-					newUri += (map.value !== 'Any') ? '&' : '?';
-					newUri += 'opponent=' + opponent.value;
-				}
-				window.location.href = newUri;
-			}
+					const partyRoom = data as string;
+
+					router.push({
+						name: 'party',
+						params: {
+							party: partyRoom
+						}
+					});
+				})
+				.catch((err: AxiosError) =>
+				{
+					if (err.response?.data.message)
+					{
+						throw new Error(
+							err.response?.data.message,
+							{
+								cause: err
+							}
+						);
+					}
+					else
+						throw err;
+				});
+		}
+
+		return {
+			capitalize,
+			loading,
+			setLoading,
+			room,
+			map,
+			adversary,
+			createGame
 		};
 	}
-};
+});
 </script>

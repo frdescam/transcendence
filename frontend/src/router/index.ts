@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { route } from 'quasar/wrappers';
 import {
 	createMemoryHistory,
@@ -6,6 +8,7 @@ import {
 	createWebHistory
 } from 'vue-router';
 
+import { state } from 'src/boot/state';
 import routes from './routes';
 
 /*
@@ -31,6 +34,30 @@ export default route(function (/* { store, ssrContext } */)
 		// quasar.conf.js -> build -> vueRouterMode
 		// quasar.conf.js -> build -> publicPath
 		history: createHistory(process.env.VUE_ROUTER_BASE)
+	});
+
+	Router.beforeEach((to, from) =>
+	{
+		if (!state.loggedIn)
+		{
+			if (state.loading)
+			{
+				// `from` is wrong on the initial load, so I use raw value
+				if (to.name !== 'logging')
+				{
+					return {
+						name: 'logging',
+						query: {
+							next: typeof window !== 'undefined' ? window.location.pathname : from.fullPath
+						}
+					};
+				}
+				else
+					return;
+			}
+			if (to.name !== 'login' && to.name !== '2FA' && to.name !== 'party' && to.name !== 'play-list' && to.name !== 'logging')
+				return { path: '/login' };
+		}
 	});
 
 	return Router;

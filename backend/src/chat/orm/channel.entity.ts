@@ -1,29 +1,45 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  OneToMany,
-} from 'typeorm';
-import { ChannelUser } from './channelUser.entity';
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Banned } from './banned.entity';
+import { Message } from './message.entity';
+import { Muted } from './muted.entity';
+import { User } from 'src/users/orm/user.entity';
+
+import { channelTypesDTO } from './channelTypes.dto';
 
 @Entity()
-export class Channel {
+export class Channel extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
-  @Column({ type: 'smallint', default: '1' })
-  type: number;
+  @ManyToOne(() => User, (user) => user.ownedChannels)
+    owner: User;
 
-  @Column({ type: 'text', default: 'My channel' })
-  name: string;
+  @Column()
+    name: string;
 
-  @Column({ type: 'text', default: 'password' })
-  password: string;
+  @Column({type: 'enum', enum: channelTypesDTO})
+    type: channelTypesDTO;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  creationDate: Date;
+  @Column({ default: null })
+    password: string;
 
-  @OneToMany(() => ChannelUser, (user: ChannelUser) => user.channel)
-  users: ChannelUser[];
+  @CreateDateColumn()
+    creationDate: Date;
+
+  @OneToMany(() => Message, (message) => message.channel)
+    messages: Message[];
+
+  @OneToMany(() => Banned, (bannedUser) => bannedUser.channel)
+    bannedUsers: Banned[];
+
+  @OneToMany(() => Muted, (mutedUser) => mutedUser.channel)
+    mutedUsers: Muted[];
+
+  @ManyToMany(() => User)
+  @JoinTable()
+    admins: User[];
+
+  @ManyToMany(() => User)
+  @JoinTable()
+    users: User[];
 }

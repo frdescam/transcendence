@@ -5,11 +5,13 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { gameSocket } from 'src/boot/socketio';
-import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
+import { onBeforeUnmount, onMounted, onUnmounted, ref, computed, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { Notify } from 'quasar';
+import type { Socket } from 'socket.io-client';
+import { useI18n } from 'vue-i18n';
 
-import type { partyQuery as query } from 'src/components/game/common/logic/common'; // @TODO: Move common folder anywhere else
+import type { partyQuery as query } from 'src/common/game/interfaces';
 
 enum State
 {
@@ -22,32 +24,49 @@ enum State
 const router = useRouter();
 const route = useRoute();
 
+const { t } = useI18n();
+const gameSocket: Socket = inject('socketGame') as Socket;
 const status = ref(State.Connecting);
-const map = computed(() => (route.query.map || null)); // @TODO: Manage change in the URL
+const map = computed(() => (route.query.map || null));
+const adversary = computed(() => (route.query.adversary || null));
 const message = computed(() =>
 {
 	switch (status.value)
 	{
 	case State.Awaiting:
-		return 'Awaiting such party to be created ...';
-
+		return t('matching.messages.awaiting');
 	case State.Querying:
-		return 'Querying the server ...';
-
+		return t('matching.messages.querying');
 	case State.Found:
-		return 'Redirecting to the party ...';
-
+		return t('matching.messages.found');
 	default:
-		return 'Connecting ...';
+		return t('matching.messages.default');
 	}
 });
+
+function onError (error: string)
+{
+	Notify.create({
+		position: 'top',
+		progress: true,
+		timeout: 15000,
+		message: error,
+		type: 'negative',
+		multiLine: true,
+		actions: [
+			{
+				label: 'Dismiss',
+				color: 'white'
+			}
+		]
+	});
+}
 
 function onFound (room: string)
 {
 	status.value = State.Found;
 	router.push({
-		path: `/game/${room}`,
-		// name: 'party',
+		name: 'party',
 		params: {
 			party: room
 		}
@@ -59,9 +78,11 @@ function onNotFound ()
 	status.value = State.Awaiting;
 }
 
-function onDisconnect ()
+function onDisconnect (reason: Socket.DisconnectReason)
 {
 	status.value = State.Connecting;
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 }
 
 function onConnected ()
@@ -70,7 +91,8 @@ function onConnected ()
 	gameSocket.emit(
 		'game::query::find',
 		{
-			map: map.value
+			map: map.value ?? undefined,
+			adversary: adversary.value ?? undefined
 		} as query
 	);
 }
@@ -79,17 +101,22 @@ onMounted(() =>
 {
 	gameSocket.on('game::query::found', onFound);
 	gameSocket.on('game::query::notFound', onNotFound);
+	gameSocket.on('party::error', onError);
 	gameSocket.on('connect', onConnected);
 	gameSocket.on('disconnect', onDisconnect);
+	gameSocket.connect();
 
 	if (gameSocket.connected)
 		onConnected();
 });
 
+onUnmounted(() => gameSocket.disconnect());
+
 onBeforeUnmount(() =>
 {
 	gameSocket.off('game::query::found', onFound);
 	gameSocket.off('game::query::notFound', onNotFound);
+	gameSocket.off('party::error', onError);
 	gameSocket.off('connect', onConnected);
 	gameSocket.off('disconnect', onDisconnect);
 	gameSocket.emit('game::query::leaveAll');
@@ -98,12 +125,14 @@ onBeforeUnmount(() =>
 </script>
 
 <template>
-	<q-page class="page text-white text-center q-pa-md flex flex-center">
+	<q-page class="text-white text-center q-pa-md flex flex-center">
+		<div class="page-bg" />
 		<div class="container">
 			<h1 class="text-h1">
-				Looking for party{{map && (" with map " + map)}}...
+				{{ $t('matching.look') }} {{ (map) && $t('matching.with', { map: map }) }}
+				{{ (adversary) && `, ${$t('matching.against')}` }}
 			</h1>
-			<p class="text-h2">{{message}}</p>
+			<p class="text-h2">{{ message }}</p>
 			<q-linear-progress
 				rounded track-color="grey-7" color="white"
 				:indeterminate="status != State.Connecting"
@@ -141,8 +170,13 @@ onBeforeUnmount(() =>
 		background-color: $orange-10
 	100%
 		background-color: $red-10
-.page
+.page-bg
+	position: absolute
+	height: 100%
+	width: 100%
 	animation: colorfull 60s linear infinite
+	mix-blend-mode: hue
 .container
+	z-index: 20
 	min-width: 80vw
 </style>

@@ -1,6 +1,10 @@
 #compiled output
 # env
 .auth.env
+TODO
+
+#upload
+upload/
 
 # Compiled output
 dist
@@ -36,21 +40,10 @@ lerna-debug.log*
 *.vim
 .prettierrc
 
-# IDE - VSCode
-.vscode/*
-.eslintrc.js
-.prettierrc
-
-# IDE - VSCode
-.vscode/*
-.vscode
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
 # Docker
 data/
 
 # For pohl
 TODO.md
+
+backend/src/auth/auth.env

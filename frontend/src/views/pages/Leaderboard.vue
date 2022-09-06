@@ -1,87 +1,96 @@
 <template>
-	<div class="q-pa-md">
-		<q-table
-			title="Leaderboard"
-			:rows="rows"
-			:columns="columns"
-			row-key="rank"
-			v-model:pagination="pagination"
-			:loading="loading"
-			:filter="filter"
-			@request="onRequest"
-			@row-click="onRowClick"
-			binary-state-sort
-		>
-			<template v-slot:top-right>
-				<q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
-					<template v-slot:append>
-						<q-icon name="search" />
-					</template>
-				</q-input>
-			</template>
-			<template #body-cell-avatar="props">
-				<q-td :props="props">
-					<q-avatar :props="props">
-						<img :src=props.value>
-					</q-avatar>
-				</q-td>
+	<q-table
+		:title="capitalize($t('menu.leaderboard'))"
+		:rows="rows"
+		:columns="[
+			{
+				name: 'rank',
+				label: $t('leaderboard.rank').toUpperCase(),
+				field: 'rank',
+				required: true,
+				align: 'left',
+				format: (val: number) => `#${val}`,
+				style: 'width: 5%'
+			},
+			{
+				name: 'avatar',
+				label: '',
+				field: 'avatar',
+				reqired: true,
+				align: 'right',
+				style: 'width: 10%'
+			},
+			{
+				name: 'pseudo',
+				field: 'pseudo',
+				required: true,
+				label: $t('leaderboard.player').toUpperCase(),
+				align: 'left'
+			},
+			{
+				name: 'ratio',
+				label: $t('leaderboard.ratio').toUpperCase(),
+				field: 'ratio',
+				required: true,
+				align: 'left',
+				style: 'width: 10%'
+			},
+			{
+				name: 'level',
+				label: $t('leaderboard.level').toUpperCase(),
+				field: 'xp',
+				required: true,
+				align: 'left',
+				style: 'width: 10%'
+			}
+		]"
+		row-key="rank"
+		v-model:pagination="pagination"
+		:loading="loading"
+		:filter="filter"
+		@request="refreshData"
+		@row-click="onRowClick"
+		binary-state-sort
+	>
+		<template v-slot:top-right>
+			<q-toggle class="q-mr-lg"
+				:label="capitalize($t('leaderboard.friends'))"
+				color="blue"
+				@update:model-value="onFriendsOnlyChanged"
+				v-model="friendsOnly"
+			/>
+			<q-input borderless dense debounce="300" v-model="filter" :placeholder="capitalize($t('leaderboard.search'))">
+				<template v-slot:append>
+					<q-icon name="search" />
+				</template>
+			</q-input>
 		</template>
-		</q-table>
-	</div>
+		<template #body-cell-avatar="props">
+			<q-td :props="props">
+				<q-avatar :props="props">
+					<img :src=props.value v-on:error="imageError" />
+				</q-avatar>
+			</q-td>
+    </template>
+	</q-table>
 </template>
 
-<script>
-import { ref, onMounted, computed } from 'vue';
+<script lang="ts">
+import { inject, ref, onMounted, computed } from 'vue';
+import { AxiosInstance } from 'axios';
+import { Capitalize } from 'src/boot/libs';
 import { useRouter } from 'vue-router';
-import { api } from 'boot/axios';
-
-const columns = [
-	{
-		name: 'rank',
-		label: 'RANK',
-		field: 'rank',
-		required: true,
-		align: 'left',
-		format: (val) => `#${val}`,
-		style: 'width: 5%'
-	},
-	{
-		name: 'avatar',
-		label: '',
-		field: 'avatar',
-		reqired: true,
-		align: 'right',
-		style: 'width: 10%'
-	},
-	{
-		name: 'pseudo',
-		field: 'pseudo',
-		required: true,
-		label: 'PLAYER',
-		align: 'left'
-	},
-	{
-		name: 'ratio',
-		label: 'RATIO',
-		field: 'ratio',
-		required: true,
-		align: 'left',
-		style: 'width: 10%'
-	},
-	{
-		name: 'level',
-		label: 'LEVEL',
-		field: 'level',
-		required: true,
-		align: 'left',
-		style: 'width: 10%'
-	}
-];
+import type { catchAxiosType } from 'src/boot/axios';
 
 export default {
 	name: 'LeaderboardPage',
 	setup ()
 	{
+		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+
+		const friendsOnly = ref(false);
 		const router = useRouter();
 		const rows = ref([]);
 		const filter = ref('');
@@ -90,25 +99,33 @@ export default {
 			sortBy: 'rank',
 			descending: false,
 			page: 1,
-			rowsPerPage: 4,
+			rowsPerPage: 10,
 			rowsNumber: 0
 		});
 
-		async function fetchFromServer (startRow, count, filter, sortBy, descending)
+		const imageError = (e: Event) =>
 		{
-			const res = await api.get('/leaderboard/getRows', {
-				params: {
-					startRow,
-					count,
-					filter,
-					sortBy,
-					descending
-				}
-			});
+			const target = e.target as HTMLImageElement;
+			if (target)
+				target.src = 'imgs/chat/default.webp';
+		};
+
+		async function fetchFromServer (friendsOnly, startRow, count, filter)
+		{
+			const res: any = await catchAxios(
+				api.get('/leaderboard/getRows', {
+					params: {
+						friendsOnly,
+						startRow,
+						count,
+						filter
+					}
+				})
+			);
 			return res.data;
 		}
 
-		async function onRequest (props)
+		async function refreshData (props, localFriendsOnly = friendsOnly.value)
 		{
 			const { page, rowsPerPage, sortBy, descending } = props.pagination;
 			const filter = props.filter;
@@ -117,7 +134,7 @@ export default {
 
 			const fetchCount = rowsPerPage;
 			const startRow = (page - 1) * rowsPerPage;
-			const returnedData = await fetchFromServer(startRow, fetchCount, filter, sortBy, descending);
+			const returnedData = await fetchFromServer(localFriendsOnly, startRow, fetchCount, filter);
 			pagination.value.rowsNumber = returnedData.totalRowsNumber;
 			rows.value.splice(0, rows.value.length, ...returnedData.rows);
 
@@ -131,27 +148,42 @@ export default {
 
 		onMounted(() =>
 		{
-			onRequest({
+			refreshData({
 				pagination: pagination.value,
 				filter: undefined
 			});
 		});
 
+		async function onFriendsOnlyChanged (value)
+		{
+			refreshData(
+				{
+					pagination: pagination.value,
+					filter: filter.value
+				},
+				value
+			);
+		}
+
 		async function onRowClick (evt, row)
 		{
-			router.push('/profile/' + row.pseudo);
+			router.push('/profile/' + row.id);
 		}
 
 		return {
+			friendsOnly,
 			filter,
 			loading,
 			pagination,
-			columns,
 			rows,
 			pagesNumber: computed(() => Math.ceil(rows.value.length / pagination.value.rowsPerPage)),
 
-			onRequest,
-			onRowClick
+			imageError,
+			refreshData,
+			onRowClick,
+			onFriendsOnlyChanged,
+
+			capitalize
 		};
 	}
 };

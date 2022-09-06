@@ -1,185 +1,222 @@
 <template>
 	<q-page class="row no-wrap justify-between items-stretch content-stretch">
 		<div class="col-3 channel">
-			First column
+			<channelChannel
+				:userId="user"
+				@channel-is-selected="channelChanged"
+				@channel-user-update="channelUpdate"
+				@channel-ban-mute="mutBanChannel"
+			></channelChannel>
 		</div>
 		<div class="col-6 chat">
-			<form
-				autocorrect="off"
-				autocapitalize="off"
-				autocomplete="off"
-				spellcheck="true"
-			>
-				<q-editor
-					placeholder="Write your message"
-					ref="editorRef"
-					max-height="15em"
-					:definitions="definitions"
-					:toolbar="[
-						['bold', 'italic', 'strike', 'underline'],
-						['undo', 'redo'],
-						['image', 'send']
-					]"
-					v-model="editor"
-				/>
-			</form>
-			<div class="message-list">
-				<q-chat-message
-					name="me"
-					avatar="https://cdn.quasar.dev/img/avatar3.jpg"
-					stamp="7 minutes ago"
-					sent
-					text-color="white"
-					bg-color="primary"
-				>
-					<div>Hey there!</div>
-					<div>Have you seen Quasar?
-						<img src="https://cdn.quasar.dev/img/discord-omq.png" class="emoticon">
-					</div>
-				</q-chat-message>
-
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-				<q-chat-message
-					name="Jane"
-					avatar="https://cdn.quasar.dev/img/avatar5.jpg"
-					bg-color="amber"
-				>
-					<q-spinner-dots size="2rem" />
-				</q-chat-message>
-
-			</div>
+			<chatChannel
+				:selectedChannelBanMut="selectedChannelBanMut"
+				:selectedChannel="selectedChannel"
+				:blockedUser="blockedUser"
+				:userUpdate="userUpdate"
+				:userId="user"
+			></chatChannel>
 		</div>
 		<div class="col-3 user">
-			Third column
+			<userChannel
+				:selectedChannelBanMut="selectedChannelBanMut"
+				:selectedChannel="selectedChannel"
+				:blockedUser="blockedUser"
+				:userId="user"
+			></userChannel>
 		</div>
 	</q-page>
+	<q-dialog
+		ref="dialog"
+		persistent
+		position="bottom"
+		square
+	>
+    <q-card style="width: 350px">
+      <q-card-section class="row items-center justify-evenly no-wrap">
+        <q-spinner-radio color="teal-7" size="3em" />
+				<span class="dialog-socket-error">{{ $t('chat.socket') }}</span>
+       </q-card-section>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { QDialog, useMeta } from 'quasar';
+import { Socket } from 'socket.io-client';
+import { useI18n } from 'vue-i18n';
+import { Capitalize } from 'src/boot/libs';
+import { defineComponent, inject, onMounted, onUnmounted, ref, watch } from 'vue';
+import { generateMeta } from 'src/meta';
+import channelChannel from 'src/components/chat/Channel.vue';
+import userChannel from 'src/components/chat/User.vue';
+import chatChannel from 'src/components/chat/Chat.vue';
+
+interface channelMutBan {
+	user: number,
+	channel: number,
+	ban: boolean|null,
+	mute: boolean|null
+}
+
+interface channelInterface {
+	id: number,
+	socketId: string,
+	isDeleted: boolean
+}
+
+interface userUpdateInterface {
+	type: string,
+	user: number,
+	value: boolean
+}
 
 export default defineComponent({
-	name: 'chat-page',
+	name: 'chatPage',
+	components: {
+		channelChannel,
+		userChannel,
+		chatChannel
+	},
 	setup ()
 	{
-		const editor = ref('');
-		return {
-			editor,
-			definitions: {
-				image: {
-					icon: 'image',
-					tip: 'Insert image',
-					handler: () =>
-					{
-						const input = document.createElement('input');
-						input.type = 'file';
-						input.accept = '.png, .jpg';
-						let file;
-						input.onchange = () =>
-						{
-							const files = Array.from(input.files as FileList);
-							file = files[0];
-							const reader = new FileReader();
-							let dataUrl:string;
-							reader.onloadend = () =>
-							{
-								dataUrl = String(reader.result);
-								editor.value += `<img src="${dataUrl}" />`;
-							};
-							reader.readAsDataURL(file);
-						};
-						input.click();
-					}
-				},
-				send: {
-					icon: 'send',
-					tip: 'Send message',
-					handler: () =>
-					{
-						const value = editor.value;
-						console.log(value, value.length);
-					}
-				}
+		// #region Set custom title
+		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+		const { t } = useI18n();
+
+		useMeta(generateMeta(capitalize(t('chat.title'))));
+		// #endregion Set custom title
+
+		// #region Definition
+		const socket: Socket = inject('socketChat') as Socket;
+
+		const selectedChannel = ref<channelInterface>({
+			id: 0,
+			socketId: '',
+			isDeleted: false
+		});
+		const selectedChannelBanMut = ref<channelMutBan>({
+			user: 0,
+			channel: 0,
+			ban: null,
+			mute: null
+		});
+		const userUpdate = ref<userUpdateInterface>({
+			type: 'undefined',
+			user: -1,
+			value: false
+		});
+		const user = ref(0);
+		const blockedUser = ref<number[]>([]);
+
+		const mutBanChannel = (ret: channelMutBan) =>
+		{
+			selectedChannelBanMut.value = ret;
+		};
+		const channelChanged = (ret: channelInterface) =>
+		{
+			selectedChannel.value = ret;
+		};
+		const channelUpdate = (ret: userUpdateInterface) =>
+		{
+			userUpdate.value = ret;
+		};
+		// #endregion Definition
+
+		// #region Blocked user
+		watch(() => user.value, () => socket.emit('blocked::get', user.value));
+
+		socket.on('blocked::receive::get', (ret) =>
+		{
+			if (!ret || ret.socketId !== socket.id)
+				return;
+			blockedUser.value.length = 0;
+			if (ret.data.length)
+			{
+				for (const el of ret.data)
+					blockedUser.value.push(el.target.id);
 			}
+		});
+
+		socket.on('blocked::receive::add', (ret) =>
+		{
+			if (!ret || ret.socketId !== socket.id)
+				return;
+			if (Object.prototype.hasOwnProperty.call(ret.data, 'alreadyBlocked'))
+				return;
+			blockedUser.value.push(ret.data.target.id);
+		});
+
+		socket.on('blocked::receive::remove', (ret) =>
+		{
+			if (!ret || ret.socketId !== socket.id)
+				return;
+			if (Object.prototype.hasOwnProperty.call(ret.data, 'notBlocked') || ret.data.deleted === false)
+				return;
+			const i = blockedUser.value.indexOf(ret.data.target.id);
+			if (i !== -1)
+				blockedUser.value.splice(i, 1);
+		});
+		// #endregion
+
+		// #region Check if error with socket
+		const dialog = ref<QDialog | null>(null);
+
+		const connectError = () => dialog.value?.show();
+		const connect = () => dialog.value?.hide();
+		const disconnect = (reason: Socket.DisconnectReason) =>
+		{
+			if (reason === 'io server disconnect')
+				socket.connect();
+		};
+
+		onMounted(() =>
+		{
+			socket.on('connect_error', connectError);
+			socket.on('connect', connect);
+			socket.on('disconnect', disconnect);
+			socket.connect();
+			socket.emit('ping');
+		});
+
+		onUnmounted(() =>
+		{
+			socket.off('connect_error', connectError);
+			socket.off('connect', connect);
+			socket.off('disconnect', disconnect);
+			socket.disconnect();
+		});
+		// #endregion  Check if error with socket
+
+		// #region Get user id
+		socket.on('pong', (ret) =>
+		{
+			if (ret.socketId === socket.id)
+				user.value = ret.id;
+		});
+		// #endregion Get user id
+
+		return {
+			selectedChannel,
+			selectedChannelBanMut,
+			user,
+			userUpdate,
+			blockedUser,
+
+			dialog,
+
+			mutBanChannel,
+			channelChanged,
+			channelUpdate
 		};
 	}
 });
 </script>
 
 <style>
-.channel {
-	background-color: rgb(230, 230, 230);
-}
-.chat {
-	display: inline-flex;
-	flex-direction: column-reverse;
-	height: calc(100vh - 50px) !important;
-}
-.chat .message-list {
-	padding: .5em;
-	overflow-x: auto;
-}
-.chat form img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-}
-.user {
-	background-color: rgb(230, 230, 230);
-}
-.emoticon {
-	vertical-align: middle;
-	height: 2em;
-	width: 2em;
-}
-
+	.dialog-socket-error {
+		font-size: large;
+		width: 75%;
+		text-align: center;
+	}
 </style>

@@ -1,239 +1,272 @@
 <template>
 	<div class="q-pa-none">
-		<!-- HEADER -->
-		<div class="column" style="background-image: url(/background.png); background-position: center; background-size: cover; background-repeat: no-repeat;">
+		<div class="column">
 			<div class="q-pa-md full-width row items-center">
-				<div v-bind:class="{ 'q-pr-md': $q.screen.gt.sm }" class="q-my-lg row full-height items-center justify-around col-md-2 col-12">
+				<div v-bind:class="{ 'q-pr-md': $q.screen.gt.sm }"
+					class="q-my-lg row full-height items-center justify-around col-md-2 col-12">
 					<q-avatar class="q-my-auto" size=150px>
-						<img :src='computedUser.avatar'>
-							<q-badge v-if="computedUser.status == 'online'" class="absolute-bottom-right" style="width: 30px; height: 30px" color="light-green-14" rounded>
-								<q-tooltip>{{computedUser.status}}</q-tooltip>
-							</q-badge>
-							<q-badge v-if="computedUser.status == 'offline'" class="absolute-bottom-right" style="width: 30px; height: 30px" color="red" rounded>
-								<q-tooltip>{{computedUser.status}}</q-tooltip>
-							</q-badge>
-							<q-badge v-if="computedUser.status == 'playing'" class="absolute-bottom-right" style="width: 30px; height: 30px" color="orange" rounded>
-								<q-tooltip>{{computedUser.status}}</q-tooltip>
-							</q-badge>
+						<img :src='user.avatar'>
+						<q-badge v-if="user.connected" class="absolute-bottom-right"
+							style="width: 30px; height: 30px" color="light-green-14" rounded>
+						</q-badge>
+						<q-badge v-if="!user.connected" class="absolute-bottom-right"
+							style="width: 30px; height: 30px" color="red" rounded>
+						</q-badge>
+						<q-badge v-if="user.connected == 'playing'" class="absolute-bottom-right"
+							style="width: 30px; height: 30px" color="orange" rounded>
+						</q-badge>
 					</q-avatar>
 				</div>
-				<div class="col-md-10 col-12">
-					<div class="fit column q-pa-sm" style="background: rgba(0, 0, 0, 0.4); border-radius: 10px">
-						<div class="q-pa-sm row col-3 items-center">
-							<div v-bind:class="{ 'justify-center': $q.screen.lt.md }" class="col-12 col-md-6 row" style="height: 4em">
-								<div style="font-size: 3em; color: #eee;">{{computedUser.pseudo}}</div>
-								<div class="text-weight-bold q-ml-sm" style="font-size: 3em; color: #eee;">#{{computedUser.rank}}</div>
-							</div>
-							<div v-bind:class=" $q.screen.lt.md ? 'text-center' : 'text-right' " class="col-12 col-md-6" style="font-size: 1.5em; color: #eee;">Ratio : {{computedUser.ratio}}%</div>
-						</div>
-						<q-badge class="col-5 q-mx-auto" style="font-size: 3em; color: #eee; height: 75px; background: rgba(0, 0, 0, 0.4); border-radius: 15px">Level {{computedUser.level}}</q-badge>
-						<div class="row justify-between col-2 items-end">
-							<div style="color: #eee;" class="q-mb-none">Next level :</div>
-							<div style="color: #eee;" class="q-mb-none">{{computedUser.xpToNextLevel}} / 100 XP</div>
-						</div>
-						<div class="col-2">
-							<q-linear-progress stripe rounded class="q-mt-sm" size="20px" :value="computedUser.xpToNextLevel / 100" color="blue"/>
-						</div>
-					</div>
-				</div>
+				<profileHeader :user="user"></profileHeader>
 			</div>
-			<q-item class="full-width row justify-around">
-				<q-btn @click="onDeleteFriend()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="add friend"/>
-				<q-btn :href="'chat/' + computedUser.pseudo" style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="send a message"/>
-				<q-btn @click="onBlockUser()" style="background: rgba(0, 0, 0, 0.4); color: #eee;" label="block user"/>
+			<q-item v-if="!ownPage" class="full-width row justify-around">
+				<q-btn @click="friendAction()" class="action_button" :label="getFriendLabel()" :disable="friendStatus === FriendStatus.loading" />
+				<q-btn :to="{ name: 'chat' }" class="action_button" :label="$t('profil.page.message')" />
+				<q-btn @click="onToggleBlockUser()" class="action_button" :label="(isUserIgnored) ? $t('profil.page.unblock') : $t('profil.page.block')" />
 			</q-item>
 		</div>
-		<!-- END HEADER -->
 		<div class="row justify-evenly">
-			<!-- MATCHES -->
-			<div class="col-12 col-md-6 q-py-md q-pl-md" v-bind:class=" $q.screen.lt.md ? 'q-pr-md' : 'q-pr-sm'">
-				<matchesList
-					:matches="matches"
-				></matchesList>
+			<div class="col-12 col-md-6 q-py-md q-pl-md" v-bind:class="$q.screen.lt.md ? 'q-pr-md' : 'q-pr-sm'">
+				<matchesList :matches="matches" :user="user"></matchesList>
 			</div>
-			<!-- MATCHES END -->
-			<!-- ACHIEVEMENTS -->
-            <div class="col-12 col-md-6  q-py-md q-pr-md" v-bind:class=" $q.screen.lt.md ? 'q-pl-md' : 'q-pl-sm'">
-				<achievementsList
-					:achievements="achievements"
-				></achievementsList>
+			<div class="col-12 col-md-6  q-py-md q-pr-md" v-bind:class="$q.screen.lt.md ? 'q-pl-md' : 'q-pl-sm'">
+				<achievementsList :achievements="achievements"></achievementsList>
 			</div>
-			<!-- ACHIEVEMENTS END -->
 		</div>
 	</div>
 </template>
-<script>
-
+<script lang="ts">
 import matchesList from 'src/components/profilePage/MatchesList.vue';
 import achievementsList from 'src/components/profilePage/AchievementsList.vue';
+import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
+import { inject, ref, onMounted, onUnmounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { AxiosInstance } from 'axios';
+import { Socket } from 'socket.io-client';
+import type { catchAxiosType } from 'src/boot/axios';
+import type { State } from 'src/boot/state';
 
-const user = {
-	id: 1,
-	fortytwo_id: 56455,
-	pseudo: 'fdeĉ',
-	refresh_token: 'null',
-	email: 'lol',
-	password: 'k',
-	avatar: 'https://cdn.intra.42.fr/users/frdescam.jpg',
-	is2FActive: false,
-	secretOf2FA: 'k',
-	xp: 4.2,
-	ratio: 42,
-	rank: 101,
-	status: "online"
-};
-
-const computedUser = {
-	id: user.id,
-	fortytwo_id: user.fortytwo_id,
-	pseudo: user.pseudo,
-	refresh_token: user.refresh_token,
-	email: user.email,
-	password: user.password,
-	avatar: user.avatar,
-	is2FActive: user.is2FActive,
-	secretOf2FA: user.secretOf2FA,
-	level: parseInt(user.xp),
-	xpToNextLevel: parseInt((user.xp - parseInt(user.xp)) * 100),
-	ratio: user.ratio,
-	rank: user.rank,
-	status: user.status
-};
-
-const matches = [
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/05/2021'
-	},
-	{
-		id: 1,
-		map: 'forest',
-		userHome: 1,
-		userForeign: 2,
-		winner: 2,
-		userHomeScore: 4,
-		userForeignScore: 5,
-		timestamp: '03/06/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 2000,
-		userForeignScore: 3,
-		timestamp: '03/07/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/08/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/09/2021'
-	},
-	{
-		id: 1,
-		map: 'standard',
-		userHome: 1,
-		userForeign: 2,
-		winner: 1,
-		userHomeScore: 5,
-		userForeignScore: 3,
-		timestamp: '03/10/2021'
-	}
-];
-
-const achievements = [
-	{
-		id: 1,
-		timestamp: '03/01/2022',
-		achievementName: 'Rigorous Basterd1',
-		achievementDescription: 'Win 10 matches in a row',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	},
-	{
-		id: 1,
-		timestamp: '03/02/2022',
-		achievementName: 'Rigorous Basterd2',
-		achievementDescription: 'Win 10 matches in a row 1',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	},
-	{
-		id: 1,
-		timestamp: '03/03/2022',
-		achievementName: 'Rigorous Basterd3',
-		achievementDescription: 'Win 10 matches in a row 2',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	},
-	{
-		id: 1,
-		timestamp: '03/04/2022',
-		achievementName: 'Rigorous Basterd4',
-		achievementDescription: 'Win 10 matches in a row 3',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	},
-	{
-		id: 1,
-		timestamp: '03/05/2022',
-		achievementName: 'Rigorous Basterd4',
-		achievementDescription: 'Win 10 matches in a row 4',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	},
-	{
-		id: 1,
-		timestamp: '03/06/2022',
-		achievementName: 'Rigorous Basterd5',
-		achievementDescription: 'Win 10 matches in a row 5',
-		achievementIcon: 'https://cdn.intra.42.fr/achievement/image/26/PRO010.svg'
-	}
-];
+enum FriendStatus
+{
+	loading,
+	none,
+	asked,
+	asking,
+	friend,
+}
 
 export default {
 	name: 'LeaderboardPage',
 	components: {
+		profileHeader,
 		matchesList,
 		achievementsList
 	},
 	setup ()
 	{
-		async function onDeleteFriend ()
+		const { t } = useI18n();
+
+		const state = inject('state') as State;
+		const socket: Socket = inject('socketChat') as Socket;
+		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
+		const route = useRoute();
+		const profileUserId: number = +route.params.id;
+		const user = ref({});
+		const matches = ref([]);
+		const achievements = ref([]);
+		const ownPage = ref(false);
+		const isUserIgnored = ref(false);
+		const friendStatus = ref<FriendStatus>(FriendStatus.loading);
+
+		ownPage.value = (state.myself.id === profileUserId);
+
+		[
+			api.get('/user/match/get/' + profileUserId).then((res) =>
+			{
+				user.value = res.data;
+				matches.value = user.value.matchesForeign.concat(user.value.matchesHome);
+			}),
+			api.get('/user/achievements/get/' + profileUserId).then((res) =>
+			{
+				achievements.value = res.data;
+			}),
+			api.get('/ignore').then((res) =>
+			{
+				const ignoredUsers = res.data;
+				for (const ignoredUser of ignoredUsers)
+				{
+					if (ignoredUser.target.id === user.value.id)
+					{
+						isUserIgnored.value = true;
+						break;
+					}
+				}
+			})
+		].map(catchAxios);
+
+		function onToggleBlockUser ()
 		{
-			console.log("removing friend!");
+			if (isUserIgnored.value)
+			{
+				socket.emit('blocked::remove', {
+					id: state.myself.id,
+					blockedId: user.value.id
+				});
+			}
+			else
+			{
+				socket.emit('blocked::add', {
+					id: state.myself.id,
+					blockedId: user.value.id
+				});
+			}
 		}
 
-		async function onBlockUser ()
+		socket.on('blocked::receive::add', (ret) =>
 		{
-			console.log("blocking user!");
+			if (!ret || ret.socketId !== socket.id)
+				return;
+			if (Object.prototype.hasOwnProperty.call(ret.data, 'alreadyBlocked'))
+				return;
+			isUserIgnored.value = true;
+		});
+
+		socket.on('blocked::receive::remove', (ret) =>
+		{
+			if (!ret || ret.socketId !== socket.id)
+				return;
+			if (Object.prototype.hasOwnProperty.call(ret.data, 'notBlocked') || ret.data.deleted === false)
+				return;
+			isUserIgnored.value = false;
+		});
+
+		function getFriendLabel ()
+		{
+			switch (friendStatus.value)
+			{
+			case FriendStatus.friend:
+				return t('profil.page.remove');
+			case FriendStatus.asking:
+				return t('profil.page.accept');
+			case FriendStatus.asked:
+				return t('profil.page.cancel');
+			case FriendStatus.none:
+				return t('profil.page.friend');
+
+			default:
+				return '...';
+			}
 		}
+
+		function removeFriend ()
+		{
+			friendStatus.value = FriendStatus.loading;
+			catchAxios(
+				api.delete('/friends/delete', {
+					data: {
+						id: profileUserId
+					}
+				})
+					.then(() =>
+					{
+						friendStatus.value = FriendStatus.none;
+					})
+					.catch((err) =>
+					{
+						friendStatus.value = FriendStatus.friend;
+						return (err);
+					})
+			);
+		}
+
+		function addFriend ()
+		{
+			friendStatus.value = FriendStatus.loading;
+			catchAxios(
+				api.post('/friends', {
+					id: profileUserId
+				})
+					.then(({ data: { isPending } }: any) =>
+					{
+						if (isPending)
+							friendStatus.value = FriendStatus.asked;
+						else
+							friendStatus.value = FriendStatus.friend;
+					})
+					.catch((err) =>
+					{
+						friendStatus.value = FriendStatus.none;
+						return (err);
+					})
+			);
+		}
+
+		function friendAction ()
+		{
+			if (friendStatus.value === FriendStatus.friend || friendStatus.value === FriendStatus.asked)
+				removeFriend();
+			else
+				addFriend();
+		}
+
+		const disconnect = (reason: Socket.DisconnectReason) =>
+		{
+			if (reason === 'io server disconnect')
+				socket.connect();
+		};
+
+		onMounted(() =>
+		{
+			socket.on('disconnect', disconnect);
+			socket.connect();
+
+			catchAxios(
+				api.post('/friends/status', {
+					id: profileUserId
+				})
+					.then(({ data }: any) =>
+					{
+						if (data.friend)
+							friendStatus.value = FriendStatus.friend;
+						else if (data.asking)
+							friendStatus.value = FriendStatus.asking;
+						else if (data.asked)
+							friendStatus.value = FriendStatus.asked;
+						else
+							friendStatus.value = FriendStatus.none;
+					})
+			);
+		});
+
+		onUnmounted(() =>
+		{
+			socket.off('disconnect', disconnect);
+			socket.disconnect();
+		});
 
 		return {
-			computedUser,
+			user,
 			matches,
 			achievements,
+			ownPage,
+			isUserIgnored,
 
-			onDeleteFriend,
-			onBlockUser
+			onToggleBlockUser,
+			getFriendLabel,
+			friendAction,
+			friendStatus,
+			FriendStatus
 		};
 	}
 };
 </script>
+
+<style scoped>
+.action_button
+{
+	color: #eee;
+	background: rgba(0, 0, 0, 0.4);
+}
+</style>

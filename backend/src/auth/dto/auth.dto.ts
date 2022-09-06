@@ -1,11 +1,10 @@
 export interface AuthDto
 {
-    // maybe every random bs of her should be optionla ?
-    id?: number; // dis needed?
+    id?: number;
     fortytwo_id?: number,
-    pseudo?: string, // first time, same as pseudo, then could be changed so shouldnt use this to look in db!!
+    pseudo?: string,
     email?: string,
-    password? : string, // not needed?
     avatar?: string,
-    refresh_token?: string, // needed???
+    refresh_token?: string,
+    rank?: number,
 }

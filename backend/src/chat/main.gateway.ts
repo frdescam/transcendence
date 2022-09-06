@@ -133,6 +133,7 @@ export class MainGateway implements NestGateway
     }
     this.server.emit('blocked::receive::remove', this.returnData(sender, {
       deleted: await this.ignoreService.remove(users[0], users[1]),
+      user: users[0],
       target: users[1]
     }));
   }

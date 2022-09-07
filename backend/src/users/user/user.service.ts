@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, LessThanOrEqual, Like, Not, Repository } from 'typeorm';
+import { env } from 'process';
 
 import { AuthDto } from '../../auth/dto';
 import { UserDTO } from '../orm/user.dto';
@@ -45,7 +46,7 @@ export class UserService {
     // should add something if id fails?
     const result = await this.userRepository.createQueryBuilder() // raw sql type
       .update({
-        avatar: 'http://127.0.0.1:8080/api/user/avatar/'+filename,
+        avatar: `${env.API_HOST}/user/avatar/${filename}`,
       })
       .where({
         id: userId,

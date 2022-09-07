@@ -7,7 +7,7 @@ const path = require('path');
 
 module.exports = configure(() =>
 {
-	const apiUrl = `http://${(process.env.BACK_IP) ? process.env.BACK_IP : '127.0.0.1'}:${(process.env.BACK_PORT) ? process.env.BACK_PORT : '8080'}/api/`;
+	const apiUrl = process.env.API_HOST;
 
 	return {
 		eslint: {
@@ -42,6 +42,10 @@ module.exports = configure(() =>
 			'mdi-v6'
 		],
 
+		htmlVariables: {
+			dev: process.env.NODE_ENV !== 'production'
+		},
+
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
 		build: {
 			target: {
@@ -63,6 +67,7 @@ module.exports = configure(() =>
 			},
 			env: {
 				NODE_ENV: process.env.NODE_ENV,
+				VITE_API_HOST: process.env.VITE_API_HOST,
 				api: apiUrl
 			},
 			distDir: 'dist',

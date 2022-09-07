@@ -65,7 +65,7 @@ export default defineComponent({
 				}
 			}).then((res) =>
 			{
-				if (res.data.avatar !== 'http://127.0.0.1:8080/public/no_avatar.png')
+				if (!res.data.avatar.endsWith('no_avatar.png'))
 				{
 					success.value = true;
 					failure.value = false;

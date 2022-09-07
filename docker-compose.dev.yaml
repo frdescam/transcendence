@@ -41,6 +41,9 @@ services:
       - './common/:/usr/src/app/src/common/'
     env_file:
       - .env
+    environment:
+      FRONTEND_HOST: http://127.0.0.1:${VITE_PORT}
+      API_HOST: http://127.0.0.1:${BACK_PORT}/api
     networks:
       - webnet
 
@@ -61,6 +64,10 @@ services:
       - './common/:/usr/src/app/src/common/'
     env_file:
       - .env
+    environment:
+      FRONTEND_HOST: http://127.0.0.1:${VITE_PORT}
+      API_HOST: http://127.0.0.1:${BACK_PORT}/api
+      VITE_API_HOST: http://127.0.0.1:${BACK_PORT}/api
     networks:
       - webnet
 

@@ -1,6 +1,6 @@
 <template>
 	<q-card class="column items-center justify-center connection-box">
-		<q-btn :label="$t('login.button')" class="q-pa-md shadow-box" color="secondary" href="http://127.0.0.1:8080/api/login">
+		<q-btn :label="$t('login.button')" class="q-pa-md shadow-box" color="secondary" :href="`${env.VITE_API_HOST}/login`">
 			<q-icon
 				class="q-ml-sm"
 				name="img:imgs/42_logo.svg"

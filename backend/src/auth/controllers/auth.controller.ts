@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { env } from 'process';
 
 import { JwtAuthGuard } from '../guards/auth-jwt.guard';
 import { JwtAuth2FAGuard } from '../guards/auth-jwt-2fa.guard';
@@ -15,6 +16,8 @@ import { AuthDto } from '../dto';
 import { IsNotEmpty, IsNumberString, Length } from 'class-validator';
 
 // add async to route and stuff
+
+const defaultAvatarUri = `${env.API_HOST}/user/avatar/no_avatar.png`;
 
 class twoFAPayload {
 	@IsNumberString()
@@ -40,7 +43,7 @@ export class AuthController {
             fortytwo_id: id,
             pseudo: "sample" + id,
             email: "sample" + id,
-			avatar: 'http://127.0.0.1:8080/api/user/avatar/no_avatar.png',
+			avatar: defaultAvatarUri,
         };
 
         return await this.auth_svc.signup(reg);
@@ -62,7 +65,7 @@ export class AuthController {
                 fortytwo_id: id,
                 pseudo: "sample" + id,
                 email: "sample" + id,
-                avatar: 'http://127.0.0.1:8080/api/user/avatar/no_avatar.png',
+                avatar: defaultAvatarUri
             };
             user = await this.auth_svc.signup(reg);
         }
@@ -219,7 +222,7 @@ export class AuthController {
             path: '/',
         });
 
-        // res.redirect('http://127.0.0.1:3000/logging');
+        // res.redirect(`${env.FRONTEND_HOST}/logging`);
 
         // logged in
 		return {
@@ -241,7 +244,7 @@ export class AuthController {
             path: '/',
             });
 
-            res.redirect('http://127.0.0.1:3000/login/2fa');
+            res.redirect(`${env.FRONTEND_HOST}/login/2fa`);
             //return to 127.0.0.1:3000/login/2fa
 
             //return to 127.0.0.1:3000/
@@ -279,7 +282,7 @@ export class AuthController {
 
         // return if 2FA or if logged to front end here! with a json obj
 
-        res.redirect('http://127.0.0.1:3000/logging');
+        res.redirect(`${env.FRONTEND_HOST}/logging`);
 
         return {
 			two_factor_enabled: false,

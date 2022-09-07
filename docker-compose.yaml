@@ -30,6 +30,9 @@ services:
       dockerfile: ./docker/production.Dockerfile
       args:
         NODE_ENV: production
+        VITE_API_HOST: ${API_HOST}
+        FRONTEND_HOST: ${FRONTEND_HOST}
+        API_HOST: ${API_HOST}
     volumes:
       - /etc/localtime:/etc/localtime:ro
 

@@ -1,5 +1,5 @@
 <template>
-	<div class="q-pa-md" style="max-width: 100%;">
+	<div style="max-width: 100%;">
 		<q-list>
 			<template v-if="loading">
 				<q-item clickable v-ripple>

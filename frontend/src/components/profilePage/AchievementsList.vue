@@ -41,6 +41,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, inject, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Capitalize } from 'src/boot/libs';
 import { useI18n } from 'vue-i18n';
 
@@ -51,6 +52,7 @@ export default defineComponent({
 	setup (props)
 	{
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+		const { t } = useI18n();
 		const filteredAchievements = ref([...props.achievements]);
 		const filter = ref('');
 		const { t } = useI18n();

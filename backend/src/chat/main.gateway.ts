@@ -7,11 +7,12 @@ import {
 } from '@nestjs/websockets';
 import cors from 'src/cors';
 import { NestGateway } from '@nestjs/websockets/interfaces/nest-gateway.interface';
-import { Bind, Logger, Request, UseGuards } from '@nestjs/common';
+import { Bind, Logger, Request, UseGuards, UsePipes } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import * as crypto from 'crypto';
 import * as sanitizeHtml from 'sanitize-html';
 import { WsJwtGuard } from 'src/auth/guards/ws-jwt.guard';
+import { socketValidationPipe } from 'src/validation';
 import {
   admBanMut,
   blockedUser,
@@ -51,6 +52,7 @@ const getType = (type: string) => {
   namespace: 'chat::',
   cors
 })
+@UsePipes(socketValidationPipe)
 export class MainGateway implements NestGateway
 {
   constructor(

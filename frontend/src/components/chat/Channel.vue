@@ -1,5 +1,5 @@
 <template>
-	<div class="q-pa-md" style="max-width: 100%;">
+	<div style="max-width: 100%;">
 		<q-list>
 			<template v-if="loading">
 				<q-item clickable v-ripple>
@@ -46,7 +46,7 @@
 								<q-tooltip anchor="center right" self="center left">{{ $t('chat.mp') }}</q-tooltip>
 							</q-badge>
 						</q-item-section>
-						<q-item-section>{{ channel.name }}</q-item-section>
+						<q-item-section class="channel-text-break">{{ channel.name }}</q-item-section>
 					</q-item>
 					<q-menu
 						ref="contextmenu"
@@ -527,19 +527,6 @@ export default defineComponent({
 			}
 		});
 
-		socket.on('channel::receive::update', (ret) =>
-		{
-			if (ret.data.updated)
-			{
-				const i = getChannel(ret.data.data.id);
-				if (i === -1)
-					return;
-				channels.value[i].name = ret.data.data.name;
-				channels.value[i].password = ret.data.data.newPassword;
-				channels.value[i].type = ret.data.data.type;
-			}
-		});
-
 		const updateUser = (channelId: number, user: updateUserInterface) =>
 		{
 			const setVal = (compare: boolean, arr: number[], hideEdition = false, hideOnInsert = true) =>
@@ -777,6 +764,8 @@ export default defineComponent({
 
 		socket.on('channel::receive::update', (ret) =>
 		{
+			if (!ret.data.updated)
+				return;
 			for (const i in channels.value)
 			{
 				if (channels.value[i].id === ret.data.data.id)
@@ -944,6 +933,9 @@ export default defineComponent({
 		display: flex !important;
 		flex-direction: row !important;
 		justify-content: center !important;
+	}
+	.channel-text-break {
+		word-break: break-all;
 	}
 	.dialog {
 		overflow-y: auto;

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { env } from 'process';
@@ -33,6 +33,9 @@ export class AuthController {
     @Post("auto_reg")
     async auto_reg(@Body() {id}, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
     {
+        if (env.NODE_ENV !== 'developpement')
+            throw new UnauthorizedException('developpement API is disabled in production mode');
+
         const user : User = await this.auth_svc.login({id: id});
 
         if (user)
@@ -55,6 +58,9 @@ export class AuthController {
     @Post("auto_login")
     async auto_login(@Body() {id}, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
     {
+        if (env.NODE_ENV !== 'developpement')
+            throw new UnauthorizedException('developpement API is disabled in production mode');
+
         let user : User = await this.auth_svc.login({id: id});
 
         // console.log(user, id);

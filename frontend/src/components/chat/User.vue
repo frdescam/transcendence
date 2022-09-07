@@ -134,6 +134,7 @@ export default defineComponent({
 		const dialogCreatorName = ref();
 		const dialogInvitationId = ref(0);
 		const dialogInvitationName = ref();
+		const isMe = ref(false);
 
 		const findIndex = (id: number) =>
 		{
@@ -237,10 +238,17 @@ export default defineComponent({
 
 		const sendMP = () =>
 		{
+			isMe.value = true;
 			socket.emit('channel::get::mp', [props.userId, userSelected.value]);
-			socket.on('channel::receive::get::mp', (ret) =>
+		};
+
+		socket.on('channel::receive::get::mp', (ret) =>
+		{
+			if (isMe.value === false)
+				return;
+			if (ret && ret.socketId === socket.id)
 			{
-				if (ret && ret.data.exist === false)
+				if (ret.data.exist === false)
 				{
 					socket.emit('channel::add', {
 						id: null,
@@ -256,8 +264,9 @@ export default defineComponent({
 				}
 				else
 					socket.emit('channel::change', ret.data.channel.id);
-			});
-		};
+			}
+			isMe.value = false;
+		});
 		// #endregion
 
 		// #region Blocked

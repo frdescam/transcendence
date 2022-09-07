@@ -32,7 +32,7 @@
 import { QDialog } from 'quasar';
 import { Socket } from 'socket.io-client';
 import { useRouter } from 'vue-router';
-import { defineComponent, ref, inject, watch, onMounted, onUnmounted } from 'vue';
+import { defineComponent, ref, inject, watch } from 'vue';
 
 let counter: NodeJS.Timer; // eslint-disable-line no-undef
 

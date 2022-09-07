@@ -58,7 +58,7 @@ export default defineComponent({
 		async function onFilterChange (value: string | number | null)
 		{
 			if (typeof value === 'string')
-				filteredAchievements.value = props.achievements.filter((achievement: any) => achievement.name.toLowerCase().includes(value.toLowerCase()) || t(`profil.achievements.list.${achievement.key}.description`).toLowerCase().includes(value.toLowerCase()));
+				filteredAchievements.value = props.achievements.filter((achievement: any) => achievement.name.toLowerCase().includes(value.toLowerCase()) || t(`profil.achievements.list.${achievement.key}.description`).toLowerCase().includes(value.toLowerCase())); // eslint-disable-line @typescript-eslint/no-explicit-any
 		}
 
 		onMounted(() =>

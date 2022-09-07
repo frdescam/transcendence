@@ -185,6 +185,7 @@ export default {
 				api.post('/friends', {
 					id: profileUserId
 				})
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					.then(({ data: { isPending } }: any) =>
 					{
 						if (isPending)
@@ -223,6 +224,7 @@ export default {
 				api.post('/friends/status', {
 					id: profileUserId
 				})
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					.then(({ data }: any) =>
 					{
 						if (data.friend)

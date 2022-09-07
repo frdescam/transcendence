@@ -87,7 +87,8 @@ export default defineComponent({
 		const isError = ref(false);
 		const errorType = ref(0);
 		const selectedMap = ref();
-		const selectOptions: any[] = [];
+
+		const selectOptions: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
 		const gameLink = ref<string | null>();
 
 		const pendingInvitation = ref(false);

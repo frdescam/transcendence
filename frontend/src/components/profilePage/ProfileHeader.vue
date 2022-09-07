@@ -50,6 +50,7 @@
 import { defineComponent, inject } from 'vue';
 import { Capitalize } from 'src/boot/libs';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function calcXP (user: any): number
 {
 	if (typeof user === 'object' && user && typeof user.xp !== 'undefined')

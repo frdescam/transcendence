@@ -36,7 +36,11 @@
 		</q-list>
 	</q-list>
 
-	<q-dialog v-model="user.new_user">
+	<q-dialog
+		persistent
+		square
+		v-model="user.new_user"
+	>
 		<div class="q-pa-md" style="background-color: white; max-width: 400px;">
 			<h5 class="q-ma-md">{{ capitalize($t('setting.profilPictureModal.title')) }}</h5>
 			<q-card bordered style='width: 300px;' class="q-ma-md">
@@ -87,11 +91,13 @@ export default ({
 
 		async function fetchUserInfo ()
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const res: any = await catchAxios(api.get('/user/me', {}));
 			user.value = res.data;
 		}
 		async function fetchFriendList ()
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const res: any = await catchAxios(api.get('/friends/accepted'));
 			friendList.value = res.data;
 			onFilterChange(filter.value);
@@ -118,6 +124,7 @@ export default ({
 
 		async function onFilterChange (value: string)
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			filteredFriendList.value = friendList.value.filter((friend: any) =>
 				(value)
 					? friend.pseudo.toLowerCase().includes(value.toLowerCase())

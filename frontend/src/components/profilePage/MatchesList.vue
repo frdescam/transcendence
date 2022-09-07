@@ -67,7 +67,7 @@ export default defineComponent({
 		async function onFilterChange (value: string | number | null)
 		{
 			if (typeof value === 'string')
-				filteredMatches.value = props.matches.filter((match: any) => match.map.toLowerCase().includes(value.toLowerCase()) || match.userHome.pseudo.toLowerCase().includes(value.toLowerCase()) || match.userForeign.pseudo.toLowerCase().includes(value.toLowerCase()));
+				filteredMatches.value = props.matches.filter((match: any) => match.map.toLowerCase().includes(value.toLowerCase()) || match.userHome.pseudo.toLowerCase().includes(value.toLowerCase()) || match.userForeign.pseudo.toLowerCase().includes(value.toLowerCase())); // eslint-disable-line @typescript-eslint/no-explicit-any
 		}
 
 		onMounted(() =>

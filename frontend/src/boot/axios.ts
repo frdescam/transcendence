@@ -3,6 +3,8 @@ import axios, { AxiosInstance } from 'axios';
 import { Notify } from 'quasar';
 import type { AxiosError, AxiosResponse } from 'axios';
 
+const { VITE_API_HOST } = import.meta.env;
+
 declare module '@vue/runtime-core' {
 	interface ComponentCustomProperties {
 		$axios: AxiosInstance;
@@ -13,7 +15,7 @@ declare module '@vue/runtime-core' {
  * Access directly to backend api, axios is already preconfigured on the backend
  */
 export const api = axios.create({
-	baseURL: `http://${document.location.hostname}:8080/api/`,
+	baseURL: `${VITE_API_HOST}/`,
 	withCredentials: true
 });
 

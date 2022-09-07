@@ -58,7 +58,7 @@
 import { ref } from '@vue/reactivity';
 import { useRouter } from 'vue-router';
 import { AxiosInstance } from 'axios';
-import { inject, onBeforeUnmount, onMounted, watch } from 'vue';
+import { inject, onUnmounted, onBeforeUnmount, onMounted, watch } from 'vue';
 import { Capitalize } from 'src/boot/libs';
 import type { catchAxiosType } from 'src/boot/axios';
 import { Socket } from 'socket.io-client';
@@ -77,7 +77,7 @@ export default {
 		const filteredFriends = ref<any[]>([]);
 		const gameSocket: Socket = inject('socketGame') as Socket;
 
-		function onDisconnect ()
+		function onDisconnect (reason?: Socket.DisconnectReason)
 		{
 			console.log("onDisconnect");
 			for (const friend of friends.value)
@@ -86,6 +86,8 @@ export default {
 					id: friend.id
 				});
 			}
+			if (typeof reason !== 'undefined' && reason === 'io server disconnect')
+				gameSocket.connect();
 		}
 
 		function onConnected ()
@@ -130,6 +132,8 @@ export default {
 					gameSocket.on('disconnect', onDisconnect);
 					gameSocket.on('connect', onConnected);
 					gameSocket.on('game::userinfos', onUpdate);
+					gameSocket.connect();
+
 					if (gameSocket.connected)
 						onConnected();
 					onFilterChange(filter.value);
@@ -186,6 +190,8 @@ export default {
 				flush: 'post'
 			});
 		});
+
+		onUnmounted(() => gameSocket.disconnect());
 
 		onBeforeUnmount(() =>
 		{

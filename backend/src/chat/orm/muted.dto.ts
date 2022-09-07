@@ -1,10 +1,9 @@
 import { Channel } from './channel.entity';
 import { User } from 'src/users/orm/user.entity';
-import { IsDate, IsInt, IsPositive, IsOptional, ValidateNested } from 'class-validator';
+import { IsDate, IsInt, IsOptional, ValidateNested } from 'class-validator';
 
 export class MutedDTO {
   @IsInt()
-  @IsPositive()
   @IsOptional()
     id: number;
   

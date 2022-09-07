@@ -12,27 +12,32 @@ export class MutedService {
     private mutedRepository: Repository<Muted>,
   ) {}
 
-  async getOne(channelId: number, userId: number): Promise<Muted>
-  {
-    return this.mutedRepository.createQueryBuilder('muted')
-      .where('muted.channel.id = :id', { id: channelId })
-      .where('muted.user.id = :id', { id: userId })
-      .leftJoinAndSelect('muted.channel', 'channel')
-      .leftJoinAndSelect('muted.user', 'user')
-      .getOne();
+  async getOne(channelId: number, userId: number): Promise<Muted> {
+    return this.mutedRepository.findOne({
+      relations: ['channel', 'user'],
+      where: {
+        channel: {
+          id: channelId
+        },
+        user: {
+          id: userId
+        }
+      }
+    });
   }
 
-  async getAll(channelId: number): Promise<Muted[]>
-  {
-    return this.mutedRepository.createQueryBuilder('muted')
-      .where('muted.channel.id = :id', { id: channelId })
-      .leftJoinAndSelect('muted.channel', 'channel')
-      .leftJoinAndSelect('muted.user', 'user')
-      .getMany();
+  async getAll(channelId: number): Promise<Muted[]> {
+    return this.mutedRepository.find({
+      relations: ['channel', 'user'],
+      where: {
+        channel: {
+          id: channelId
+        }
+      }
+    });
   }
 
-  async isMuted(channelId: number, userId: number): Promise<unknown>
-  {
+  async isMuted(channelId: number, userId: number) {
     const muted = await this.getOne(channelId, userId);
     if (!muted)
       return {
@@ -52,8 +57,7 @@ export class MutedService {
     };
   }
 
-  async set(data: MutedDTO)
-  {
+  async set(data: MutedDTO) {
     try {
       if (await this.getOne(data.channel.id, data.user.id) !== undefined)
       {
@@ -98,8 +102,7 @@ export class MutedService {
     }
   }
 
-  async update(data: MutedDTO)
-  {
+  async update(data: MutedDTO) {
     try {
       const update = await this.mutedRepository.createQueryBuilder('muted')
         .update()
@@ -127,13 +130,12 @@ export class MutedService {
     }
   }
 
-  async delete(data: MutedDTO)
-  {
+  async delete(data: MutedDTO) {
     try {
-      await this.mutedRepository.createQueryBuilder()
+      await this.mutedRepository.createQueryBuilder('muted')
         .delete()
         .from(Muted)
-        .where('id = :id', { id: data.id })
+        .where('muted.id = :id', { id: data.id })
         .execute();
       return {
         message: 'Muted user deleted',

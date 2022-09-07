@@ -66,7 +66,7 @@
 								<q-item-section>{{ $t('chat.channel.menu.edit.title') }}</q-item-section>
 							</q-item>
 							<q-item
-								v-if="contextMenuIsCreator || contextMenuIsAdmin"
+								v-if="contextMenuIsCreator"
 								clickable
 								@click="openDialogDeletion(); contextmenu?.hide()"
 							>

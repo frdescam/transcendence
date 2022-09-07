@@ -13,20 +13,28 @@ export class BannedService {
   ) {}
 
   async getOne(channelId: number, userId: number): Promise<Banned> {
-    return this.bannedRepository.createQueryBuilder('banned')
-      .where('banned.channel.id = :id', {id: channelId})
-      .where('banned.user.id = :id', { id: userId })
-      .leftJoinAndSelect('banned.channel', 'channel')
-      .leftJoinAndSelect('banned.user', 'user')
-      .getOne();
+    return this.bannedRepository.findOne({
+      relations: ['channel', 'user'],
+      where: {
+        channel: {
+          id: channelId
+        },
+        user: {
+          id: userId
+        }
+      }
+    });
   }
 
   async getAll(channelId: number): Promise<Banned[]> {
-    return this.bannedRepository.createQueryBuilder('banned')
-      .where('banned.channel.id = :id', {id: channelId})
-      .leftJoinAndSelect('banned.channel', 'channel')
-      .leftJoinAndSelect('banned.user', 'user')
-      .getMany();
+    return this.bannedRepository.find({
+      relations: ['channel', 'user'],
+      where: {
+        channel: {
+          id: channelId
+        }
+      }
+    });
   }
 
   async isBanned(channelId: number, userId: number) {
@@ -39,8 +47,8 @@ export class BannedService {
     const currentDate = new Date();
     if (untilDate.getTime() <= currentDate.getTime()) {
       return {
-        isBanned: false,
         isDeleted: await this.delete(banned),
+        isBanned: false
       };
     }
     return {
@@ -49,14 +57,13 @@ export class BannedService {
     };
   }
 
-  async set(data: BannedDTO)
-  {
+  async set(data: BannedDTO) {
     try {
       if (await this.getOne(data.channel.id, data.user.id) !== undefined)
       {
         await this.update(data);
         return {
-          message: 'Muted user success',
+          message: 'Banned user success',
           user: data.user.id,
           channel: data.channel.id,
           set: true
@@ -95,8 +102,7 @@ export class BannedService {
     }
   }
 
-  async update(data: BannedDTO)
-  {
+  async update(data: BannedDTO) {
     try {
       const update = await this.bannedRepository.createQueryBuilder('banned')
         .update()
@@ -124,8 +130,7 @@ export class BannedService {
     }
   }
 
-  async delete(data: BannedDTO)
-  {
+  async delete(data: BannedDTO) {
     try {
       await this.bannedRepository.createQueryBuilder('banned')
         .delete()

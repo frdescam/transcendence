@@ -7,10 +7,10 @@ export class Muted extends BaseEntity {
     @PrimaryGeneratedColumn()
       id: number;
 
-    @ManyToOne(() => Channel, (channel) => channel.bannedUsers)
+    @ManyToOne(() => Channel, (channel) => channel.mutedUsers)
       channel: Channel;
 
-    @ManyToOne(() => User, (user) => user.bannedFrom)
+    @ManyToOne(() => User, (user) => user.mutedFrom)
       user: User;
 
     @Column({type: 'timestamp', default: () => 'now()'})

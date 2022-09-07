@@ -246,9 +246,9 @@ export class MainGateway implements NestGateway
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('banned::check')
-  async isBan(muted: admBanMut, sender: Socket) {
+  async isBan(banned: admBanMut, sender: Socket) {
     this.logger.log(`Client ${sender.id} check if is ban`);
-    this.server.emit('banned::receive::check', this.returnData(sender, await this.bannedService.isBanned(muted.channelId, muted.userId)));
+    this.server.emit('banned::receive::check', this.returnData(sender, await this.bannedService.isBanned(banned.channelId, banned.userId)));
   }
   //#endregion
 

@@ -1,6 +1,6 @@
 export default {
 	menu: {
-		title: 'transcendance',
+		title: 'transcendence',
 		play: 'play',
 		chat: 'chat',
 		leaderboard: 'leaderboard',

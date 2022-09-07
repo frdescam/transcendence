@@ -376,7 +376,6 @@ export default defineComponent({
 					return;
 				}
 			}
-			console.log('je suis passé ici');
 			madeChange();
 		};
 

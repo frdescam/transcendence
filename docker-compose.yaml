@@ -35,11 +35,6 @@ services:
         API_HOST: ${API_HOST}
     volumes:
       - /etc/localtime:/etc/localtime:ro
-    environment:
-      VIRTUAL_PORT: ${BACK_PORT} 
-      VIRTUAL_HOST: ${HOST}
-      LETSENCRYPT_HOST: ${HOST}
-      LETSENCRYPT_EMAIL: badam@student.42.fr
 
 volumes:
   pgdata:

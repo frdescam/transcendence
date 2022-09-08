@@ -1,5 +1,5 @@
 <template>
-	<q-item clickable class="text-center" :to="{ name: 'party', params: { party: party.room } }" v-if="party">
+	<q-item clickable class="text-center game_item" :to="{ name: 'party', params: { party: party.room } }" v-if="party">
 		<q-item-section side class="inherit_color">
 			<q-icon name="sports_esports" />
 		</q-item-section>
@@ -23,7 +23,7 @@
 
 		</q-item-section>
 	</q-item>
-	<q-item clickable disable v-if="!party">
+	<q-item clickable disable class="text-center game_item" v-if="!party">
 		<q-item-section side class="inherit_color">
 			<q-icon name="sports_esports" />
 		</q-item-section>
@@ -83,5 +83,10 @@ export default defineComponent({
 .inherit_color
 {
 	color: inherit;
+}
+.game_item
+{
+	width: 320px;
+	max-width: calc(100vw - 24px);
 }
 </style>

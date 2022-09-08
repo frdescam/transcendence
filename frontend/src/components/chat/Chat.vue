@@ -10,7 +10,6 @@
 			:placeholder="$t('chat.editor.placeholder')"
 			:disable="disableForm"
 			square
-			ref="editorRef"
 			:definitions="{
 				send: {
 					tip: $t('chat.editor.send'),
@@ -171,12 +170,18 @@ export default defineComponent({
 			messages.value.length = 0;
 		};
 
-		const calcHash = async (str: string) =>
+		const calcHash = (str: string): string =>
 		{
-			const Uint8 = new TextEncoder().encode(str);
-			const hash = await crypto.subtle.digest('SHA-256', Uint8);
-			const hashArr = Array.from(new Uint8Array(hash));
-			return hashArr.map((el) => el.toString(16).padStart(2, '0')).join('');
+			let hash = 0, i: number, chr: number;
+			if (str.length === 0)
+				return String(hash);
+			for (i = 0; i < str.length; i++)
+			{
+				chr = str.charCodeAt(i);
+				hash = ((hash << 5) - hash) + chr;
+				hash |= 0;
+			}
+			return String(hash);
 		};
 
 		const imageError = (e: Event) =>
@@ -264,9 +269,9 @@ export default defineComponent({
 		// #endregion Get messages
 
 		// #region Send message
-		const sendMessage = async () =>
+		const sendMessage = () =>
 		{
-			if (disableForm.value === true || editor.value.length <= 0)
+			if (disableForm.value === true || editor.value === null || editor.value.length <= 0)
 				return;
 			if (props.selectedChannel.id > 0)
 			{
@@ -279,7 +284,7 @@ export default defineComponent({
 							message: editor.value,
 							length: editor.value.length,
 							timestamp: Date.now(),
-							hash: await calcHash(editor.value)
+							hash: calcHash(editor.value)
 						});
 				}
 				else
@@ -292,7 +297,7 @@ export default defineComponent({
 							message: editor.value,
 							length: editor.value.length,
 							timestamp: Date.now(),
-							hash: await calcHash(editor.value)
+							hash: calcHash(editor.value)
 						});
 				}
 			}

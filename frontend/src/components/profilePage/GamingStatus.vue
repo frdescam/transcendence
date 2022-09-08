@@ -149,7 +149,7 @@ defineExpose({
 
 		<q-card-section v-if="state.party">
 				Room:
-				<q-chip clickable icon-right="link" @click="(e) => {roomUrlToClipboard(state.party.room, e)}">
+				<q-chip clickable icon-right="link" color="secondary" text-color="white" @click="(e) => {roomUrlToClipboard(state.party.room, e)}">
 					{{ state.party.room }}
 				</q-chip>
 				<br/>

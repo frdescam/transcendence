@@ -105,7 +105,7 @@ export default defineComponent({
 		{
 			const target = e.target as HTMLImageElement;
 			if (target)
-				target.src = 'imgs/chat/default.webp';
+				target.src = 'imgs/no_avatar.png';
 		};
 
 		const search = (value: string) =>

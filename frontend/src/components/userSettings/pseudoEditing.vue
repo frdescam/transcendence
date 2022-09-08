@@ -70,25 +70,26 @@ export default defineComponent({
 		const editUsername = function ()
 		{
 			toggleNameEdit();
+			success.value = failure.value = false;
 			LoadingPseudo.value = true;
 			catchAxios(
-				api.patch('/user/updatePseudo', { update_pseudo: newPseudo.value }).then((res) =>
-				{
-					if (res.data.error)
+				api.patch('/user/updatePseudo', { update_pseudo: newPseudo.value })
+					.then((res) =>
 					{
-						failure.value = true;
-						success.value = false;
-						errorMessage.value = res.data.error;
-					}
-					else
+						if (res.data.error)
+							errorMessage.value = res.data.error;
+						else
+						{
+							emit('update:pseudo', res.data.pseudo);
+							success.value = true;
+							refreshUserState();
+						}
+					})
+					.finally(() =>
 					{
-						emit('update:pseudo', res.data.pseudo);
-						failure.value = false;
-						success.value = true;
-						refreshUserState();
-					}
-					LoadingPseudo.value = false;
-				})
+						failure.value = !success.value;
+						LoadingPseudo.value = false;
+					})
 			);
 		};
 		return {

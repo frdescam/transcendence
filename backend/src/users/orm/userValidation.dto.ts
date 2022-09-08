@@ -19,6 +19,6 @@ export class avatarValidationDto {
 export class updateUserValidationDto {
   @IsString()
   @IsNotEmpty()
-  @Length(5, 50)
+  @Length(1, 50)
     update_pseudo: string;
 }

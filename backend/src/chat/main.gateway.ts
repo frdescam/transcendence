@@ -9,7 +9,6 @@ import cors from 'src/cors';
 import { NestGateway } from '@nestjs/websockets/interfaces/nest-gateway.interface';
 import { Bind, Logger, Request, UseGuards, UsePipes } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
-import * as crypto from 'crypto';
 import * as sanitizeHtml from 'sanitize-html';
 import { WsJwtGuard } from 'src/auth/guards/ws-jwt.guard';
 import { socketValidationPipe } from 'src/validation';
@@ -94,6 +93,19 @@ export class MainGateway implements NestGateway
       allowedTags: [],
       allowedAttributes: {}
     });
+  }
+
+  calcHash(str: string) {
+    let hash = 0, i: number, chr: number;
+    if (str.length === 0)
+      return String(hash);
+    for (i = 0; i < str.length; i++)
+    {
+      chr = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + chr;
+      hash |= 0;
+    }
+    return String(hash);
   }
 
   //#region Handshake
@@ -486,7 +498,7 @@ export class MainGateway implements NestGateway
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('message::add')
   async newMessage(message: receiveMessage, sender: Socket) {
-    const hash = crypto.createHash('sha256').update(message.message).digest('hex');
+    const hash = this.calcHash(message.message);
     if (hash !== message.hash)
       return;
     const messDate = new Date(message.timestamp);
@@ -505,7 +517,7 @@ export class MainGateway implements NestGateway
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('message::update')
   async update(message: updateMessage, sender: Socket) {
-    const hash = crypto.createHash('sha256').update(message.message).digest('hex');
+    const hash = this.calcHash(message.message);
     if (hash !== message.hash)
       return;
     const messDate = new Date(message.timestamp);
@@ -524,7 +536,7 @@ export class MainGateway implements NestGateway
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('message::delete')
   async delete(message: updateMessage, sender: Socket) {
-    const hash = crypto.createHash('sha256').update(message.message).digest('hex');
+    const hash = this.calcHash(message.message);
     if (hash !== message.hash)
       return;
     const messDate = new Date(message.timestamp);

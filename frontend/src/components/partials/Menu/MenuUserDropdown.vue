@@ -118,7 +118,11 @@ export default defineComponent({
 			gameSocket.off('disconnect', onDisconnect);
 			gameSocket.off('connect', onConnected);
 		});
-		onUnmounted(() => gameSocket.disconnect());
+		onUnmounted(() =>
+		{
+			if (gameSocket.connected)
+				gameSocket.disconnect();
+		});
 
 		return {
 			capitalize,

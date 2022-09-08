@@ -84,65 +84,60 @@ export default {
 
 		ownPage.value = (state.myself.id === profileUserId);
 
-		[
-			api.get('/user/match/get/' + profileUserId).then((res) =>
-			{
-				user.value = res.data;
-				matches.value = user.value.matchesForeign.concat(user.value.matchesHome);
-			}),
-			api.get('/user/achievements/get/' + profileUserId).then((res) =>
-			{
-				achievements.value = res.data;
-			}),
-			api.get('/ignore').then((res) =>
-			{
-				const ignoredUsers = res.data;
-				for (const ignoredUser of ignoredUsers)
-				{
-					if (ignoredUser.target.id === user.value.id)
-					{
-						isUserIgnored.value = true;
-						break;
-					}
-				}
-			})
-		].map(catchAxios);
-
 		function onToggleBlockUser ()
 		{
 			if (isUserIgnored.value)
 			{
 				socket.emit('blocked::remove', {
 					id: state.myself.id,
-					blockedId: user.value.id
+					blockedId: profileUserId
 				});
 			}
 			else
 			{
 				socket.emit('blocked::add', {
 					id: state.myself.id,
-					blockedId: user.value.id
+					blockedId: profileUserId
 				});
 			}
 		}
 
-		socket.on('blocked::receive::add', (ret) =>
+		function onBlockedReceiveAdd (ret: any)
 		{
-			if (!ret || ret.data.user.id !== state.myself.id || ret.data.target.id !== user.value.id)
+			if (typeof ret === 'undefined' || typeof ret.data === 'undefined')
 				return;
-			if (Object.prototype.hasOwnProperty.call(ret.data, 'alreadyBlocked'))
-				return;
-			isUserIgnored.value = true;
-		});
+			if (
+				(typeof ret.data.user !== 'undefined' && typeof ret.data.target !== 'undefined' && ret.data.user.id === state.myself.id && ret.data.target.id === profileUserId) ||
+				(ret.socketId === socket.id && ret.data.alreadyBlocked === true)
+			)
+				isUserIgnored.value = true;
+		}
 
-		socket.on('blocked::receive::remove', (ret) =>
+		function onBlockedReceiveRemove (ret: any)
 		{
-			if (!ret || ret.data.user.id !== state.myself.id || ret.data.target.id !== user.value.id)
+			if (typeof ret === 'undefined' || typeof ret.data === 'undefined')
 				return;
-			if (Object.prototype.hasOwnProperty.call(ret.data, 'notBlocked') || ret.data.deleted === false)
+			if (
+				(typeof ret.data.user !== 'undefined' && typeof ret.data.target !== 'undefined' && ret.data.user.id === state.myself.id && ret.data.target.id === profileUserId) ||
+				(ret.socketId === socket.id && ret.data.notBlocked === true)
+			)
+				isUserIgnored.value = false;
+		}
+
+		function onBlockedReceiveGet (ret: any)
+		{
+			if (!ret || typeof ret.data === 'undefined')
 				return;
-			isUserIgnored.value = false;
-		});
+			const ignoredUsers = ret.data;
+			for (const ignoredUser of ignoredUsers)
+			{
+				if (ignoredUser.target.id === profileUserId)
+				{
+					isUserIgnored.value = true;
+					break;
+				}
+			}
+		}
 
 		function getFriendLabel ()
 		{
@@ -225,7 +220,16 @@ export default {
 			socket.on('disconnect', disconnect);
 			socket.connect();
 
-			catchAxios(
+			[
+				api.get('/user/match/get/' + profileUserId).then((res) =>
+				{
+					user.value = res.data;
+					matches.value = user.value.matchesForeign.concat(user.value.matchesHome);
+				}),
+				api.get('/user/achievements/get/' + profileUserId).then((res) =>
+				{
+					achievements.value = res.data;
+				}),
 				api.post('/friends/status', {
 					id: profileUserId
 				})
@@ -241,12 +245,21 @@ export default {
 						else
 							friendStatus.value = FriendStatus.none;
 					})
-			);
+			].map(catchAxios);
+
+			socket.on('blocked::receive::add', onBlockedReceiveAdd);
+			socket.on('blocked::receive::remove', onBlockedReceiveRemove);
+			socket.on('blocked::receive::get', onBlockedReceiveGet);
+
+			socket.emit('blocked::get', state.myself.id);
 		});
 
 		onUnmounted(() =>
 		{
 			socket.off('disconnect', disconnect);
+			socket.off('blocked::receive::add', onBlockedReceiveAdd);
+			socket.off('blocked::receive::remove', onBlockedReceiveRemove);
+			socket.off('blocked::receive::get', onBlockedReceiveGet);
 			socket.disconnect();
 		});
 

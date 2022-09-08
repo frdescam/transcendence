@@ -2,7 +2,8 @@
 	<q-dialog
 		ref="dialog"
 		model="fixed"
-		persistent
+		no-esc-dismiss
+		no-backdrop-dismiss
 		square
 	>
 		<q-card style="width: 700px; max-width: 80vw;">

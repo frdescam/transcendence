@@ -3,7 +3,8 @@
 		ref="dialog"
 		model="fixed"
 		square
-		persistent
+		no-esc-dismiss
+		no-backdrop-dismiss
 		@hide="reset"
 	>
 		<q-card style="width: 40vw">

@@ -189,7 +189,8 @@
 								model="fullWidth"
 								square
 								full-width
-								persistent
+								no-esc-dismiss
+								no-backdrop-dismiss
 							>
 								<q-card>
 									<q-card-section>

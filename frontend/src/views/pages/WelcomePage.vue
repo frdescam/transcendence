@@ -37,7 +37,8 @@
 	</q-list>
 
 	<q-dialog
-		persistent
+		no-esc-dismiss
+		no-backdrop-dismiss
 		square
 		v-model="user.new_user"
 	>

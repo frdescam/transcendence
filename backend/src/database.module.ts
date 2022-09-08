@@ -17,7 +17,7 @@ import { TypeormLogger } from './typeorm.logger';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: ['dist/**/*.entity{.ts,.js}'],
-        synchronize: !(process.env.NODE_ENV === 'production'),
+        synchronize: true, // !(process.env.NODE_ENV === 'production'),
         retryAttempts: 30,
         retryDelay: 8000,
         logger: new TypeormLogger()

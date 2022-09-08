@@ -28,7 +28,8 @@
 	</q-page>
 	<q-dialog
 		ref="dialog"
-		persistent
+		no-esc-dismiss
+		no-backdrop-dismiss
 		position="bottom"
 		square
 	>

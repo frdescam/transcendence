@@ -198,7 +198,7 @@ defineExpose({
 		<q-separator v-if="state.party"/>
 
 		<q-card-actions vertical v-if="state.party">
-			<q-btn color="primary" flat :href="state.party && routeFor(state.party.room)" :disable="!state.party">
+			<q-btn color="primary" flat :to="state.party && routeFor(state.party.room)" :disable="!state.party">
 				{{ capitalize($t('game.gameStatus.spectate')) }}
 			</q-btn>
 		</q-card-actions>

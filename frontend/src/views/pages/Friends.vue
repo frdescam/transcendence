@@ -23,7 +23,7 @@
           <q-btn round fab icon="person_remove" color="primary" @click="onDeleteFriend(friend.id)" v-on:click.stop>
             <q-tooltip :delay="500">{{ capitalize($t('friend.delete')) }}</q-tooltip>
           </q-btn>
-          <q-btn v-if="friend.isPlaying" fab icon="visibility" color="primary" :href="'game/' + friend.partyRoom" v-on:click.stop>
+          <q-btn v-if="friend.isPlaying" fab icon="visibility" color="primary" :to="'game/' + friend.partyRoom" v-on:click.stop>
             <q-tooltip :delay="500">{{ capitalize($t('friend.watch')) }}</q-tooltip>
           </q-btn>
         </div>

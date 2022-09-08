@@ -126,6 +126,13 @@ function roomUrlToClipboard (room: string, e: MouseEvent)
 	e.stopPropagation();
 	const link = location.protocol + '//' + location.host + routeFor(room);
 	copyToClipboard(link)
+		.then(() =>
+		{
+			$q.notify({
+				type: 'positive',
+				message: capitalize(t('game.listView.copied'))
+			});
+		})
 		.catch(() =>
 		{
 			$q.notify({

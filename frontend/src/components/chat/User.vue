@@ -44,6 +44,7 @@
 			<q-list bordered padding>
 				<q-item
 					clickable
+					:disable="userIsBlocked"
 					@click="sendMP(); mpMemu?.hide();"
 				>
 					<q-item-section avatar>

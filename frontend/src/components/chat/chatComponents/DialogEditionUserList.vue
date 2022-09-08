@@ -88,7 +88,7 @@
 						size="md"
 						color="deep-orange"
 						icon="person_remove"
-						:disable="data.isCreator || !connectedUser.isCreator || connectedUser.id === data.id"
+						:disable="data.isCreator || !connectedUser.isAdmin || connectedUser.id === data.id"
 						@click="deleteUser"
 					/>
 				</div>

@@ -108,7 +108,11 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.profile-picture
+{
+	min-height: 100px;
+}
 .profile-picture .profile-picture-edit {
 	visibility: hidden;
 	opacity: 0;

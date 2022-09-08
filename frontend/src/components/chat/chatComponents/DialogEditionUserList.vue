@@ -159,7 +159,7 @@ export default defineComponent({
 		{
 			const target = e.target as HTMLImageElement;
 			if (target)
-				target.src = 'imgs/chat/default.webp';
+				target.src = 'imgs/no_avatar.png';
 		};
 
 		const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);

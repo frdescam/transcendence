@@ -108,7 +108,7 @@ export default {
 		{
 			const target = e.target as HTMLImageElement;
 			if (target)
-				target.src = 'imgs/chat/default.webp';
+				target.src = 'imgs/no_avatar.png';
 		};
 
 		async function fetchFromServer (friendsOnly, startRow, count, filter)

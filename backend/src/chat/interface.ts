@@ -1,60 +1,166 @@
-export interface admBanMut {
-  id: number,
-  userId: number,
-  channelId: number,
-  until: Date
+import {
+  IsArray,
+  IsBoolean,
+  IsDate,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsPositive,
+  IsString
+} from 'class-validator';
+
+export class admBanMut {
+  @IsInt()
+  @IsOptional()
+    id: number;
+  
+  @IsInt()
+  @IsPositive()
+    userId: number;
+  
+  @IsInt()
+  @IsPositive()
+    channelId: number;
+  
+  @IsDate()
+  @IsOptional()
+    until: Date;
 }
 
-export interface blockedUser {
-  id: number,
-  blockedId: number
+export class blockedUser {
+  @IsInt()
+  @IsPositive()
+    id: number;
+
+  @IsInt()
+  @IsPositive()
+    blockedId: number;
 }
 
-export interface receiveChannel {
-  id: number,
-  creator: number,
-  name: string,
-  type: string,
-  password: string,
-  users?: Array<number>
+export class receiveChannel {
+  @IsInt()
+  @IsOptional()
+    id: number;
+
+  @IsInt()
+  @IsPositive()
+    creator: number;
+  
+  @IsString()
+  @IsOptional()
+    name: string;
+
+  @IsString()
+  @IsOptional()
+    type: string;
+
+  @IsString()
+  @IsOptional()
+    password: string;
+  
+  @IsArray()
+  @IsInt({
+    each: true
+  })
+  @IsOptional()
+    users?: Array<number>;
 }
 
-export interface passwordCompare {
-  channelId: number,
-  password: string
+export class passwordCompare {
+  @IsInt()
+  @IsPositive()
+    channelId: number;
+  
+  @IsString()
+  @IsNotEmpty()
+    password: string;
 }
 
-export interface receiveInvitation {
-  creatorId: number,
-  creatorName: string,
-  invitationId: number,
-  invitationName: string,
-  gameLink: string,
-  approvalFromInvitedUser?: boolean
+export class receiveInvitation {
+  @IsInt()
+    creatorId: number;
+  
+  @IsString()
+    creatorName: string;
+  
+  @IsInt()
+    invitationId: number;
+  
+  @IsString()
+    invitationName: string;
+  
+  @IsString()
+    gameLink: string;
+  
+  @IsBoolean()
+  @IsOptional()
+    approvalFromInvitedUser?: boolean;
 }
 
-export interface receiveMessage {
-  id: number,
-  channel: number,
-  message: string,
-  length: number,
-  timestamp: Date,
-  hash: string
+export class receiveMessage {
+  @IsInt()
+  @IsPositive()
+    id: number;
+
+  @IsInt()
+  @IsPositive()
+    channel: number;
+  
+  @IsString()
+  @IsOptional()
+    message: string;
+  
+  @IsInt()
+  @IsOptional()
+    length: number;
+  
+  @IsDate()
+  @IsOptional()
+    timestamp: Date;
+  
+  @IsString()
+  @IsOptional()
+    hash: string;
 }
 
-export interface updateMessage {
-  id: number,
-  channel: number,
-  messageId: number,
-  message: string,
-  length: number,
-  timestamp: Date,
-  hash: string
+export class updateMessage {
+  @IsInt()
+  @IsPositive()
+    id: number;
+
+  @IsInt()
+  @IsPositive()
+    channel: number;
+
+  @IsInt()
+  @IsPositive()
+    messageId: number;
+
+  @IsString()
+  @IsOptional()
+    message: string;
+
+  @IsInt()
+  @IsOptional()
+    length: number;
+
+  @IsDate()
+  @IsOptional()
+    timestamp: Date;
+
+  @IsString()
+  @IsOptional()
+    hash: string;
 }
 
-export interface channelUser {
-  userId: number,
-  channelId: number,
+export class channelUser {
+  @IsInt()
+  @IsPositive()
+    userId: number;
+
+  @IsInt()
+  @IsPositive()
+    channelId: number;
 }
 
 export interface timestamp {

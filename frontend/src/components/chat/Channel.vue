@@ -835,7 +835,8 @@ export default defineComponent({
 			const x = channels.value[i].users.indexOf(ret.data.data.id);
 			if (x !== -1)
 				channels.value[i].users.splice(x, 1);
-			if (channels.value[i].type === 'private' && ret.data.data.id === props.userId)
+			if ((channels.value[i].type === 'private' || channels.value[i].type === 'direct') &&
+				ret.data.data.id === props.userId)
 			{
 				if (selectedChannelId.value === channels.value[i].id)
 					sendEvent(-1, false);

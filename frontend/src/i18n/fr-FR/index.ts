@@ -266,6 +266,15 @@ export default {
 				state: 'en attente de l\'état du jeu',
 				default: 'chargement de la carte'
 			}
+		},
+		gameStatus: {
+			title: 'statut de jeu',
+			room: 'salle:',
+			map: 'carte',
+			created: 'créé le',
+			scores: 'scores',
+			no: 'ne joue pas en ce moment',
+			spectate: 'spectateur'
 		}
 	},
 	index: {

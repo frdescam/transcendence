@@ -266,6 +266,15 @@ export default {
 				state: 'awaiting gamestate',
 				default: 'loading map'
 			}
+		},
+		gameStatus: {
+			title: 'gaming status',
+			room: 'room:',
+			map: 'map',
+			created: 'created at',
+			scores: 'scores',
+			no: 'not playing right now',
+			spectate: 'spectate'
 		}
 	},
 	index: {

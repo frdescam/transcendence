@@ -211,6 +211,23 @@ export class MainGateway implements OnGatewayDisconnect
 	}
 
 	@UseGuards(WsJwtGuard)
+	@SubscribeMessage('game::userinfos::get')
+	getUserInfos(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() { id: userId }: userinfosDto
+	): void
+	{
+		const party = this.partyService.findPartyWithUser(userId);
+		client.emit(
+			'game::userinfos',
+			{
+				userId,
+				party: party ? this.partyService.partyToPublicJson(party) : null
+			} as getUserPartyDto
+		);
+	}
+
+	@UseGuards(WsJwtGuard)
 	@SubscribeMessage('game::userinfos::leave')
 	leaveUserInfos(
 		@ConnectedSocket() client: Socket,

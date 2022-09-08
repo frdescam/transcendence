@@ -2,7 +2,8 @@
 	<q-dialog
 		ref="dialog"
 		model="fixed"
-		persistent
+		no-esc-dismiss
+		no-backdrop-dismiss
 		square
 	>
 		<q-card style="width: 700px; max-width: 80vw;">
@@ -32,7 +33,7 @@
 import { QDialog } from 'quasar';
 import { Socket } from 'socket.io-client';
 import { useRouter } from 'vue-router';
-import { defineComponent, ref, inject, watch, onMounted, onUnmounted } from 'vue';
+import { defineComponent, ref, inject, watch } from 'vue';
 
 let counter: NodeJS.Timer; // eslint-disable-line no-undef
 

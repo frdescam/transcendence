@@ -189,7 +189,8 @@
 								model="fullWidth"
 								square
 								full-width
-								persistent
+								no-esc-dismiss
+								no-backdrop-dismiss
 							>
 								<q-card>
 									<q-card-section>
@@ -275,7 +276,6 @@ export default defineComponent({
 		channelId: Number,
 		channelName: String,
 		channelType: String,
-		channelPassword: String,
 		channelOwner: Number,
 		userId: Number
 	},
@@ -307,6 +307,7 @@ export default defineComponent({
 		const generalNameError = ref();
 		const generalSuccess = ref(false);
 		const generalCheck = ref(false);
+		const generalChangeIsMe = ref(false);
 
 		const generalReset = () =>
 		{
@@ -320,27 +321,32 @@ export default defineComponent({
 			generallNewPasswordRef.value?.resetValidation();
 		};
 
+		const setError = (error: string) =>
+		{
+			generalNameError.value = error;
+			generalCheck.value = false;
+			generalChangeIsMe.value = false;
+		};
+
+		const madeChange = () =>
+		{
+			socket.emit('channel::update', {
+				id: props.channelId,
+				creator: props.userId,
+				type: generalType.value,
+				name: generalName.value,
+				password: (generalNewPassword.value && generalType.value === 'protected')
+					? generalNewPassword.value
+					: null
+			});
+		};
+
 		const editGeneral = () =>
 		{
-			const setError = (error: string) =>
-			{
-				generalNameError.value = error;
-				generalCheck.value = false;
-			};
+			if (props.dialogEditionShow === false)
+				return;
 
-			const madeChange = () =>
-			{
-				socket.emit('channel::update', {
-					id: props.channelId,
-					creator: props.userId,
-					type: generalType.value,
-					name: generalName.value,
-					password: (generalNewPassword.value && generalType.value === 'protected')
-						? generalNewPassword.value
-						: null
-				});
-			};
-
+			generalChangeIsMe.value = true;
 			generalCheck.value = true;
 			generalNameError.value = null;
 			if (!generalName.value)
@@ -351,43 +357,52 @@ export default defineComponent({
 				!generalNewPassword.value)
 				return setError('toProtected');
 
-			if (generalType.value === 'protected' &&
-				(generalOldPassword.value || generalNewPassword.value))
+			if (props.channelType === 'protected' &&
+				generalType.value === 'protected' &&
+				!generalOldPassword.value && generalNewPassword.value)
+				return setError('emptyOld');
+			if (generalType.value === 'protected' && generalOldPassword.value)
 			{
-				if (!generalOldPassword.value)
-					return setError('emptyOld');
 				if (!generalNewPassword.value)
 					return setError('emptyNew');
-				if (generalOldPassword.value === generalNewPassword.value)
+				if (props.channelType === 'protected' && generalOldPassword.value === generalNewPassword.value)
 					return setError('same');
-				socket.emit('channel::check', {
-					channelId: props.channelId,
-					password: generalOldPassword.value
-				});
+				if (props.channelType === 'protected')
+				{
+					socket.emit('channel::check', {
+						channelId: props.channelId,
+						password: generalOldPassword.value
+					});
+					return;
+				}
 			}
-			else
-				madeChange();
-
-			socket.on('channel::receive::check', (ret) =>
-			{
-				if (ret.socketId !== socket.id)
-					return;
-				if (!ret.data)
-					return setError('passCheck');
-				madeChange();
-			});
-
-			socket.on('channel::receive::update', (ret) =>
-			{
-				if (ret.socketId !== socket.id)
-					return;
-				if (ret.data.updated === false)
-					return setError('update');
-				generalCheck.value = false;
-				generalNameError.value = null;
-				generalSuccess.value = true;
-			});
+			madeChange();
 		};
+
+		socket.on('channel::receive::check', (ret) =>
+		{
+			if (ret.socketId !== socket.id || generalChangeIsMe.value === false)
+				return;
+			if (!ret.data)
+				return setError('passCheck');
+			madeChange();
+		});
+
+		socket.on('channel::receive::update', (ret) =>
+		{
+			if (ret.socketId !== socket.id || generalChangeIsMe.value === false)
+				return;
+			if (ret.data.updated === false)
+				return setError('update');
+			generalCheck.value = false;
+			generalNameError.value = null;
+			generalSuccess.value = true;
+			generalChangeIsMe.value = false;
+			generalName.value = ret.data.data.name;
+			generalType.value = ret.data.data.type;
+			generalOldPassword.value = null;
+			generalNewPassword.value = null;
+		});
 		// #endregion
 
 		// #region User
@@ -858,6 +873,8 @@ export default defineComponent({
 			}
 			else
 				dialog.value?.hide();
+		}, {
+			flush: 'post'
 		});
 
 		return {

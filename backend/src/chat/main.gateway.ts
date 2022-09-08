@@ -7,11 +7,12 @@ import {
 } from '@nestjs/websockets';
 import cors from 'src/cors';
 import { NestGateway } from '@nestjs/websockets/interfaces/nest-gateway.interface';
-import { Bind, Logger, Request, UseGuards } from '@nestjs/common';
+import { Bind, Logger, Request, UseGuards, UsePipes } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import * as crypto from 'crypto';
 import * as sanitizeHtml from 'sanitize-html';
 import { WsJwtGuard } from 'src/auth/guards/ws-jwt.guard';
+import { socketValidationPipe } from 'src/validation';
 import {
   admBanMut,
   blockedUser,
@@ -51,6 +52,7 @@ const getType = (type: string) => {
   namespace: 'chat::',
   cors
 })
+@UsePipes(socketValidationPipe)
 export class MainGateway implements NestGateway
 {
   constructor(
@@ -244,9 +246,9 @@ export class MainGateway implements NestGateway
 
   @Bind(MessageBody(), ConnectedSocket())
   @SubscribeMessage('banned::check')
-  async isBan(muted: admBanMut, sender: Socket) {
+  async isBan(banned: admBanMut, sender: Socket) {
     this.logger.log(`Client ${sender.id} check if is ban`);
-    this.server.emit('banned::receive::check', this.returnData(sender, await this.bannedService.isBanned(muted.channelId, muted.userId)));
+    this.server.emit('banned::receive::check', this.returnData(sender, await this.bannedService.isBanned(banned.channelId, banned.userId)));
   }
   //#endregion
 

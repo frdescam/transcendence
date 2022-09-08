@@ -2,6 +2,7 @@
 	<q-table
 		:title="capitalize($t('menu.leaderboard'))"
 		:rows="rows"
+		:rows-per-page-options="[ 3, 5, 7, 10, 15, 20, 25, 50 ]"
 		:columns="[
 			{
 				name: 'rank',
@@ -112,6 +113,7 @@ export default {
 
 		async function fetchFromServer (friendsOnly, startRow, count, filter)
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const res: any = await catchAxios(
 				api.get('/leaderboard/getRows', {
 					params: {

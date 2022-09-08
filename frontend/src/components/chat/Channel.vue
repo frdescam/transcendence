@@ -1,5 +1,5 @@
 <template>
-	<div class="q-pa-md" style="max-width: 100%;">
+	<div style="max-width: 100%;">
 		<q-list>
 			<template v-if="loading">
 				<q-item clickable v-ripple>
@@ -46,7 +46,7 @@
 								<q-tooltip anchor="center right" self="center left">{{ $t('chat.mp') }}</q-tooltip>
 							</q-badge>
 						</q-item-section>
-						<q-item-section>{{ channel.name }}</q-item-section>
+						<q-item-section class="channel-text-break">{{ channel.name }}</q-item-section>
 					</q-item>
 					<q-menu
 						ref="contextmenu"
@@ -66,7 +66,7 @@
 								<q-item-section>{{ $t('chat.channel.menu.edit.title') }}</q-item-section>
 							</q-item>
 							<q-item
-								v-if="contextMenuIsCreator || contextMenuIsAdmin"
+								v-if="contextMenuIsCreator"
 								clickable
 								@click="openDialogDeletion(); contextmenu?.hide()"
 							>
@@ -131,7 +131,6 @@
 		:channelId="contextMenuSelectId"
 		:channelName="contextMenuSelectName"
 		:channelType="contextMenuSelectType"
-		:channelPassword="contextMenuSelectPassword"
 		:channelOwner="contextMenuSelectOwner"
 		@dialog-edition-alert="openDialogAlert"
 		@dialog-edition-update-user="updateUser"
@@ -212,7 +211,6 @@ export default defineComponent({
 		const contextMenuSelectName = ref();
 		const contextMenuSelectType = ref();
 		const contextMenuSelectOwner = ref(0);
-		const contextMenuSelectPassword = ref();
 		const contextMenuIsCreator = ref(false);
 		const contextMenuIsAdmin = ref(false);
 		const contextMenuUserIsIn = ref(false);
@@ -221,7 +219,6 @@ export default defineComponent({
 		const selectedChannelPassword = ref();
 		const selectedChannelId = ref(0);
 		const selectedChannelType = ref();
-		const selectedChannelPasswordValue = ref();
 		const selectedChannelName = ref();
 
 		const sendEvent = (channelId: number, isDeleted = false) =>
@@ -262,7 +259,6 @@ export default defineComponent({
 								contextMenuSelectId.value = channel.id;
 								contextMenuSelectName.value = channel.name;
 								contextMenuSelectType.value = channel.type;
-								contextMenuSelectPassword.value = channel.password;
 								contextMenuSelectOwner.value = channel.owner;
 								for (const channel of channels.value)
 								{
@@ -370,10 +366,7 @@ export default defineComponent({
 			if (selectedChannelType.value !== 'protected')
 				sendEventChangeChannel();
 			else
-			{
-				selectedChannelPasswordValue.value = ret.data.password;
 				openDialogPassword();
-			}
 			emitFromChannel = false;
 		});
 		// #endregion Channel selection
@@ -524,19 +517,6 @@ export default defineComponent({
 				banMutChange(ret.data.user, ret.data.channel, null, false);
 				if (selectedChannelId.value === ret.data.channel)
 					openDialogAlert(ret.data.id, props.userId, 'muted', false, true);
-			}
-		});
-
-		socket.on('channel::receive::update', (ret) =>
-		{
-			if (ret.data.updated)
-			{
-				const i = getChannel(ret.data.data.id);
-				if (i === -1)
-					return;
-				channels.value[i].name = ret.data.data.name;
-				channels.value[i].password = ret.data.data.newPassword;
-				channels.value[i].type = ret.data.data.type;
 			}
 		});
 
@@ -751,20 +731,38 @@ export default defineComponent({
 
 		socket.on('channel::receive::add', (ret) =>
 		{
-			if (ret.channel && ret.channel.created === true)
+			const addUsers = () =>
 			{
+				channels.value.push(generateData(ret.channel.data));
+				const i = index(ret.channel.data.id);
+				if (i !== -1)
+				{
+					for (const user of ret.users)
+						channels.value[i].users.push(user.data.id);
+				}
+			};
+
+			if (ret && ret.channel && ret.channel.created === true)
+			{
+				if (ret.socketId === socket.id)
+				{
+					socket.emit('admin::set', {
+						channelId: ret.channel.data.id,
+						userId: props.userId
+					});
+				}
 				if (ret.channel.data.type === 'public' || ret.channel.data.type === 'protected')
-					channels.value.push(generateData(ret.channel.data));
+					addUsers();
 				else if (ret.channel.data.type === 'private' || ret.channel.data.type === 'direct')
 				{
 					for (const user of ret.users)
 					{
 						if (user.data.id === props.userId)
 						{
-							channels.value.push(generateData(ret.channel.data));
-							if (user.data.id === ret.channel.data.owner.id)
+							addUsers();
+							if (user.data.id === ret.channel.data.owner.id && ret.channel.data.type !== 'private')
 							{
-								// Force creator of private message to switch automatically to new channel
+								// Force creator of direct message to switch automatically to new channel
 								selectedChannelId.value = 0;
 								changeChannel(ret.channel.data.id, ret.channel.data.type);
 							}
@@ -777,6 +775,8 @@ export default defineComponent({
 
 		socket.on('channel::receive::update', (ret) =>
 		{
+			if (!ret.data.updated)
+				return;
 			for (const i in channels.value)
 			{
 				if (channels.value[i].id === ret.data.data.id)
@@ -794,6 +794,8 @@ export default defineComponent({
 						channels.value[i].type = ret.data.data.type;
 						channels.value[i].owner = ret.data.data.owner.id;
 						channels.value[i].password = ret.data.data.password;
+						contextMenuSelectType.value = ret.data.data.type;
+						contextMenuSelectName.value = ret.data.data.name;
 					}
 					return;
 				}
@@ -873,7 +875,6 @@ export default defineComponent({
 			contextMenuSelectId,
 			contextMenuSelectType,
 			contextMenuSelectName,
-			contextMenuSelectPassword,
 			contextMenuSelectOwner,
 			contextMenuIsCreator,
 			contextMenuIsAdmin,
@@ -882,7 +883,6 @@ export default defineComponent({
 			selectedChannelId,
 			selectedChannelError,
 			selectedChannelPassword,
-			selectedChannelPasswordValue,
 			selectedChannelName,
 
 			saveEmitChannelId,
@@ -944,6 +944,9 @@ export default defineComponent({
 		display: flex !important;
 		flex-direction: row !important;
 		justify-content: center !important;
+	}
+	.channel-text-break {
+		word-break: break-all;
 	}
 	.dialog {
 		overflow-y: auto;

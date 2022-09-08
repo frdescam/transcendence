@@ -1,3 +1,4 @@
+
 <template>
   <q-list class="row justify-evenly shadow-2 rounded-borders bg-white">
     <q-toolbar>
@@ -73,13 +74,12 @@ export default {
 		const catchAxios = inject('catchAxios') as catchAxiosType;
 		const router = useRouter();
 		const filter = ref('');
-		const friends = ref<any[]>([]);
-		const filteredFriends = ref<any[]>([]);
+		const friends = ref<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+		const filteredFriends = ref<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
 		const gameSocket: Socket = inject('socketGame') as Socket;
 
 		function onDisconnect (reason?: Socket.DisconnectReason)
 		{
-			console.log("onDisconnect");
 			for (const friend of friends.value)
 			{
 				gameSocket.emit('game::userinfos::leave', {
@@ -92,7 +92,6 @@ export default {
 
 		function onConnected ()
 		{
-			console.log("onConnected");
 			for (const friend of friends.value)
 			{
 				gameSocket.emit('game::userinfos::join', {
@@ -103,7 +102,6 @@ export default {
 
 		function onUpdate (data: getUserPartyDto)
 		{
-			console.log("onUpdate", data);
 			for (const friend of friends.value)
 			{
 				if (data.userId === friend.id)
@@ -150,6 +148,7 @@ export default {
 
 		function onFilterChange (value: string)
 		{
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			filteredFriends.value = friends.value.filter((friend: any) =>
 				(value)
 					? friend.pseudo.toLowerCase().includes(value.toLowerCase())

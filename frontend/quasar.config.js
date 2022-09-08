@@ -73,8 +73,8 @@ module.exports = configure(() =>
 			distDir: 'dist',
 			vitePlugins: [
 				['@intlify/vite-plugin-vue-i18n', {
-					compositionOnly: false,
-					// runtimeOnly: false,
+					// compositionOnly: false,
+					runtimeOnly: false,
 					include: path.resolve(__dirname, './src/i18n/**')
 				}]
 			],

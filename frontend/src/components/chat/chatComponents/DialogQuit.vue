@@ -3,7 +3,8 @@
 		ref="dialog"
 		model="fixed"
 		square
-		persistent
+		no-esc-dismiss
+		no-backdrop-dismiss
 	>
 		<q-card>
 				<q-card-section class="column items-center">

@@ -1,7 +1,8 @@
 <template>
 	<q-dialog
 		ref="dialog"
-		persistent
+		no-esc-dismiss
+		no-backdrop-dismiss
 		color="primary"
 		@hide="hide"
 	>

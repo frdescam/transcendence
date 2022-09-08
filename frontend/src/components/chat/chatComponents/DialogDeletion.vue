@@ -1,7 +1,8 @@
 <template>
 	<q-dialog
 		ref="dialog"
-		persistent
+		no-esc-dismiss
+		no-backdrop-dismiss
 		@before-hide="hide"
 	>
 		<q-card>

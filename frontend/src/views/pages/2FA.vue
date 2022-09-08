@@ -32,6 +32,7 @@ export default ({
 			if (code.length === 6)
 			{
 				disableInput.value = true;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const res: any = await catchAxios(api.post('/2FA/login', { code }));
 				if (res.data.error)
 				{

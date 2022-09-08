@@ -28,7 +28,8 @@
 	</q-page>
 	<q-dialog
 		ref="dialog"
-		persistent
+		no-esc-dismiss
+		no-backdrop-dismiss
 		position="bottom"
 		square
 	>
@@ -184,6 +185,7 @@ export default defineComponent({
 			socket.off('connect_error', connectError);
 			socket.off('connect', connect);
 			socket.off('disconnect', disconnect);
+			socket.removeAllListeners();
 			socket.disconnect();
 		});
 		// #endregion  Check if error with socket

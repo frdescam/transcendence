@@ -5,7 +5,7 @@ export class password
   static async hash (password: string): Promise<string>
   {
     const salt = randomBytes(16).toString('hex');
-    const buf = scryptSync(password, salt, 64) as Buffer;
+    const buf = scryptSync(password.normalize(), salt.normalize(), 64) as Buffer;
     return `${buf.toString('hex')}:${salt}`;
   }
 
@@ -13,7 +13,7 @@ export class password
   {
     const [hashedPassword, salt] = dbPassword.split(':');
     const bufferKey = Buffer.from(hashedPassword, 'hex');
-    const derivedKey = scryptSync(suppliedPassword, salt, 64);
+    const derivedKey = scryptSync(suppliedPassword.normalize(), salt.normalize(), 64);
     return timingSafeEqual(bufferKey, derivedKey);
   }
 }

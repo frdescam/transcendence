@@ -51,14 +51,14 @@ export default defineComponent({
 	setup (props)
 	{
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+		const { t } = useI18n();
 		const filteredAchievements = ref([...props.achievements]);
 		const filter = ref('');
-		const { t } = useI18n();
 
 		async function onFilterChange (value: string | number | null)
 		{
 			if (typeof value === 'string')
-				filteredAchievements.value = props.achievements.filter((achievement: any) => achievement.name.toLowerCase().includes(value.toLowerCase()) || t(`profil.achievements.list.${achievement.key}.description`).toLowerCase().includes(value.toLowerCase()));
+				filteredAchievements.value = props.achievements.filter((achievement: any) => achievement.name.toLowerCase().includes(value.toLowerCase()) || t(`profil.achievements.list.${achievement.key}.description`).toLowerCase().includes(value.toLowerCase())); // eslint-disable-line @typescript-eslint/no-explicit-any
 		}
 
 		onMounted(() =>

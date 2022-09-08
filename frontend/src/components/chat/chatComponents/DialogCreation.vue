@@ -175,17 +175,6 @@ export default defineComponent({
 			resetDialog();
 		};
 
-		socket.on('channel::receive::add', (ret) =>
-		{
-			if (ret.socketId === socket.id && ret.channel.created)
-			{
-				socket.emit('admin::set', {
-					channelId: ret.channel.data.id,
-					userId: props.userId
-				});
-			}
-		});
-
 		watch(() => props.dialogCreationShow, (after, before) =>
 		{
 			if (before === false && after === true)

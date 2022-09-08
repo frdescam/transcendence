@@ -130,7 +130,7 @@ export default ({
 
 		async function update (code: string)
 		{
-			console.log('me.value (in update) : ', me.value);
+			// console.log('me.value (in update) : ', me.value);
 			if (code.length === 6)
 			{
 				disableInput.value = true;
@@ -177,7 +177,7 @@ export default ({
 			deleteAccount ()
 			{
 				popupDelete.value?.hide();
-				console.log('User deleted their account');
+				// console.log('User deleted their account');
 			},
 			paddleOptions: [
 				'Normal', 'Fire', 'Air', 'Water', 'Earth'

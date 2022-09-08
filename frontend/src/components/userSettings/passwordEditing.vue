@@ -55,7 +55,7 @@ export default defineComponent({
 		const oldPassword = ref('');
 		const passwordSubmit = function ()
 		{
-			console.log(oldPassword.value, newPassword.value);
+			// console.log(oldPassword.value, newPassword.value);
 		};
 		return {
 			capitalize,

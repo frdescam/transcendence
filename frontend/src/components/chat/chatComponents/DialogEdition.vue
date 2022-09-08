@@ -276,7 +276,6 @@ export default defineComponent({
 		channelId: Number,
 		channelName: String,
 		channelType: String,
-		channelPassword: String,
 		channelOwner: Number,
 		userId: Number
 	},
@@ -401,6 +400,8 @@ export default defineComponent({
 			generalChangeIsMe.value = false;
 			generalName.value = ret.data.data.name;
 			generalType.value = ret.data.data.type;
+			generalOldPassword.value = null;
+			generalNewPassword.value = null;
 		});
 		// #endregion
 

@@ -147,11 +147,11 @@ defineExpose({
 					</q-chip>
 					<q-tooltip>
 						<q-avatar square>
-							<img :src="state.party.avatars[0] ? state.party.avatars[0] : '/imgs/chat/default.webp'" v-if="state.party.players[0]">
+							<img :src="state.party.avatars[0] ? state.party.avatars[0] : '/imgs/no_avatar.png'" v-if="state.party.players[0]">
 						</q-avatar>
 						vs
 						<q-avatar square>
-							<img :src="state.party.avatars[1] ? state.party.avatars[1] : '/imgs/chat/default.webp'" v-if="state.party.players[1]">
+							<img :src="state.party.avatars[1] ? state.party.avatars[1] : '/imgs/no_avatar.png'" v-if="state.party.players[1]">
 						</q-avatar>
 					</q-tooltip>
 				</span>

@@ -29,7 +29,7 @@
 	<template v-if="loading">
 		<div class="message-list">
 			<q-chat-message
-				avatar="imgs/chat/default.webp"
+				avatar="imgs/no_avatar.png"
 				sent
 				text-color="white"
 				bg-color="primary"
@@ -37,7 +37,7 @@
 				<q-skeleton type="text" width="150px" />
 			</q-chat-message>
 			<q-chat-message
-				avatar="imgs/chat/default.webp"
+				avatar="imgs/no_avatar.png"
 				bg-color="amber"
 			>
 				<q-skeleton type="text" width="150px" />
@@ -188,7 +188,7 @@ export default defineComponent({
 		{
 			const target = e.target as HTMLImageElement;
 			if (target)
-				target.src = 'imgs/chat/default.webp';
+				target.src = 'imgs/no_avatar.png';
 		};
 
 		const generateTimestamp = (time: string) =>

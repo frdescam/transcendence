@@ -251,11 +251,11 @@ const printStatus = (val: string) =>
 
 						<q-tooltip>
 							<q-avatar square>
-								<img :src="props.row.avatars[0] ? props.row.avatars[0] : '/imgs/chat/default.webp'" v-if="props.row.players[0]">
+								<img :src="props.row.avatars[0] ? props.row.avatars[0] : '/imgs/no_avatar.png'" v-if="props.row.players[0]">
 							</q-avatar>
 							{{ $t('game.listView.vs').toUpperCase() }}
 							<q-avatar square>
-								<img :src="props.row.avatars[1] ? props.row.avatars[1] : '/imgs/chat/default.webp'" v-if="props.row.players[1]">
+								<img :src="props.row.avatars[1] ? props.row.avatars[1] : '/imgs/no_avatar.png'" v-if="props.row.players[1]">
 							</q-avatar>
 						</q-tooltip>
 

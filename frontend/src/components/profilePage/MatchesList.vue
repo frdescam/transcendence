@@ -68,6 +68,12 @@ export default defineComponent({
 		{
 			if (typeof value === 'string')
 				filteredMatches.value = props.matches.filter((match: any) => match.map.toLowerCase().includes(value.toLowerCase()) || match.userHome.pseudo.toLowerCase().includes(value.toLowerCase()) || match.userForeign.pseudo.toLowerCase().includes(value.toLowerCase()));
+			filteredMatches.value.sort((a: any, b: any) =>
+			{
+				if (a.timestamp < b.timestamp)
+					return 1;
+				return 0;
+			});
 		}
 
 		onMounted(() =>

@@ -17,7 +17,7 @@
 		</template>
 		<q-list>
 
-			<q-item clickable :to="{name: 'settings'}">
+			<q-item clickable class="text-center" :to="{name: 'settings'}">
 				<q-item-section side class="inherit_color">
 					<q-icon name="settings" />
 				</q-item-section>
@@ -30,7 +30,7 @@
 
 			<q-separator inset />
 
-			<q-item clickable :to="{name: 'logout'}">
+			<q-item clickable class="text-center" :to="{name: 'logout'}">
 				<q-item-section side class="inherit_color">
 					<q-icon name="logout" />
 				</q-item-section>

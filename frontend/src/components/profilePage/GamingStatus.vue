@@ -42,6 +42,12 @@ function onConnected ()
 			id: props.userId
 		});
 	}
+	else
+	{
+		gameSocket.emit('game::userinfos::get', {
+			id: props.userId
+		});
+	}
 }
 function onUpdate (data: getUserPartyDto)
 {

@@ -22,11 +22,14 @@
 				<q-btn @click="onToggleBlockUser()" class="action_button" :label="(isUserIgnored) ? $t('profil.page.unblock') : $t('profil.page.block')" />
 			</q-item>
 		</div>
-		<div class="row justify-evenly">
-			<div class="col-12 col-md-6 q-py-md q-pl-md" v-bind:class="$q.screen.lt.md ? 'q-pr-md' : 'q-pr-sm'">
+		<div class="row justify-evenly q-pa-xs">
+			<div class="col col-12 col-lg-4" :class="$q.screen.lt.md ? 'q-pa-xs' : 'q-pa-sm'">
+				<GamingStatus :userId="profileUserId" :subscribe="!ownPage" />
+			</div>
+			<div class="col col-12 col-lg-4" :class="$q.screen.lt.md ? 'q-pa-xs' : 'q-pa-sm'">
 				<matchesList :matches="matches" :user="user"></matchesList>
 			</div>
-			<div class="col-12 col-md-6  q-py-md q-pr-md" v-bind:class="$q.screen.lt.md ? 'q-pl-md' : 'q-pl-sm'">
+			<div class="col col-12 col-lg-4" :class="$q.screen.lt.md ? 'q-pa-xs' : 'q-pa-sm'">
 				<achievementsList :achievements="achievements"></achievementsList>
 			</div>
 		</div>
@@ -36,6 +39,7 @@
 import matchesList from 'src/components/profilePage/MatchesList.vue';
 import achievementsList from 'src/components/profilePage/AchievementsList.vue';
 import profileHeader from 'src/components/profilePage/ProfileHeader.vue';
+import GamingStatus from 'src/components/profilePage/GamingStatus.vue';
 import { inject, ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -58,7 +62,8 @@ export default {
 	components: {
 		profileHeader,
 		matchesList,
-		achievementsList
+		achievementsList,
+		GamingStatus
 	},
 	setup ()
 	{
@@ -246,6 +251,7 @@ export default {
 		});
 
 		return {
+			profileUserId,
 			user,
 			matches,
 			achievements,

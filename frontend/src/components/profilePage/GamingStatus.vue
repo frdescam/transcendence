@@ -6,6 +6,8 @@ import type { userId } from 'src/common/game/types';
 import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
 import type { getUserPartyDto } from 'src/common/game/orm/getUserParty.dto';
 import type { Socket } from 'socket.io-client';
+import { useI18n } from 'vue-i18n';
+import { Capitalize } from 'src/boot/libs';
 
 const props = defineProps<{ userId: userId, title?: string, subscribe: boolean }>();
 
@@ -15,6 +17,9 @@ type stateType =
 	connected: boolean,
 	party: getPartyDto | null
 };
+
+const { t } = useI18n();
+const capitalize: Capitalize = inject('capitalize') as Capitalize;
 
 const router = useRouter();
 const $q = useQuasar();
@@ -71,6 +76,27 @@ onBeforeUnmount(() =>
 	gameSocket.off('connect', onConnected);
 });
 
+const printStatus = (val: string) =>
+{
+	switch (val)
+	{
+	case 'awaiting-player':
+		return capitalize(t('game.listView.message.awaiting'));
+	case 'warmup':
+		return capitalize(t('game.listView.message.warmup'));
+	case 'paused':
+		return capitalize(t('game.listView.message.paused'));
+	case 'introducing-sleeve':
+		return capitalize(t('game.listView.message.sleeve'));
+	case 'running':
+		return capitalize(t('game.listView.message.running'));
+	case 'finish':
+		return capitalize(t('game.listView.message.finish'));
+	default:
+		return capitalize(t('game.listView.message.default'));
+	}
+};
+
 /* GUI utils */
 function countPlayers (players: usersArray): number
 {
@@ -98,7 +124,7 @@ function roomUrlToClipboard (room: string, e: MouseEvent)
 		{
 			$q.notify({
 				type: 'warning',
-				message: 'Failed to copy to clipboard'
+				message: capitalize(t('game.listView.failed'))
 			});
 		});
 }
@@ -112,7 +138,7 @@ defineExpose({
 <template>
 	<q-card class="bg-white q-mb-md q-pb-sm">
 		<q-card-section>
-			<div class="text-h6">{{$props.title ?? 'Gaming status'}}</div>
+			<div class="text-h6">{{$props.title ?? capitalize($t('game.gameStatus.title'))}}</div>
 			<div class="text-subtitle2 text-center" v-if="state.party">
 
 				<span>
@@ -130,7 +156,7 @@ defineExpose({
 					</q-tooltip>
 				</span>
 
-				{{state.party.status[0].toUpperCase() + state.party.status.replace(/-/g, ' ').substring(1)}}
+				{{ printStatus(state.party.status) }}
 
 				<q-chip square :color="state.party.status == 'awaiting-player' ? 'grey' : 'blue'">
 					{{ state.party.scores[0] }} - {{ state.party.scores[1] }}
@@ -142,25 +168,25 @@ defineExpose({
 		<q-separator inset />
 
 		<q-card-section v-if="state.party">
-				Room:
+				{{ capitalize($t('game.gameStatus.room')) }}
 				<q-chip clickable icon-right="link" @click="(e) => {roomUrlToClipboard(state.party.room, e)}">
 					{{ state.party.room }}
 				</q-chip>
 				<br/>
-				Map: {{ state.party.map[0].toUpperCase() + state.party.map.substring(1) }}<br/>
-				Created at: {{((new Date(state.party.createdAt)).toLocaleString())}}<br/>
-				Scores: {{ state.party.scores[0] }} - {{ state.party.scores[1] }}
+				{{ capitalize($t('game.gameStatus.map')) }} {{ state.party.map[0].toUpperCase() + state.party.map.substring(1) }}<br/>
+				{{ capitalize($t('game.gameStatus.created')) }} {{((new Date(state.party.createdAt)).toLocaleString())}}<br/>
+				{{ capitalize($t('game.gameStatus.scores')) }} {{ state.party.scores[0] }} - {{ state.party.scores[1] }}
 		</q-card-section>
 
 		<q-card-section v-if="!state.party">
-				Not playing right now
+			{{ capitalize($t('game.gameStatus.no')) }}
 		</q-card-section>
 
 		<q-separator v-if="state.party"/>
 
 		<q-card-actions vertical v-if="state.party">
 			<q-btn color="primary" flat :href="state.party && routeFor(state.party.room)" :disable="!state.party">
-				Spectate
+				{{ capitalize($t('game.gameStatus.spectate')) }}
 			</q-btn>
 		</q-card-actions>
 	</q-card>

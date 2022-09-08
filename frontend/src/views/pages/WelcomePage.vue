@@ -48,7 +48,7 @@
 					<pictureEditing :avatar='user.avatar'></pictureEditing>
 				</q-card-section>
 			</q-card>
-			<q-btn flat v-close-popup  @click="onDimmissPopup">{{ $t('setting.profilPictureModal.dismiss') }}</q-btn>
+			<q-btn flat v-close-popup>{{ $t('setting.profilPictureModal.dismiss') }}</q-btn>
 		</div>
 	</q-dialog>
 </template>
@@ -97,11 +97,6 @@ export default ({
 			onFilterChange(filter.value);
 		}
 
-		async function onDimmissPopup ()
-		{
-			catchAxios(api.get('/user/new'));
-		}
-
 		async function onFriendClick (friendId: number)
 		{
 			router.push('/profile/' + String(friendId));
@@ -127,7 +122,10 @@ export default ({
 
 		onMounted(() =>
 		{
-			fetchUserInfo();
+			fetchUserInfo().then(() =>
+			{
+				catchAxios(api.get('/user/new'));
+			});
 			fetchFriendList();
 		});
 
@@ -142,7 +140,6 @@ export default ({
 			input,
 
 			toggleSearch,
-			onDimmissPopup,
 			onFilterChange,
 			onFriendClick
 		};

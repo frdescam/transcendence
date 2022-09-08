@@ -34,8 +34,12 @@ services:
         FRONTEND_HOST: ${FRONTEND_HOST}
         API_HOST: ${API_HOST}
     volumes:
+      - avatar:/usr/src/app/upload/avatars/
       - /etc/localtime:/etc/localtime:ro
 
 volumes:
   pgdata:
+    driver: local
+volumes:
+  avatar:
     driver: local

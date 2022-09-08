@@ -17,7 +17,7 @@ import { IsNotEmpty, IsNumberString, Length } from 'class-validator';
 
 // add async to route and stuff
 
-const defaultAvatarUri = `${env.API_HOST}/user/avatar/no_avatar.png`;
+const defaultAvatarUri = `${env.FRONTEND_HOST}/imgs/no_avatar.png`;
 
 class twoFAPayload {
 	@IsNumberString()

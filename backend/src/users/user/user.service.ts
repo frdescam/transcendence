@@ -39,9 +39,10 @@ export class UserService {
 
   // should add something if id fails?
   async updateAvatar(filename: string, userId: number): Promise<User> {
-    // return await this.userRepository.update(userId, {
-    // 	avatar: filename,
-    // });
+    // const user : User = await this.findOne({id: userId});
+
+    // if (!user)
+    //   return null;
 
     // should add something if id fails?
     const result = await this.userRepository.createQueryBuilder() // raw sql type

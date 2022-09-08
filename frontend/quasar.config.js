@@ -7,11 +7,7 @@ const path = require('path');
 
 module.exports = configure(() =>
 {
-	let apiUrl = 'http://';
-	apiUrl += (process.env.BACK_IP) ? process.env.BACK_IP : '127.0.0.1';
-	apiUrl += ':';
-	apiUrl += (process.env.BACK_PORT) ? process.env.BACK_PORT : '8080';
-	apiUrl += '/api/';
+	const apiUrl = process.env.API_HOST;
 
 	return {
 		eslint: {
@@ -46,6 +42,10 @@ module.exports = configure(() =>
 			'mdi-v6'
 		],
 
+		htmlVariables: {
+			dev: process.env.NODE_ENV !== 'production'
+		},
+
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
 		build: {
 			target: {
@@ -65,7 +65,11 @@ module.exports = configure(() =>
 			rawDefine: {
 				__api: JSON.stringify(apiUrl)
 			},
-			env: {},
+			env: {
+				NODE_ENV: process.env.NODE_ENV,
+				VITE_API_HOST: process.env.VITE_API_HOST,
+				api: apiUrl
+			},
 			distDir: 'dist',
 			vitePlugins: [
 				['@intlify/vite-plugin-vue-i18n', {
@@ -84,7 +88,11 @@ module.exports = configure(() =>
 			https: false,
 			host: process.env.VITE_IP,
 			port: parseInt(process.env.VITE_PORT, 10) | 3000,
-			open: false
+			open: false,
+			define: {
+				NODE_ENV: process.env.NODE_ENV,
+				api: apiUrl
+			}
 		},
 
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework

@@ -149,7 +149,12 @@ export default {
 			sendMessage: 'Send message',
 			invite: 'Send an invitation to play',
 			block: 'Block user',
-			unblock: 'Unblock user'
+			unblock: 'Unblock user',
+			time: '{time} seconds remaining',
+			notify: {
+				success: 'The party was properly closed',
+				failed: 'The party could not be closed properly, try to do it manually'
+			}
 		},
 		editor: {
 			image: 'Image',
@@ -206,6 +211,15 @@ export default {
 				players: 'players',
 				status: 'status',
 				creation: 'creation date'
+			},
+			message: {
+				awaiting: 'awaiting player',
+				warmup: 'warmup',
+				paused: 'paused',
+				sleeve: 'introducing sleeve',
+				running: 'running',
+				finish: 'finish',
+				default: 'unknow'
 			},
 			copied: 'link copied',
 			failed: 'failed to copy to clipboard',
@@ -323,9 +337,33 @@ export default {
 		achievements: {
 			title: 'achievements',
 			list: {
-				name: {
-					title: 'name',
-					subtitle: 'subname'
+				zapatero: {
+					name: '11 - 0 zapatero',
+					description: 'win a match without taking a goal'
+				},
+				tenWins: {
+					name: 'win 10 games',
+					description: 'win 10 games'
+				},
+				tenGames: {
+					name: 'play 10 games',
+					description: 'play 10 games'
+				},
+				closeCall: {
+					name: 'close call !',
+					description: 'win a match with a score of 11 - 10'
+				},
+				levelOne: {
+					name: 'level 1',
+					description: 'reach level one'
+				},
+				hundredGames: {
+					name: 'play 100 games',
+					description: 'play 100 games'
+				},
+				complete: {
+					name: 'completionist',
+					description: 'finish every game achievement'
 				}
 			}
 		},

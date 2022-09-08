@@ -4,7 +4,7 @@ import synthwave from './synthwave.headless';
 
 import type { mapConfig } from '../interfaces';
 
-type mapsObject = {
+export type mapsObject = {
 	[key: string]: mapConfig
 };
 

@@ -8,39 +8,39 @@
         </template>
       </q-input>
     </q-toolbar>
-    <q-item v-for="friend in filteredFriends" :key="friend.id" clickable v-ripple @click="onFriendClick(friend.user.id)" class="column q-ma-md q-pa-none rounded-borders shadow-2" style="width: 300px">
+    <q-item v-for="friend in filteredFriends" :key="friend.id" clickable v-ripple @click="onFriendClick(friend.id)" class="column q-ma-md q-pa-none rounded-borders shadow-2" style="width: 300px">
       <q-responsive :ratio="1" class="full-width">
         <q-avatar rounded class="full-width full-height">
-          <img :src='friend.user.avatar'>
+          <img :src='friend.avatar'>
         </q-avatar>
       </q-responsive>
       <div class="column items-center q-pt-xl">
         <div class="absolute full-width row justify-evenly" style="top: 300px; transform: translateY(-50%);">
-          <q-btn round fab icon="chat" color="primary" :href="'chat/' + friend.pseudo" v-on:click.stop>
+          <q-btn round fab icon="chat" color="primary" :to="{ name: 'chat' }" v-on:click.stop>
             <q-tooltip :delay="500">{{ capitalize($t('friend.message')) }}</q-tooltip>
           </q-btn>
-          <q-btn round fab icon="person_remove" color="primary" @click="onDeleteFriend(friend.followedUser.id)" v-on:click.stop>
+          <q-btn round fab icon="person_remove" color="primary" @click="onDeleteFriend(friend.id)" v-on:click.stop>
             <q-tooltip :delay="500">{{ capitalize($t('friend.delete')) }}</q-tooltip>
           </q-btn>
-          <q-btn v-if="friend.status == 'playing'" fab icon="visibility" color="primary" :href="'game/' + friend.pseudo/* TODO : replace with party id */" v-on:click.stop>
+          <q-btn v-if="friend.isPlaying" fab icon="visibility" color="primary" :href="'game/' + friend.partyRoom" v-on:click.stop>
             <q-tooltip :delay="500">{{ capitalize($t('friend.watch')) }}</q-tooltip>
           </q-btn>
         </div>
         <div class="row" style="font-size: 2em;">
-          <q-badge v-if="friend.status == 'online'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="light-green-14" rounded>
+          <q-badge v-if="friend.connected && !friend.isPlaying" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="light-green-14" rounded>
             <q-tooltip>{{ friend.status }}</q-tooltip>
           </q-badge>
-          <q-badge v-if="friend.status == 'offline'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="red" rounded>
+          <q-badge v-if="!friend.connected" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="red" rounded>
             <q-tooltip>{{ friend.status }}</q-tooltip>
           </q-badge>
-          <q-badge v-if="friend.status == 'playing'" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="orange" rounded>
+          <q-badge v-if="friend.isPlaying" class="q-my-auto q-mr-sm" style="width: 30px; height: 30px" color="orange" rounded>
             <q-tooltip>{{ friend.status }}</q-tooltip>
           </q-badge>
-            <div>{{ friend.user.pseudo }}</div>
-          <div class="q-ml-sm text-weight-bold">{{ $t('friend.rank', { rank: friend.user.rank }) }}</div>
+            <div>{{ friend.pseudo }}</div>
+          <div class="q-ml-sm text-weight-bold">{{ $t('friend.rank', { rank: friend.rank }) }}</div>
         </div>
-        <div style="font-size: 1.5em;">{{ capitalize($t('friend.level', { level: parseInt(friend.user.xp) })) }}</div>
-        <div class="q-pb-md" style="font-size: 1em;">{{ capitalize($t('friend.ratio', { ratio: friend.user.ratio })) }}%</div>
+        <div style="font-size: 1.5em;">{{ capitalize($t('friend.level', { level: parseInt(friend.xp) })) }}</div>
+        <div class="q-pb-md" style="font-size: 1em;">{{ capitalize($t('friend.ratio', { ratio: friend.ratio })) }}%</div>
       </div>
     </q-item>
     <div v-if="filteredFriends.length == 0 && filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
@@ -58,8 +58,11 @@
 import { ref } from '@vue/reactivity';
 import { useRouter } from 'vue-router';
 import { AxiosInstance } from 'axios';
-import { inject, onMounted, watch } from 'vue';
+import { inject, onUnmounted, onBeforeUnmount, onMounted, watch } from 'vue';
 import { Capitalize } from 'src/boot/libs';
+import type { catchAxiosType } from 'src/boot/axios';
+import { Socket } from 'socket.io-client';
+import type { getUserPartyDto } from 'src/common/game/orm/getUserParty.dto';
 
 export default {
 	name: 'FriendsPage',
@@ -67,40 +70,111 @@ export default {
 	{
 		const api: AxiosInstance = inject('api') as AxiosInstance;
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
 		const router = useRouter();
 		const filter = ref('');
-		const friends = ref([]);
-		const filteredFriends = ref([]);
+		const friends = ref<any[]>([]);
+		const filteredFriends = ref<any[]>([]);
+		const gameSocket: Socket = inject('socketGame') as Socket;
+
+		function onDisconnect (reason?: Socket.DisconnectReason)
+		{
+			for (const friend of friends.value)
+			{
+				gameSocket.emit('game::userinfos::leave', {
+					id: friend.id
+				});
+			}
+			if (typeof reason !== 'undefined' && reason === 'io server disconnect')
+				gameSocket.connect();
+		}
+
+		function onConnected ()
+		{
+			for (const friend of friends.value)
+			{
+				gameSocket.emit('game::userinfos::join', {
+					id: friend.id
+				});
+			}
+		}
+
+		function onUpdate (data: getUserPartyDto)
+		{
+			for (const friend of friends.value)
+			{
+				if (data.userId === friend.id)
+				{
+					if (data.party)
+					{
+						friend.isPlaying = true;
+						friend.partyRoom = data.party.room;
+					}
+					else
+					{
+						friend.isPlaying = false;
+						friend.partyRoom = null;
+					}
+					break;
+				}
+			}
+		}
 
 		async function fetchFriends ()
 		{
-			api.get('/friends/accepted').then((res) =>
-			{
-				friends.value = res.data;
-				onFilterChange(filter.value);
-			});
+			catchAxios(
+				api.get('/friends/accepted').then((res) =>
+				{
+					friends.value = res.data;
+					gameSocket.on('disconnect', onDisconnect);
+					gameSocket.on('connect', onConnected);
+					gameSocket.on('game::userinfos', onUpdate);
+					gameSocket.connect();
+
+					if (gameSocket.connected)
+						onConnected();
+					onFilterChange(filter.value);
+				})
+			);
 		}
 
 		fetchFriends();
 
-		function onFriendClick (friendPseudo: number)
+		function onFriendClick (friendId: number)
 		{
-			router.push('/profile/' + String(friendPseudo));
+			router.push('/profile/' + friendId);
 		}
 
 		function onFilterChange (value: string)
 		{
-			filteredFriends.value = friends.value.filter((friend: any) => friend.user.pseudo.toLowerCase().includes(value.toLowerCase()));
+			filteredFriends.value = friends.value.filter((friend: any) =>
+				(value)
+					? friend.pseudo.toLowerCase().includes(value.toLowerCase())
+					: friend.pseudo.toLowerCase()
+			);
 		}
 
 		async function onDeleteFriend (friendId: number)
 		{
-			api.delete('/friends/delete', {
-				data: { id: friendId }
-			}).then(() =>
+			const getFriends = () =>
 			{
-				fetchFriends();
-			});
+				for (const i in filteredFriends.value)
+				{
+					if (filteredFriends.value[i].id === friendId)
+						return Number(i);
+				}
+				return -1;
+			};
+			catchAxios(
+				api.delete('/friends/delete', {
+					data: { id: friendId }
+				}).then(() =>
+				{
+					const i = getFriends();
+					if (i !== -1)
+						filteredFriends.value.splice(i, 1);
+				})
+			);
 		}
 
 		onMounted(() =>
@@ -112,6 +186,16 @@ export default {
 			{
 				flush: 'post'
 			});
+		});
+
+		onUnmounted(() => gameSocket.disconnect());
+
+		onBeforeUnmount(() =>
+		{
+			onDisconnect();
+			gameSocket.off('game::userinfos', onUpdate);
+			gameSocket.off('disconnect', onDisconnect);
+			gameSocket.off('connect', onConnected);
 		});
 
 		return {

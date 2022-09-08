@@ -106,7 +106,6 @@
 </template>
 
 <script lang="ts">
-
 /* eslint-disable no-array-constructor */
 import { Timestamp, TimestampFunction } from 'src/boot/libs';
 import { Socket } from 'socket.io-client';
@@ -593,6 +592,10 @@ export default defineComponent({
 		padding: .5em;
 		overflow-x: auto;
 		z-index: 2;
+	}
+	.q-message-name {
+		color: white;
+		font-size: small;
 	}
 	.chat form img {
 		width: 100%;

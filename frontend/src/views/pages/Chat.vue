@@ -123,18 +123,6 @@ export default defineComponent({
 		};
 		// #endregion Definition
 
-		// #region Check if error with socket
-		const dialog = ref<QDialog | null>(null);
-
-		socket.on('connect_error', () => dialog.value?.show());
-		socket.on('connect', () => dialog.value?.hide());
-		socket.on('disconnect', (reason: Socket.DisconnectReason) =>
-		{
-			if (reason === 'io server disconnect')
-				socket.connect();
-		});
-		// #endregion  Check if error with socket
-
 		// #region Blocked user
 		watch(() => user.value, () => socket.emit('blocked::get', user.value));
 
@@ -152,7 +140,7 @@ export default defineComponent({
 
 		socket.on('blocked::receive::add', (ret) =>
 		{
-			if (!ret || ret.socketId !== socket.id)
+			if (!ret || ret.data.user.id !== user.value)
 				return;
 			if (Object.prototype.hasOwnProperty.call(ret.data, 'alreadyBlocked'))
 				return;
@@ -161,7 +149,7 @@ export default defineComponent({
 
 		socket.on('blocked::receive::remove', (ret) =>
 		{
-			if (!ret || ret.socketId !== socket.id)
+			if (!ret || ret.data.user.id !== user.value)
 				return;
 			if (Object.prototype.hasOwnProperty.call(ret.data, 'notBlocked') || ret.data.deleted === false)
 				return;
@@ -171,14 +159,36 @@ export default defineComponent({
 		});
 		// #endregion
 
-		// #region Get user id
+		// #region Check if error with socket
+		const dialog = ref<QDialog | null>(null);
+
+		const connectError = () => dialog.value?.show();
+		const connect = () => dialog.value?.hide();
+		const disconnect = (reason: Socket.DisconnectReason) =>
+		{
+			if (reason === 'io server disconnect')
+				socket.connect();
+		};
+
 		onMounted(() =>
 		{
+			socket.on('connect_error', connectError);
+			socket.on('connect', connect);
+			socket.on('disconnect', disconnect);
 			socket.connect();
 			socket.emit('ping');
 		});
-		onUnmounted(() => socket.disconnect());
 
+		onUnmounted(() =>
+		{
+			socket.off('connect_error', connectError);
+			socket.off('connect', connect);
+			socket.off('disconnect', disconnect);
+			socket.disconnect();
+		});
+		// #endregion  Check if error with socket
+
+		// #region Get user id
 		socket.on('pong', (ret) =>
 		{
 			if (ret.socketId === socket.id)

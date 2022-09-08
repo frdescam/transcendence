@@ -9,6 +9,7 @@ import { partyPingDto, partyJoinDto, partySpecateDto, partyMoveDto } from './orm
 import { queryFindDto } from './orm/gatewayQuery.dto';
 import { userinfosDto } from './orm/gatewayUserinfos.dto';
 import type { Socket, Server } from 'socket.io';
+import type { UserDTO } from 'src/users/orm/user.dto';
 import type { userId } from 'src/common/game/types';
 import type { Pong, partyQuery } from 'src/common/game/interfaces';
 import type { getPartyDto } from 'src/common/game/orm/getParty.dto';
@@ -60,7 +61,7 @@ export class MainGateway implements OnGatewayDisconnect
 	): void
 	{
 		const party = this.partyService.findParty(room);
-		const user: any = req.user;
+		const user: UserDTO = req.user;
 		const userId: userId = user.id;
 
 		if (party)
@@ -78,7 +79,7 @@ export class MainGateway implements OnGatewayDisconnect
 	): void
 	{
 		const party = this.partyService.findParty(room);
-		const user: any = req.user;
+		const user: UserDTO = req.user;
 
 		if (party)
 			this.partyService.spectateParty(party, client, user);
@@ -143,7 +144,7 @@ export class MainGateway implements OnGatewayDisconnect
 		@MessageBody() { map, adversary }: queryFindDto,
 	): void
 	{
-		const user: any = req.user;
+		const user: UserDTO = req.user;
 		this.partyService.checkUserObject(user);
 		const userId: userId = user.id;
 		const query: partyQuery = {map, adversary, requester: userId};

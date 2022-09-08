@@ -72,13 +72,17 @@ export default defineComponent({
 		const gameState = reactive<stateType>({ connected: false, party: null });
 		const myId = ref<number | undefined>(undefined);
 
-		function onDisconnect ()
+		function onDisconnect (reason: Socket.DisconnectReason | null)
 		{
 			gameState.connected = false;
 			gameSocket.emit('game::userinfos::leave', {
 				id: myId.value
 			});
+
+			if (reason && reason === 'io server disconnect')
+				gameSocket.connect();
 		}
+
 		function onConnected ()
 		{
 			gameState.connected = true;
@@ -86,6 +90,7 @@ export default defineComponent({
 				id: myId.value
 			});
 		}
+
 		function onUpdate (data: getUserPartyDto)
 		{
 			if (data.userId !== myId.value)
@@ -98,27 +103,22 @@ export default defineComponent({
 			if (typeof state.myself === 'undefined' || typeof state.myself.id === 'undefined')
 				return;
 			myId.value = state.myself.id;
-			gameSocket.connect();
 			gameSocket.on('game::userinfos', onUpdate);
 			gameSocket.on('disconnect', onDisconnect);
 			gameSocket.on('connect', onConnected);
+			gameSocket.connect();
+
 			if (gameSocket.connected)
 				onConnected();
 		});
 		onBeforeUnmount(() =>
 		{
-			onDisconnect();
+			onDisconnect(null);
 			gameSocket.off('game::userinfos', onUpdate);
 			gameSocket.off('disconnect', onDisconnect);
 			gameSocket.off('connect', onConnected);
 		});
 		onUnmounted(() => gameSocket.disconnect());
-
-		gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
-		{
-			if (reason === 'io server disconnect')
-				gameSocket.connect();
-		});
 
 		return {
 			capitalize,

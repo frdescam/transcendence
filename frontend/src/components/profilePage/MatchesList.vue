@@ -18,7 +18,7 @@
 			</div>
 		</q-toolbar>
 		<q-item v-for="match in filteredMatches" :key="match.id">
-			<q-card class="fit q-pa-md" v-bind:style="{ 'background-color': (match.winner.id == user.id) ? 'lightblue' : 'red' }">
+			<q-card class="fit q-pa-md" v-bind:style="{ 'background-color': (match.winner.id == user.id) ? 'lightblue' : '#e82e2e' }">
 				<p>{{ date.formatDate(match.timestamp, 'DD/MM/YYYY HH:mm') }}</p>
 				<div class="row justify-center">
 					<q-avatar>
@@ -33,7 +33,7 @@
 						<img :src='match.userForeign.avatar'>
 					</q-avatar>
 				</div>
-				<p class="text-center q-mb-none">{{ $t('profil.matches.title', { map: match.map }) }}</p>
+				<p class="text-center q-mb-none">{{ $t('profil.matches.map', { map: match.map }) }}</p>
 			</q-card>
 		</q-item>
 			<div v-if="filteredMatches.length == 0 && filter" class="text-center q-pa-md q-ma-md shadow-2 rounded-borders">
@@ -68,6 +68,12 @@ export default defineComponent({
 		{
 			if (typeof value === 'string')
 				filteredMatches.value = props.matches.filter((match: any) => match.map.toLowerCase().includes(value.toLowerCase()) || match.userHome.pseudo.toLowerCase().includes(value.toLowerCase()) || match.userForeign.pseudo.toLowerCase().includes(value.toLowerCase()));
+			filteredMatches.value.sort((a: any, b: any) =>
+			{
+				if (a.timestamp < b.timestamp)
+					return 1;
+				return 0;
+			});
 		}
 
 		onMounted(() =>

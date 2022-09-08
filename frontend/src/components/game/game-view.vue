@@ -8,6 +8,7 @@ import { Capitalize } from 'src/boot/libs';
 import Scene, { mapConfig, options } from './canvas/scene';
 import maps from './maps';
 
+import { controls } from 'src/common/game/types';
 import type { state as commonState, Ping, Pong } from 'src/common/game/interfaces';
 import type { controlsMode } from 'src/common/game/types';
 
@@ -165,7 +166,7 @@ function onState (state: Partial<commonState>)
 {
 	let latency = 0;
 	lastState = state;
-	if ('date' in state)
+	if ('date' in state && typeof state.date === 'string')
 	{
 		const now: Date = new Date();
 		const serverDate: Date = new Date(state.date);
@@ -174,7 +175,7 @@ function onState (state: Partial<commonState>)
 	scene?.setState(state, latency);
 }
 
-function onDisconnect ()
+function onDisconnect (reason: Socket.DisconnectReason)
 {
 	state.connected = false;
 	scene?.setState({
@@ -183,6 +184,9 @@ function onDisconnect ()
 		textSize: 0.5,
 		textColor: 0xff0000
 	}, 0);
+
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 }
 
 function onClick ()
@@ -214,10 +218,11 @@ function mountScene (config: mapConfig)
 				state.loaded = true;
 				scene?.setAccessibility(state.accessibility);
 				scene?.setQuality(state.graphics);
-				for (const control in ['wheel', 'keyboard', 'mouse'])
+				for (const control in controls)
 				{
-					if (state.available_controls[control])
-						scene?.setControl(control, state.controls[control]);
+					const typedControl = control as controlsMode; // Despite of the type of the array 'controls', typescript loose its information
+					if (state.available_controls[typedControl])
+						scene?.setControl(typedControl, state.controls[typedControl]);
 				}
 			},
 			onError
@@ -260,9 +265,9 @@ function onConnected ()
 		{
 			room: props.party
 		},
-		(err) =>
+		(err: Error) =>
 		{
-			state.error = err.message ? err.message : err;
+			state.error = err.message ? err.message : (err + '');
 		}
 	);
 
@@ -289,13 +294,13 @@ function onStateChange (gameState: commonState)
 
 onMounted(() =>
 {
-	gameSocket.connect();
 	gameSocket.on('party::error', onError);
 	gameSocket.on('party::pong', onPong);
 	gameSocket.on('party::mapinfo', onMapInfo);
 	gameSocket.on('party::state', onState);
 	gameSocket.on('disconnect', onDisconnect);
 	gameSocket.on('connect', onConnected);
+	gameSocket.connect();
 
 	if (gameSocket.connected)
 		onConnected();
@@ -314,12 +319,6 @@ onBeforeUnmount(() =>
 	gameSocket.emit('party::leaveAll');
 
 	umountScene();
-});
-
-gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
-{
-	if (reason === 'io server disconnect')
-		gameSocket.connect();
 });
 
 function join ()

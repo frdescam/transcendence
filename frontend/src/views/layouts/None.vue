@@ -1,7 +1,7 @@
 <template>
 	<q-layout view="hHh lpR fFf" class="background" :style="{'background-image': `url(${$route.meta.background})`, 'background-color': $route.meta.backgroundColor}">
 		<q-header elevated>
-			<Menu />
+			<Menu key="layout_none_menu" />
 		</q-header>
 
 		<q-page-container>

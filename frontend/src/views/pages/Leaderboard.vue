@@ -38,7 +38,7 @@
 			{
 				name: 'level',
 				label: $t('leaderboard.level').toUpperCase(),
-				field: 'level',
+				field: 'xp',
 				required: true,
 				align: 'left',
 				style: 'width: 10%'
@@ -80,12 +80,14 @@ import { inject, ref, onMounted, computed } from 'vue';
 import { AxiosInstance } from 'axios';
 import { Capitalize } from 'src/boot/libs';
 import { useRouter } from 'vue-router';
+import type { catchAxiosType } from 'src/boot/axios';
 
 export default {
 	name: 'LeaderboardPage',
 	setup ()
 	{
 		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 
 		const friendsOnly = ref(false);
@@ -110,14 +112,16 @@ export default {
 
 		async function fetchFromServer (friendsOnly, startRow, count, filter)
 		{
-			const res = await api.get('/leaderboard/getRows', {
-				params: {
-					friendsOnly,
-					startRow,
-					count,
-					filter
-				}
-			});
+			const res: any = await catchAxios(
+				api.get('/leaderboard/getRows', {
+					params: {
+						friendsOnly,
+						startRow,
+						count,
+						filter
+					}
+				})
+			);
 			return res.data;
 		}
 

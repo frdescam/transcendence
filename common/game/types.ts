@@ -17,6 +17,7 @@ type missedCallback = (state: serverState, remainingDelta: number) => void;
 type bouncedCallback = (state: serverState) => void;
 
 type controlsMode = 'wheel' | 'keyboard' | 'mouse';
+const controls: controlsMode[] = ['wheel', 'keyboard', 'mouse'];
 
-export { teamEnum };
+export { teamEnum, controls };
 export type { Material, userId, team, inclusiveTeam, avatar, missedCallback, bouncedCallback, controlsMode };

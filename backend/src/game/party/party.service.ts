@@ -9,6 +9,7 @@ import { bounceBall } from 'src/common/game/logic';
 import { teamEnum } from 'src/common/game/types';
 import maps from 'src/common/game/maps';
 import { Party, partyStatus, pauseReason, map, Query } from '../interface';
+import type { UserDTO } from 'src/users/orm/user.dto';
 import type { serverState, partyQuery } from 'src/common/game/interfaces';
 import type { team, userId } from 'src/common/game/types';
 import type { Socket } from 'socket.io';
@@ -21,7 +22,7 @@ export type userStatusChangeCallback = (userId: userId, partyJson: getPartyDto |
 export class PartyService
 {
 	private parties: Party[] = [];
-	private partiesBySocket: any = {};
+	private partiesBySocket: { [key: string]: Party } = {};
 	private queries: Query[] = [];
 	private onListChange: listChangeCallback | null = null;
 	private onUserStatusChange: userStatusChangeCallback | null = null;
@@ -32,7 +33,7 @@ export class PartyService
 	)
 	{}
 
-	public checkUserObject(user: any)
+	public checkUserObject(user: UserDTO)
 	{
 		if (typeof user !== 'object' || typeof user?.id !== 'number')
 			throw 'Authentification is required for that function';
@@ -54,9 +55,9 @@ export class PartyService
 
 	public getSlotFromUser (party: Party, userId: userId): -1 | 0 | 1
 	{
-		if (typeof party.playersId[0] == 'number' && party.playersId[0] === userId)
+		if (typeof party.playersId[0] === 'number' && party.playersId[0] === userId)
 			return 0;
-		else if (typeof party.playersId[1] == 'number' && party.playersId[1] === userId)
+		else if (typeof party.playersId[1] === 'number' && party.playersId[1] === userId)
 			return 1;
 		else
 			return -1;
@@ -137,7 +138,7 @@ export class PartyService
 					}
 				);
 				
-				if (!!party.playersSocket[winnerSlot])
+				if (party.playersSocket[winnerSlot])
 				{
 					this.sendSocketState(
 						party.playersSocket[winnerSlot],
@@ -149,7 +150,7 @@ export class PartyService
 						undefined
 					);
 				}
-				if (!!party.playersSocket[looserSlot])
+				if (party.playersSocket[looserSlot])
 				{
 					this.sendSocketState(
 						party.playersSocket[looserSlot],
@@ -412,9 +413,9 @@ export class PartyService
 		if (party.status !== partyStatus.Running && sendFull)
 			stateToSend = Object.assign(stateToSend, {ballSpeedX: 0, ballSpeedY: 0});
 
-		if (!!party.playersSocket[0])
+		if (party.playersSocket[0])
 			this.sendSocketState(party.playersSocket[0], stateToSend, sendTeam ? 0 : undefined);
-		if (!!party.playersSocket[1])
+		if (party.playersSocket[1])
 			this.sendSocketState(party.playersSocket[1], stateToSend, sendTeam ? 1 : undefined);
 			
 		party.spectators.forEach(
@@ -535,7 +536,7 @@ export class PartyService
 				{
 					if (!user)
 					{
-						if (!!party.playersSocket[slot])
+						if (party.playersSocket[slot])
 							this.sendError('Failed to retreive your avatar', party.playersSocket[slot]);
 						return ;
 					}
@@ -787,7 +788,7 @@ export class PartyService
 	public joinParty (party: Party, client: Socket, userId: userId): Party | null
 	{
 		{
-			let otherParty = this.findPartyWithUser(userId);
+			const otherParty = this.findPartyWithUser(userId);
 			if (otherParty && otherParty.room !== party.room)
 			{
 				this.sendError('You are already playing in another party', client);
@@ -808,7 +809,7 @@ export class PartyService
 		}
 		else
 			slot = 0;
-	 
+
 		if (party.playersSocket[slot])
 		{
 			this.sendError('You are already playing in another window', client);
@@ -862,11 +863,11 @@ export class PartyService
 		return (party);
 	}
 
-	public spectateParty (party: Party, client: Socket, user: any): Party
+	public spectateParty (party: Party, client: Socket, user: UserDTO): Party
 	{
 		client.emit('party::mapinfo', party.map);
 		this.sendSocketState(client, party.state, this.getSlotFromSocket(party, client), !!user);
-		if (!!user)
+		if (user)
 		{
 			this.checkUserObject(user);
 			const userId: userId = user.id;
@@ -879,18 +880,18 @@ export class PartyService
 					this.joinParty(party, client, userId);
 					return (party);
 				}
-					else if (party.playersSocket[slot].id == client.id)
+					else if (party.playersSocket[slot].id === client.id)
 						return (party);
 			}
 		}
-	 
+
 		party.spectators.push(client);
 		this.partiesBySocket[client.id] = party;
 
 		return (party);
 	}
 	
-	public createParty (room: string | null, map: map | null | undefined, userIds: [userId, userId | null], client?: Socket, user?: any, disableInvitation?: boolean): Party
+	public createParty (room: string | null, map: map | null | undefined, userIds: [userId, userId | null], client?: Socket, user?: UserDTO, disableInvitation?: boolean): Party
 	{
 		let party;
 		const involvedParty = this.findPartyWithUser(userIds[0]);
@@ -1004,9 +1005,9 @@ router.resolve({
 				delete this.partiesBySocket[spectator.id];
 			}
 		);
-		if (!!party.playersSocket[0])
+		if (party.playersSocket[0])
 			delete this.partiesBySocket[party.playersSocket[0].id];
-		if (!!party.playersSocket[1])
+		if (party.playersSocket[1])
 			delete this.partiesBySocket[party.playersSocket[1].id];
 
 		for (let i = 0; i < this.parties.length; ++i)
@@ -1050,7 +1051,7 @@ router.resolve({
 	{
 		if (party.status === partyStatus.Finish)
 			return (false);
-		if (typeof party.playersId[0] == 'number' && typeof party.playersId[1] == 'number')
+		if (typeof party.playersId[0] === 'number' && typeof party.playersId[1] === 'number')
 			if (party.playersId[0] !== query.requester && party.playersId[1] !== query.requester)
 				return (false);
 		if (typeof query.adversary === 'number' && party.playersId[0] !== query.adversary && party.playersId[1] !== query.adversary)

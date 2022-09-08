@@ -8,10 +8,11 @@
 
 <script lang="ts">
 
-import { AxiosInstance } from 'axios';
 import { inject, ref } from 'vue';
 import { Capitalize } from 'src/boot/libs';
 import { useRouter } from 'vue-router';
+import type { AxiosInstance } from 'axios';
+import type { catchAxiosType } from 'src/boot/axios';
 
 export default ({
 	name: '2FAPage',
@@ -19,6 +20,7 @@ export default ({
 	setup ()
 	{
 		const api: AxiosInstance = inject('api') as AxiosInstance;
+		const catchAxios = inject('catchAxios') as catchAxiosType;
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 
 		const router = useRouter();
@@ -30,7 +32,7 @@ export default ({
 			if (code.length === 6)
 			{
 				disableInput.value = true;
-				const res = await api.post('/2FA/login', { code });
+				const res: any = await catchAxios(api.post('/2FA/login', { code }));
 				if (res.data.error)
 				{
 					disableInput.value = false;

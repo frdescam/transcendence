@@ -6,8 +6,9 @@
 		square
 	>
 		<q-card style="width: 700px; max-width: 80vw;">
-			<q-card-section class="row items-center q-pb-none">
+			<q-card-section class="column items-center q-pb-none">
 				<span class="text-h6 modal-invite-user-title">{{ $t('chat.channel.invitation.player.title', { creator: info?.data.creatorName }) }}</span>
+				<span class="center">{{ $t('chat.user.time', { time: pendingCounter}) }}</span>
 			</q-card-section>
 			<q-card-section>
 				<div class="column">
@@ -31,7 +32,9 @@
 import { QDialog } from 'quasar';
 import { Socket } from 'socket.io-client';
 import { useRouter } from 'vue-router';
-import { defineComponent, ref, inject, watch } from 'vue';
+import { defineComponent, ref, inject, watch, onMounted, onUnmounted } from 'vue';
+
+let counter: NodeJS.Timer; // eslint-disable-line no-undef
 
 export default defineComponent({
 	name: 'chat_invitation_user',
@@ -44,6 +47,7 @@ export default defineComponent({
 		const router = useRouter();
 
 		const dialog = ref<QDialog | null>(null);
+		const pendingCounter = ref(-1);
 		const info = ref();
 
 		const accept = (val: boolean) =>
@@ -58,7 +62,7 @@ export default defineComponent({
 			});
 			dialog.value?.hide();
 			if (val === true)
-				router.push(`play/${info.value?.data.gameLink}`);
+				router.push(`game/${info.value?.data.gameLink}`);
 		};
 
 		socket.on('invitation::receive::send', (ret) =>
@@ -68,11 +72,23 @@ export default defineComponent({
 		});
 		watch(() => info, () =>
 		{
+			pendingCounter.value = 15;
+			counter = setInterval(() => --pendingCounter.value, 1 * 1000);
 			dialog.value?.show();
 		}, { deep: true });
 
+		watch(() => pendingCounter.value, () =>
+		{
+			if (pendingCounter.value === 0)
+			{
+				clearInterval(counter);
+				accept(false);
+			}
+		});
+
 		return {
 			dialog,
+			pendingCounter,
 			info,
 			accept
 		};

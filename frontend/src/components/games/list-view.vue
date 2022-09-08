@@ -19,7 +19,7 @@ interface column
 	field: string,
 	sortable?: boolean,
 	align?: 'left' | 'center' | 'right',
-	sort?: ((a: any, b: any, rowA: any, rowB: any) => number)
+	sort?: ((a: unknown, b: unknown, rowA: unknown, rowB: unknown) => number)
 }
 
 const { t } = useI18n();
@@ -82,9 +82,11 @@ function countPlayers (players: usersArray): number
 	return (players.filter((userId: userId | null) => (!!userId)).length);
 }
 
-function onDisconnect ()
+function onDisconnect (reason: Socket.DisconnectReason)
 {
 	state.connected = false;
+	if (reason === 'io server disconnect')
+		gameSocket.connect();
 }
 
 function onConnected ()
@@ -117,11 +119,11 @@ function onUpdate (party: getPartyDto)
 
 onMounted(() =>
 {
-	gameSocket.connect();
 	gameSocket.on('game::list::full', onCompleteList);
 	gameSocket.on('game::list::update', onUpdate);
 	gameSocket.on('disconnect', onDisconnect);
 	gameSocket.on('connect', onConnected);
+	gameSocket.connect();
 
 	if (gameSocket.connected)
 		onConnected();
@@ -138,15 +140,30 @@ onBeforeUnmount(() =>
 	gameSocket.off('connect', onConnected);
 });
 
-gameSocket.on('disconnect', (reason: Socket.DisconnectReason) =>
-{
-	if (reason === 'io server disconnect')
-		gameSocket.connect();
-});
-
 defineExpose({
 	partiesListObject: readonly(partiesListObject)
 });
+
+const printStatus = (val: string) =>
+{
+	switch (val)
+	{
+	case 'awaiting-player':
+		return capitalize(t('game.listView.message.awaiting'));
+	case 'warmup':
+		return capitalize(t('game.listView.message.warmup'));
+	case 'paused':
+		return capitalize(t('game.listView.message.paused'));
+	case 'introducing-sleeve':
+		return capitalize(t('game.listView.message.sleeve'));
+	case 'running':
+		return capitalize(t('game.listView.message.running'));
+	case 'finish':
+		return capitalize(t('game.listView.message.finish'));
+	default:
+		return capitalize(t('game.listView.message.default'));
+	}
+};
 </script>
 
 <template>
@@ -156,54 +173,54 @@ defineExpose({
 		dense
 		:rows="Object.keys(partiesListObject).map((key)=>(partiesListObject[key]))"
 		:columns="[
-      {
-        name: 'room',
-        required: true,
-        label: $t('game.listView.columns.room').toUpperCase(),
-        field: 'room',
-        sortable: true,
-        align: 'left'
-      },
-      {
-        name: 'map',
-        label: $t('game.listView.columns.map').toUpperCase(),
-        field: 'map',
-        sortable: true,
-        align: 'left'
-      },
-      {
-        name: 'scores',
-        label: $t('game.listView.columns.scores').toUpperCase(),
-        field: 'scores',
-        align: 'center'
-      },
-      {
-        name: 'players',
-        label: $t('game.listView.columns.players').toUpperCase(),
-        field: 'players',
-        sortable: true,
-        sort: (a: usersArray, b: usersArray) => (
-          (countPlayers(b)) - (countPlayers(a))
-        ),
-        align: 'center'
-      },
-      {
-        name: 'status',
-        label: $t('game.listView.columns.status').toUpperCase(),
-        field: 'status',
-        align: 'center'
-      },
-      {
-        name: 'createdAt',
-        label: $t('game.listView.columns.creation').toUpperCase(),
-        field: 'createdAt',
-        sortable: true,
-        sort: (a: string, b: string) => (
-          (new Date(b).getTime()) - (new Date(a).getTime())
-        ),
-        align: 'right'
-      }
-    ] as column[]"
+			{
+				name: 'room',
+				required: true,
+				label: $t('game.listView.columns.room').toUpperCase(),
+				field: 'room',
+				sortable: true,
+				align: 'left'
+			},
+			{
+				name: 'map',
+				label: $t('game.listView.columns.map').toUpperCase(),
+				field: 'map',
+				sortable: true,
+				align: 'left'
+			},
+			{
+				name: 'scores',
+				label: $t('game.listView.columns.scores').toUpperCase(),
+				field: 'scores',
+				align: 'center'
+			},
+			{
+				name: 'players',
+				label: $t('game.listView.columns.players').toUpperCase(),
+				field: 'players',
+				sortable: true,
+				sort: (a: usersArray, b: usersArray) => (
+					(countPlayers(b)) - (countPlayers(a))
+				),
+				align: 'center'
+			},
+			{
+				name: 'status',
+				label: $t('game.listView.columns.status').toUpperCase(),
+				field: 'status',
+				align: 'center'
+			},
+			{
+				name: 'createdAt',
+				label: $t('game.listView.columns.creation').toUpperCase(),
+				field: 'createdAt',
+				sortable: true,
+				sort: (a: string, b: string) => (
+					(new Date(b).getTime()) - (new Date(a).getTime())
+				),
+				align: 'right'
+			}
+		] as column[]"
 		:loading="!state.connected"
 		:pagination="tablePagination"
 		:rows-per-page-options="tablePaginationPerPage"
@@ -246,7 +263,7 @@ defineExpose({
 				</q-td>
 
 				<q-td key="status" :props="props">
-					{{ props.row.status[0].toUpperCase() + props.row.status.replace(/-/g, ' ').substring(1) }}
+					{{ printStatus(props.row.status) }}
 				</q-td>
 
 				<q-td key="createdAt" :props="props">

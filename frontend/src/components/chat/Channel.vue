@@ -744,6 +744,13 @@ export default defineComponent({
 
 			if (ret && ret.channel && ret.channel.created === true)
 			{
+				if (ret.socketId === socket.id)
+				{
+					socket.emit('admin::set', {
+						channelId: ret.channel.data.id,
+						userId: props.userId
+					});
+				}
 				if (ret.channel.data.type === 'public' || ret.channel.data.type === 'protected')
 					addUsers();
 				else if (ret.channel.data.type === 'private' || ret.channel.data.type === 'direct')

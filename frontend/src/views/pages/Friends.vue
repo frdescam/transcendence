@@ -79,7 +79,6 @@ export default {
 
 		function onDisconnect (reason?: Socket.DisconnectReason)
 		{
-			console.log("onDisconnect");
 			for (const friend of friends.value)
 			{
 				gameSocket.emit('game::userinfos::leave', {
@@ -92,7 +91,6 @@ export default {
 
 		function onConnected ()
 		{
-			console.log("onConnected");
 			for (const friend of friends.value)
 			{
 				gameSocket.emit('game::userinfos::join', {
@@ -103,7 +101,6 @@ export default {
 
 		function onUpdate (data: getUserPartyDto)
 		{
-			console.log("onUpdate", data);
 			for (const friend of friends.value)
 			{
 				if (data.userId === friend.id)

@@ -112,6 +112,7 @@ export default defineComponent({
 .profile-picture
 {
 	min-height: 100px;
+	max-height: 400px;
 }
 .profile-picture .profile-picture-edit {
 	visibility: hidden;

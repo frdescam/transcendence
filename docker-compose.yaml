@@ -1,0 +1,45 @@
+version: '3.3'
+
+services:
+  ################ Postgresql ################
+  postgres:
+    container_name: ${DB_HOST}
+    restart: unless-stopped
+    image: postgres:14
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8
+      PG_DATA: /var/lib/postgresql/data
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - .env
+
+  ################# Transcendence #################
+  transcendence:
+    container_name: transcendence
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - ${BACK_PORT}:${BACK_PORT}
+    build:
+      context: .
+      dockerfile: ./docker/production.Dockerfile
+      args:
+        NODE_ENV: production
+        VITE_API_HOST: ${API_HOST}
+        FRONTEND_HOST: ${FRONTEND_HOST}
+        API_HOST: ${API_HOST}
+    volumes:
+      - avatar:/usr/src/app/upload/avatars/
+      - /etc/localtime:/etc/localtime:ro
+
+volumes:
+  pgdata:
+    driver: local
+  avatar:
+    driver: local

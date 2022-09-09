@@ -13,9 +13,7 @@ import { AuthUser } from '../decorators/auth-user.decorator';
 import { User } from 'src/users/orm/user.entity';
 import { TwoFactorAuthService } from '../services/twoFactorAuth.service';
 import { AuthDto } from '../dto';
-import { IsNotEmpty, IsNumberString, Length } from 'class-validator';
-
-// add async to route and stuff
+import { IsNumberString, Length } from 'class-validator';
 
 const defaultAvatarUri = `${env.FRONTEND_HOST}/imgs/no_avatar.png`;
 
@@ -29,7 +27,6 @@ class twoFAPayload {
 export class AuthController {
         constructor(private auth_svc: AuthService, private auth2fa_svc: TwoFactorAuthService, private readonly cookies_svc: CookiesService, private config: ConfigService) { }
 
-    // deprecated now
     @Post("auto_reg")
     async auto_reg(@Body() {id}, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
     {
@@ -52,18 +49,13 @@ export class AuthController {
         return await this.auth_svc.signup(reg);
     }
 
-    // to log in without auth42 for insomnia
-    // code to ignore 2FA too, need to add this
-    // add register too?
     @Post("auto_login")
-    async auto_login(@Body() {id}, @Req() request: Request)//, @Res() res: Response)//: Promise<any> {
-    {
+    async auto_login(@Body() {id}, @Req() request: Request) {
         if (env.NODE_ENV !== 'developpement')
             throw new UnauthorizedException('developpement API is disabled in production mode');
 
         let user : User = await this.auth_svc.login({id: id});
 
-        // console.log(user, id);
         if (!user)
         {
             const reg : AuthDto = {
@@ -75,9 +67,7 @@ export class AuthController {
             };
             user = await this.auth_svc.signup(reg);
         }
-            //user = await this.auth_svc.signup({id: id});
 
-        // if 2FA activated return obj to frontend to display 2FA to user, else set cookies with jwt (if logged in) and return to frontend obj two_factor_enabled: false.
         if (user.is2FActive === true) // use boolean in db instead of string?
         {
             const twoFA_token = this.cookies_svc.get2FAJwtTokenCookie(user,);
@@ -87,8 +77,7 @@ export class AuthController {
             path: '/',
             });
 
-            // here add jwt cookie that tells the server that user tried to log in, make it available for 5 mins after that guard in /2fa/login will return 401.
-            return { // maybe like i add a cookie with id here its not necessary to return to the frontend the id of the user.
+            return {
 				user_id: user.id,
 				two_factor_enabled: true,
 			};
@@ -101,11 +90,9 @@ export class AuthController {
 			user,
 		);
 
-        // here call function that will update the status in our db to online, and update the refresh_token for the token
 		this.auth_svc.refresh(user, refresh_token);
         this.auth_svc.status(user, true);
 
-        // Add cookies here if not 2FA
         request.res.cookie("Authentication", auth_token, {maxAge: 86400 * 1000, // in ms // use env for maxAge
             sameSite: 'strict',
             httpOnly: true,
@@ -118,11 +105,9 @@ export class AuthController {
             path: '/',
         });
 
-        // return if 2FA or if logged to front end here! with a json obj
         return user;
     }
 
-    // this shoudlnt return null? cant fail so could be, but frontend wont knwo if dis worked
     @UseGuards(JwtAuthGuard)
 	@Get('2FA/deactivate')
 	async deactivate2FA(@AuthUser() user: User): Promise<void> {
@@ -131,7 +116,6 @@ export class AuthController {
 		);
 	}
 
-    // using response is bad, change this
     @UseGuards(JwtAuthGuard)
     @Get('2FA/generate')
     async generate(@Res() response: Response, @AuthUser() user: User) {
@@ -143,14 +127,11 @@ export class AuthController {
         return this.auth2fa_svc.pipeQrCodeStream(response, otpauthUrl);
     }
 
-    // receive 2FA code first time to check if its correct, if it is correct updates user db (activates 2FA). if fails return error.
     @UseGuards(JwtAuthGuard)
     @Post('2FA/turn-on')
     @UsePipes(new ValidationPipe({ whitelist: true }))
     async turnOnTwoFactorAuthentication(
-        @AuthUser() user: User, @Body() twoFACode : twoFAPayload // : TwoFactorAuthenticationCodeDto // create 2FA dto && add return that 2FA is activated
-    ) {
-    // if secret is in db & turn on is in db then this shouldnt work, just at the start
+        @AuthUser() user: User, @Body() twoFACode : twoFAPayload) {
     if (user.is2FActive === true)
         return {error: "2FA already active, on this account."};
 
@@ -159,46 +140,31 @@ export class AuthController {
         user,
       );
 
-      // if code sent failed 
       if (!isCodeValid)
         return {error: "2FA code invalid."};
       
       await this.auth2fa_svc.turnOn2FA(user.id);
 
-      // return if 2FA activated?
       return {
 		two_factor_enabled: true,
       }
     }
 
-    // receive 2FA code to check if its correct, if it is correct logs user in. if fails return error.
-    // clear the jwt 2fa cookie after this, if it works. what if it doesnt, clear or try again?
     @UseGuards(JwtAuth2FAGuard)
     @Post('2FA/login')
     @UsePipes(new ValidationPipe({ whitelist: true }))
 	async login2FA(
-		@Body() twoFACode: twoFAPayload, // create dto of dis shit
+		@Body() twoFACode: twoFAPayload,
 		@Req() request: Request,
-        @AuthUser() user: User,
-        // @Res() res: Response
-	)//: Promise<LoginResponseType> {
-        {
+        @AuthUser() user: User) {
 		const isCodeValid =
 			this.auth2fa_svc.is2FACodeValid(
 				twoFACode.code,
 				user,
 			);
 
-        // if this fails 401 error, wrong 2FA code, for now erases cookie so user needs to log in again.
-		if (!isCodeValid) {
-            // request.res.clearCookie("isSecondFactorAuthenticated", {maxAge: 0,
-            //     sameSite: 'strict',
-            //     httpOnly: true,
-            //     path: '/',
-            // });
+		if (!isCodeValid)
             return {error: "2FA code invalid."};
-			//throw new UnauthorizedException('Wrong authentication code');
-		}
 
         const auth_token = this.cookies_svc.getAuthJwtTokenCookie(
 			user,
@@ -228,21 +194,15 @@ export class AuthController {
             path: '/',
         });
 
-        // res.redirect(`${env.FRONTEND_HOST}/logging`);
-
-        // logged in
 		return {
 			two_factor_enabled: user.is2FActive,
 		};
 	}
     
     @UseGuards(OAuthGuard)
-    @Get("login") // login // remember to change this in .env too!
-    async login(@AuthUser() user: User, @Req() request: Request, @Res() res: Response)//: Promise<any> {
-    {
-        // if 2FA activated return obj to frontend to display 2FA to user, else set cookies with jwt (if logged in) and return to frontend obj two_factor_enabled: false.
-        if (user.is2FActive === true) // use boolean in db instead of string?
-        {
+    @Get("login")
+    async login(@AuthUser() user: User, @Req() request: Request, @Res() res: Response) {
+        if (user.is2FActive === true) {
             const twoFA_token = this.cookies_svc.get2FAJwtTokenCookie(user,);
             request.res.cookie("isSecondFactorAuthenticated", twoFA_token, {maxAge: 300 * 1000, // maxAge .env
             sameSite: 'strict',
@@ -251,18 +211,13 @@ export class AuthController {
             });
 
             res.redirect(`${env.FRONTEND_HOST}/login/2fa`);
-            //return to 127.0.0.1:3000/login/2fa
 
-            //return to 127.0.0.1:3000/
-
-            // here add jwt cookie that tells the server that user tried to log in, make it available for 5 mins after that guard in /2fa/login will return 401.
-            return { // maybe like i add a cookie with id here its not necessary to return to the frontend the id of the user.
+            return {
 				user_id: user.id,
 				two_factor_enabled: true,
 			};
         }
 
-        // if cookies are already there verify if they are valid and dont log in, just return object to frontend
         const auth_token = this.cookies_svc.getAuthJwtTokenCookie(
 			user,
 		);
@@ -270,7 +225,6 @@ export class AuthController {
 			user,
 		);
 
-        // here call function that will update the status in our db to online, and update the refresh_token for the token
 		this.auth_svc.refresh(user, refresh_token);
         this.auth_svc.status(user, true);
 
@@ -286,8 +240,6 @@ export class AuthController {
             path: '/',
         });
 
-        // return if 2FA or if logged to front end here! with a json obj
-
         res.redirect(`${env.FRONTEND_HOST}/logging`);
 
         return {
@@ -298,44 +250,30 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Get("logged")
     async logged(@AuthUser() user: User, @Req() request: Request): Promise<any> {
-        console.log(user);
-        this.auth_svc.test_users(user);
-        //console.log(request.headers, request.headers.cookie);
+        this.auth_svc.status(user, true);
         return user;
     }
 
-    // change return type & add async
     @UseGuards(JwtRefreshGuard)
     @Get("refresh")
-    async refresh(@AuthUser() user: User, @Req() request: Request)//: Promise<any> {
-    {
+    async refresh(@AuthUser() user: User, @Req() request: Request) {
         const auth_token = this.cookies_svc.getAuthJwtTokenCookie(
 			user,
 		);
 
-        // auth cookie refreshed for 24 hrs
         request.res.cookie('Authentication', auth_token, {maxAge: 86400 * 1000, // in ms // maxAge use JWT_AUTH_LIFETIME of env * 1000
         sameSite: 'strict',
         httpOnly: true,
         path: '/',
         });
-
-        return "refresh token working!";
     }
 
-    // change return type
-    //if i logout here but have cookies stored they will work still, what to do about it? check with session of evaluators copyng same cookie after log out, for they it works too... weird.
     @UseGuards(JwtAuthGuard)
     @Get("logout")
-    async logout(@AuthUser() user: User, @Req() request: Request)//: Promise<any> {
-    {
-        // here call function that will update the status in our db to offline, and update the refresh_token for the token (this case token null)
+    async logout(@AuthUser() user: User, @Req() request: Request) {
 		this.auth_svc.refresh(user, null);
         this.auth_svc.status(user, false);
 
-
-        // just clear cookies
-        // maybe second parameter not needed.
         request.res.clearCookie("Authentication", {maxAge: 0,
             sameSite: 'strict',
             httpOnly: true,

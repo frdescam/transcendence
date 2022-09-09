@@ -26,7 +26,6 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'auth-jwt') {
   }
 
   async validate(payload: TokenPayload): Promise<User> {
-    //console.log(payload);
     return this.auth_svc.login({
       id: payload.sub,
     });

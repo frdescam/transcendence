@@ -13,21 +13,17 @@ export class User extends BaseEntity {
     @PrimaryGeneratedColumn()
       id: number;
 
-    @Column({type: 'int4', nullable: true, unique: true}) // if we dont do passwords then this shouldnt be null!
-      fortytwo_id: number; // marvin id to look for ppl;
+    @Column({type: 'int4', nullable: true, unique: true})
+      fortytwo_id: number;
 
-    // unique commented by badam. Reason: Fail to initialize on a fresh database
-    @Column({type: 'varchar', length: 50/*, unique: true*/}) // change to unique cos must be unique!
+    @Column({type: 'varchar', length: 50})
       pseudo: string;
 
-    @Column({type: 'varchar', nullable: true}) // nullable
+    @Column({type: 'varchar', nullable: true})
       refresh_token: string;
 
-    @Column({type: 'varchar', length: 50, nullable: true}) // is email even useful here? could erase mosty likely
-      email: string; // erase email
-
-    // @Column({type: 'varchar', length: 60, nullable: true}) // nullable, optional?
-    //  password: string; // erase password
+    @Column({type: 'varchar', length: 50, nullable: true})
+      email: string;
 
     @Column({type: 'varchar', length: 70, nullable: true})
       avatar: string;
@@ -36,7 +32,7 @@ export class User extends BaseEntity {
       is2FActive: boolean;
 
     @Column({type: 'varchar', length: 60, nullable: true})
-      secretOf2FA: string; // TODO: check what we need to store here
+      secretOf2FA: string;
 
     @Column({type: 'float4', default: 0.0})
       xp: number;
@@ -47,7 +43,7 @@ export class User extends BaseEntity {
     @Column({type: 'int4'})
       rank: number;
 
-    @Column({type : 'enum', array: true, default: [], nullable: true, enum: AchievementsEnumName}) // erase nullable?
+    @Column({type : 'enum', array: true, default: [], nullable: true, enum: AchievementsEnumName})
       achievements: AchievementsEnumName[];
 
     @Column({ type: 'boolean', default: () => 'false'})

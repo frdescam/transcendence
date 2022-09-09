@@ -27,7 +27,7 @@
 				<div class="text-h6">{{ capitalize($t('setting.twoFactor.title')) }}</div>
 			</q-card-section>
 			<q-separator inset />
-			<q-card-section class="column justify-between items-center" style="height: 400px">
+			<q-card-section class="column justify-center items-center">
 				<div v-if="me.is2FActive">{{ capitalize($t('setting.twoFactor.subtitleOn')) }}</div>
 				<div v-if="!me.is2FActive">{{ capitalize($t('setting.twoFactor.subtitleOff')) }}</div>
 				<q-icon v-if="me.is2FActive && !TFAActivating" name="check_circle" color="green" size="200px"></q-icon>
@@ -35,7 +35,7 @@
 				<q-btn v-if="!TFAActivating && !me.is2FActive" @click="onActivate2FA">{{ capitalize($t('setting.twoFactor.activate')) }}</q-btn>
 				<q-btn v-if="!TFAActivating && me.is2FActive" @click="onDeactivate2FA">{{ capitalize($t('setting.twoFactor.desactivate')) }}</q-btn>
 				<q-img v-if="TFAActivating" :src="`${env.VITE_API_HOST}/2FA/generate?time=${new Date().getTime()}`" :ratio="1" style="width: 200px"/>
-				<q-form v-if="TFAActivating" class="column justify-evenly items-center q-pb-lg">
+				<q-form v-if="TFAActivating" class="column justify-evenly items-center full-height">
 					<q-input @update:model-value="update" :disable="disableInput" :color="inputColor" :autofocus=true mask="######" :label="capitalize($t('twofa.label'))"></q-input>
 				</q-form>
 			</q-card-section>

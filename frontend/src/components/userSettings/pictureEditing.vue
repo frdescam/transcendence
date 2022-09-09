@@ -1,9 +1,7 @@
-<template style="height: 400px">
+<template>
 	<q-form @submit="editProfilePicture">
-		<div class="profile-picture row items-center" style="height: 300px">
-			<q-img v-if="!newUploadedAvatar" :src="avatar" class="profile-picture"/>
-			<q-img v-if="newUploadedAvatar" :src="newUploadedAvatar" class="profile-picture"/>
-			<div class="absolute text-subtitle2 flex flex-center full-width profile-picture-edit">
+		<q-img v-if="!newUploadedAvatar" :src="avatar" class="profile-picture">
+			<div class="absolute-full text-subtitle2 flex flex-center profile-picture-edit">
 				<q-file
 					outlined bg-color="white"
 					v-model="newAvatar"
@@ -11,7 +9,17 @@
 					:label="capitalize($t('setting.profilPictureModal.picture'))"
 				/>
 			</div>
-		</div>
+		</q-img>
+		<q-img v-if="newUploadedAvatar" :src="newUploadedAvatar" class="profile-picture">
+			<div class="absolute-full text-subtitle2 flex flex-center profile-picture-edit">
+				<q-file
+					outlined bg-color="white"
+					v-model="newAvatar"
+					@update:model-value="updateAvatarWithPickedOne"
+					:label="capitalize($t('setting.profilPictureModal.picture'))"
+				/>
+			</div>
+		</q-img>
 		<div class="row items-center q-mt-md">
 			<q-btn type="submit" :label="capitalize($t('setting.profilPictureModal.update'))" />
 			<div class="q-pl-md">

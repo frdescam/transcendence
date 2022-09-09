@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, LessThanOrEqual, Like, Not, Repository } from 'typeorm';
+import { LessThanOrEqual, Like, Not, Repository } from 'typeorm';
 import { env } from 'process';
 
 import { AuthDto } from '../../auth/dto';
@@ -17,7 +17,6 @@ export class UserService {
     @InjectRepository(Match)
     private readonly matchRepository: Repository<Match>,
   ) {}
-  //#region Part Leo
   async turnOn2FA(userId: number): Promise<void> {
     await this.userRepository.update(userId, {
       is2FActive: true,
@@ -37,15 +36,8 @@ export class UserService {
     });
   }
 
-  // should add something if id fails?
   async updateAvatar(filename: string, userId: number): Promise<User> {
-    // const user : User = await this.findOne({id: userId});
-
-    // if (!user)
-    //   return null;
-
-    // should add something if id fails?
-    const result = await this.userRepository.createQueryBuilder() // raw sql type
+    const result = await this.userRepository.createQueryBuilder()
       .update({
         avatar: `${env.API_HOST}/user/avatar/${filename}`,
       })
@@ -55,24 +47,14 @@ export class UserService {
       .returning('*')
       .execute();
 
-    //console.log("result: ",result.raw[0]);
-    // return result.raw[0];
     return this.sanitizeUser(result.raw[0]);
-    //  return await this.userRepository.save({
-    // 	id: userId,
-    //  	avatar: filename,
-    //  });
   }
   
-  // should add something if id fails?
   async updatePseudo(new_pseudo: string, userId: number) : Promise<User | object> {
-    // change return here
     const user: User = await this.userRepository.findOne({pseudo : new_pseudo});
 
     if (user)
-      return {error: 'pseudo already taken!'}; // throw exception?
-		
-    console.log('updatePseudo: if undefined is good, user: ', user);
+      return {error: 'pseudo already taken!'};
 		
     const result = await this.userRepository.createQueryBuilder()
       .update({
@@ -83,21 +65,13 @@ export class UserService {
       })
       .returning('*')
       .execute();
-
-    // const user : User = result.raw[0];
-		
-    console.log('result: ',result.raw[0]);
-    //console.log(test_user, user, result.raw[0]);
     return this.sanitizeUser(result.raw[0]);
   }
 
   async findOneComplete(user_dto: AuthDto): Promise<User> {
-    // print this when testing multiple pseudos
-    //console.log(await this.getUniquePseudo(user_dto.pseudo));
     return this.userRepository.findOne({where: user_dto});
   }
 
-  // add sanitize to relations? like friends, ignore?
   async sanitizeUser(user: User): Promise<User>
   {
     if (user) {
@@ -147,7 +121,6 @@ export class UserService {
     return user;
   }
 
-  //#region achievements
   async getAchievements(userId: number) : Promise<AchievementsDto[]> {
     const user: User = await this.findOne({id : userId});
     if (!user)
@@ -163,28 +136,6 @@ export class UserService {
         achievs.push(elem);
     }
     return achievs;
-  }
-
-  // testing purposes, erase later
-  async createMockupMatch(user: User, obj: any) {
-    const enemy : User = await this.findOne({id : obj.ene});
-    const winner : User = await this.findOne({id : obj.win});
-    const match = this.matchRepository.create({
-      map : 'classic',
-      userHome : user,
-      userForeign : enemy,
-      winner : winner,
-      ...obj,
-      timestamp : new Date(Date.now()).toLocaleString(),
-    });
-    await this.matchRepository.save(match);
-    return match;
-  }
-
-  // testing purposes, erase later
-  async resetAchievement(userId : number) : Promise<void> {
-    const user : User = (await this.userRepository.findOne(userId));
-    this.userRepository.update(user, {achievements : []});
   }
 
   async checkAchievement(userId: number) : Promise<void> {
@@ -216,20 +167,13 @@ export class UserService {
       user.achievements.push(AchievementsEnumName.COMPLETE);
     await this.userRepository.save(user);
   }
-  //#endregion
 
-  // need to test more!
-  // and use this when changing pseudo too not just register
-  // cant have mutiple ppl with same pseudo nick, nickname
   private async getUniquePseudo(login: string): Promise<string> {
-    const found: User = await this.userRepository.findOne({ where: {pseudo: login} }); // where not needed here
+    const found: User = await this.userRepository.findOne({ where: {pseudo: login} });
 
     if (!found)
       return login;
 
-    //const last: User = await this.userRepository.findLastWithNameLike(login);
-
-    // if last not needed then can erase Like include of typeorm
     const last: User = await this.userRepository.findOne({
       select: ['id'],
       where: { pseudo: Like(`${login}%`) },
@@ -248,7 +192,6 @@ export class UserService {
     const user: User = this.userRepository.create({
       ...user_dto,
     });
-    //console.log(user);
     return this.userRepository.save(user);
   }
 
@@ -270,14 +213,6 @@ export class UserService {
     });
   }
 
-  async remove(user: User): Promise<boolean> {
-    const result: DeleteResult = (await this.userRepository.delete(user));
-    if (result.affected > 0)
-      return true;
-    return false;
-  }
-
-  //#region Franco
   private computeXp(nbWon: number, nbLost: number): number {
     return nbWon * 0.1 + nbLost * 0.0075;
   }
@@ -342,10 +277,8 @@ export class UserService {
 
     this.updateRanks(userId);
     this.checkAchievement(userId);
-    // here call checkAchievs
 }
   
-  //#region Part Clément
   getAll(): Promise<User[]> {
     return this.userRepository.find({ relations: ['blockedUsers', 'blockedUsersBy'] });
   }

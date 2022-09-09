@@ -10,7 +10,6 @@ export class AuthService {
   async login(user_dto: AuthDto): Promise<User> {
     const user: User = await this.users_svc.findOneComplete(user_dto);
 
-    // console.log(user, user_dto);
     if (!user)
       return undefined;
 
@@ -19,12 +18,6 @@ export class AuthService {
 
     return user;
   }
-
-  //erase later
-  async test_users(user_dto: AuthDto) {
-    // this.users_svc.
-  }
-  //erase later
 
   async signup(user_dto: AuthDto): Promise<User> {
     return this.users_svc.signup(user_dto);

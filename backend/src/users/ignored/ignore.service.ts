@@ -53,7 +53,6 @@ export class IgnoreService {
     return false;
   }
 
-  // badam start
   async ignoredBy(user: userId, by: userId): Promise<boolean>
   {
     const ignore: Ignore[] = await this.ignoreRepository.find({
@@ -72,7 +71,6 @@ export class IgnoreService {
       await this.ignoredBy(user2, user1)
     ));
   }
-  // badam end
 
   async findAll(user: User): Promise<Ignore[]> {
     const ignore: Ignore[] = await this.ignoreRepository.find({

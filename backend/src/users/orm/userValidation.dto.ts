@@ -1,7 +1,5 @@
 import { IsInt, IsNotEmpty, IsNumber, IsNumberString, IsPositive, IsString, Length } from 'class-validator';
 
-// create only 1 class instead of 1000
-
 export class idValidationDto {
 	@IsNotEmpty()
 	@IsPositive()

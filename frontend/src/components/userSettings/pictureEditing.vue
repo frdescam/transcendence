@@ -1,8 +1,10 @@
 <template>
 	<q-form @submit="editProfilePicture">
-		<q-img v-if="!newUploadedAvatar" :src="avatar" class="profile-picture">
+		<q-img v-if="!newUploadedAvatar" :src="avatar" class="profile-picture" style="min-height: 200px">
 			<div class="absolute-full text-subtitle2 flex flex-center profile-picture-edit">
 				<q-file
+					max-file-size="5242880"
+					accept="image/jpeg,image/png"
 					outlined bg-color="white"
 					v-model="newAvatar"
 					@update:model-value="updateAvatarWithPickedOne"
@@ -13,6 +15,8 @@
 		<q-img v-if="newUploadedAvatar" :src="newUploadedAvatar" class="profile-picture">
 			<div class="absolute-full text-subtitle2 flex flex-center profile-picture-edit">
 				<q-file
+					max-file-size="5242880"
+					accept="image/jpeg,image/png"
 					outlined bg-color="white"
 					v-model="newAvatar"
 					@update:model-value="updateAvatarWithPickedOne"

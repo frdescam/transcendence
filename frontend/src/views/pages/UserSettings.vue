@@ -12,16 +12,6 @@
 				<pictureEditing :avatar="me.avatar"></pictureEditing>
 			</q-card-section>
 		</q-card>
-		<!-- <q-card bordered style='width: 300px;' class="q-ma-md">
-			<q-card-section>
-				<div class="text-h6">Password</div>
-			</q-card-section>
-			<q-separator inset />
-			<q-card-section>
-				<passwordEditing></passwordEditing>
-			</q-card-section>
-		</q-card> -->
-
 		<q-card bordered style='width: 300px;' class="q-ma-md">
 			<q-card-section>
 				<div class="text-h6">{{ capitalize($t('setting.twoFactor.title')) }}</div>
@@ -40,47 +30,6 @@
 				</q-form>
 			</q-card-section>
 		</q-card>
-
-		<!-- <q-card bordered style='width: 300px;' class="my-card q-ma-md">
-			<q-card-section>
-				<div class="text-h6">Game options</div>
-			</q-card-section>
-
-			<q-separator inset />
-
-			<q-card-section>
-				<q-form method="post" @submit="GameOptionsSubmit">
-					<q-select v-model="paddleSelected" :options="paddleOptions" label="Paddle Color" />
-					<q-btn type="submit" class="q-mt-md" label='Update' />
-				</q-form>
-			</q-card-section>
-		</q-card> -->
-
-<!--
-		<q-card bordered style='width: 300px;' class="q-ma-md">
-			<q-card-section class="row justify-center">
-				<q-form method="post" @submit="deleteAccount">
-					<q-btn push :label="capitalize($t('setting.delete.title'))" color="red">
-						<q-popup-proxy ref="popupDelete">
-							<q-banner>
-								<template v-slot:avatar>
-									<q-icon name="warning" color="red" />
-								</template>
-								<div class="row no-wrap items-center">
-									<span style="height: fit-content">{{ capitalize($t('setting.delete.subtitleOne')) }} {{ capitalize($t('setting.delete.subtitleTwo')) }}</span>
-									<div>
-										<q-btn flat icon="done" color="red" @click="deleteAccount" />
-										<q-btn flat icon="close" color="secondary" @click="popupDelete.hide()" />
-									</div>
-								</div>
-							</q-banner>
-						</q-popup-proxy>
-					</q-btn>
-				</q-form>
-			</q-card-section>
-		</q-card>
--->
-
 	</q-list>
 </template>
 
@@ -130,7 +79,6 @@ export default ({
 
 		async function update (code: string)
 		{
-			// console.log('me.value (in update) : ', me.value);
 			if (code.length === 6)
 			{
 				disableInput.value = true;
@@ -160,7 +108,6 @@ export default ({
 			capitalize,
 			env,
 
-			// paddleSelected,
 			TFAActivating,
 			disableInput,
 			inputColor,
@@ -170,14 +117,9 @@ export default ({
 			onActivate2FA,
 			onDeactivate2FA,
 			update,
-			// GameOptionsSubmit ()
-			// {
-			// console.log(paddleSelected.value);
-			// },
 			deleteAccount ()
 			{
 				popupDelete.value?.hide();
-				// console.log('User deleted their account');
 			},
 			paddleOptions: [
 				'Normal', 'Fire', 'Air', 'Water', 'Earth'

@@ -102,7 +102,6 @@ export class MessageService {
         .from(Message)
         .where('channel.id = :id', { id: channelId })
         .execute();
-      console.log(__ret);
       return {
         message: 'Message(s) deleted',
         channel: channelId,

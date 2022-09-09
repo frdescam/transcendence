@@ -187,7 +187,6 @@ export class UserService {
 
   async signup(user_dto: AuthDto): Promise<User> {
     user_dto.pseudo = await this.getUniquePseudo(user_dto.pseudo);
-    console.log('new user: ' ,user_dto);
     user_dto.rank = await this.userRepository.count({}) + 1;
     const user: User = this.userRepository.create({
       ...user_dto,
@@ -219,7 +218,6 @@ export class UserService {
 
   private computeRatio(nbWon: number, nbLost: number): number {
     const ratio :number = (nbWon / (nbWon + nbLost)) * 100;
-    console.log(ratio);
     if (isNaN(ratio) || !isFinite(ratio))
       return 0;
     return parseInt(ratio.toString());
@@ -239,7 +237,6 @@ export class UserService {
       else
         return -1;
     });
-    console.log('usersToUpdate : ', usersToUpdate);
     const newRank = usersToUpdate[0].rank;
     usersToUpdate.forEach((user) => {
       if (user.id == userId) {
@@ -267,8 +264,6 @@ export class UserService {
         { userHome: userId, winner: Not(userId) }
       ],
     });
-
-    console.log('user : ', userId, 'nbWon : ', nbWon, 'nbLost : ', nbLost);
 
     await this.userRepository.update(userId, {
       xp: this.computeXp(nbWon, nbLost),

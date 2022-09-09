@@ -123,10 +123,7 @@ class PongScene
 			targetElem: document.body,
 			onReady: null,
 			onProgress: undefined,
-			onError: (message: string) =>
-			{
-				console.log(message);
-			},
+			onError: (_message: string) => {},
 			onMove: null,
 			onStateChange: null
 		}, options);
@@ -496,10 +493,6 @@ class PongScene
 					this.render();
 					this.setAnimationLoop(this.render.bind(this));
 					onReady();
-					console.log('Scene polycount:', this.renderer.info.render.triangles);
-					console.log('Active Drawcalls:', this.renderer.info.render.calls);
-					console.log('Textures in Memory', this.renderer.info.memory.textures);
-					console.log('Geometries in Memory', this.renderer.info.memory.geometries);
 				}
 			};
 
@@ -641,7 +634,6 @@ class PongScene
 			break;
 
 		default:
-			console.warn('Map config provide unrecognized effect');
 			break;
 		}
 	}

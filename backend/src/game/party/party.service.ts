@@ -504,8 +504,6 @@ export class PartyService
 			party.status = partyStatus.Running;      
 			this.handlePartyChange(party, {}, true);
 		}
-		else
-			console.warn('Should never happen');
 		party.clock.getDelta();
 	}
 

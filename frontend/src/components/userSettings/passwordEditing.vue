@@ -53,10 +53,7 @@ export default defineComponent({
 		const capitalize: Capitalize = inject('capitalize') as Capitalize;
 		const newPassword = ref('');
 		const oldPassword = ref('');
-		const passwordSubmit = function ()
-		{
-			// console.log(oldPassword.value, newPassword.value);
-		};
+		const passwordSubmit = function () {};
 		return {
 			capitalize,
 			newPassword,

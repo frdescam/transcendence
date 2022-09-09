@@ -102,6 +102,7 @@ export default {
 			}
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		function onBlockedReceiveAdd (ret: any)
 		{
 			if (typeof ret === 'undefined' || typeof ret.data === 'undefined')
@@ -113,6 +114,7 @@ export default {
 				isUserIgnored.value = true;
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		function onBlockedReceiveRemove (ret: any)
 		{
 			if (typeof ret === 'undefined' || typeof ret.data === 'undefined')
@@ -124,6 +126,7 @@ export default {
 				isUserIgnored.value = false;
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		function onBlockedReceiveGet (ret: any)
 		{
 			if (!ret || typeof ret.data === 'undefined')
